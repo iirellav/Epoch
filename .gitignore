@@ -1,0 +1,18 @@
+# Binaries
+**/bin/
+!vendor/bin/premake/
+!Epoch/vendor/assimp/bin
+!Epoch/vendor/mono/bin
+bin-int/
+
+**/cache/**
+**/Cache/**
+
+# Visual Studio files and folder
+.vs/
+**.sln
+**.vcxproj
+**.vcxproj.filters
+**.vcxproj.user
+**.csproj
+**.user
