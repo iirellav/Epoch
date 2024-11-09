@@ -4,7 +4,7 @@
 !Epoch/vendor/assimp/bin
 !Epoch/vendor/mono/bin
 bin-int/
-
+Aeon/Resources/Scripts
 **/cache/**
 **/Cache/**
 
@@ -16,3 +16,10 @@ bin-int/
 **.vcxproj.user
 **.csproj
 **.user
+
+# Folders
+Aeon/Profiling_Results
+Aeon/logs
+
+Aeon/Config/EditorLayout.yaml
+Aeon/Config/EditorSettings.config
