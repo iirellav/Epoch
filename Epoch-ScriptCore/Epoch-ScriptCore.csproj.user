@@ -1,0 +1,5 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ReferencePath>..\Aeon\mono\lib\mono\4.5;..\Aeon\mono\lib\mono\4.5\Facades</ReferencePath>
+  </PropertyGroup>
+</Project>

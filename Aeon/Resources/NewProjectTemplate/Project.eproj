@@ -1,0 +1,4 @@
+Project:
+  Name: $PROJECT_NAME$
+  AssetDirectory: Assets
+  AssetRegistry: Regs/AssetRegistry.reg

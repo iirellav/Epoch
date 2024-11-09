@@ -1,0 +1,11 @@
+Project:
+  Name: DefaultProject
+  CompanyName: ""
+  Version: 0.100000001
+  StartScene: ""
+  EditorCameraPosition: [-258.044006, 112.199966, -190.545319]
+  EditorCameraRotation: [0.0139999948, 1.15600789, 0]
+  AutosaveDirectory: Autosaves
+  AssetDirectory: Assets
+  AssetRegistryPath: Regs/AssetRegistry.epr
+  DefaultScriptNamespace: DefaultProject

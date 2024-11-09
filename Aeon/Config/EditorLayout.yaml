@@ -1,0 +1,21 @@
+Panels:
+  - Name: Project Settings
+    IsOpen: false
+  - Name: Preferences
+    IsOpen: false
+  - Name: Script Engine
+    IsOpen: false
+  - Name: Scene Hierarchy
+    IsOpen: true
+  - Name: Statistics
+    IsOpen: true
+  - Name: Console
+    IsOpen: true
+  - Name: Content Browser
+    IsOpen: true
+  - Name: Inspector
+    IsOpen: true
+  - Name: Asset Manager
+    IsOpen: false
+  - Name: Shader Library
+    IsOpen: true

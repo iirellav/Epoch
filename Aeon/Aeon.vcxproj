@@ -1,0 +1,201 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Dist|x64">
+      <Configuration>Dist</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{8870827C-74A7-830D-1D94-691009AAFF0E}</ProjectGuid>
+    <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>Aeon</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>..\bin\Debug-x86_64\Aeon\</OutDir>
+    <IntDir>..\bin-int\Debug-x86_64\Aeon\</IntDir>
+    <TargetName>Aeon</TargetName>
+    <TargetExt>.exe</TargetExt>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>..\bin\Release-x86_64\Aeon\</OutDir>
+    <IntDir>..\bin-int\Release-x86_64\Aeon\</IntDir>
+    <TargetName>Aeon</TargetName>
+    <TargetExt>.exe</TargetExt>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>..\bin\Dist-x86_64\Aeon\</OutDir>
+    <IntDir>..\bin-int\Dist-x86_64\Aeon\</IntDir>
+    <TargetName>Aeon</TargetName>
+    <TargetExt>.exe</TargetExt>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DisableSpecificWarnings>4068;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NOMINMAX;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;PLATFORM_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\CommonUtilities\src;src;..\Epoch\src;..\Epoch\vendor;..\Epoch\vendor\GLFW\include;..\Epoch\vendor\filewatch\include;..\Epoch\vendor\yaml-cpp\include;..\Epoch\vendor\NFD-Extended\include;..\Epoch\vendor\magic_enum\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <MinimalRebuild>false</MinimalRebuild>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/EHsc /Zc:preprocessor /Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExternalWarningLevel>Level3</ExternalWarningLevel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(SolutionDir)Epoch\vendor\mono\bin\Debug\mono-2.0-sgen.dll" "$(SolutionDir)bin\$(Configuration)-$(LlvmPlatformName)\$(ProjectName)" /e /y /i /r
+xcopy "$(SolutionDir)Epoch\vendor\assimp\bin\Debug\assimp-vc143-mtd.dll" "$(SolutionDir)bin\$(Configuration)-$(LlvmPlatformName)\$(ProjectName)" /e /y /i /r</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DisableSpecificWarnings>4068;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NOMINMAX;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;PLATFORM_WINDOWS;_RELEASE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\CommonUtilities\src;src;..\Epoch\src;..\Epoch\vendor;..\Epoch\vendor\GLFW\include;..\Epoch\vendor\filewatch\include;..\Epoch\vendor\yaml-cpp\include;..\Epoch\vendor\NFD-Extended\include;..\Epoch\vendor\magic_enum\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/EHsc /Zc:preprocessor /Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExternalWarningLevel>Level3</ExternalWarningLevel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(SolutionDir)Epoch\vendor\mono\bin\Release\mono-2.0-sgen.dll" "$(SolutionDir)bin\$(Configuration)-$(LlvmPlatformName)\$(ProjectName)" /e /y /i /r
+xcopy "$(SolutionDir)Epoch\vendor\assimp\bin\Release\assimp-vc143-mt.dll" "$(SolutionDir)bin\$(Configuration)-$(LlvmPlatformName)\$(ProjectName)" /e /y /i /r</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DisableSpecificWarnings>4068;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NOMINMAX;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;PLATFORM_WINDOWS;_DIST;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\CommonUtilities\src;src;..\Epoch\src;..\Epoch\vendor;..\Epoch\vendor\GLFW\include;..\Epoch\vendor\filewatch\include;..\Epoch\vendor\yaml-cpp\include;..\Epoch\vendor\NFD-Extended\include;..\Epoch\vendor\magic_enum\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/EHsc /Zc:preprocessor /Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExternalWarningLevel>Level3</ExternalWarningLevel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(SolutionDir)Epoch\vendor\mono\bin\Release\mono-2.0-sgen.dll" "$(SolutionDir)bin\$(Configuration)-$(LlvmPlatformName)\$(ProjectName)" /e /y /i /r
+xcopy "$(SolutionDir)Epoch\vendor\assimp\bin\Release\assimp-vc143-mt.dll" "$(SolutionDir)bin\$(Configuration)-$(LlvmPlatformName)\$(ProjectName)" /e /y /i /r</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Aeon\EditorLayer.h" />
+    <ClInclude Include="src\Aeon\EditorResources.h" />
+    <ClInclude Include="src\Aeon\PanelManager.h" />
+    <ClInclude Include="src\Aeon\Panels\AssetManagerPanel.h" />
+    <ClInclude Include="src\Aeon\Panels\ContentBrowserPanel.h" />
+    <ClInclude Include="src\Aeon\Panels\InspectorPanel.h" />
+    <ClInclude Include="src\Aeon\Panels\PagePanel.h" />
+    <ClInclude Include="src\Aeon\Panels\PreferencesPanel.h" />
+    <ClInclude Include="src\Aeon\Panels\ProjectSettingsPanel.h" />
+    <ClInclude Include="src\Aeon\Panels\SceneHierarchyPanel.h" />
+    <ClInclude Include="src\Aeon\Panels\ScriptEngineDebugPanel.h" />
+    <ClInclude Include="src\Aeon\Panels\ShaderLibraryPanel.h" />
+    <ClInclude Include="src\Aeon\Panels\StatisticsPanel.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Aeon\Aeon.cpp" />
+    <ClCompile Include="src\Aeon\EditorLayer.cpp" />
+    <ClCompile Include="src\Aeon\PanelManager.cpp" />
+    <ClCompile Include="src\Aeon\Panels\AssetManagerPanel.cpp" />
+    <ClCompile Include="src\Aeon\Panels\ContentBrowserPanel.cpp" />
+    <ClCompile Include="src\Aeon\Panels\InspectorPanel.cpp" />
+    <ClCompile Include="src\Aeon\Panels\PagePanel.cpp" />
+    <ClCompile Include="src\Aeon\Panels\PreferencesPanel.cpp" />
+    <ClCompile Include="src\Aeon\Panels\ProjectSettingsPanel.cpp" />
+    <ClCompile Include="src\Aeon\Panels\SceneHierarchyPanel.cpp" />
+    <ClCompile Include="src\Aeon\Panels\ScriptEngineDebugPanel.cpp" />
+    <ClCompile Include="src\Aeon\Panels\ShaderLibraryPanel.cpp" />
+    <ClCompile Include="src\Aeon\Panels\StatisticsPanel.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Epoch\Epoch.vcxproj">
+      <Project>{B4EA1E0D-20FF-46BE-E980-EA1D555443EF}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
