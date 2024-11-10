@@ -20,7 +20,6 @@ Aeon/Resources/Scripts
 # Folders
 Aeon/Profiling_Results
 Aeon/logs
+Aeon/Config
 
-Aeon/Config/EditorLayout.yaml
-Aeon/Config/EditorSettings.config
 Aeon/imgui.ini
