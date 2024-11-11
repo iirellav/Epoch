@@ -18,7 +18,7 @@ This will probably be changed in the future to minimize the repositories size.
 
 Running the [Generate.bat](https://github.com/isak-morand/Epoch/blob/main/Generate.bat) file will generate all the needed files.
 
-<ins>**2. Build and run:**</ins>
+<ins>**2. Building and running:**</ins>
 
 Before you build you should know about the configurations. `Debug` runs really slow and is only used for debugging, `Release` is the main config used for development. `Dist` is used to build fully optimized buildes that runs without the console, not used for developement except for testing purposes.
 
