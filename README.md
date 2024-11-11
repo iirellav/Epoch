@@ -1,6 +1,6 @@
 # Epoch
 
-Epcoh is a game engine I'm working on during my free time. The goal is to learn as much as possible and grow as a programmer but also to be able to create and maybe even publish some small games.
+Epcoh is a game engine I'm working on during my free time. The goal is to learn as much as possible and grow as a programmer, but also to be able to create and maybe even publish some small games.
 My main source of inspiration and resource is [Hazel](https://hazelengine.com/) by **Studio Cherno**.
 
 ***
@@ -20,8 +20,8 @@ Running the [Generate.bat](https://github.com/isak-morand/Epoch/blob/main/Genera
 
 <ins>**2. Building and running:**</ins>
 
-Before you build you should know about the configurations. `Debug` runs really slow and is only used for debugging, `Release` is the main config used for development. `Dist` is used to build fully optimized buildes that runs without the console, not used for developement except for testing purposes.
+Before you build you should know about the configurations. `Debug` runs really slow and is only used for debugging. `Release` is the main config used for development. `Dist` is used to build fully optimized builds that run without the console, not used for development except for testing purposes.
 
-There is one more thing we need to do before we can build and run, and that is to manually build the `Epoch-ScriptCore`. This is bevouse it isn't used as a dependency and there for doesn't get built with the rest 0of the project. Just right-click on the `Solution Explorer -> Core -> Epoch-ScriptCore` and press `Build`.
+Before we can build and run, we need to manually build the Epoch-ScriptCore. To do so, right-click on `Solution Explorer -> Core -> Epoch-ScriptCore` and press `Build`.
 
 You can now build and run the engine/editor.
