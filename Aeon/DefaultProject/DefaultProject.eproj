@@ -1,5 +1,6 @@
 Project:
   Name: DefaultProject
+  ProductName: DefaultProject
   CompanyName: ""
   Version: 0.100000001
   StartScene: ""
@@ -9,3 +10,5 @@ Project:
   AssetDirectory: Assets
   AssetRegistryPath: Regs/AssetRegistry.epr
   DefaultScriptNamespace: DefaultProject
+  FixedTimestep: 0.0166666675
+  Gravity: [0, -982, 0]

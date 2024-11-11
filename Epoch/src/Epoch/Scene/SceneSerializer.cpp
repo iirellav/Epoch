@@ -1307,7 +1307,7 @@ namespace Epoch
 					YAML::Node tonemappingData = volumeComponent["Tonemapping"];
 
 					vc.tonemapping.enabled = tonemappingData["Enabled"].as<bool>(true);
-					vc.tonemapping.tonemap = (PostProcessing::Tonemap)tonemappingData["Tonemap"].as<int>(0);
+					vc.tonemapping.tonemap = (PostProcessing::Tonemap)tonemappingData["Tonemap"].as<int>((int)PostProcessing::Tonemap::Unreal);
 				}
 
 				//Color Grading
