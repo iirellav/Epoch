@@ -7,7 +7,7 @@ namespace Epoch
 	{
 	public:
 		static void BuildCSProject(const std::filesystem::path& aFilepath);
-		static void BuildScriptAssembly(std::shared_ptr<Project> aProject);
+		static void BuildScriptAssembly();
 		static void RegenerateScriptSolution(const std::filesystem::path& aProjectDirectory);
 	};
 }

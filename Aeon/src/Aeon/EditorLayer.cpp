@@ -549,7 +549,7 @@ namespace Epoch
 
 					if (ImGui::MenuItem("Build Assembly", nullptr, nullptr, FileSystem::Exists(scriptSolutionPath)))
 					{
-						ScriptBuilder::BuildScriptAssembly(Project::GetActive());
+						ScriptBuilder::BuildScriptAssembly();
 					}
 
 					if (ImGui::MenuItem("Reload Assembly"))
@@ -1521,7 +1521,7 @@ namespace Epoch
 		if (!appAssemblyPath.empty())
 		{
 			ScriptBuilder::RegenerateScriptSolution(Project::GetProjectDirectory());
-			ScriptBuilder::BuildScriptAssembly(project);
+			ScriptBuilder::BuildScriptAssembly();
 
 			ScriptEngine::OnProjectChanged(project);
 			ScriptEngine::LoadAppAssembly();

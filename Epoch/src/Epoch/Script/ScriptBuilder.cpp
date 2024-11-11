@@ -19,11 +19,11 @@ namespace Epoch
 		WinExec(command.c_str(), SW_HIDE);
 	}
 
-	void ScriptBuilder::BuildScriptAssembly(std::shared_ptr<Project> aProject)
+	void ScriptBuilder::BuildScriptAssembly()
 	{
 		EPOCH_PROFILE_FUNC();
 
-		const auto projectAssemblyFile = aProject->GetProjectDirectory() / (Project::GetProjectName() + ".csproj");
+		const auto projectAssemblyFile = Project::GetProjectDirectory() / (Project::GetProjectName() + ".csproj");
 		if (!FileSystem::Exists(projectAssemblyFile))
 		{
 			return;
