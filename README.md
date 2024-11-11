@@ -26,4 +26,4 @@ Before we can build and run, we need to manually build the Epoch-ScriptCore. To 
 
 You can now build and run the engine/editor.
 
-I suggest reading [this](https://github.com/isak-morand/Epoch/wiki/Create-your-first-game:-A-guide-to-make-a-flappy-bird-ripoff#create-your-project) to get started.
+I suggest reading [`Create your project`](https://github.com/isak-morand/Epoch/wiki/Create-your-first-game:-A-guide-to-make-a-flappy-bird-ripoff#create-your-project) to get started.
