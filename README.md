@@ -1,7 +1,7 @@
 # Epoch
 
 Epcoh is a game engine I'm working on during my free time. The goal is to learn as much as possible and grow as a programmer but also to be able to create and maybe even publish some small games.
-My main source of inspiration and resource is **Hazel** by **Studio Cherno** accessible via his [Patreon](https://patreon.com/thecherno).
+My main source of inspiration and resource is [Hazel](https://hazelengine.com/) by **Studio Cherno** accessible via his [Patreon](https://patreon.com/thecherno).
 
 ***
 
