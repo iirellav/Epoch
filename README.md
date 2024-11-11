@@ -20,7 +20,7 @@ Running the [Generate.bat](https://github.com/isak-morand/Epoch/blob/main/Genera
 
 <ins>**2. Building and running:**</ins>
 
-Before you build you should know about the configurations. `Debug` runs really slow and is only used for debugging. `Release` is the main config used for development. `Dist` is used to build fully optimized builds that run without the console, not used for development except for testing purposes.
+Before you build you should know about the configurations. `Debug` runs really slow and is only used for debugging. `Release` is the main config used for development. `Dist` is used to build distributation builds that run without the console, not used for development except for testing purposes.
 
 Before we can build and run, we need to manually build the Epoch-ScriptCore. To do so, right-click on `Solution Explorer -> Core -> Epoch-ScriptCore` and press `Build`.
 
