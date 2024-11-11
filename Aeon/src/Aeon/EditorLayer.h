@@ -115,7 +115,7 @@ namespace Epoch
 		SceneState mySceneState = SceneState::Edit;
 
 		enum class GizmoOperation { None, Translate, Rotate, Scale };
-		GizmoOperation myGizmoOperation = GizmoOperation::Translate;
+		GizmoOperation myGizmoOperation = GizmoOperation::None;
 
 		bool myShowGizmos = true;
 		bool myDisplayCurrentColorGradingLUT = false;
