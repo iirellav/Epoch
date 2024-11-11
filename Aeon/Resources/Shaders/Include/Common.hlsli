@@ -10,7 +10,7 @@ int GetNumMips(const TextureCube cubeTex)
 float3 ToLinear(const float3 sRGB)
 {
     bool3 cutoff = sRGB < (float3) 0.04045f;
-    float3 higher = pow((sRGB + (float3) 0.055f) / (float3) 1.055f, (float3) 2.4f);
+    float3 higher = pow((sRGB + (float3) 0.055f) / (float3) 1.055f, (float3) 2.2f);
     float3 lower = sRGB / (float3) 12.92f;
     
     return lerp(higher, lower, cutoff);
@@ -36,7 +36,7 @@ const float3 HSVToRGB(const float3 HSV)
 
 const float3 ToGamma(const float3 sRGB)
 {
-    return pow(sRGB, 1.0f / 2.4f);
+    return pow(sRGB, 1.0f / 2.2f);
 }
 
 float2 OctWrap(const float2 v)

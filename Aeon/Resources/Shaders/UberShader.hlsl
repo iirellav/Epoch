@@ -54,14 +54,78 @@ struct VertexOutput
 #define WIDTH 256.0
 #define HEIGHT 16.0
 
-cbuffer VignetteBuffer : register(b0)
+cbuffer PostProcessingBuffer : register(b0)
 {
-    float3 VB_Color;
-    float VB_Size;
-    float2 VB_Center;
-    float VB_Intensity;
-    float VB_Smoothness;
+    float3 Vignette_Color;
+    float Vignette_Size;
+    float2 Vignette_Center;
+    float Vignette_Intensity;
+    float Vignette_Smoothness;
+    
+    uint Tonemap;
 };
+
+float3 Tonemap_UnrealEngine(float3 input)
+{
+    // Unreal 3, Documentation: "Color Grading"
+    // Adapted to be close to Tonemap_ACES, with similar range
+    // Gamma 2.2 correction is baked in, don't use with sRGB conversion!
+    return input / (input + 0.155) * 1.019;
+}
+
+float3 Tonemap_Lottes(float3 input)
+{
+    // Lottes 2016, "Advanced Techniques and Optimization of HDR Color Pipelines"
+    const float a = 1.6;
+    const float d = 0.977;
+    const float hdrMax = 8.0;
+    const float midIn = 0.18;
+    const float midOut = 0.267;
+    
+    // Can be precomputed
+    const float b =
+        (-pow(midIn, a) + pow(hdrMax, a) * midOut) /
+        ((pow(hdrMax, a * d) - pow(midIn, a * d)) * midOut);
+    const float c =
+        (pow(hdrMax, a * d) * pow(midIn, a) - pow(hdrMax, a) * pow(midIn, a * d) * midOut) /
+        ((pow(hdrMax, a * d) - pow(midIn, a * d)) * midOut);
+    
+    return pow(input, a) / (pow(input, a * d) * b + c);
+}
+
+float3 Tonemap_ACES(float3 input)
+{
+    // Narkowicz 2015, "ACES Filmic Tone Mapping Curve"
+    const float a = 2.51;
+    const float b = 0.03;
+    const float c = 2.43;
+    const float d = 0.59;
+    const float e = 0.14;
+    return (input * (a * input + b)) / (input * (c * input + d) + e);
+}
+
+float4 Tonemapp(const float4 color)
+{
+    float3 output = color.rgb;
+    
+    switch (Tonemap)
+    {
+        case 1:
+            output = Tonemap_UnrealEngine(output);
+            break;
+        case 2:
+            output = ToGamma(Tonemap_Lottes(output));
+            break;
+        case 3:
+            output = ToGamma(Tonemap_ACES(output));
+            break;
+        default:
+            output = ToGamma(output);
+            break;
+    }
+    
+    return float4(output, 1.0f);
+}
 
 float4 ColorGrade(const float4 color)
 {
@@ -89,21 +153,21 @@ float4 ColorGrade(const float4 color)
 float4 Vignette(const float4 color, const float2 uv)
 {
     float2 pos = uv - 0.5f;
-    pos *= VB_Size;
+    pos *= Vignette_Size;
     pos += 0.5f;
     
-    float2 d = abs(pos - VB_Center) * VB_Intensity;
+    float2 d = abs(pos - Vignette_Center) * Vignette_Intensity;
     //d = pow(saturate(d), _Roundness);
-    float vfactor = pow(saturate(1.0f - dot(d, d)), VB_Smoothness);
+    float vfactor = pow(saturate(1.0f - dot(d, d)), Vignette_Smoothness);
 
-    return float4(lerp(VB_Color, color.rgb, vfactor), 1.0f);
+    return float4(lerp(Vignette_Color, color.rgb, vfactor), 1.0f);
 }
 
 float4 main(VertexOutput input) : SV_TARGET
 {
     float4 sourceCol = sourceTexture.SampleLevel(brdfLUTSampler, input.uv, 0);
-    sourceCol = sourceCol / (sourceCol + 0.155f) * 1.019f;
-    sourceCol.a = 1.0f;
+    
+    sourceCol = Tonemapp(sourceCol);
     sourceCol = ColorGrade(sourceCol);
     sourceCol = Vignette(sourceCol, input.uv);
     
