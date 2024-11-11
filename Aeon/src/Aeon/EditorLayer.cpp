@@ -600,6 +600,8 @@ namespace Epoch
 			}
 
 			UI::EndPropertyGrid();
+
+			ImGui::End();
 		}
 
 		EndDockspace();
