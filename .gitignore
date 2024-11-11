@@ -3,6 +3,7 @@
 !vendor/bin/premake/
 !Epoch/vendor/assimp/bin
 !Epoch/vendor/mono/bin
+obj/
 bin-int/
 Aeon/Resources/Scripts
 **/cache/**
