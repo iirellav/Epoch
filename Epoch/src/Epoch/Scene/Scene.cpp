@@ -1028,7 +1028,8 @@ namespace Epoch
 			EPOCH_PROFILE_SCOPE("Scene::RenderScene::UpdatePostProcessingData");
 
 			myPostProcessingData = PostProcessingData();
-			myPostProcessingData.vignetteData.intensity = 0.0f;
+			myPostProcessingData.bufferData.tonemap = PostProcessing::Tonemap::None;
+			myPostProcessingData.bufferData.vignetteIntensity = 0.0f;
 			
 			auto volumes = GetAllEntitiesWith<VolumeComponent>();
 			for (auto entityID : volumes)
@@ -1039,6 +1040,11 @@ namespace Epoch
 				const auto& vc = volumes.get<VolumeComponent>(entityID);
 				if (!vc.isActive) continue;
 
+				if (vc.tonemapping.enabled)
+				{
+					myPostProcessingData.bufferData.tonemap = vc.tonemapping.tonemap;
+				}
+
 				if (vc.colorGrading.enabled)
 				{
 					myPostProcessingData.colorGradingLUT = vc.colorGrading.lut;
@@ -1046,7 +1052,11 @@ namespace Epoch
 
 				if (vc.vignette.enabled)
 				{
-					myPostProcessingData.vignetteData = vc.vignette.data;
+					myPostProcessingData.bufferData.vignetteCenter = vc.vignette.center;
+					myPostProcessingData.bufferData.vignetteColor = vc.vignette.color;
+					myPostProcessingData.bufferData.vignetteIntensity = vc.vignette.intensity;
+					myPostProcessingData.bufferData.vignetteSize = vc.vignette.size;
+					myPostProcessingData.bufferData.vignetteSmoothness = vc.vignette.smoothness;
 				}
 
 				break;

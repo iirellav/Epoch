@@ -663,6 +663,17 @@ namespace Epoch
 
 				//Color Grading
 				{
+					aOut << YAML::Key << "Tonemapping";
+					aOut << YAML::BeginMap;
+
+					aOut << YAML::Key << "Enabled" << YAML::Value << v.tonemapping.enabled;
+					aOut << YAML::Key << "Tonemap" << YAML::Value << (int)v.tonemapping.tonemap;
+					
+					aOut << YAML::EndMap;
+				}
+
+				//Color Grading
+				{
 					aOut << YAML::Key << "ColorGrading";
 					aOut << YAML::BeginMap;
 
@@ -678,11 +689,11 @@ namespace Epoch
 					aOut << YAML::BeginMap;
 
 					aOut << YAML::Key << "Enabled" << YAML::Value << v.vignette.enabled;
-					aOut << YAML::Key << "Color" << YAML::Value << v.vignette.data.color;
-					aOut << YAML::Key << "Center" << YAML::Value << v.vignette.data.center;
-					aOut << YAML::Key << "Intensity" << YAML::Value << v.vignette.data.intensity;
-					aOut << YAML::Key << "Size" << YAML::Value << v.vignette.data.size;
-					aOut << YAML::Key << "Smoothness" << YAML::Value << v.vignette.data.smoothness;
+					aOut << YAML::Key << "Color" << YAML::Value << v.vignette.color;
+					aOut << YAML::Key << "Center" << YAML::Value << v.vignette.center;
+					aOut << YAML::Key << "Intensity" << YAML::Value << v.vignette.intensity;
+					aOut << YAML::Key << "Size" << YAML::Value << v.vignette.size;
+					aOut << YAML::Key << "Smoothness" << YAML::Value << v.vignette.smoothness;
 					
 					aOut << YAML::EndMap;
 				}
@@ -1291,6 +1302,14 @@ namespace Epoch
 				
 				vc.isActive = volumeComponent["IsActive"].as<bool>(true);
 				
+				//Tonemapping
+				{
+					YAML::Node tonemappingData = volumeComponent["Tonemapping"];
+
+					vc.tonemapping.enabled = tonemappingData["Enabled"].as<bool>(true);
+					vc.tonemapping.tonemap = (PostProcessing::Tonemap)tonemappingData["Tonemap"].as<int>(0);
+				}
+
 				//Color Grading
 				{
 					YAML::Node colorGradingData = volumeComponent["ColorGrading"];
@@ -1304,11 +1323,11 @@ namespace Epoch
 					YAML::Node vignetteData = volumeComponent["Vignette"];
 					
 					vc.vignette.enabled = vignetteData["Enabled"].as<bool>(true);
-					vc.vignette.data.color = vignetteData["Color"].as<CU::Vector3f>(CU::Color::Black.GetVector3());
-					vc.vignette.data.center = vignetteData["Center"].as<CU::Vector2f>(CU::Vector2f(0.5f, 0.5f));
-					vc.vignette.data.intensity = vignetteData["Intensity"].as<float>(1.0f);
-					vc.vignette.data.size = vignetteData["Size"].as<float>(1.0f);
-					vc.vignette.data.smoothness = vignetteData["Smoothness"].as<float>(1.0f);
+					vc.vignette.color = vignetteData["Color"].as<CU::Vector3f>(CU::Color::Black.GetVector3());
+					vc.vignette.center = vignetteData["Center"].as<CU::Vector2f>(CU::Vector2f(0.5f, 0.5f));
+					vc.vignette.intensity = vignetteData["Intensity"].as<float>(1.0f);
+					vc.vignette.size = vignetteData["Size"].as<float>(1.0f);
+					vc.vignette.smoothness = vignetteData["Smoothness"].as<float>(1.0f);
 				}
 			}
 

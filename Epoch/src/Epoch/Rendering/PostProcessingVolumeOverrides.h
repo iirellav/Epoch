@@ -6,6 +6,21 @@
 
 namespace Epoch::PostProcessing
 {
+	enum class Tonemap : uint32_t
+	{
+		None,
+		Unreal,
+		Lottes,
+		ACES
+	};
+
+	struct Tonemapping
+	{
+		bool enabled = false;
+
+		Tonemap tonemap = Tonemap::Unreal;
+	};
+
 	struct ColorGrading
 	{
 		bool enabled = false;
@@ -17,13 +32,10 @@ namespace Epoch::PostProcessing
 	{
 		bool enabled = false;
 
-		struct Data
-		{
-			CU::Vector3f color = CU::Color::Black.GetVector3();
-			float size = 1.0f;
-			CU::Vector2f center = { 0.5f, 0.5f };
-			float intensity = 1.0f;
-			float smoothness = 1.0f;
-		} data;
+		CU::Vector3f color = CU::Color::Black.GetVector3();
+		float size = 1.0f;
+		CU::Vector2f center = { 0.5f, 0.5f };
+		float intensity = 1.0f;
+		float smoothness = 1.0f;
 	};
 }

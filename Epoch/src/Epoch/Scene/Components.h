@@ -256,6 +256,7 @@ namespace Epoch
 	{
 		bool isActive = true;
 
+		PostProcessing::Tonemapping tonemapping;
 		PostProcessing::ColorGrading colorGrading;
 		PostProcessing::Vignette vignette;
 	};

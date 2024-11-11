@@ -661,6 +661,38 @@ namespace Epoch
 		DrawComponent<VolumeComponent>("Volume", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
 		{
 			{
+				if (UI::SubHeaderWithCheckbox("Tonemapping", &aFirstComponent.tonemapping.enabled, false))
+				{
+					UI::BeginPropertyGrid();
+
+					if (!aFirstComponent.tonemapping.enabled)
+					{
+						ImGui::BeginDisabled();
+					}
+
+					const char* optionsStrings[] = { "None", "Unreal", "Lottes", "ACES" };
+					int currentOption = (int)aFirstComponent.tonemapping.tonemap;
+					const bool inconsistentOption = IsInconsistentPrimitive<int, VolumeComponent>([](const VolumeComponent& aOther) { return (int)aOther.tonemapping.tonemap; });
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && inconsistentOption);
+					if (UI::Property_Dropdown("Tonemap", optionsStrings, 4, currentOption, &inconsistentOption))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							entity.GetComponent<VolumeComponent>().tonemapping.tonemap = (PostProcessing::Tonemap)currentOption;
+						}
+					}
+					ImGui::PopItemFlag();
+
+					if (!aFirstComponent.tonemapping.enabled)
+					{
+						ImGui::EndDisabled();
+					}
+
+					UI::EndPropertyGrid();
+				}
+
+
 				if (UI::SubHeaderWithCheckbox("Color Grading", &aFirstComponent.colorGrading.enabled, false))
 				{
 					UI::BeginPropertyGrid();
@@ -700,63 +732,63 @@ namespace Epoch
 						ImGui::BeginDisabled();
 					}
 
-					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector3f, VolumeComponent>([](const VolumeComponent& aOther) { return aOther.vignette.data.color; }));
-					CU::Color color(aFirstComponent.vignette.data.color);
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector3f, VolumeComponent>([](const VolumeComponent& aOther) { return aOther.vignette.color; }));
+					CU::Color color(aFirstComponent.vignette.color);
 					if (UI::Property_ColorEdit3("Color", color))
 					{
 						for (auto& entityID : aEntities)
 						{
 							Entity entity = myContext->GetEntityWithUUID(entityID);
 							auto& vc = entity.GetComponent<VolumeComponent>();
-							vc.vignette.data.color = color.GetVector3();
+							vc.vignette.color = color.GetVector3();
 						}
 					}
 					ImGui::PopItemFlag();
 
-					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector2f, VolumeComponent>([](const VolumeComponent& aOther) { return aOther.vignette.data.center; }));
-					if (UI::Property_DragFloat2("Center", aFirstComponent.vignette.data.center))
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector2f, VolumeComponent>([](const VolumeComponent& aOther) { return aOther.vignette.center; }));
+					if (UI::Property_DragFloat2("Center", aFirstComponent.vignette.center))
 					{
 						for (auto& entityID : aEntities)
 						{
 							Entity entity = myContext->GetEntityWithUUID(entityID);
 							auto& vc = entity.GetComponent<VolumeComponent>();
-							vc.vignette.data.center = aFirstComponent.vignette.data.center;
+							vc.vignette.center = aFirstComponent.vignette.center;
 						}
 					}
 					ImGui::PopItemFlag();
 
-					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<float, VolumeComponent>([](const VolumeComponent& aOther) { return aOther.vignette.data.size; }));
-					if (UI::Property_DragFloat("Size", aFirstComponent.vignette.data.size))
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<float, VolumeComponent>([](const VolumeComponent& aOther) { return aOther.vignette.size; }));
+					if (UI::Property_DragFloat("Size", aFirstComponent.vignette.size))
 					{
 						for (auto& entityID : aEntities)
 						{
 							Entity entity = myContext->GetEntityWithUUID(entityID);
 							auto& vc = entity.GetComponent<VolumeComponent>();
-							vc.vignette.data.size = aFirstComponent.vignette.data.size;
+							vc.vignette.size = aFirstComponent.vignette.size;
 						}
 					}
 					ImGui::PopItemFlag();
 
-					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<float, VolumeComponent>([](const VolumeComponent& aOther) { return aOther.vignette.data.intensity; }));
-					if (UI::Property_DragFloat("Intensity", aFirstComponent.vignette.data.intensity))
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<float, VolumeComponent>([](const VolumeComponent& aOther) { return aOther.vignette.intensity; }));
+					if (UI::Property_DragFloat("Intensity", aFirstComponent.vignette.intensity))
 					{
 						for (auto& entityID : aEntities)
 						{
 							Entity entity = myContext->GetEntityWithUUID(entityID);
 							auto& vc = entity.GetComponent<VolumeComponent>();
-							vc.vignette.data.intensity = aFirstComponent.vignette.data.intensity;
+							vc.vignette.intensity = aFirstComponent.vignette.intensity;
 						}
 					}
 					ImGui::PopItemFlag();
 
-					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<float, VolumeComponent>([](const VolumeComponent& aOther) { return aOther.vignette.data.smoothness; }));
-					if (UI::Property_DragFloat("Smoothness", aFirstComponent.vignette.data.smoothness))
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<float, VolumeComponent>([](const VolumeComponent& aOther) { return aOther.vignette.smoothness; }));
+					if (UI::Property_DragFloat("Smoothness", aFirstComponent.vignette.smoothness))
 					{
 						for (auto& entityID : aEntities)
 						{
 							Entity entity = myContext->GetEntityWithUUID(entityID);
 							auto& vc = entity.GetComponent<VolumeComponent>();
-							vc.vignette.data.smoothness = aFirstComponent.vignette.data.smoothness;
+							vc.vignette.smoothness = aFirstComponent.vignette.smoothness;
 						}
 					}
 					ImGui::PopItemFlag();

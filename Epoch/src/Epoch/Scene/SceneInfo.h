@@ -64,7 +64,16 @@ namespace Epoch
 	struct PostProcessingData
 	{
 		AssetHandle colorGradingLUT = 0;
+		struct BufferData
+		{
+			CU::Vector3f vignetteColor = CU::Color::Black.GetVector3();
+			float vignetteSize = 1.0f;
+			CU::Vector2f vignetteCenter = { 0.5f, 0.5f };
+			float vignetteIntensity = 1.0f;
+			float vignetteSmoothness = 1.0f;
 
-		PostProcessing::Vignette::Data vignetteData;
+			PostProcessing::Tonemap tonemap;
+			CU::Vector3f padding;
+		} bufferData;
 	};
 }

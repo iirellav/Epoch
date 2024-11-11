@@ -128,7 +128,7 @@ namespace Epoch
 		myPointLightBuffer = ConstantBuffer::Create(sizeof(PointLight) - sizeof(AssetHandle));
 		mySpotlightBuffer = ConstantBuffer::Create(sizeof(Spotlight) - sizeof(AssetHandle));
 		myDebugDrawModeBuffer = ConstantBuffer::Create(sizeof(CU::Vector4f));
-		myVignetteBuffer = ConstantBuffer::Create(sizeof(PostProcessing::Vignette::Data));
+		myPostProcessingBuffer = ConstantBuffer::Create(sizeof(PostProcessingData::BufferData));
 
 		myInstanceTransformBuffer = VertexBuffer::Create(MaxInstanceCount, sizeof(MeshInstanceData));
 
@@ -607,8 +607,8 @@ namespace Epoch
 					RHI::GetContext()->PSSetShaderResources(0, 2, SRVs.data());
 				}
 				
-				myVignetteBuffer->SetData(&mySceneData.postProcessingData.vignetteData);
-				myVignetteBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 0);
+				myPostProcessingBuffer->SetData(&mySceneData.postProcessingData.bufferData);
+				myPostProcessingBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 0);
 			
 				Renderer::SetRenderPipeline(myUberPipeline);
 				Renderer::RenderQuad();

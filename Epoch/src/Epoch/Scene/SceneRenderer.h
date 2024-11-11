@@ -177,7 +177,7 @@ namespace Epoch
 		std::shared_ptr<ConstantBuffer> myPointLightBuffer;
 		std::shared_ptr<ConstantBuffer> mySpotlightBuffer;
 		std::shared_ptr<ConstantBuffer> myDebugDrawModeBuffer;
-		std::shared_ptr<ConstantBuffer> myVignetteBuffer;
+		std::shared_ptr<ConstantBuffer> myPostProcessingBuffer;
 
 		// Meshes
 		struct MeshKey
