@@ -513,7 +513,6 @@ namespace Epoch
 		(
 			(Camera)camera,
 			worlTrans.GetTranslation(),
-			worlTrans.GetForward(),
 			cameraViewMatrix,
 			camera.GetPerspectiveNearPlane(),
 			camera.GetPerspectiveFarPlane(),
@@ -528,7 +527,6 @@ namespace Epoch
 		(
 			(Camera)aCamera,
 			aCamera.GetTransform().GetTranslation(),
-			aCamera.GetTransform().GetForward(),
 			aCamera.GetViewMatrix(),
 			aCamera.GetNearPlane(),
 			aCamera.GetFarPlane(),

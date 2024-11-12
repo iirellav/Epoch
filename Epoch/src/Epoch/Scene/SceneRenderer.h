@@ -36,17 +36,20 @@ namespace Epoch
 	{
 		Camera camera;
 		CU::Vector3f position;
-		CU::Vector3f forward;
 		CU::Matrix4x4f viewMatrix;
-		float nearPlane = 0;
-		float farPlane = 0;
-		float fov = 0;
+		float nearPlane = 0.0f;
+		float farPlane = 0.0f;
+		float fov = 0.0f;
 	};
 
 	struct CameraBuffer
 	{
 		CU::Matrix4x4f viewProjection;
-		CU::Vector4f pos;
+		CU::Vector3f pos;
+		float nearPlane = 0.0f;
+		float farPlane = 0.0f;
+		float fov = 0.0f;
+		CU::Vector2f viewportSize = 0.0f;
 	};
 
 	struct ObjectBuffer

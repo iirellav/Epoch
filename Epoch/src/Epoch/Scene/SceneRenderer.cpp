@@ -419,7 +419,13 @@ namespace Epoch
 			myExternalCompositingFramebuffer->Resize(myViewportWidth, myViewportHeight);
 		}
 
-		CameraBuffer camBuffer(aCamera.viewMatrix * aCamera.camera.GetProjectionMatrix(), CU::Vector4f(aCamera.position, 1.0f));
+		CameraBuffer camBuffer;
+		camBuffer.viewProjection = aCamera.viewMatrix * aCamera.camera.GetProjectionMatrix();
+		camBuffer.pos = aCamera.position;
+		camBuffer.nearPlane = aCamera.nearPlane;
+		camBuffer.farPlane = aCamera.farPlane;
+		camBuffer.fov = aCamera.fov;
+		camBuffer.viewportSize = { (float)myViewportWidth, (float)myViewportHeight };
 		myCameraBuffer->SetData(&camBuffer);
 		myCameraBuffer->Bind(PIPELINE_STAGE_VERTEX_SHADER | PIPELINE_STAGE_PIXEL_SHADER, 0);
 	}
