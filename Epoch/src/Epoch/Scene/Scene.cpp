@@ -1043,13 +1043,13 @@ namespace Epoch
 					myPostProcessingData.bufferData.tonemap = vc.tonemapping.tonemap;
 				}
 				
-				myPostProcessingData.bufferData.colorGradingEnabled = (uint32_t)vc.colorGrading.enabled;
+				myPostProcessingData.bufferData.flags |= (vc.colorGrading.enabled << 0);
 				if (vc.colorGrading.enabled)
 				{
 					myPostProcessingData.colorGradingLUT = vc.colorGrading.lut;
 				}
 				
-				myPostProcessingData.bufferData.vignetteEnabled = (uint32_t)vc.vignette.enabled;
+				myPostProcessingData.bufferData.flags |= (vc.vignette.enabled << 1);
 				if (vc.vignette.enabled)
 				{
 					myPostProcessingData.bufferData.vignetteCenter = vc.vignette.center;

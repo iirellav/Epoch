@@ -73,9 +73,8 @@ namespace Epoch
 			float vignetteSmoothness = 1.0f;
 
 			PostProcessing::Tonemap tonemap;
-			uint32_t colorGradingEnabled = 0;
-			uint32_t vignetteEnabled = 0;
-			float padding = 0.0f;
+			uint32_t flags = 0; //colorGradingEnabled, vignetteEnabled
+			CU::Vector2f padding;
 		} bufferData;
 	};
 }
