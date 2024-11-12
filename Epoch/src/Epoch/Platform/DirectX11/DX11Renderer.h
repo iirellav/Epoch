@@ -31,6 +31,7 @@ namespace Epoch
 	private:
 		ComPtr<ID3D11SamplerState> wrapSamplerState;
 		ComPtr<ID3D11SamplerState> clampSamplerState;
-		ComPtr<ID3D11SamplerState> brdfLUTSamplerState;
+		ComPtr<ID3D11SamplerState> pointSamplerState;
+		ComPtr<ID3D11SamplerState>LUTSamplerState;
 	};
 }

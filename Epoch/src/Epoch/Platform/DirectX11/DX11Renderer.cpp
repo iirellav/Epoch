@@ -55,7 +55,26 @@ namespace Epoch
 
 			RHI::GetDevice()->CreateSamplerState(&samplerDescription, clampSamplerState.GetAddressOf());
 			RHI::GetContext()->PSSetSamplers(1, 1, clampSamplerState.GetAddressOf());
-			RHI::GetContext()->CSSetSamplers(1, 1, wrapSamplerState.GetAddressOf());
+			RHI::GetContext()->CSSetSamplers(1, 1, clampSamplerState.GetAddressOf());
+		}
+
+		{
+			D3D11_SAMPLER_DESC samplerDescription = {};
+			samplerDescription.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+			samplerDescription.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+			samplerDescription.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+			samplerDescription.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+			samplerDescription.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+			samplerDescription.BorderColor[0] = 0;
+			samplerDescription.BorderColor[1] = 0;
+			samplerDescription.BorderColor[2] = 0;
+			samplerDescription.BorderColor[3] = 0;
+			samplerDescription.MinLOD = 0.0f;
+			samplerDescription.MaxLOD = D3D11_FLOAT32_MAX;
+
+			RHI::GetDevice()->CreateSamplerState(&samplerDescription, pointSamplerState.GetAddressOf());
+			RHI::GetContext()->PSSetSamplers(2, 1, pointSamplerState.GetAddressOf());
+			RHI::GetContext()->CSSetSamplers(2, 1, pointSamplerState.GetAddressOf());
 		}
 
 		{
@@ -66,9 +85,9 @@ namespace Epoch
 			samplerDescription.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
 			samplerDescription.ComparisonFunc = D3D11_COMPARISON_NEVER;
 
-			RHI::GetDevice()->CreateSamplerState(&samplerDescription, brdfLUTSamplerState.GetAddressOf());
-			RHI::GetContext()->PSSetSamplers(3, 1, brdfLUTSamplerState.GetAddressOf());
-			RHI::GetContext()->CSSetSamplers(3, 1, brdfLUTSamplerState.GetAddressOf());
+			RHI::GetDevice()->CreateSamplerState(&samplerDescription, LUTSamplerState.GetAddressOf());
+			RHI::GetContext()->PSSetSamplers(3, 1, LUTSamplerState.GetAddressOf());
+			RHI::GetContext()->CSSetSamplers(3, 1, LUTSamplerState.GetAddressOf());
 		}
 	}
 

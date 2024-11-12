@@ -95,7 +95,7 @@ float3 main(VertexOutput input) : SV_TARGET
     const float3 envColor = environmentTexture.SampleLevel(clampSampler, R, roughness * numMips).rgb;
     
     const float nDotV = saturate(dot(normal, V));
-    const float2 brdf = brdfLUT.Sample(brdfLUTSampler, float2(nDotV, roughness)).rg;
+    const float2 brdf = brdfLUT.Sample(LUTSampler, float2(nDotV, roughness)).rg;
     const float3 iblSpecular = envColor * (specularColor * brdf.x + brdf.y);
     
     const float3 ambience = (diffuseColor * iblDiffuse + iblSpecular) * occlusion;

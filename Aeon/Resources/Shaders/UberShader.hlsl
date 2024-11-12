@@ -63,6 +63,8 @@ cbuffer PostProcessingBuffer : register(b0)
     float Vignette_Smoothness;
     
     uint Tonemap;
+    uint ColorGradingEnabled;
+    uint VignetteEnabled;
 };
 
 float3 Tonemap_UnrealEngine(float3 input)
@@ -142,8 +144,8 @@ float4 ColorGrade(const float4 color)
     float2 lutPosL = float2(cellL / COLORS + rOffset, gOffset);
     float2 lutPosH = float2(cellH / COLORS + rOffset, gOffset);
 
-    float4 lutColorL = lutTextue.SampleLevel(brdfLUTSampler, lutPosL, 0);
-    float4 lutColorH = lutTextue.SampleLevel(brdfLUTSampler, lutPosH, 0);
+    float4 lutColorL = lutTextue.SampleLevel(LUTSampler, lutPosL, 0);
+    float4 lutColorH = lutTextue.SampleLevel(LUTSampler, lutPosH, 0);
     
     float4 gradedColor = lerp(lutColorL, lutColorH, frac(cell));
 
@@ -165,11 +167,11 @@ float4 Vignette(const float4 color, const float2 uv)
 
 float4 main(VertexOutput input) : SV_TARGET
 {
-    float4 sourceCol = sourceTexture.SampleLevel(brdfLUTSampler, input.uv, 0);
+    float4 sourceCol = sourceTexture.SampleLevel(LUTSampler, input.uv, 0);
     
-    sourceCol = Tonemapp(sourceCol);
-    sourceCol = ColorGrade(sourceCol);
-    sourceCol = Vignette(sourceCol, input.uv);
+    sourceCol = saturate(Tonemapp(sourceCol));
+    if (ColorGradingEnabled) sourceCol = ColorGrade(sourceCol);
+    if (VignetteEnabled) sourceCol = Vignette(sourceCol, input.uv);
     
     return float4(sourceCol.rgb, 1.0f);
 }
