@@ -220,7 +220,7 @@ namespace Epoch
 			}
 		}
 
-#ifndef _DIST
+#if 0
 
 		UI::Spacing();
 		ImGui::Separator();
@@ -909,7 +909,7 @@ namespace Epoch
 			ImGui::TreePop();
 		}
 		
-#endif // !_DIST
+#endif
 
 		ImGui::End();
 	}
