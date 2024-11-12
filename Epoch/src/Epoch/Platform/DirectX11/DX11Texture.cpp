@@ -36,7 +36,6 @@ namespace Epoch
 
 	DX11Texture2D::~DX11Texture2D()
 	{
-		//myTexture->Release();
 		if (myTextureData)
 		{
 			myTextureData.Release();
