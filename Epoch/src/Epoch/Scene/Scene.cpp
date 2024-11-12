@@ -1057,6 +1057,14 @@ namespace Epoch
 					myPostProcessingData.bufferData.vignetteSmoothness = vc.vignette.smoothness;
 				}
 
+				myPostProcessingData.bufferData.flags |= (vc.distanceFog.enabled << 1);
+				if (vc.distanceFog.enabled)
+				{
+					myPostProcessingData.bufferData.distanceFogColor = vc.distanceFog.color;
+					myPostProcessingData.bufferData.distanceFogDensity = vc.distanceFog.density;
+					myPostProcessingData.bufferData.distanceFogOffset = vc.distanceFog.offset;
+				}
+
 				break;
 			}
 		}

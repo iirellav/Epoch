@@ -259,6 +259,7 @@ namespace Epoch
 		PostProcessing::Tonemapping tonemapping;
 		PostProcessing::ColorGrading colorGrading;
 		PostProcessing::Vignette vignette;
+		PostProcessing::DistanceFog distanceFog;
 	};
 
 #pragma endregion

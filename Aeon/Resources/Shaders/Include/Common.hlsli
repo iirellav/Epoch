@@ -16,6 +16,11 @@ float3 ToLinear(const float3 sRGB)
     return lerp(higher, lower, cutoff);
 }
 
+const float3 ToGamma(const float3 sRGB)
+{
+    return pow(sRGB, 1.0f / 2.2f);
+}
+
 const float3 RGBToHSV(const float3 RGB)
 {
     const float4 K = float4(0.0f, -1.0f / 3.0f, 2.0f / 3.0f, -1.0f);
@@ -32,11 +37,6 @@ const float3 HSVToRGB(const float3 HSV)
     const float4 K = float4(1.0f, 2.0f / 3.0f, 1.0f / 3.0f, 3.0f);
     const float3 p = abs(frac(HSV.xxx + K.xyz) * 6.0f - K.www);
     return HSV.z * lerp(K.xxx, clamp(p - K.xxx, 0.0f, 1.0f), HSV.y);
-}
-
-const float3 ToGamma(const float3 sRGB)
-{
-    return pow(sRGB, 1.0f / 2.2f);
 }
 
 float2 OctWrap(const float2 v)

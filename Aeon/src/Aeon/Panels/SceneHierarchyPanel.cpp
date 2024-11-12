@@ -800,6 +800,60 @@ namespace Epoch
 
 					UI::EndPropertyGrid();
 				}
+
+				if (UI::SubHeaderWithCheckbox("Distance Fog", &aFirstComponent.distanceFog.enabled, false))
+				{
+					UI::BeginPropertyGrid();
+
+					if (!aFirstComponent.distanceFog.enabled)
+					{
+						ImGui::BeginDisabled();
+					}
+
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector3f, VolumeComponent>([](const VolumeComponent& aOther) { return aOther.distanceFog.color.GetVector3(); }));
+					CU::Color color(aFirstComponent.distanceFog.color);
+					if (UI::Property_ColorEdit3("Color", color))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& vc = entity.GetComponent<VolumeComponent>();
+							vc.distanceFog.color = color.GetVector3();
+						}
+					}
+					ImGui::PopItemFlag();
+
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<float, VolumeComponent>([](const VolumeComponent& aOther) { return aOther.distanceFog.density; }));
+					if (UI::Property_DragFloat("Density", aFirstComponent.distanceFog.density))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& vc = entity.GetComponent<VolumeComponent>();
+							vc.distanceFog.density = aFirstComponent.distanceFog.density;
+						}
+					}
+					ImGui::PopItemFlag();
+
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<float, VolumeComponent>([](const VolumeComponent& aOther) { return aOther.distanceFog.offset; }));
+					if (UI::Property_DragFloat("Offset", aFirstComponent.distanceFog.offset))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& vc = entity.GetComponent<VolumeComponent>();
+							vc.distanceFog.offset = aFirstComponent.distanceFog.offset;
+						}
+					}
+					ImGui::PopItemFlag();
+
+					if (!aFirstComponent.distanceFog.enabled)
+					{
+						ImGui::EndDisabled();
+					}
+
+					UI::EndPropertyGrid();
+				}
 			}
 		});
 

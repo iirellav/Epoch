@@ -39,9 +39,11 @@ VertexOutput main(unsigned int aVertexIndex : SV_VertexID)
 #stage pixel
 #include "Include/Common.hlsli"
 #include "Include/Samplers.hlsli"
+#include "Include/CameraBuffer.hlsli"
 
-Texture2D sourceTexture : register(t0);
-Texture2D lutTextue : register(t1);
+Texture2D sourceColerTexture : register(t0);
+Texture2D sourceDepthTexture : register(t1);
+Texture2D lutTextue : register(t2);
 
 struct VertexOutput
 {
@@ -54,16 +56,21 @@ struct VertexOutput
 #define WIDTH 256.0
 #define HEIGHT 16.0
 
-cbuffer PostProcessingBuffer : register(b0)
+cbuffer PostProcessingBuffer : register(b1)
 {
     float3 Vignette_Color;
     float Vignette_Size;
+    
     float2 Vignette_Center;
     float Vignette_Intensity;
     float Vignette_Smoothness;
     
     uint Tonemap;
     uint Flags;
+    float DistannceFog_Density;
+    float DistannceFog_Offset;
+    
+    float4 DistannceFog_Color;
 };
 
 float3 Tonemap_UnrealEngine(float3 input)
@@ -166,16 +173,32 @@ float4 Vignette(const float4 color, const float2 uv)
 
 float4 main(VertexOutput input) : SV_TARGET
 {
-    float4 sourceCol = sourceTexture.SampleLevel(LUTSampler, input.uv, 0);
+    float4 sourceCol = sourceColerTexture.SampleLevel(LUTSampler, input.uv, 0);
+    float sourceDepth = sourceDepthTexture.SampleLevel(LUTSampler, input.uv, 0);
+    float lineardepth = (2.0f * CB_NearPlane) / (CB_FarPlane + CB_NearPlane - sourceDepth * (CB_FarPlane - CB_NearPlane));
+    
+    
+    float viewDistance = lineardepth * CB_FarPlane;
+    
+    float fogFactor = ((DistannceFog_Density / 10000) / sqrt(log(2))) * max(0.0f, viewDistance - (DistannceFog_Offset * 100));
+    fogFactor = exp2(-fogFactor * fogFactor);
+    
+    //sourceCol = lerp(DistannceFog_Color, sourceCol, saturate(fogFactor));
+    
     
     bool colorGradingEnabled =  (Flags >> 0) & 1;
     bool vignetteEnabled =      (Flags >> 1) & 1;
     
     sourceCol = saturate(Tonemapp(sourceCol));
+    
     if (colorGradingEnabled)
     {
         sourceCol = ColorGrade(sourceCol);
     }
+    
+    
+    sourceCol = lerp(DistannceFog_Color, sourceCol, saturate(fogFactor));
+    
     
     if (vignetteEnabled)
     {

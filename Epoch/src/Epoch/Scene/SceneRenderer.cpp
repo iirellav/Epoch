@@ -592,29 +592,33 @@ namespace Epoch
 			//Uber
 			{
 				{
-					std::vector<ID3D11ShaderResourceView*> SRVs(2);
+					std::vector<ID3D11ShaderResourceView*> SRVs(3);
 			
 					auto texture = myEnvironmentalLightPipeline->GetSpecification().targetFramebuffer->GetTarget();
 					auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
 					SRVs[0] = dxTexture->GetSRV().Get();
 					
+					texture = myGBufferPipeline->GetSpecification().targetFramebuffer->GetDepthAttachment();
+					dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
+					SRVs[1] = dxTexture->GetSRV().Get();
+
 					auto lut = AssetManager::GetAsset<Texture>(mySceneData.postProcessingData.colorGradingLUT);
 					if (myColorGradingEnabled && lut)
 					{
 						dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(lut);
-						SRVs[1] = dxTexture->GetSRV().Get();
+						SRVs[2] = dxTexture->GetSRV().Get();
 					}
 						else
 					{
 						dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(Renderer::GetDefaultColorGradingLut());
-						SRVs[1] = dxTexture->GetSRV().Get();
+						SRVs[2] = dxTexture->GetSRV().Get();
 					};
 
-					RHI::GetContext()->PSSetShaderResources(0, 2, SRVs.data());
+					RHI::GetContext()->PSSetShaderResources(0, 3, SRVs.data());
 				}
 				
 				myPostProcessingBuffer->SetData(&mySceneData.postProcessingData.bufferData);
-				myPostProcessingBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 0);
+				myPostProcessingBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 1);
 			
 				Renderer::SetRenderPipeline(myUberPipeline);
 				Renderer::RenderQuad();
@@ -622,8 +626,8 @@ namespace Epoch
 			
 				
 				{
-					std::vector<ID3D11ShaderResourceView*> emptySRVs(2);
-					RHI::GetContext()->PSSetShaderResources(0, 2, emptySRVs.data());
+					std::vector<ID3D11ShaderResourceView*> emptySRVs(3);
+					RHI::GetContext()->PSSetShaderResources(0, 3, emptySRVs.data());
 				}
 			}
 

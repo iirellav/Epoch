@@ -68,13 +68,17 @@ namespace Epoch
 		{
 			CU::Vector3f vignetteColor = CU::Color::Black.GetVector3();
 			float vignetteSize = 1.0f;
+
 			CU::Vector2f vignetteCenter = { 0.5f, 0.5f };
 			float vignetteIntensity = 1.0f;
 			float vignetteSmoothness = 1.0f;
 
 			PostProcessing::Tonemap tonemap;
-			uint32_t flags = 0; //colorGradingEnabled, vignetteEnabled
-			CU::Vector2f padding;
+			uint32_t flags = 0; //colorGradingEnabled, vignetteEnabled, distanceFogEnabled
+			float distanceFogDensity = 0.0f;
+			float distanceFogOffset = 0.0f;
+
+			CU::Color distanceFogColor;
 		} bufferData;
 	};
 }

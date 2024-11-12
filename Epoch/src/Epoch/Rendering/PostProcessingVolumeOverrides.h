@@ -38,4 +38,13 @@ namespace Epoch::PostProcessing
 		float intensity = 1.0f;
 		float smoothness = 1.0f;
 	};
+
+	struct DistanceFog
+	{
+		bool enabled = false;
+		
+		CU::Color color = CU::Color::White;
+		float density = 0.3f;
+		float offset = 0.0f;
+	};
 }

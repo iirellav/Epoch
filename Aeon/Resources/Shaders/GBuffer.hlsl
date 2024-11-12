@@ -1,4 +1,5 @@
 #stage vertex
+#include "Include/CameraBuffer.hlsli"
 
 struct VertexInput
 {
@@ -20,12 +21,6 @@ struct VertexOutput
     float2 uv : UV;
     float3 color : COLOR;
 };
-
-cbuffer CameraBuffer : register(b0)
-{
-    float4x4 CB_ViewProj;
-    float3 CB_CameraPos;
-}
 
 VertexOutput main(VertexInput input)
 {
