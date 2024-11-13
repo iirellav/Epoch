@@ -120,16 +120,13 @@ namespace Epoch
 		{
 			OpenProject(lastProjectPath);
 		}
-		else if (!OpenProject())
+		else if (FileSystem::Exists("DefaultProject/DefaultProject.eproj"))
 		{
-			if (FileSystem::Exists("DefaultProject/DefaultProject.eproj"))
-			{
-				OpenProject("DefaultProject/DefaultProject.eproj");
-			}
-			else
-			{
-				Application::Get().Close();
-			}
+			OpenProject("DefaultProject/DefaultProject.eproj");
+		}
+		else
+		{
+			Application::Get().Close();
 		}
 
 		{
@@ -940,7 +937,14 @@ namespace Epoch
 
 			if (ImGui::Button("Create", ImVec2(75, 0)))
 			{
-				CreateProject(std::string(newProjectFilePathBuffer) + std::string(projectNameBuffer));
+				if (CU::EndsWith(newProjectFilePathBuffer, "\\"))
+				{
+					CreateProject(std::string(newProjectFilePathBuffer) + std::string(projectNameBuffer));
+				}
+				else
+				{
+					CreateProject(fullProjectPath);
+				}
 
 				memset(projectNameBuffer, 0, 255);
 				memset(newProjectFilePathBuffer, 0, 512);
