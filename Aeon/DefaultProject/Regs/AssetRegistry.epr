@@ -1,2 +1,7 @@
 Assets:
-  []
+  - Handle: 3447823360700867784
+    FilePath: Main.epoch
+    Type: Scene
+  - Handle: 15902053298797475885
+    FilePath: Orange.mat
+    Type: Material

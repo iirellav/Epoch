@@ -3,9 +3,9 @@ Project:
   ProductName: DefaultProject
   CompanyName: ""
   Version: 0.100000001
-  StartScene: ""
-  EditorCameraPosition: [-258.044006, 112.199966, -190.545319]
-  EditorCameraRotation: [0.0139999948, 1.15600789, 0]
+  StartScene: Main.epoch
+  EditorCameraPosition: [-1192.60767, 523.257324, -169.158066]
+  EditorCameraRotation: [0.367999077, 1.31999719, 0]
   AutosaveDirectory: Autosaves
   AssetDirectory: Assets
   AssetRegistryPath: Regs/AssetRegistry.epr

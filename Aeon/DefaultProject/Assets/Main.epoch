@@ -1,0 +1,127 @@
+Scene: Main
+Entities:
+  - Entity: 13501312681981508654
+    ActiveComponent:
+      IsActive: true
+    NameComponent:
+      Name: Cube
+    RelationshipComponent:
+      Parent: 0
+      Children:
+        []
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [10, 0.100000001, 10]
+    MeshRendererComponent:
+      IsActive: true
+      Mesh: 7073267828499922325
+      CastsShadows: true
+      MaterialTable:
+        - 13044821249678330980
+    BoxColliderComponent:
+      HalfSize: [50, 50, 50]
+      Offset: [0, 0, 0]
+      IsTrigger: false
+  - Entity: 15078113835083756828
+    ActiveComponent:
+      IsActive: true
+    NameComponent:
+      Name: Cube
+    RelationshipComponent:
+      Parent: 0
+      Children:
+        []
+    TransformComponent:
+      Translation: [0, 678.916016, 0]
+      Rotation: [-0.304747909, -0.0347070098, 0.370500505]
+      Scale: [1, 1, 1]
+    MeshRendererComponent:
+      IsActive: true
+      Mesh: 7073267828499922325
+      CastsShadows: true
+      MaterialTable:
+        - 15902053298797475885
+    RigidbodyComponent:
+      Mass: 1
+      LinearDrag: 0.00999999978
+      AngularDrag: 0.0500000007
+      UseGravity: true
+      IsKinematic: false
+      Constraints: 0
+      InitialLinearVelocity: [0, 0, 0]
+      InitialAngularVelocity: [0, 0, 0]
+    BoxColliderComponent:
+      HalfSize: [50, 50, 50]
+      Offset: [0, 0, 0]
+      IsTrigger: false
+  - Entity: 2269629401059862812
+    ActiveComponent:
+      IsActive: true
+    NameComponent:
+      Name: Directional Light
+    RelationshipComponent:
+      Parent: 0
+      Children:
+        []
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0.785398006, 0.785398006, 0]
+      Scale: [1, 1, 1]
+    DirectionalLightComponent:
+      IsActive: true
+      Color: [1, 1, 1]
+      Intensity: 1
+      CastsShadows: false
+  - Entity: 9980576126842317746
+    ActiveComponent:
+      IsActive: true
+    NameComponent:
+      Name: Camera
+    RelationshipComponent:
+      Parent: 0
+      Children:
+        []
+    TransformComponent:
+      Translation: [-1084.58423, 652.671204, -394.458008]
+      Rotation: [0.340000331, 1.32600605, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      IsActive: true
+      Camera:
+        ProjectionType: 0
+        PerspectiveFOV: 1.57079601
+        PerspectiveNear: 1
+        PerspectiveFar: 25000
+        OrthographicSize: 1000
+        OrthographicNear: 0
+        OrthographicFar: 10000
+      Primary: true
+  - Entity: 13049354711229332050
+    ActiveComponent:
+      IsActive: true
+    NameComponent:
+      Name: Post Processing
+    RelationshipComponent:
+      Parent: 0
+      Children:
+        []
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    VolumeComponent:
+      IsActive: true
+      Tonemapping:
+        Enabled: true
+        Tonemap: 1
+      ColorGrading:
+        Enabled: false
+        LUT: 0
+      Vignette:
+        Enabled: false
+        Color: [0, 0, 0]
+        Center: [0.5, 0.5]
+        Intensity: 1
+        Size: 1
+        Smoothness: 1
