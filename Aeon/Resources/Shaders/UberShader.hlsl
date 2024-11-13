@@ -42,7 +42,7 @@ VertexOutput main(unsigned int aVertexIndex : SV_VertexID)
 #include "Include/CameraBuffer.hlsli"
 
 Texture2D sourceColerTexture : register(t0);
-Texture2D sourceDepthTexture : register(t1);
+Texture2D worldPosTexture : register(t1);
 Texture2D lutTextue : register(t2);
 
 struct VertexOutput
@@ -112,7 +112,7 @@ float3 Tonemap_ACES(float3 input)
     return (input * (a * input + b)) / (input * (c * input + d) + e);
 }
 
-float4 Tonemapp(const float4 color)
+float4 Tonemapp(const float3 color)
 {
     float3 output = color.rgb;
     
@@ -135,7 +135,7 @@ float4 Tonemapp(const float4 color)
     return float4(output, 1.0f);
 }
 
-float4 ColorGrade(const float4 color)
+float3 ColorGrade(const float3 color)
 {
     float cell = color.b * MAXCOLOR;
 
@@ -150,15 +150,29 @@ float4 ColorGrade(const float4 color)
     float2 lutPosL = float2(cellL / COLORS + rOffset, gOffset);
     float2 lutPosH = float2(cellH / COLORS + rOffset, gOffset);
 
-    float4 lutColorL = lutTextue.SampleLevel(LUTSampler, lutPosL, 0);
-    float4 lutColorH = lutTextue.SampleLevel(LUTSampler, lutPosH, 0);
+    float3 lutColorL = lutTextue.SampleLevel(LUTSampler, lutPosL, 0).rgb;
+    float3 lutColorH = lutTextue.SampleLevel(LUTSampler, lutPosH, 0).rgb;
     
-    float4 gradedColor = lerp(lutColorL, lutColorH, frac(cell));
+    float3 gradedColor = lerp(lutColorL, lutColorH, frac(cell));
 
     return float4(gradedColor.rgb, 1.0f);
 }
 
-float4 Vignette(const float4 color, const float2 uv)
+float3 DistanceFog(const float3 color, float4 worldPos)
+{
+    float viewDistance = distance(worldPos.rgb, CB_CameraPos);
+    if (worldPos.a == 0.0f)
+    {
+        viewDistance = CB_FarPlane;
+    }
+    
+    float fogFactor = ((DistannceFog_Density / 10000) / sqrt(log(2))) * max(0.0f, viewDistance - (DistannceFog_Offset * 100));
+    fogFactor = exp2(-fogFactor * fogFactor);
+    
+    return lerp(DistannceFog_Color.rgb, color, saturate(fogFactor));
+}
+
+float3 Vignette(const float3 color, const float2 uv)
 {
     float2 pos = uv - 0.5f;
     pos *= Vignette_Size;
@@ -168,37 +182,30 @@ float4 Vignette(const float4 color, const float2 uv)
     //d = pow(saturate(d), _Roundness);
     float vfactor = pow(saturate(1.0f - dot(d, d)), Vignette_Smoothness);
 
-    return float4(lerp(Vignette_Color, color.rgb, vfactor), 1.0f);
+    return lerp(Vignette_Color, color.rgb, vfactor);
 }
 
 float4 main(VertexOutput input) : SV_TARGET
 {
-    float4 sourceCol = sourceColerTexture.SampleLevel(LUTSampler, input.uv, 0);
-    float sourceDepth = sourceDepthTexture.SampleLevel(LUTSampler, input.uv, 0);
-    float lineardepth = (2.0f * CB_NearPlane) / (CB_FarPlane + CB_NearPlane - sourceDepth * (CB_FarPlane - CB_NearPlane));
-    
-    
-    float viewDistance = lineardepth * CB_FarPlane;
-    
-    float fogFactor = ((DistannceFog_Density / 10000) / sqrt(log(2))) * max(0.0f, viewDistance - (DistannceFog_Offset * 100));
-    fogFactor = exp2(-fogFactor * fogFactor);
-    
-    //sourceCol = lerp(DistannceFog_Color, sourceCol, saturate(fogFactor));
-    
+    float3 sourceCol = sourceColerTexture.SampleLevel(LUTSampler, input.uv, 0).rgb;
+    float4 worldPos = worldPosTexture.SampleLevel(LUTSampler, input.uv, 0);
+    //float linearDepth = (2.0f * CB_NearPlane) / (CB_FarPlane + CB_NearPlane - sourceDepth * (CB_FarPlane - CB_NearPlane));
     
     bool colorGradingEnabled =  (Flags >> 0) & 1;
     bool vignetteEnabled =      (Flags >> 1) & 1;
+    bool distanceFogEnabled = (Flags >> 2) & 1;
     
-    sourceCol = saturate(Tonemapp(sourceCol));
+    sourceCol = saturate(Tonemapp(sourceCol)).rgb;
     
     if (colorGradingEnabled)
     {
         sourceCol = ColorGrade(sourceCol);
     }
     
-    
-    sourceCol = lerp(DistannceFog_Color, sourceCol, saturate(fogFactor));
-    
+    if (distanceFogEnabled)
+    {
+        sourceCol = DistanceFog(sourceCol, worldPos);
+    }
     
     if (vignetteEnabled)
     {

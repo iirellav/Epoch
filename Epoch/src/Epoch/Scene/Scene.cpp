@@ -1057,7 +1057,7 @@ namespace Epoch
 					myPostProcessingData.bufferData.vignetteSmoothness = vc.vignette.smoothness;
 				}
 
-				myPostProcessingData.bufferData.flags |= (vc.distanceFog.enabled << 1);
+				myPostProcessingData.bufferData.flags |= (vc.distanceFog.enabled << 2);
 				if (vc.distanceFog.enabled)
 				{
 					myPostProcessingData.bufferData.distanceFogColor = vc.distanceFog.color;
