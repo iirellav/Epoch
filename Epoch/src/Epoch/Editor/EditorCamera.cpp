@@ -31,10 +31,10 @@ namespace Epoch
 	{
 		if (!myIsActive)
 		{
-			if (!UI::IsInputEnabled())
-			{
-				UI::SetInputEnabled(true);
-			}
+			//if (!UI::IsInputEnabled())
+			//{
+			//	UI::SetInputEnabled(true);
+			//}
 
 			return;
 		}
@@ -43,7 +43,7 @@ namespace Epoch
 
 		if (Input::IsMouseButtonDown(MouseButton::Right))
 		{
-			DisableMouse();
+			//DisableMouse();
 
 			float scrollDelta = Input::GetMouseScroll().y;
 			mySpeedMultiplier += scrollDelta * 0.3f;
@@ -53,7 +53,7 @@ namespace Epoch
 		}
 		else
 		{
-			EnableMouse();
+			//EnableMouse();
 		}
 	}
 
