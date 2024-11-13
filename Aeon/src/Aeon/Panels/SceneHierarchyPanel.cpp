@@ -2295,7 +2295,11 @@ namespace Epoch
 		if (ImGui::MenuItem("Camera"))
 		{
 			createdEntity = myContext->CreateEntity("Camera");
-			createdEntity.AddComponent<CameraComponent>();
+			CameraComponent& cc = createdEntity.AddComponent<CameraComponent>();
+			if (!myContext->GetPrimaryCameraEntity())
+			{
+				cc.primary = true;
+			}
 		}
 
 		if (ImGui::MenuItem("Particle System"))
