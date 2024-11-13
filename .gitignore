@@ -21,4 +21,5 @@ Aeon/Resources/Scripts
 # Folders
 Aeon/Profiling_Results
 Aeon/logs
+Aeon/Config
 **.auto
