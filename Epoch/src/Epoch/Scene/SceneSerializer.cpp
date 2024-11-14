@@ -698,6 +698,19 @@ namespace Epoch
 					aOut << YAML::EndMap;
 				}
 
+				//Distance Fog
+				{
+					aOut << YAML::Key << "DistanceFog";
+					aOut << YAML::BeginMap;
+
+					aOut << YAML::Key << "Enabled" << YAML::Value << v.distanceFog.enabled;
+					aOut << YAML::Key << "Color" << YAML::Value << v.distanceFog.color.GetVector3();
+					aOut << YAML::Key << "Density" << YAML::Value << v.distanceFog.density;
+					aOut << YAML::Key << "Offset" << YAML::Value << v.distanceFog.offset;
+
+					aOut << YAML::EndMap;
+				}
+
 				aOut << YAML::EndMap;
 			}
 
@@ -1314,7 +1327,7 @@ namespace Epoch
 				{
 					YAML::Node colorGradingData = volumeComponent["ColorGrading"];
 
-					vc.colorGrading.enabled = colorGradingData["Enabled"].as<bool>(true);
+					vc.colorGrading.enabled = colorGradingData["Enabled"].as<bool>(false);
 					vc.colorGrading.lut = colorGradingData["LUT"].as<UUID>(UUID(0));
 				}
 				
@@ -1322,12 +1335,22 @@ namespace Epoch
 				{
 					YAML::Node vignetteData = volumeComponent["Vignette"];
 					
-					vc.vignette.enabled = vignetteData["Enabled"].as<bool>(true);
+					vc.vignette.enabled = vignetteData["Enabled"].as<bool>(false);
 					vc.vignette.color = vignetteData["Color"].as<CU::Vector3f>(CU::Color::Black.GetVector3());
 					vc.vignette.center = vignetteData["Center"].as<CU::Vector2f>(CU::Vector2f(0.5f, 0.5f));
 					vc.vignette.intensity = vignetteData["Intensity"].as<float>(1.0f);
 					vc.vignette.size = vignetteData["Size"].as<float>(1.0f);
 					vc.vignette.smoothness = vignetteData["Smoothness"].as<float>(1.0f);
+				}
+
+				//Distance Fog
+				{
+					YAML::Node vignetteData = volumeComponent["DistanceFog"];
+
+					vc.distanceFog.enabled = vignetteData["Enabled"].as<bool>(false);
+					vc.distanceFog.color = vignetteData["Color"].as<CU::Vector3f>(CU::Color::White.GetVector3());
+					vc.distanceFog.density = vignetteData["Density"].as<float>(0.3f);
+					vc.distanceFog.offset = vignetteData["Offset"].as<float>(0.0f);
 				}
 			}
 
