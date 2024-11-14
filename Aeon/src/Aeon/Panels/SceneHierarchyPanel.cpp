@@ -746,7 +746,7 @@ namespace Epoch
 					ImGui::PopItemFlag();
 
 					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector2f, VolumeComponent>([](const VolumeComponent& aOther) { return aOther.vignette.center; }));
-					if (UI::Property_DragFloat2("Center", aFirstComponent.vignette.center))
+					if (UI::Property_DragFloat2("Center", aFirstComponent.vignette.center, 0.02f, 0.0f, 1.0f))
 					{
 						for (auto& entityID : aEntities)
 						{
@@ -824,7 +824,7 @@ namespace Epoch
 					ImGui::PopItemFlag();
 
 					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<float, VolumeComponent>([](const VolumeComponent& aOther) { return aOther.distanceFog.density; }));
-					if (UI::Property_DragFloat("Density", aFirstComponent.distanceFog.density))
+					if (UI::Property_DragFloat("Density", aFirstComponent.distanceFog.density, 0.02f, 0.0f, FLT_MAX))
 					{
 						for (auto& entityID : aEntities)
 						{
@@ -1596,7 +1596,7 @@ namespace Epoch
 				}
 			}, EditorResources::PointLightIcon);
 		
-		//DONE(?) - Multi Edit
+		//DONE - Multi Edit (Constraints mixed values not implemented)
 		DrawComponent<RigidbodyComponent>("Rigidbody", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
 			{
 				{
@@ -1708,23 +1708,41 @@ namespace Epoch
 
 							if (UI::Property_GroupCheckbox("X", translationX))
 							{
-								translationX ?
-									aFirstComponent.constraints |= PhysicsAxis::TranslationX :
-									aFirstComponent.constraints &= ~PhysicsAxis::TranslationX;
+								for (auto& entityID : aEntities)
+								{
+									Entity entity = myContext->GetEntityWithUUID(entityID);
+									auto& rb = entity.GetComponent<RigidbodyComponent>();
+
+									translationX ?
+										rb.constraints |= PhysicsAxis::TranslationX :
+										rb.constraints &= ~PhysicsAxis::TranslationX;
+								}
 							}
 
 							if (UI::Property_GroupCheckbox("Y", translationY))
 							{
-								translationY ?
-									aFirstComponent.constraints |= PhysicsAxis::TranslationY :
-									aFirstComponent.constraints &= ~PhysicsAxis::TranslationY;
+								for (auto& entityID : aEntities)
+								{
+									Entity entity = myContext->GetEntityWithUUID(entityID);
+									auto& rb = entity.GetComponent<RigidbodyComponent>();
+
+									translationY ?
+										rb.constraints |= PhysicsAxis::TranslationY :
+										rb.constraints &= ~PhysicsAxis::TranslationY;
+								}
 							}
 
 							if (UI::Property_GroupCheckbox("Z", translationZ))
 							{
-								translationZ ?
-									aFirstComponent.constraints |= PhysicsAxis::TranslationZ :
-									aFirstComponent.constraints &= ~PhysicsAxis::TranslationZ;
+								for (auto& entityID : aEntities)
+								{
+									Entity entity = myContext->GetEntityWithUUID(entityID);
+									auto& rb = entity.GetComponent<RigidbodyComponent>();
+
+									translationZ ?
+										rb.constraints |= PhysicsAxis::TranslationZ :
+										rb.constraints &= ~PhysicsAxis::TranslationZ;
+								}
 							}
 
 							UI::EndCheckboxGroup();
@@ -1740,23 +1758,41 @@ namespace Epoch
 
 							if (UI::Property_GroupCheckbox("X", rotationX))
 							{
-								rotationX ?
-									aFirstComponent.constraints |= PhysicsAxis::RotationX :
-									aFirstComponent.constraints &= ~PhysicsAxis::RotationX;
+								for (auto& entityID : aEntities)
+								{
+									Entity entity = myContext->GetEntityWithUUID(entityID);
+									auto& rb = entity.GetComponent<RigidbodyComponent>();
+
+									rotationX ?
+										rb.constraints |= PhysicsAxis::RotationX :
+										rb.constraints &= ~PhysicsAxis::RotationX;
+								}
 							}
 
 							if (UI::Property_GroupCheckbox("Y", rotationY))
 							{
-								rotationY ?
-									aFirstComponent.constraints |= PhysicsAxis::RotationY :
-									aFirstComponent.constraints &= ~PhysicsAxis::RotationY;
+								for (auto& entityID : aEntities)
+								{
+									Entity entity = myContext->GetEntityWithUUID(entityID);
+									auto& rb = entity.GetComponent<RigidbodyComponent>();
+
+									rotationY ?
+										rb.constraints |= PhysicsAxis::RotationY :
+										rb.constraints &= ~PhysicsAxis::RotationY;
+								}
 							}
 
 							if (UI::Property_GroupCheckbox("Z", rotationZ))
 							{
-								rotationZ ?
-									aFirstComponent.constraints |= PhysicsAxis::RotationZ :
-									aFirstComponent.constraints &= ~PhysicsAxis::RotationZ;
+								for (auto& entityID : aEntities)
+								{
+									Entity entity = myContext->GetEntityWithUUID(entityID);
+									auto& rb = entity.GetComponent<RigidbodyComponent>();
+
+									rotationZ ?
+										rb.constraints |= PhysicsAxis::RotationZ :
+										rb.constraints &= ~PhysicsAxis::RotationZ;
+								}
 							}
 
 							UI::EndCheckboxGroup();
@@ -1785,7 +1821,19 @@ namespace Epoch
 								UI::EndPropertyGrid();
 							}
 						}
-						//ImGui::TreePop();
+						else
+						{
+							UI::BeginPropertyGrid();
+
+							ImGui::BeginDisabled();
+							CU::Vector3f velocity;
+							CU::Vector3f angularVelocity;
+							UI::Property_DragFloat3("Velocity", velocity);
+							UI::Property_DragFloat3("Angular Velocity", angularVelocity);
+							ImGui::EndDisabled();
+
+							UI::EndPropertyGrid();
+						}
 					}
 				}
 			}, EditorResources::RigidbodyIcon);
