@@ -1552,6 +1552,7 @@ namespace Epoch
 		myEditorCamera.GetTransform().SetRotation(project->GetConfig().editorCameraRotation);
 
 		EditorSettings::Get().lastProjectPath = Project::GetProjectPath().string();
+		EditorSettingsSerializer::SaveSettings();
 	}
 
 	void EditorLayer::UpdateWindowTitle(const std::string& aSceneName)
