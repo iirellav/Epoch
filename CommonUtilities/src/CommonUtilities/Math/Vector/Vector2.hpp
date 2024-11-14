@@ -84,6 +84,12 @@ namespace CU
 		return { aVector.x * aScalar, aVector.y * aScalar };
 	}
 
+	template <class T>
+	Vector2<T> operator*(const T& aScalar, const Vector2<T>& aVector)
+	{
+		return { aVector.x * aScalar, aVector.y * aScalar };
+	}
+
 	template <class T> 
 	Vector2<T> operator/(const Vector2<T>& aVector, const T& aScalar)
 	{
