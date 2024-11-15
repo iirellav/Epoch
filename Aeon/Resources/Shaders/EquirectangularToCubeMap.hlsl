@@ -1,4 +1,5 @@
 #stage compute
+#include "Include/Samplers.hlsli"
 
 #define pi 3.14159265359f
 
@@ -17,9 +18,7 @@ float3 GetCubeMapTexCoord(float2 uv, uint face)
 Texture2D equirectangularTexture : register(t0);
 RWTexture2DArray<float4> cubemap : register(u0);
 
-SamplerState samplerState : register(s1);
-
-[numthreads(32, 32, 1)]
+[numthreads(16, 16, 1)]
 void main(uint3 DTid : SV_DispatchThreadID)
 {
     uint elements = 0;
@@ -36,7 +35,7 @@ void main(uint3 DTid : SV_DispatchThreadID)
     equirectUV.y = asin(dir.y) / pi + 0.5f;
 
     // Sample the equirectangular texture
-    const float4 color = equirectangularTexture.SampleLevel(samplerState, equirectUV, 0);
+    const float4 color = equirectangularTexture.SampleLevel(clampSampler, equirectUV, 0);
 
     // Write the color to the cubemap face
     cubemap[DTid] = color;

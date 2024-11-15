@@ -1,4 +1,5 @@
 #stage compute
+#include "Include/Samplers.hlsli"
 
 #define pi 3.14159265359f
 
@@ -30,8 +31,6 @@ float2 Hammersley(uint i, uint N)
 // Texture and sampler bindings
 TextureCube<float4> input : register(t0);
 RWTexture2DArray<float4> output : register(u0);
-
-SamplerState samplerState : register(s1);
 
 // Helper function to sample GGX normal distribution
 float3 ImportanceSampleGGX(float2 Xi, float Roughness, float3 N)
@@ -66,7 +65,7 @@ float3 GetCubeMapTexCoord(float2 uv, uint face)
 }
 
 // Thread group size
-[numthreads(32, 32, 1)]
+[numthreads(16, 16, 1)]
 void main(uint3 DTid : SV_DispatchThreadID)
 {
     // Ensure we are within output bounds
@@ -93,7 +92,7 @@ void main(uint3 DTid : SV_DispatchThreadID)
         {
             // Sample from the texture
             float3 flippedL = float3(L.x, -L.y, L.z);
-            PrefilteredColor += input.SampleLevel(samplerState, flippedL, 0).rgb * NoL;
+            PrefilteredColor += input.SampleLevel(clampSampler, flippedL, 0).rgb * NoL;
             TotalWeight += NoL;
         }
     }

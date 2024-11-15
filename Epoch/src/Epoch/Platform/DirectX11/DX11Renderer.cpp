@@ -360,7 +360,7 @@ namespace Epoch
 			RHI::GetContext()->CSSetUnorderedAccessViews(0, 1, dxTextureCube->GetUAV().GetAddressOf(), 0);
 			RHI::GetContext()->CSSetShaderResources(0, 1, dxEquirect->GetSRV().GetAddressOf());
 
-			DispatchCompute({ cubemapSize / 32, cubemapSize / 32 , 6 });
+			DispatchCompute({ cubemapSize / 16, cubemapSize / 16 , 6 });
 
 			std::vector<ID3D11UnorderedAccessView*> emptyUAVs(1);
 			std::vector<ID3D11ShaderResourceView*> emptySRVs(1);
@@ -375,14 +375,14 @@ namespace Epoch
 		// Filter cubemap
 		{
 			std::shared_ptr<ConstantBuffer> cb = ConstantBuffer::Create(sizeof(CU::Vector4f));
-
+		
 			std::shared_ptr<Shader> equirectangularConversionShader = Renderer::GetShaderLibrary()->Get("EnvironmentMipFilter");
 			auto dxShader = std::dynamic_pointer_cast<DX11Shader>(equirectangularConversionShader);
-
+		
 			ComPtr<ID3D11ComputeShader> cs;
 			dxShader->GetShader(ShaderStage::Compute).As(&cs);
 			RHI::GetContext()->CSSetShader(cs.Get(), nullptr, 0);
-
+		
 			std::shared_ptr<DX11TextureCube> dxOutput = std::dynamic_pointer_cast<DX11TextureCube>(envFiltered);
 			std::shared_ptr<DX11TextureCube> dxInput = std::dynamic_pointer_cast<DX11TextureCube>(envUnfiltered);
 			
@@ -391,25 +391,24 @@ namespace Epoch
 			const uint32_t mipCount = (uint32_t)CU::Math::Floor(std::log2f((float)CU::Math::Min(cubemapSize, cubemapSize))) + 1;
 			for (size_t i = 0; i < mipCount; i++)
 			{
-				uint32_t numGroups = CU::Math::Max(1u, size / 32u);
 				float roughness = i * deltaRoughness;
 				roughness = CU::Math::Max(roughness, 0.05f);
-
+		
 				cb->SetData(&roughness);
 				cb->Bind(PIPELINE_STAGE_PIXEL_SHADER, 0);
-
+		
 				ComPtr<ID3D11UnorderedAccessView> mipUAV = dxOutput->GetMipUAV((uint32_t)i);
-
+		
 				RHI::GetContext()->CSSetUnorderedAccessViews(0, 1, mipUAV.GetAddressOf(), 0);
 				RHI::GetContext()->CSSetShaderResources(0, 1, dxInput->GetSRV().GetAddressOf());
-
-				DispatchCompute({ cubemapSize / 32, cubemapSize / 32 , 6 });
-
+		
+				DispatchCompute({ cubemapSize / 16, cubemapSize / 16 , 6 });
+		
 				std::vector<ID3D11UnorderedAccessView*> emptyUAVs(1);
 				std::vector<ID3D11ShaderResourceView*> emptySRVs(1);
 				RHI::GetContext()->CSSetUnorderedAccessViews(0, 1, emptyUAVs.data(), 0);
 				RHI::GetContext()->CSSetShaderResources(0, 1, emptySRVs.data());
-
+		
 				size /= 2;
 			}
 			
