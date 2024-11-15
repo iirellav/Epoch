@@ -73,21 +73,13 @@ cbuffer MaterialBuffer : register(b1)
     float MB_EmissionStrength;
 }
 
-//struct GBufferOutput
-//{
-//    float4 albedo : SV_TARGET0;
-//    float4 normal : SV_TARGET1;
-//    float4 material : SV_TARGET2;
-//    float4 emission : SV_TARGET3;
-//    float4 worldPos : SV_TARGET4;
-//};
-
 struct GBufferOutput
 {
-    float4 albedoNormX : SV_TARGET0;
-    float4 materialNormY : SV_TARGET1;
-    float4 emission : SV_TARGET2;
-    float4 worldPos : SV_TARGET3;
+    float4 albedo : SV_TARGET0;
+    float4 material : SV_TARGET1;
+    float4 normals : SV_TARGET2;
+    float4 emission : SV_TARGET3;
+    float4 worldPos : SV_TARGET4;
 };
 
 SamplerState wrapSampler : register(s0);
@@ -116,20 +108,14 @@ GBufferOutput main(VertexOutput input) : SV_TARGET
     pixelNormal.z = sqrt(1 - (pixelNormal.x * pixelNormal.x) + (pixelNormal.y * pixelNormal.y));
     pixelNormal.xy *= MB_NormalStrength;
     pixelNormal = normalize(mul(normalize(pixelNormal), tbn));
-    const float2 normals = EncodeOct(pixelNormal);
     
     const float3 materialValues = materialTexture.Sample(wrapSampler, scaledUV).rgb;
     
-    output.albedoNormX = float4(albedoColor, normals.x);
-    output.materialNormY = float4(materialValues * float3(1.0f, MB_Roughness, MB_Metalness), normals.y);
+    output.albedo = float4(albedoColor, 1.0f);
+    output.material = float4(materialValues * float3(1.0f, MB_Roughness, MB_Metalness), 1.0f);
+    output.normals = float4(pixelNormal, 1.0f);
     output.emission = float4(MB_EmissionColor * MB_EmissionStrength, 1.0f);
     output.worldPos = input.worldPos;
-    
-    //output.albedo = float4(albedoColor, 1.0f);
-    //output.normal = float4(pixelNormal, 1.0f);
-    //output.material = float4(materialValues * float3(1.0f, MB_Roughness, MB_Metalness), 1.0f);
-    //output.emission = float4(0.0f.xxx, 1.0f);
-    //output.worldPos = input.worldPos;
     
     return output;
 }

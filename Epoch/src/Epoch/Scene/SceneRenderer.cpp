@@ -137,17 +137,11 @@ namespace Epoch
 			FramebufferSpecification specs;
 			specs.debugName = "GBuffer";
 			specs.clearColor = CU::Color::Zero;
-			//specs.attachments = {
-			//{ TextureFormat::RGBA, "Albedo" },
-			//{ TextureFormat::RGB10A2UNORM, "Normal" },
-			//{ TextureFormat::RGBA, "Material" },
-			//{ TextureFormat::RGBA, "Emission" },
-			//{ TextureFormat::RGBA32F, "WorldPosition" },
-			//{ TextureFormat::DEPTH32, "Depth" } };
 
 			specs.attachments = {
-			{ TextureFormat::RGBA,			"AlbedoNormX" },
-			{ TextureFormat::RGBA,			"MaterialNormY" },
+			{ TextureFormat::RGBA,			"Albedo" },
+			{ TextureFormat::RGBA,			"Material" },
+			{ TextureFormat::RGBA16F,		"Normals" },
 			{ TextureFormat::R11G11B10F,	"Emission" },
 			{ TextureFormat::RGBA32F,		"WorldPosition" },
 			{ TextureFormat::DEPTH32,		"Depth" } };
@@ -599,7 +593,7 @@ namespace Epoch
 					auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
 					SRVs[0] = dxTexture->GetSRV().Get();
 					
-					texture = myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(3);
+					texture = myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(4);
 					dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
 					SRVs[1] = dxTexture->GetSRV().Get();
 

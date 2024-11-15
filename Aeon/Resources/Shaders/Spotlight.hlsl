@@ -49,32 +49,20 @@ struct VertexOutput
     float2 uv : UV;
 };
 
-Texture2D albedoNormXTexture : register(t0);
-Texture2D materialNormYTexture : register(t1);
-Texture2D emissionFlagsTexture : register(t2);
-Texture2D worldPositionTexture : register(t3);
+Texture2D albedoTexture : register(t0);
+Texture2D materialTexture : register(t1);
+Texture2D normalsTexture : register(t2);
+Texture2D emissionTexture : register(t3);
+Texture2D worldPositionTexture : register(t4);
 
 Texture2D cookieTexture : register(t5);
 
-//Texture2D albedoTexture : register(t0);
-//Texture2D normalTexture : register(t1);
-//Texture2D materialTexture : register(t2);
-//Texture2D emissionTexture : register(t3);
-//Texture2D worldPositionTexture : register(t4);
-
 float4 main(VertexOutput input) : SV_TARGET
 {
-    const float4 albedo = albedoNormXTexture.Sample(clampSampler, input.uv);
-    const float4 material = materialNormYTexture.Sample(clampSampler, input.uv);
+    const float3 albedo = albedoTexture.Sample(clampSampler, input.uv).rgb;
+    const float3 material = materialTexture.Sample(clampSampler, input.uv).rgb;
+    const float3 normals = normalsTexture.Sample(clampSampler, input.uv).rgb;
     const float3 worldPos = worldPositionTexture.Sample(clampSampler, input.uv).rgb;
-    
-    const float3 normal = DecodeOct(float2(albedo.a, material.a));
-    
-    //const float3 albedo = albedoTexture.Sample(clampSampler, input.uv).rgb;
-    //const float3 normal = normalTexture.Sample(clampSampler, input.uv).rgb;
-    //const float3 material = materialTexture.Sample(clampSampler, input.uv).rgb;
-    //const float3 emission = emissionTexture.Sample(clampSampler, input.uv).rgb;
-    //const float3 worldPos = worldPositionTexture.Sample(clampSampler, input.uv).rgb;
     
     const float occlusion = material.r;
     const float roughness = material.g;
@@ -92,7 +80,7 @@ float4 main(VertexOutput input) : SV_TARGET
     
     const float3 l = normalize(worldPos - SLB_Position);
     
-    const float3 lightContribution = CalculateLight(CB_CameraPos, worldPos, normal, l, diffuseColor, specularColor, SLB_Color, SLB_Intensity, roughness);
+    const float3 lightContribution = CalculateLight(CB_CameraPos, worldPos, normals, l, diffuseColor, specularColor, SLB_Color, SLB_Intensity, roughness);
     
     const float coneAttenuation = pow(saturate(saturate(dot(SLB_Direction, l) - SLB_ConeAngle) / max(SLB_ConeAngleDiff, 0.0001f)), 2.0f);
     const float rangeAttenuation = saturate(1.0f - pow(d * (1.0f / SLB_Range), 2.0f));
