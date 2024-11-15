@@ -456,7 +456,8 @@ namespace Epoch
 				}
 			};
 
-		UI::ShiftCursor(10.0f, 9.0f);
+		//UI::ShiftCursor(10.0f, 9.0f);
+		UI::ShiftCursor(10.0f, 3.0f);
 		ImGui::Text(aLabel.c_str());
 		ImGui::SameLine(125.0f);
 
@@ -471,7 +472,7 @@ namespace Epoch
 
 		ImGui::PopStyleVar();
 
-		UI::ShiftCursorY(8.0f);
+		UI::ShiftCursorY(4.0f);
 
 		ImGui::PopID();
 
