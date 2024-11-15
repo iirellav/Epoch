@@ -1,5 +1,4 @@
 #pragma once
-#include <ostream>
 #include "../../Math/CommonMath.hpp"
 
 namespace CU
@@ -12,8 +11,8 @@ namespace CU
 		T y;
 
 		Vector2<T>();
-		Vector2<T>(const T& aValue);
-		Vector2<T>(const T& aX, const T& aY);
+		Vector2<T>(T aValue);
+		Vector2<T>(T aX, T aY);
 		Vector2<T>(const Vector2<T>& aVector) = default;
 		~Vector2<T>() = default;
 
@@ -140,23 +139,14 @@ namespace CU
 	template <class T>
 	bool operator==(const Vector2<T>& aVector0, const Vector2<T>& aVector1)
 	{
-		constexpr float SmalValue = 0.001f;
-		return (CU::Math::Abs(aVector0.x - aVector1.x) < SmalValue &&
-				CU::Math::Abs(aVector0.y - aVector1.y) < SmalValue);
+		return (CU::Math::Abs(aVector0.x - aVector1.x) < Math::Epsilon &&
+				CU::Math::Abs(aVector0.y - aVector1.y) < Math::Epsilon);
 	}
 
 	template <class T>
 	bool operator!=(const Vector2<T>& aVector0, const Vector2<T>& aVector1)
 	{
 		return !(aVector0 == aVector1);
-	}
-
-	template<typename T>
-	std::ostream& operator<<(std::ostream& out, const Vector2<T>& aVec)
-	{
-		out << aVec.x << ", ";
-		out << aVec.y;
-		return out;
 	}
 
 
@@ -168,14 +158,14 @@ namespace CU
 	}
 
 	template<typename T>
-	inline Vector2<T>::Vector2(const T& aValue)
+	inline Vector2<T>::Vector2(T aValue)
 	{
 		x = aValue;
 		y = aValue;
 	}
 
 	template<typename T>
-	inline Vector2<T>::Vector2(const T& aX, const T& aY)
+	inline Vector2<T>::Vector2(T aX, T aY)
 	{
 		x = aX;
 		y = aY;
@@ -202,7 +192,7 @@ namespace CU
 	template<typename T>
 	inline T Vector2<T>::Length() const
 	{
-		return static_cast<T>(std::sqrtf((x * x) + (y * y)));
+		return static_cast<T>(std::sqrt((x * x) + (y * y)));
 	}
 
 	template<typename T>
@@ -214,7 +204,7 @@ namespace CU
 		}
 
 		const T magnitude = T(1) / Length();
-		return Vector2<T>(x * magnitude, y * magnitude);
+		return { x * magnitude, y * magnitude };
 	}
 
 	template<typename T>
@@ -321,7 +311,7 @@ namespace CU
 	template<typename T>
 	inline T Vector2<T>::FindAngleBetweenRadians(const Vector2<T>& aVector0, const Vector2<T>& aVector1)
 	{
-		return std::acos(Math::Clamp((aVector0.Dot(aVector1)) / (aVector0.Length() * aVector1.Length()), -1.0f, 1.0f));
+		return std::acos((aVector0.Dot(aVector1)) / (aVector0.Length() * aVector1.Length()));
 	}
 
 	template<typename T>

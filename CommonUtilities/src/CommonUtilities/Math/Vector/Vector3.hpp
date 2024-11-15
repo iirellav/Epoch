@@ -1,5 +1,4 @@
 #pragma once
-#include <ostream>
 #include "../../Math/CommonMath.hpp"
 
 namespace CU
@@ -18,9 +17,9 @@ namespace CU
 		T z;
 
 		Vector3<T>();
-		Vector3<T>(const T& aValue);
-		Vector3<T>(const T& aX, const T& aY, const T& aZ);
-		Vector3<T>(const Vector2<T>& aVector, const T& aZ = 0);
+		Vector3<T>(T aValue);
+		Vector3<T>(T aX, T aY, T aZ);
+		Vector3<T>(const Vector2<T>& aVector, T aZ = 0);
 		Vector3<T>(const Vector4<T>& aVector);
 		Vector3<T>(const Vector3<T>& aVector) = default;
 		~Vector3<T>() = default;
@@ -156,15 +155,6 @@ namespace CU
 		return !(aVector0 == aVector1);
 	}
 
-	template<typename T>
-	std::ostream& operator<<(std::ostream& out, const Vector3<T>& aVec)
-	{
-		out << aVec.x << ", ";
-		out << aVec.y << ", ";
-		out << aVec.z;
-		return out;
-	}
-
 
 	template<typename T>
 	Vector3<T>::Vector3()
@@ -175,7 +165,7 @@ namespace CU
 	}
 
 	template<typename T>
-	inline Vector3<T>::Vector3(const T& aValue)
+	inline Vector3<T>::Vector3(T aValue)
 	{
 		x = aValue;
 		y = aValue;
@@ -183,7 +173,7 @@ namespace CU
 	}
 
 	template<typename T>
-	inline Vector3<T>::Vector3(const T& aX, const T& aY, const T& aZ)
+	inline Vector3<T>::Vector3(T aX, T aY, T aZ)
 	{
 		x = aX;
 		y = aY;
@@ -191,7 +181,7 @@ namespace CU
 	}
 
 	template<typename T>
-	inline Vector3<T>::Vector3(const Vector2<T>& aVector, const T& aZ)
+	inline Vector3<T>::Vector3(const Vector2<T>& aVector, T aZ)
 	{
 		x = aVector.x;
 		y = aVector.y;
@@ -227,7 +217,7 @@ namespace CU
 	template<typename T>
 	inline T Vector3<T>::Length() const
 	{
-		return static_cast<T>(std::sqrtf((x * x) + (y * y) + (z * z)));
+		return static_cast<T>(std::sqrt((x * x) + (y * y) + (z * z)));
 	}
 
 	template<typename T>
@@ -239,7 +229,7 @@ namespace CU
 		}
 
 		const T magnitude = T(1) / Length();
-		return Vector3<T>(x * magnitude, y * magnitude, z * magnitude);
+		return { x * magnitude, y * magnitude, z * magnitude };
 	}
 
 	template<typename T>

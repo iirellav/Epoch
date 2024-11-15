@@ -1,5 +1,4 @@
 #pragma once
-#include <ostream>
 #include "../../Math/CommonMath.hpp"
 
 namespace CU
@@ -17,8 +16,8 @@ namespace CU
 		T w;
 
 		Vector4<T>();
-		Vector4<T>(const T& aX, const T& aY, const T& aZ, const T& aW);
-		Vector4<T>(const Vector3<T>& aVector, const T& aW = 0);
+		Vector4<T>(T aX, T aY, T aZ, T aW);
+		Vector4<T>(const Vector3<T>& aVector, T aW = 0);
 		Vector4<T>(const Vector4<T>& aVector) = default;
 		~Vector4<T>() = default;
 
@@ -131,27 +130,16 @@ namespace CU
 	template <class T>
 	bool operator==(const Vector4<T>& aVector0, const Vector4<T>& aVector1)
 	{
-		constexpr float SmalValue = 0.001f;
-		return (CU::Math::Abs(aVector0.x - aVector1.x) < SmalValue &&
-				CU::Math::Abs(aVector0.y - aVector1.y) < SmalValue &&
-				CU::Math::Abs(aVector0.z - aVector1.z) < SmalValue &&
-				CU::Math::Abs(aVector0.w - aVector1.w) < SmalValue);
+		return (CU::Math::Abs(aVector0.x - aVector1.x) < Math::Epsilon &&
+				CU::Math::Abs(aVector0.y - aVector1.y) < Math::Epsilon &&
+				CU::Math::Abs(aVector0.z - aVector1.z) < Math::Epsilon &&
+				CU::Math::Abs(aVector0.w - aVector1.w) < Math::Epsilon);
 	}
 
 	template <class T>
 	bool operator!=(const Vector4<T>& aVector0, const Vector4<T>& aVector1)
 	{
 		return !(aVector0 == aVector1);
-	}
-
-	template<typename T>
-	std::ostream& operator<<(std::ostream& out, const Vector4<T>& aVec)
-	{
-		out << aVec.x << ", ";
-		out << aVec.y << ", ";
-		out << aVec.z << ", ";
-		out << aVec.w;
-		return out;
 	}
 
 
@@ -165,7 +153,7 @@ namespace CU
 	}
 
 	template<typename T>
-	inline Vector4<T>::Vector4(const T& aX, const T& aY, const T& aZ, const T& aW)
+	inline Vector4<T>::Vector4(T aX, T aY, T aZ, T aW)
 	{
 		x = aX;
 		y = aY;
@@ -174,7 +162,7 @@ namespace CU
 	}
 
 	template<typename T>
-	inline Vector4<T>::Vector4(const Vector3<T>& aVector, const T& aW)
+	inline Vector4<T>::Vector4(const Vector3<T>& aVector, T aW)
 	{
 		x = aVector.x;
 		y = aVector.y;
@@ -203,7 +191,7 @@ namespace CU
 	template<typename T>
 	inline T Vector4<T>::Length() const
 	{
-		return static_cast<T>(sqrt((x * x) + (y * y) + (z * z) + (w * w)));
+		return static_cast<T>(std::sqrt((x * x) + (y * y) + (z * z) + (w * w)));
 	}
 
 	template<typename T>
@@ -215,7 +203,7 @@ namespace CU
 		}
 
 		const T magnitude = T(1) / Length();
-		return Vector4<T>(x * magnitude, y * magnitude, z * magnitude, w * magnitude);
+		return { x * magnitude, y * magnitude, z * magnitude, w * magnitude };
 	}
 
 	template<typename T>

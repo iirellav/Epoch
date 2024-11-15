@@ -1,5 +1,4 @@
 #pragma once
-#include <ostream>
 #include "Vector/Vector3.hpp"
 #include "CommonMath.hpp"
 
@@ -21,9 +20,9 @@ namespace CU
 		T z;
 
 		Quaternion();
-		Quaternion<T>(const T& aW, const T& aX, const T& aY, const T& aZ);
-		Quaternion<T>(const Vector3<T>& aVector, const T& aAngle);
-		Quaternion<T>(const T& aPitch, const T& aYaw, const T& aRoll);
+		Quaternion<T>(T aW, T aX, T aY, T aZ);
+		Quaternion<T>(const Vector3<T>& aVector, T aAngle);
+		Quaternion<T>(T aPitch, T aYaw, T aRoll);
 		Quaternion<T>(const Vector3<T>& aPitchYawRoll);
 		Quaternion<T>(const Matrix4x4<T>& aRotationMatrix);
 		Quaternion<T>(const Matrix3x3<T>& aRotationMatrix);
@@ -74,16 +73,6 @@ namespace CU
 		aQuat0 = aQuat0 * aQuat1;
 	}
 
-	template<typename T>
-	std::ostream& operator<<(std::ostream& out, const Quaternion<T>& aQuaternion)
-	{
-		out << aQuaternion.w << ", ";
-		out << aQuaternion.x << ", ";
-		out << aQuaternion.y << ", ";
-		out << aQuaternion.z;
-		return out;
-	}
-
 
 	template<typename T>
 	inline Quaternion<T>::Quaternion()
@@ -95,7 +84,7 @@ namespace CU
 	}
 
 	template<typename T>
-	inline Quaternion<T>::Quaternion(const T& aW, const T& aX, const T& aY, const T& aZ)
+	inline Quaternion<T>::Quaternion(T aW, T aX, T aY, T aZ)
 	{
 		w = aW;
 		x = aX;
@@ -104,7 +93,7 @@ namespace CU
 	}
 
 	template<typename T>
-	inline Quaternion<T>::Quaternion(const Vector3<T>& aVector, const T& aAngle)
+	inline Quaternion<T>::Quaternion(const Vector3<T>& aVector, T aAngle)
 	{
 		const T halfAngle = aAngle / T(2);
 		w = std::cos(halfAngle);
@@ -116,7 +105,7 @@ namespace CU
 	}
 
 	template<typename T>
-	inline Quaternion<T>::Quaternion(const T& aPitch, const T& aYaw, const T& aRoll) : Quaternion<T>(Vector3<T>(aPitch, aYaw, aRoll)) {}
+	inline Quaternion<T>::Quaternion(T aPitch, T aYaw, T aRoll) : Quaternion<T>(Vector3<T>(aPitch, aYaw, aRoll)) {}
 
 	template<typename T>
 	inline Quaternion<T>::Quaternion(const Vector3<T>& aPitchYawRoll)
