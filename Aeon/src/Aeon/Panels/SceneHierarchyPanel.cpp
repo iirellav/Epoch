@@ -2356,6 +2356,12 @@ namespace Epoch
 			createdEntity.AddComponent<ParticleSystemComponent>();
 		}
 
+		if (ImGui::MenuItem("Text"))
+		{
+			createdEntity = myContext->CreateEntity("Text");
+			createdEntity.AddComponent<TextRendererComponent>();
+		}
+
 		if (createdEntity)
 		{
 			if (myEntityCreationCallback)
