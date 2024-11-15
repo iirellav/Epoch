@@ -56,7 +56,7 @@ namespace Epoch
 
 		UI::BeginPropertyGrid();
 
-		modified |= UI::Property_DragFloat("Fixed Timestep", settings.fixedTimestep, 0.01f, 0.000001, FLT_MAX, "%.7f");
+		modified |= UI::Property_DragFloat("Fixed Timestep", settings.fixedTimestep, 0.01f, 0.000001f, FLT_MAX, "%.7f");
 
 		CU::Vector3f gravity = settings.gravity / 100.0f;
 		if (UI::Property_DragFloat3("Gravity", gravity))
