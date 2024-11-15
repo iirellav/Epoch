@@ -1392,7 +1392,7 @@ namespace Epoch
 						aFirstComponent.font = assetHandle;
 					}
 					
-					UI::Property_ColorEdit4("Color", aFirstComponent.color);
+					UI::Property_ColorEdit3("Color", aFirstComponent.color);
 
 					//const char* alignmentStrings[] = { "UpperLeft", "UpperCenter", "UpperRight", "MiddleLeft", "MiddleCenter", "MiddleRight", "LowerLeft", "LowerCenter", "LowerRight" };
 					//int currentAlignment = (int)aFirstComponent.alignment;

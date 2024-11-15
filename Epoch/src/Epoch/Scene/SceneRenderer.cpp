@@ -259,7 +259,7 @@ namespace Epoch
 			pipelineSpecs.targetFramebuffer = Framebuffer::Create(specs);
 			pipelineSpecs.shader = Renderer::GetShaderLibrary()->Get("Text");
 			pipelineSpecs.vertexLayouts.push_back(layout);
-			pipelineSpecs.blendMode = BlendMode::Alpha;
+			//pipelineSpecs.blendMode = BlendMode::Alpha;
 			pipelineSpecs.rasterizerState = RasterizerState::CullNone;
 			myTextPipeline = RenderPipeline::Create(pipelineSpecs);
 		}
