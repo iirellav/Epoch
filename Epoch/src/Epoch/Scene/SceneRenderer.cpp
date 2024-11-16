@@ -9,6 +9,7 @@
 #include "Epoch/Rendering/Texture.h"
 #include "Epoch/Rendering/Shader.h"
 #include "Epoch/Rendering/Renderer.h"
+#include "Epoch/Rendering/DebugRenderer.h"
 #include "Epoch/Rendering/VertexBuffer.h"
 #include "Epoch/Rendering/IndexBuffer.h"
 #include "Epoch/Rendering/ConstantBuffer.h"
@@ -750,6 +751,14 @@ namespace Epoch
 			const Submesh& submesh = submeshData[submeshIndex];
 			const CU::Matrix4x4f submeshTransform = aTransform * submesh.transform;
 			uint32_t materialIndex = submesh.materialIndex;
+
+			//for (size_t i = submesh.baseVertex; i < submesh.baseVertex + submesh.vertexCount; i++)
+			//{
+			//	const auto& v = aMesh->myVertices[i];
+			//	const auto pos = CU::Vector3f(submeshTransform * CU::Vector4f(v.position, 1.0f));
+			//	const auto dir = (CU::Matrix3x3(submeshTransform) * v.normal).GetNormalized();
+			//	myDebugRenderer->DrawLine(pos, pos + dir * 15.0f, CU::Color::Magenta);
+			//}
 
 			AssetHandle materialHandle = aMaterialTable->GetMaterial(materialIndex);
 			std::shared_ptr<Material> material;

@@ -185,5 +185,6 @@ namespace Epoch
 		std::vector<MeshNode> myNodes;
 
 		friend class AssimpMeshImporter;
+		friend class SceneRenderer;// TEMP
 	};
 }
