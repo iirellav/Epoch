@@ -64,12 +64,6 @@ float3 main(VertexOutput input) : SV_TARGET
     const float3 normals = normalsTexture.Sample(clampSampler, input.uv).rgb;
     const float3 worldPos = worldPositionTexture.Sample(clampSampler, input.uv).rgb;
     
-    //const float3 albedo     = albedoTexture.Sample(clampSampler, input.uv).rgb;
-    //const float3 normal     = normalTexture.Sample(clampSampler, input.uv).rgb;
-    //const float3 material   = materialTexture.Sample(clampSampler, input.uv).rgb;
-    //const float3 emission   = emissionTexture.Sample(clampSampler, input.uv).rgb;
-    //const float3 worldPos   = worldPositionTexture.Sample(clampSampler, input.uv).rgb;
-    
     const float occlusion = material.r;
     const float roughness = material.g;
     const float metalness = material.b;

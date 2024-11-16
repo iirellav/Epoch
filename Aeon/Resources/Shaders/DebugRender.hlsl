@@ -113,7 +113,7 @@ float4 main(VertexOutput input) : SV_TARGET
     switch (DB_DrawMode)
     {
         case 1: return float4(albedoColor, 1.0f); //Albedo
-        case 2: return float4((pixelNormal + 0.5f) * 0.5f, 1.0f); //Normals
+        case 2: return float4((pixelNormal + 1.0f) * 0.5f, 1.0f); //Normals
         case 3: return float4(materialValues.rrr, 1.0f); //AmbientOcclusion
         case 4: return float4(materialValues.ggg, 1.0f); //Roughness
         case 5: return float4(materialValues.bbb, 1.0f); //Metalness
