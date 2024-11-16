@@ -1,0 +1,11 @@
+# Binaries
+**/Scripts/
+
+# Visual Studio files and folder
+.vs/
+**.sln
+**.csproj
+**.user
+
+# Files
+**.auto
