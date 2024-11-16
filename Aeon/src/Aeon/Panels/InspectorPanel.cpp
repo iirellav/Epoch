@@ -151,9 +151,9 @@ namespace Epoch
 
 		WriteHeader(aAssetID);
 
-		ImGui::Text("Vertices: %s", CU::NumberFormat(mesh->GetVertexCount()));
-		ImGui::Text("Indices: %s", CU::NumberFormat(mesh->GetIndexCount()));
-		ImGui::Text("Triangles: %s", CU::NumberFormat(mesh->GetTriangleCount()));
+		ImGui::Text(("Vertices: " + CU::NumberFormat(mesh->GetVertexCount())).c_str());
+		ImGui::Text(("Indices: " + CU::NumberFormat(mesh->GetIndexCount())).c_str());
+		ImGui::Text(("Triangles: " + CU::NumberFormat(mesh->GetTriangleCount())).c_str());
 
 		UI::Spacing();
 
