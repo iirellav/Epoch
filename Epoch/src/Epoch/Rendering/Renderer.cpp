@@ -84,7 +84,7 @@ namespace Epoch
 			constexpr uint32_t blackTextureData = 0xff000000;
 			staticRendererData.blackTexture = Texture2D::Create(spec, Buffer(&blackTextureData, sizeof(uint32_t)));
 
-			constexpr uint32_t flatNormalTextureData = 0xffff8080;
+			constexpr uint32_t flatNormalTextureData = 0xffff7f7f;
 			spec.debugName = "Default - Flat Normal";
 			staticRendererData.flatNormalTexture = Texture2D::Create(spec, Buffer(&flatNormalTextureData, sizeof(uint32_t)));
 			constexpr uint32_t defaultMaterialTextureData = 0xffffffff;
