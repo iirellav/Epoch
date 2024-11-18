@@ -4,11 +4,11 @@ Project:
   CompanyName: ""
   Version: 0.100000001
   StartScene: Main.epoch
-  EditorCameraPosition: [-1192.60767, 523.257324, -169.158066]
-  EditorCameraRotation: [0.367999077, 1.31999719, 0]
+  EditorCameraPosition: [-1337.39258, 854.791199, -413.981934]
+  EditorCameraRotation: [0.42600137, 20.1784573, 0]
   AutosaveDirectory: Autosaves
   AssetDirectory: Assets
   AssetRegistryPath: Regs/AssetRegistry.epr
   DefaultScriptNamespace: DefaultProject
-  FixedTimestep: 0.0166666675
+  FixedTimestep: 0.0069444445
   Gravity: [0, -982, 0]

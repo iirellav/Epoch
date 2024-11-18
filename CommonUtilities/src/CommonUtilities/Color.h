@@ -1,5 +1,4 @@
 #pragma once
-#include <ostream>
 #include <string>
 
 namespace CU
@@ -88,15 +87,6 @@ namespace CU
 	inline void operator*=(Color& aColor, float aScaler)
 	{
 		aColor = aColor * aScaler;
-	}
-
-	inline std::ostream& operator<<(std::ostream& out, const Color& aColor)
-	{
-		out << aColor.r << ", ";
-		out << aColor.g << ", ";
-		out << aColor.b << ", ";
-		out << aColor.a;
-		return out;
 	}
 
 	inline const Color Color::Zero(0.0f, 0.0f, 0.0f, 0.0f);
