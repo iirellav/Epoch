@@ -60,7 +60,6 @@ namespace Epoch
 			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/EnvironmentalLight.hlsl"); });
 			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/PointLight.hlsl"); });
 			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/Spotlight.hlsl"); });
-			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/Tonemap.hlsl"); });
 			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/DebugRender.hlsl"); });
 			//js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/UberShader.hlsl"); });
 
