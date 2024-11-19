@@ -2,7 +2,6 @@
 #include "PhysXAPI.h"
 #include "Epoch/Core/JobSystem.h" 
 #include "PhysXScene.h"
-#include "PhysXScene.h"
 
 namespace Epoch
 {
