@@ -53,7 +53,7 @@ namespace CU
 
 		static Matrix4x4<T> CreateScaleMatrix(const Vector3<T>& aScaleVector);
 		static Matrix4x4<T> CreateRotationMatrix(const Vector3<T>& aRight, const Vector3<T>& aUp, const Vector3<T>& aForward);
-		static Matrix4x4<T> CreateRotationMatrix(const Vector3<T>& aRotaion); // TODO: CREATE
+		static Matrix4x4<T> CreateRotationMatrix(const Vector3<T>& aRotaion);
 		static Matrix4x4<T> CreateTranslationMatrix(const Vector3<T>& aTranslationVector);
 
 		static const Matrix4x4<T> Zero;
@@ -72,6 +72,13 @@ namespace CU
 			//	__m128 m3;
 			//	__m128 m4;
 			//};
+			struct
+			{
+				Vector4<T> m1;
+				Vector4<T> m2;
+				Vector4<T> m3;
+				Vector4<T> m4;
+			};
 			struct
 			{
 				T m11;
@@ -457,10 +464,10 @@ namespace CU
 	{
 		myData =
 		{
-			myData[0], myData[4], myData[8], myData[12],
-			myData[1], myData[5], myData[9], myData[13],
-			myData[2], myData[6], myData[10], myData[14],
-			myData[3], myData[7], myData[11], myData[15]
+			m11, m21, m31, m41,
+			m12, m22, m32, m42,
+			m13, m23, m33, m43,
+			m14, m24, m34, m44
 		};
 	}
 
@@ -598,11 +605,11 @@ namespace CU
 		const float depth1 = -aNearPlane * aFarPlane / (aFarPlane - aNearPlane);
 
 		Matrix4x4<T> result = Matrix4x4<T>::Zero;
-		result[0] = zoomX;
-		result[5] = zoomY;
-		result[10] = depth0;
-		result[11] = 1.0f;
-		result[14] = depth1;
+		result.m11 = zoomX;
+		result.m22 = zoomY;
+		result.m33 = depth0;
+		result.m34 = 1.0f;
+		result.m43 = depth1;
 		return result;
 	}
 
@@ -614,13 +621,13 @@ namespace CU
 		const float fRange = 1.0f / (aFarPlane - aNearPlane);
 
 		Matrix4x4<T> result = Matrix4x4<T>::Zero;
-		result[0] = reciprocalWidth + reciprocalWidth;
-		result[5] = reciprocalHeight + reciprocalHeight;
-		result[10] = fRange;
-		result[12] = -(aLeftPlane + aRightPlane) * reciprocalWidth;
-		result[13] = -(aTopPlane + aBottomPlane) * reciprocalHeight;
-		result[14] = -fRange * aNearPlane;
-		result[15] = 1.0f;
+		result.m11 = reciprocalWidth + reciprocalWidth;
+		result.m22 = reciprocalHeight + reciprocalHeight;
+		result.m33 = fRange;
+		result.m41 = -(aLeftPlane + aRightPlane) * reciprocalWidth;
+		result.m42 = -(aTopPlane + aBottomPlane) * reciprocalHeight;
+		result.m43 = -fRange * aNearPlane;
+		result.m44 = 1.0f;
 		return result;
 	}
 
