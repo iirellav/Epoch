@@ -113,7 +113,7 @@ GBufferOutput main(VertexOutput input) : SV_TARGET
     
     output.albedo = float4(albedoColor, 1.0f);
     output.material = float4(materialValues * float3(1.0f, MB_Roughness, MB_Metalness), 1.0f);
-    output.normals = float4(pixelNormal, 1.0f);
+    output.normals = float4(EncodeOct(pixelNormal), 0.0f, 1.0f);
     output.emission = float4(MB_EmissionColor * MB_EmissionStrength, 1.0f);
     output.worldPos = input.worldPos;
     

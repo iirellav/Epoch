@@ -142,7 +142,7 @@ namespace Epoch
 			specs.attachments = {
 			{ TextureFormat::RGBA,			"Albedo" },
 			{ TextureFormat::RGBA,			"Material" },
-			{ TextureFormat::RGBA32F,		"Normal" },
+			{ TextureFormat::RG16F,			"Normal" },
 			{ TextureFormat::R11G11B10F,	"Emission" },
 			{ TextureFormat::RGBA32F,		"WorldPosition" },
 			{ TextureFormat::DEPTH32,		"Depth" } };
