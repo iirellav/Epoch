@@ -253,7 +253,10 @@ namespace Epoch
 				}
 			}
 
-			ScriptEngine::ReloadAppAssembly();
+			if (reload)
+			{
+				ScriptEngine::ReloadAppAssembly();
+			}
 		}
 
 		if (Input::IsMouseButtonPressed(MouseButton::Right) && !myStartedCameraClickInViewport && myViewportFocused && myViewportHovered)
