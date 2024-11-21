@@ -25,6 +25,10 @@ namespace Epoch
 			}
 		}
 
+		ImGui::SameLine();
+
+		ImGui::TextDisabled("%i", shaders.size());
+
 		ImGui::Separator();
 		ImGui::Spacing();
 		
