@@ -5,7 +5,7 @@
 #include "Epoch/Core/JobSystem.h"
 #include "Epoch/Script/ScriptEngineConfig.h"
 
-//int main(int argc, char** argv);
+int main(int argc, char** argv);
 
 namespace Epoch
 {
@@ -77,11 +77,11 @@ namespace Epoch
 
 		inline static Application* myInstance = nullptr;
 
-		//friend int Main(int argc, char** argv);
+		friend int Main(int argc, char** argv);
 
 	protected:
 		static inline bool staticIsRuntime = false;
 	};
 
-	//Application* CreateApplication();
+	Application* CreateApplication();
 }
