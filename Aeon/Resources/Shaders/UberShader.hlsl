@@ -185,6 +185,15 @@ float3 Vignette(const float3 color, const float2 uv)
     return lerp(Vignette_Color, color.rgb, vfactor);
 }
 
+float3 Posterize(const float3 color)
+{
+    float3 HSV = RGBToHSV(color);
+    
+    HSV.z = round(HSV.z * 12) / 12;
+    
+    return HSVToRGB(HSV);
+}
+
 float4 main(VertexOutput input) : SV_TARGET
 {
     float3 sourceCol = sourceColerTexture.SampleLevel(LUTSampler, input.uv, 0).rgb;
@@ -193,9 +202,15 @@ float4 main(VertexOutput input) : SV_TARGET
     
     bool colorGradingEnabled =  (Flags >> 0) & 1;
     bool vignetteEnabled =      (Flags >> 1) & 1;
-    bool distanceFogEnabled = (Flags >> 2) & 1;
+    bool distanceFogEnabled =   (Flags >> 2) & 1;
+    bool posterizationEnabled = (Flags >> 3) & 1;
     
     sourceCol = saturate(Tonemapp(sourceCol)).rgb;
+    
+    if (posterizationEnabled)
+    {
+        sourceCol = Posterize(sourceCol);
+    }
     
     if (colorGradingEnabled)
     {

@@ -74,7 +74,7 @@ namespace Epoch
 			float vignetteSmoothness = 1.0f;
 
 			PostProcessing::Tonemap tonemap;
-			uint32_t flags = 0; //colorGradingEnabled, vignetteEnabled, distanceFogEnabled
+			uint32_t flags = 0; //colorGradingEnabled, vignetteEnabled, distanceFogEnabled, posterizationEnabled
 			float distanceFogDensity = 0.0f;
 			float distanceFogOffset = 0.0f;
 
