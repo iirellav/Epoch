@@ -599,6 +599,9 @@ namespace Epoch
 				mySceneRenderer->SetDrawMode((DrawMode)currentDrawMode);
 			}
 
+			UI::Property_Checkbox("Show Gizmos", myShowGizmos);
+			UI::Property_DragFloat("Gizmos Scale", myGizmoScale, 0.02f, 0.2f, 1.0f);
+
 			UI::EndPropertyGrid();
 
 			ImGui::End();
@@ -1076,73 +1079,76 @@ namespace Epoch
 			}
 		}
 
-		// Camera Components
+		if (myShowGizmos)
 		{
-			auto view = myActiveScene->GetAllEntitiesWith<CameraComponent>();
-			for (auto entityID : view)
+			// Camera Components
 			{
-				Entity entity{ entityID, myActiveScene.get() };
-				const CU::Vector3f pos = entity.GetWorldSpaceTransform().GetTranslation();
-				myDebugRenderer->DrawBillboardedQuad(EditorResources::CameraIcon, pos, myEditorCamera.GetTransform().GetTranslation(), CU::Vector3f::Up, CU::Color::White, 0.5f);
+				auto view = myActiveScene->GetAllEntitiesWith<CameraComponent>();
+				for (auto entityID : view)
+				{
+					Entity entity{ entityID, myActiveScene.get() };
+					const CU::Vector3f pos = entity.GetWorldSpaceTransform().GetTranslation();
+					myDebugRenderer->DrawBillboardedQuad(EditorResources::CameraIcon, pos, myEditorCamera.GetTransform().GetTranslation(), CU::Vector3f::Up, CU::Color::White, myGizmoScale);
+				}
+			}
+
+			// Sky Light Components
+			{
+				auto view = myActiveScene->GetAllEntitiesWith<SkyLightComponent>();
+				for (auto entityID : view)
+				{
+					Entity entity{ entityID, myActiveScene.get() };
+					const CU::Vector3f pos = entity.GetWorldSpaceTransform().GetTranslation();
+					myDebugRenderer->DrawBillboardedQuad(EditorResources::SkyLightIcon, pos, myEditorCamera.GetTransform().GetTranslation(), CU::Vector3f::Up, CU::Color::White, myGizmoScale);
+				}
+			}
+
+			// Directional Light Components
+			{
+				auto view = myActiveScene->GetAllEntitiesWith<DirectionalLightComponent>();
+				for (auto entityID : view)
+				{
+					Entity entity{ entityID, myActiveScene.get() };
+					const auto& lc = entity.GetComponent<DirectionalLightComponent>();
+					const CU::Vector3f pos = entity.GetWorldSpaceTransform().GetTranslation();
+					myDebugRenderer->DrawBillboardedQuad(EditorResources::DirectionalLightIcon, pos, myEditorCamera.GetTransform().GetTranslation(), CU::Vector3f::Up, lc.color, myGizmoScale);
+				}
+			}
+
+			// Spotlight Components
+			{
+				auto view = myActiveScene->GetAllEntitiesWith<SpotlightComponent>();
+				for (auto entityID : view)
+				{
+					Entity entity{ entityID, myActiveScene.get() };
+					const auto& lc = entity.GetComponent<SpotlightComponent>();
+					const CU::Vector3f pos = entity.GetWorldSpaceTransform().GetTranslation();
+					myDebugRenderer->DrawBillboardedQuad(EditorResources::SpotlightIcon, pos, myEditorCamera.GetTransform().GetTranslation(), CU::Vector3f::Up, lc.color, myGizmoScale);
+				}
+			}
+
+			// Point Light Components
+			{
+				auto view = myActiveScene->GetAllEntitiesWith<PointLightComponent>();
+				for (auto entityID : view)
+				{
+					Entity entity{ entityID, myActiveScene.get() };
+					const auto& lc = entity.GetComponent<PointLightComponent>();
+					const CU::Vector3f pos = entity.GetWorldSpaceTransform().GetTranslation();
+					myDebugRenderer->DrawBillboardedQuad(EditorResources::PointLightIcon, pos, myEditorCamera.GetTransform().GetTranslation(), CU::Vector3f::Up, lc.color, myGizmoScale);
+				}
+			}
+
+			// ParticleEmitter Components
+			{
+				auto view = myActiveScene->GetAllEntitiesWith<ParticleSystemComponent>();
+				for (auto entityID : view)
+				{
+					Entity entity{ entityID, myActiveScene.get() };
+				}
 			}
 		}
-
-		// Sky Light Components
-		{
-			auto view = myActiveScene->GetAllEntitiesWith<SkyLightComponent>();
-			for (auto entityID : view)
-			{
-				Entity entity{ entityID, myActiveScene.get() };
-				const CU::Vector3f pos = entity.GetWorldSpaceTransform().GetTranslation();
-				myDebugRenderer->DrawBillboardedQuad(EditorResources::SkyLightIcon, pos, myEditorCamera.GetTransform().GetTranslation(), CU::Vector3f::Up, CU::Color::White, 0.5f);
-			}
-		}
-
-		// Directional Light Components
-		{
-			auto view = myActiveScene->GetAllEntitiesWith<DirectionalLightComponent>();
-			for (auto entityID : view)
-			{
-				Entity entity{ entityID, myActiveScene.get() };
-				const auto& lc = entity.GetComponent<DirectionalLightComponent>();
-				const CU::Vector3f pos = entity.GetWorldSpaceTransform().GetTranslation();
-				myDebugRenderer->DrawBillboardedQuad(EditorResources::DirectionalLightIcon, pos, myEditorCamera.GetTransform().GetTranslation(), CU::Vector3f::Up, lc.color, 0.5f);
-			}
-		}
-
-		// Spotlight Components
-		{
-			auto view = myActiveScene->GetAllEntitiesWith<SpotlightComponent>();
-			for (auto entityID : view)
-			{
-				Entity entity{ entityID, myActiveScene.get() };
-				const auto& lc = entity.GetComponent<SpotlightComponent>();
-				const CU::Vector3f pos = entity.GetWorldSpaceTransform().GetTranslation();
-				myDebugRenderer->DrawBillboardedQuad(EditorResources::SpotlightIcon, pos, myEditorCamera.GetTransform().GetTranslation(), CU::Vector3f::Up, lc.color, 0.5f);
-			}
-		}
-
-		// Point Light Components
-		{
-			auto view = myActiveScene->GetAllEntitiesWith<PointLightComponent>();
-			for (auto entityID : view)
-			{
-				Entity entity{ entityID, myActiveScene.get() };
-				const auto& lc = entity.GetComponent<PointLightComponent>();
-				const CU::Vector3f pos = entity.GetWorldSpaceTransform().GetTranslation();
-				myDebugRenderer->DrawBillboardedQuad(EditorResources::PointLightIcon, pos, myEditorCamera.GetTransform().GetTranslation(), CU::Vector3f::Up, lc.color, 0.5f);
-			}
-		}
-
-		// ParticleEmitter Components
-		{
-			auto view = myActiveScene->GetAllEntitiesWith<ParticleSystemComponent>();
-			for (auto entityID : view)
-			{
-				Entity entity{ entityID, myActiveScene.get() };
-			}
-		}
-
+		
 		myDebugRenderer->Render(myEditorCamera.GetViewMatrix(), myEditorCamera.GetProjectionMatrix());
 	}
 
@@ -1887,7 +1893,7 @@ namespace Epoch
 
 		ImGui::Image((ImTextureID)mySceneRenderer->GetFinalPassTexture()->GetView(), viewportPanelSize);
 
-		if (myShowGizmos && mySceneState == SceneState::Edit)
+		if (mySceneState == SceneState::Edit)
 		{
 			DrawGizmos();
 		}

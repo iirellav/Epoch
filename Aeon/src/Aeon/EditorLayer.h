@@ -119,7 +119,8 @@ namespace Epoch
 		enum class GizmoOperation { None, Translate, Rotate, Scale };
 		GizmoOperation myGizmoOperation = GizmoOperation::None;
 
-		bool myShowGizmos = true;
 		bool myDisplayCurrentColorGradingLUT = false;
+		bool myShowGizmos = true;
+		float myGizmoScale = 0.5f;
 	};
 }
