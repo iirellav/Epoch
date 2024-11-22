@@ -1,5 +1,6 @@
 # Binaries
 Scripts/Binaries/
+Scripts/Intermediates/
 
 # Visual Studio files and folder
 .vs/
