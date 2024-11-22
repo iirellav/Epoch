@@ -790,12 +790,12 @@ namespace Epoch
 		}
 	}
 
-	void SceneRenderer::SubmitAnimatedMesh(std::shared_ptr<Mesh> aMesh, const CU::Matrix4x4f& aTransform, const std::vector<CU::Matrix4x4f>& aBoneTransformes)
+	void SceneRenderer::SubmitAnimatedMesh(std::shared_ptr<Mesh> aMesh, const CU::Matrix4x4f& aTransform, const std::vector<CU::Matrix4x4f>& aBoneTransforms)
 	{
 		auto& drawCall = myAnimatedDrawList.emplace_back();
 		drawCall.mesh = aMesh;
 		drawCall.transform = aTransform;
-		drawCall.boneTransformes = aBoneTransformes;
+		drawCall.boneTransforms = aBoneTransforms;
 	}
 
 	void SceneRenderer::SubmitQuad(const CU::Matrix4x4f aTransform, const CU::Color& aColor)

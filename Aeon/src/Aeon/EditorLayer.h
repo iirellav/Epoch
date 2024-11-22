@@ -46,7 +46,9 @@ namespace Epoch
 
 		void ShowCreateProjectPopup();
 
+		//Renders component Gizmos and lines
 		void OnRenderOverlay();
+		//Calls OnDrawGizmos & OnDrawGizmosSelected
 		void OnRenderGizmos();
 
 		ImGuizmo::OPERATION GetGizmoOperation();

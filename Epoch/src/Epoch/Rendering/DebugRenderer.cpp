@@ -8,6 +8,7 @@
 #include "Epoch/Rendering/IndexBuffer.h"
 #include "Epoch/Rendering/RenderPipeline.h"
 #include "Epoch/Rendering/ConstantBuffer.h"
+#include "Epoch/Rendering/Texture.h"
 
 #include "RHI.h" //TEMP
 
@@ -22,12 +23,13 @@ namespace Epoch
 	{
 		EPOCH_PROFILE_FUNC();
 
-		myVertexBuffer = VertexBuffer::Create(MaxVertices, sizeof(DebugVertex));
-		myVertices.reserve(MaxVertices);
+		myVertexBuffer = VertexBuffer::Create(MaxLineVertices, sizeof(LineVertex));
+		myVertices.reserve(MaxLineVertices);
 
-		myIndexBuffer = IndexBuffer::Create(MaxIndices);
-		myIndices.reserve(MaxIndices);
+		myIndexBuffer = IndexBuffer::Create(MaxLineIndices);
+		myIndices.reserve(MaxLineIndices);
 
+		//Lines
 		{
 			VertexBufferLayout layout =
 			{
@@ -52,6 +54,7 @@ namespace Epoch
 			myOccludedLinePipelineState = RenderPipeline::Create(spec);
 		}
 
+		//Grid
 		{
 			FramebufferSpecification specs;
 			specs.existingFramebuffer = aTargetBuffer;
@@ -66,6 +69,62 @@ namespace Epoch
 			myGridPipelineState = RenderPipeline::Create(spec);
 		}
 
+		// Quads
+		{
+			myTextureSlots[0] = Renderer::GetWhiteTexture();
+
+			myQuadUVCoords[0] = { 0.0f, 1.0f };
+			myQuadUVCoords[1] = { 0.0f, 0.0f };
+			myQuadUVCoords[2] = { 1.0f, 0.0f };
+			myQuadUVCoords[3] = { 1.0f, 1.0f };
+
+			myQuadVertexPositions[0] = { -50.0f, -50.0f, 0.0f, 1.0f };
+			myQuadVertexPositions[1] = { -50.0f,  50.0f, 0.0f, 1.0f };
+			myQuadVertexPositions[2] = { 50.0f,  50.0f, 0.0f, 1.0f };
+			myQuadVertexPositions[3] = { 50.0f, -50.0f, 0.0f, 1.0f };
+
+			myQuadVertexBuffer = VertexBuffer::Create(MaxQuadVertices, sizeof(QuadVertex));
+
+			uint32_t* quadIndices = new uint32_t[MaxQuadIndices];
+			uint32_t offset = 0;
+			for (uint32_t i = 0; i < MaxQuadIndices; i += 6)
+			{
+				quadIndices[i + 0] = offset + 0;
+				quadIndices[i + 1] = offset + 1;
+				quadIndices[i + 2] = offset + 2;
+
+				quadIndices[i + 3] = offset + 2;
+				quadIndices[i + 4] = offset + 3;
+				quadIndices[i + 5] = offset + 0;
+
+				offset += 4;
+			}
+
+			myQuadIndexBuffer = IndexBuffer::Create(quadIndices, MaxQuadIndices);
+			delete[] quadIndices;
+
+			VertexBufferLayout layout =
+			{
+				{ ShaderDataType::Float3,	"POSITION" },
+				{ ShaderDataType::UInt,		"TEXINDEX" },
+				{ ShaderDataType::Float4,	"TINT" },
+				{ ShaderDataType::Float2,	"UV" }
+			};
+
+			FramebufferSpecification specs;
+			specs.existingFramebuffer = aTargetBuffer;
+			specs.clearColorOnLoad = false;
+			specs.clearDepthOnLoad = false;
+
+			PipelineSpecification pipelineSpecs("Billboard Quads");
+			pipelineSpecs.targetFramebuffer = Framebuffer::Create(specs);
+			pipelineSpecs.shader = Renderer::GetShaderLibrary()->Get("Sprite");
+			pipelineSpecs.vertexLayouts.push_back(layout);
+			pipelineSpecs.blendMode = BlendMode::Alpha;
+			pipelineSpecs.rasterizerState = RasterizerState::CullNone;
+			myQuadPipelineState = RenderPipeline::Create(pipelineSpecs);
+		}
+
 		myCameraBuffer = ConstantBuffer::Create(sizeof(CameraBuffer));
 		myDebugLineBuffer = ConstantBuffer::Create(sizeof(CU::Color));
 		myGridBuffer = ConstantBuffer::Create(sizeof(GridBuffer));
@@ -76,6 +135,7 @@ namespace Epoch
 		myLinePipelineState->GetSpecification().targetFramebuffer->Resize(aWidth, aHeight);
 		myGridPipelineState->GetSpecification().targetFramebuffer->Resize(aWidth, aHeight);
 		myOccludedLinePipelineState->GetSpecification().targetFramebuffer->Resize(aWidth, aHeight);
+		myQuadPipelineState->GetSpecification().targetFramebuffer->Resize(aWidth, aHeight);
 	}
 
 	void DebugRenderer::Shutdown()
@@ -116,7 +176,7 @@ namespace Epoch
 			{
 				const Frame& frame = myFrames[i];
 
-				if (vxOffset + frame.vertexCount >= MaxVertices || ixOffset + frame.indexCount >= MaxIndices)
+				if (vxOffset + frame.vertexCount >= MaxLineVertices || ixOffset + frame.indexCount >= MaxLineIndices)
 				{
 					Flush();
 					vxOffset = 0;
@@ -157,10 +217,58 @@ namespace Epoch
 			}
 		}
 
-		//myLinePipelineState->GetSpecification().targetFramebuffer->GetSpecification().existingFramebuffer = nullptr; //NOTE: So that the frame buffer isn't kept alive
-		//myGridPipelineState->GetSpecification().targetFramebuffer->GetSpecification().existingFramebuffer = nullptr; //NOTE: So that the frame buffer isn't kept alive
+		//Quads
+		{
+			Renderer::SetRenderPipeline(myQuadPipelineState);
+
+			uint32_t textureCount = 0;
+			std::vector<ID3D11ShaderResourceView*> SRVs;
+			SRVs.reserve(MaxTextureSlots);
+			for (size_t i = 0; i < MaxTextureSlots; i++)
+			{
+				if (myTextureSlots[i])
+				{
+					SRVs.push_back((ID3D11ShaderResourceView*)myTextureSlots[i]->GetView());
+					++textureCount;
+				}
+				else
+				{
+					break;
+				}
+			}
+
+			RHI::GetContext()->PSSetShaderResources(0, textureCount, SRVs.data());
+
+			for (uint32_t i = 0; i < myQuadCount; i += MaxQuads)
+			{
+				uint32_t count = CU::Math::Min(myQuadCount - i, MaxQuads);
+
+				myQuadVertexBuffer->SetData(myQuadVertices.data(), count * 4, i * 4 * sizeof(QuadVertex));
+				Renderer::RenderGeometry(myQuadVertexBuffer, myQuadIndexBuffer, count * 6);
+			}
+
+			std::vector<ID3D11ShaderResourceView*> emptySRVs(textureCount);
+			RHI::GetContext()->PSSetShaderResources(0, textureCount, emptySRVs.data());
+
+			Renderer::RemoveRenderPipeline(myQuadPipelineState);
+		}
+
+		//Quad Stats
+		{
+			myStats.drawCalls += CU::Math::CeilToUInt((float)myQuadCount / MaxQuads);
+			myStats.vertices += myQuadCount * 4;
+			myStats.indices += myQuadCount * 6;
+		}
 
 		myFrames.clear();
+
+		myQuadVertices.clear();
+		myQuadCount = 0;
+
+		for (size_t i = 1; i < MaxTextureSlots; i++)
+		{
+			myTextureSlots[i] = nullptr;
+		}
 	}
 
 	void DebugRenderer::Flush()
@@ -495,5 +603,40 @@ namespace Epoch
 		Renderer::SetRenderPipeline(myGridPipelineState);
 		Renderer::RenderQuad();
 		Renderer::RemoveRenderPipeline(myGridPipelineState);
+	}
+
+	void DebugRenderer::DrawBillboardedQuad(std::shared_ptr<Texture2D> aTexture, const CU::Vector3f& aPosition, const CU::Vector3f& aTarget, const CU::Vector3f& aUp, const CU::Color& aTint, float aScale)
+	{
+		CU::Transform quadTrans(aPosition, CU::Vector3f::Zero, CU::Vector3f(aScale));
+		quadTrans.LookAt(aPosition + CU::Vector3f(aPosition - aTarget).GetNormalized(), aUp);
+
+		uint32_t textureIndex = 0;
+		if (aTexture)
+		{
+			for (size_t i = 0; i < MaxTextureSlots; i++)
+			{
+				if (!myTextureSlots[i])
+				{
+					myTextureSlots[i] = aTexture;
+					textureIndex = (uint32_t)i;
+					break;
+				}
+				else if (myTextureSlots[i]->GetHandle() == aTexture->GetHandle())
+				{
+					textureIndex = (uint32_t)i;
+					break;
+				}
+			}
+		}
+
+		for (size_t i = 0; i < 4; i++)
+		{
+			QuadVertex& vertex = myQuadVertices.emplace_back();
+			vertex.position = quadTrans.GetMatrix() * myQuadVertexPositions[i];
+			vertex.uv = myQuadUVCoords[i];
+			vertex.tint = aTint.GetVector4();
+			vertex.texIndex = textureIndex;
+		}
+		++myQuadCount;
 	}
 }

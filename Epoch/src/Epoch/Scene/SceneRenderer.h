@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <CommonUtilities/Math/Transform.h>
+#include "Epoch/Rendering/RenderConstants.h"
 #include "Epoch/Scene/Scene.h"
 #include "Epoch/Scene/SceneInfo.h"
 
@@ -23,14 +24,6 @@ namespace Epoch
 	class ComputePipeline;
 
 	class DebugRenderer;
-
-	constexpr uint32_t MaxInstanceCount = 1024 * 4;
-
-	constexpr uint32_t MaxTextureSlots = 32;
-	
-	constexpr uint32_t MaxQuads = 512;
-	constexpr uint32_t MaxQuadIndices = MaxQuads * 6;
-	constexpr uint32_t MaxQuadVertices = MaxQuads * 4;
 
 	struct SceneRendererCamera
 	{
@@ -97,7 +90,7 @@ namespace Epoch
 		void EndScene();
 
 		void SubmitMesh(std::shared_ptr<Mesh> aMesh, std::shared_ptr<MaterialTable> aMaterialTable, const CU::Matrix4x4f& aTransform);
-		void SubmitAnimatedMesh(std::shared_ptr<Mesh> aMesh, const CU::Matrix4x4f& aTransform, const std::vector<CU::Matrix4x4f>& aBoneTransformes);
+		void SubmitAnimatedMesh(std::shared_ptr<Mesh> aMesh, const CU::Matrix4x4f& aTransform, const std::vector<CU::Matrix4x4f>& aBoneTransforms);
 
 		void SubmitQuad(const CU::Matrix4x4f aTransform, const CU::Color& aColor);
 		void SubmitQuad(const CU::Matrix4x4f aTransform, std::shared_ptr<Texture2D> aTexture, const CU::Color& aTint = CU::Color::White, bool aFlipX = false, bool aFlipY = false);
@@ -242,7 +235,7 @@ namespace Epoch
 		{
 			std::shared_ptr<Mesh> mesh;
 			CU::Matrix4x4f transform;
-			std::vector<CU::Matrix4x4f> boneTransformes;
+			std::vector<CU::Matrix4x4f> boneTransforms;
 		};
 
 		struct MeshInstanceData

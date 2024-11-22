@@ -1,7 +1,9 @@
 #pragma once
 #include <memory>
 #include <vector>
+#include <array>
 #include <CommonUtilities/Math/Matrix/Matrix4x4.hpp>
+#include <Epoch/Rendering/RenderConstants.h>
 
 namespace Epoch
 {
@@ -11,9 +13,7 @@ namespace Epoch
 	class VertexBuffer;
 	class IndexBuffer;
 	class Mesh;
-
-	constexpr uint32_t MaxIndices = 1024 * 3;
-	constexpr uint32_t MaxVertices = 1024 * 2;
+	class Texture2D;
 
 	class DebugRenderer
 	{
@@ -35,6 +35,8 @@ namespace Epoch
 		
 		void DrawGrid(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, const CU::Vector2i& aSize, float aAlpha = 0.5f);
 
+		void DrawBillboardedQuad(std::shared_ptr<Texture2D> aTexture, const CU::Vector3f& aPosition, const CU::Vector3f& aTarget, const CU::Vector3f& aUp, const CU::Color& aTint, float aScale = 1.0f);
+
 		struct Stats
 		{
 			uint32_t vertices = 0;
@@ -49,7 +51,21 @@ namespace Epoch
 		void Flush();
 
 	private:
-		struct DebugVertex
+		Stats myStats;
+		
+		std::shared_ptr<RenderPipeline> myLinePipelineState;
+		std::shared_ptr<RenderPipeline> myOccludedLinePipelineState;
+		std::shared_ptr<RenderPipeline> myGridPipelineState;
+		std::shared_ptr<RenderPipeline> myQuadPipelineState;
+
+		struct CameraBuffer
+		{
+			CU::Matrix4x4f invViewProjection;
+		};
+		std::shared_ptr<ConstantBuffer> myCameraBuffer;
+
+		// Lines
+		struct LineVertex
 		{
 			CU::Vector3f position;
 			CU::Color color;
@@ -57,7 +73,7 @@ namespace Epoch
 
 		struct Frame
 		{
-			std::vector<DebugVertex> vertices;
+			std::vector<LineVertex> vertices;
 			std::vector<uint32_t> indices;
 
 			uint32_t vertexCount = 0;
@@ -71,24 +87,15 @@ namespace Epoch
 
 		std::vector<Frame> myFrames;
 
-		std::vector<DebugVertex> myVertices;
+		std::vector<LineVertex> myVertices;
 		std::vector<uint32_t> myIndices;
 
 		std::shared_ptr<VertexBuffer> myVertexBuffer;
 		std::shared_ptr<IndexBuffer> myIndexBuffer;
 
-		std::shared_ptr<RenderPipeline> myLinePipelineState;
-		std::shared_ptr<RenderPipeline> myOccludedLinePipelineState;
-		std::shared_ptr<RenderPipeline> myGridPipelineState;
-
-		struct CameraBuffer
-		{
-			CU::Matrix4x4f invViewProjection;
-		};
-		std::shared_ptr<ConstantBuffer> myCameraBuffer;
-
 		std::shared_ptr<ConstantBuffer> myDebugLineBuffer;
 
+		// Grid
 		struct GridBuffer
 		{
 			CU::Matrix4x4f transform;
@@ -98,6 +105,21 @@ namespace Epoch
 		};
 		std::shared_ptr<ConstantBuffer> myGridBuffer;
 
-		Stats myStats;
+		// Quads
+		struct QuadVertex
+		{
+			CU::Vector3f position;
+			uint32_t texIndex = 0;
+			CU::Vector4f tint;
+			CU::Vector2f uv;
+		};
+
+		CU::Vector4f myQuadVertexPositions[4];
+		CU::Vector2f myQuadUVCoords[4];
+		std::vector<QuadVertex> myQuadVertices;
+		std::shared_ptr<VertexBuffer> myQuadVertexBuffer;
+		std::shared_ptr<IndexBuffer> myQuadIndexBuffer;
+		uint32_t myQuadCount = 0;
+		std::array<std::shared_ptr<Texture2D>, MaxTextureSlots> myTextureSlots;
 	};
 }

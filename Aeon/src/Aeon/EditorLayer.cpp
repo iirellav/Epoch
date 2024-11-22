@@ -781,7 +781,7 @@ namespace Epoch
 		return (mouseX > -1.0f && mouseX < 1.0f && mouseY > -1.0f && mouseY < 1.0f);
 	}
 
-	//TODO: Add
+	//TODO: Get working
 	void EditorLayer::ViewportSelection()
 	{
 		////if (!myViewportFocused) return;
@@ -971,7 +971,6 @@ namespace Epoch
 	void EditorLayer::OnRenderOverlay()
 	{
 		EPOCH_PROFILE_FUNC();
-		// Render lines/icons (cam, light etc.)
 
 		if (EditorSettings::Get().gridEnabled)
 		{
@@ -1083,6 +1082,8 @@ namespace Epoch
 			for (auto entityID : view)
 			{
 				Entity entity{ entityID, myActiveScene.get() };
+				const CU::Vector3f pos = entity.GetWorldSpaceTransform().GetTranslation();
+				myDebugRenderer->DrawBillboardedQuad(EditorResources::CameraIcon, pos, myEditorCamera.GetTransform().GetTranslation(), CU::Vector3f::Up, CU::Color::White, 0.5f);
 			}
 		}
 
@@ -1092,6 +1093,8 @@ namespace Epoch
 			for (auto entityID : view)
 			{
 				Entity entity{ entityID, myActiveScene.get() };
+				const CU::Vector3f pos = entity.GetWorldSpaceTransform().GetTranslation();
+				myDebugRenderer->DrawBillboardedQuad(EditorResources::SkyLightIcon, pos, myEditorCamera.GetTransform().GetTranslation(), CU::Vector3f::Up, CU::Color::White, 0.5f);
 			}
 		}
 
@@ -1101,6 +1104,9 @@ namespace Epoch
 			for (auto entityID : view)
 			{
 				Entity entity{ entityID, myActiveScene.get() };
+				const auto& lc = entity.GetComponent<DirectionalLightComponent>();
+				const CU::Vector3f pos = entity.GetWorldSpaceTransform().GetTranslation();
+				myDebugRenderer->DrawBillboardedQuad(EditorResources::DirectionalLightIcon, pos, myEditorCamera.GetTransform().GetTranslation(), CU::Vector3f::Up, lc.color, 0.5f);
 			}
 		}
 
@@ -1110,6 +1116,9 @@ namespace Epoch
 			for (auto entityID : view)
 			{
 				Entity entity{ entityID, myActiveScene.get() };
+				const auto& lc = entity.GetComponent<SpotlightComponent>();
+				const CU::Vector3f pos = entity.GetWorldSpaceTransform().GetTranslation();
+				myDebugRenderer->DrawBillboardedQuad(EditorResources::SpotlightIcon, pos, myEditorCamera.GetTransform().GetTranslation(), CU::Vector3f::Up, lc.color, 0.5f);
 			}
 		}
 
@@ -1119,6 +1128,9 @@ namespace Epoch
 			for (auto entityID : view)
 			{
 				Entity entity{ entityID, myActiveScene.get() };
+				const auto& lc = entity.GetComponent<PointLightComponent>();
+				const CU::Vector3f pos = entity.GetWorldSpaceTransform().GetTranslation();
+				myDebugRenderer->DrawBillboardedQuad(EditorResources::PointLightIcon, pos, myEditorCamera.GetTransform().GetTranslation(), CU::Vector3f::Up, lc.color, 0.5f);
 			}
 		}
 
