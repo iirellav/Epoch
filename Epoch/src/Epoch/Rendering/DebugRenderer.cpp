@@ -605,11 +605,8 @@ namespace Epoch
 		Renderer::RemoveRenderPipeline(myGridPipelineState);
 	}
 
-	void DebugRenderer::DrawBillboardedQuad(std::shared_ptr<Texture2D> aTexture, const CU::Vector3f& aPosition, const CU::Vector3f& aTarget, const CU::Vector3f& aUp, const CU::Color& aTint, float aScale)
+	void DebugRenderer::DrawQuad(std::shared_ptr<Texture2D> aTexture, const CU::Matrix4x4f& aTransform, const CU::Color& aTint)
 	{
-		CU::Transform quadTrans(aPosition, CU::Vector3f::Zero, CU::Vector3f(aScale));
-		quadTrans.LookAt(aPosition + CU::Vector3f(aPosition - aTarget).GetNormalized(), aUp);
-
 		uint32_t textureIndex = 0;
 		if (aTexture)
 		{
@@ -632,7 +629,7 @@ namespace Epoch
 		for (size_t i = 0; i < 4; i++)
 		{
 			QuadVertex& vertex = myQuadVertices.emplace_back();
-			vertex.position = quadTrans.GetMatrix() * myQuadVertexPositions[i];
+			vertex.position = aTransform * myQuadVertexPositions[i];
 			vertex.uv = myQuadUVCoords[i];
 			vertex.tint = aTint.GetVector4();
 			vertex.texIndex = textureIndex;

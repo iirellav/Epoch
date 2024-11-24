@@ -35,7 +35,7 @@ namespace Epoch
 		
 		void DrawGrid(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, const CU::Vector2i& aSize, float aAlpha = 0.5f);
 
-		void DrawBillboardedQuad(std::shared_ptr<Texture2D> aTexture, const CU::Vector3f& aPosition, const CU::Vector3f& aTarget, const CU::Vector3f& aUp, const CU::Color& aTint, float aScale = 1.0f);
+		void DrawQuad(std::shared_ptr<Texture2D> aTexture, const CU::Matrix4x4f& aTransform, const CU::Color& aTint = CU::Color::White);
 
 		struct Stats
 		{
