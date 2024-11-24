@@ -12,7 +12,7 @@ namespace Epoch
 	struct EditorSettings
 	{
 		//---------- General ------------
-		bool loadLastOpenProject = false;
+		bool loadLastOpenProject = true;
 		std::string lastProjectPath = "";
 		bool autoSaveSceneBeforePlay = true;
 

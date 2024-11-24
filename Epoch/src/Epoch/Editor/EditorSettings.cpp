@@ -49,7 +49,7 @@ namespace Epoch
 		auto& settings = EditorSettings::Get();
 		
 		//---------- General ------------
-		settings.loadLastOpenProject = rootNode["LoadLastOpenProject"].as<bool>(false);
+		settings.loadLastOpenProject = rootNode["LoadLastOpenProject"].as<bool>(true);
 		settings.lastProjectPath = rootNode["LastProjectPath"].as<std::string>(std::string());
 		settings.autoSaveSceneBeforePlay = rootNode["AutoSaveSceneBeforePlay"].as<bool>(true);
 		
