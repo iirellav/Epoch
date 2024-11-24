@@ -1088,7 +1088,7 @@ namespace Epoch
 				{
 					Entity entity{ entityID, myActiveScene.get() };
 					const CU::Matrix4x4f transform = CU::Transform(entity.GetWorldSpaceTransform().GetTranslation(), myEditorCamera.GetTransform().GetRotation(), CU::Vector3f(myGizmoScale)).GetMatrix();
-					myDebugRenderer->DrawQuad(EditorResources::CameraIcon, transform);
+					myDebugRenderer->DrawQuad(EditorResources::CameraIcon, transform, CU::Color::White, (uint32_t)entity);
 				}
 			}
 
@@ -1099,7 +1099,7 @@ namespace Epoch
 				{
 					Entity entity{ entityID, myActiveScene.get() };
 					const CU::Matrix4x4f transform = CU::Transform(entity.GetWorldSpaceTransform().GetTranslation(), myEditorCamera.GetTransform().GetRotation(), CU::Vector3f(myGizmoScale)).GetMatrix();
-					myDebugRenderer->DrawQuad(EditorResources::SkyLightIcon, transform);
+					myDebugRenderer->DrawQuad(EditorResources::SkyLightIcon, transform, CU::Color::White, (uint32_t)entity);
 				}
 			}
 
@@ -1109,8 +1109,9 @@ namespace Epoch
 				for (auto entityID : view)
 				{
 					Entity entity{ entityID, myActiveScene.get() };
+					const auto& ls = entity.GetComponent<DirectionalLightComponent>();
 					const CU::Matrix4x4f transform = CU::Transform(entity.GetWorldSpaceTransform().GetTranslation(), myEditorCamera.GetTransform().GetRotation(), CU::Vector3f(myGizmoScale)).GetMatrix();
-					myDebugRenderer->DrawQuad(EditorResources::DirectionalLightIcon, transform);
+					myDebugRenderer->DrawQuad(EditorResources::DirectionalLightIcon, transform, ls.color, (uint32_t)entity);
 				}
 			}
 
@@ -1122,7 +1123,7 @@ namespace Epoch
 					Entity entity{ entityID, myActiveScene.get() };
 					const auto& ls = entity.GetComponent<SpotlightComponent>();
 					const CU::Matrix4x4f transform = CU::Transform(entity.GetWorldSpaceTransform().GetTranslation(), myEditorCamera.GetTransform().GetRotation(), CU::Vector3f(myGizmoScale)).GetMatrix();
-					myDebugRenderer->DrawQuad(EditorResources::SpotlightIcon, transform, ls.color);
+					myDebugRenderer->DrawQuad(EditorResources::SpotlightIcon, transform, ls.color, (uint32_t)entity);
 				}
 			}
 
@@ -1135,7 +1136,7 @@ namespace Epoch
 					const auto& ls = entity.GetComponent<PointLightComponent>();
 					const CU::Matrix4x4f transform = CU::Transform(entity.GetWorldSpaceTransform().GetTranslation(), myEditorCamera.GetTransform().GetRotation(), CU::Vector3f(myGizmoScale)).GetMatrix();
 
-					myDebugRenderer->DrawQuad(EditorResources::SpotlightIcon, transform, ls.color);
+					myDebugRenderer->DrawQuad(EditorResources::PointLightIcon, transform, ls.color, (uint32_t)entity);
 				}
 			}
 

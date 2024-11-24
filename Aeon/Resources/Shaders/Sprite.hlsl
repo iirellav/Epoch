@@ -6,6 +6,7 @@ struct VertexInput
     uint texIndex   : TEXINDEX;
     float4 tint     : TINT;
     float2 uv       : UV;
+    uint entityID   : ID;
 };
 
 struct VertexOutput
@@ -14,6 +15,7 @@ struct VertexOutput
     uint texIndex   : TEXINDEX;
     float4 tint     : TINT;
     float2 uv       : UV;
+    uint entityID   : ID;
 };
 
 cbuffer CameraBuffer : register(b0)
@@ -29,6 +31,7 @@ VertexOutput main(VertexInput input)
     output.uv = input.uv;
     output.tint = input.tint;
     output.texIndex = input.texIndex;
+    output.entityID = input.entityID;
     return output;
 }
 
@@ -40,12 +43,19 @@ struct VertexOutput
     uint texIndex   : TEXINDEX;
     float4 tint     : TINT;
     float2 uv       : UV;
+    uint entityID   : ID;
 };
 
 SamplerState clampSampler : register(s1);
 Texture2D textures[32] : register(t0);
 
-float4 main(VertexOutput input) : SV_TARGET
+struct Output
+{
+    float4 color : SV_TARGET0;
+    uint entityID : SV_TARGET1;
+};
+
+Output main(VertexOutput input) : SV_TARGET
 {
     float4 texColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
     switch (input.texIndex)
@@ -85,11 +95,16 @@ float4 main(VertexOutput input) : SV_TARGET
         default: texColor = float4(1.0f, 1.0f, 1.0f, 1.0f); break;
     }
     
+    Output output;
+    
     if (texColor.a * input.tint.a < 0.000001f)
     {
         discard;
-        return float4(0.0f, 0.0f, 0.0f, 0.0f);
+        output.color = float4(0.0f, 0.0f, 0.0f, 0.0f);
+        output.entityID = 0;
+        return output;
     }
-    
-    return texColor * input.tint;
+    output.color = texColor * input.tint;
+    output.entityID = input.entityID;
+    return output;
 }

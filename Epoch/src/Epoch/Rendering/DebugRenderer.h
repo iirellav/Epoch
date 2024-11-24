@@ -35,7 +35,7 @@ namespace Epoch
 		
 		void DrawGrid(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, const CU::Vector2i& aSize, float aAlpha = 0.5f);
 
-		void DrawQuad(std::shared_ptr<Texture2D> aTexture, const CU::Matrix4x4f& aTransform, const CU::Color& aTint = CU::Color::White);
+		void DrawQuad(std::shared_ptr<Texture2D> aTexture, const CU::Matrix4x4f& aTransform, const CU::Color& aTint = CU::Color::White, uint32_t aEntityID = 0);
 
 		struct Stats
 		{
@@ -112,6 +112,7 @@ namespace Epoch
 			uint32_t texIndex = 0;
 			CU::Vector4f tint;
 			CU::Vector2f uv;
+			uint32_t entityID = 0;
 		};
 
 		CU::Vector4f myQuadVertexPositions[4];

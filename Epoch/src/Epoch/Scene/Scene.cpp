@@ -1102,7 +1102,7 @@ namespace Epoch
 					if (mesh)
 					{
 						CU::Matrix4x4f transform = GetWorldSpaceTransformMatrix(entity);
-						aRenderer->SubmitMesh(mesh, mrc.materialTable, transform);
+						aRenderer->SubmitMesh(mesh, mrc.materialTable, transform, (uint32_t)entity);
 					}
 				}
 			}
@@ -1162,7 +1162,7 @@ namespace Epoch
 				}
 
 				CU::Matrix4x4f transform = GetWorldSpaceTransformMatrix(entity);
-				aRenderer->SubmitQuad(transform, texture, src.tint, src.flipX, src.flipY);
+				aRenderer->SubmitQuad(transform, texture, src.tint, src.flipX, src.flipY, (uint32_t)entity);
 			}
 		}
 
@@ -1212,7 +1212,7 @@ namespace Epoch
 				settings.color = trc.color;
 				settings.lineHeightOffset = trc.lineSpacing;
 				settings.letterSpacing = trc.letterSpacing;
-				aRenderer->SubmitText(trc.text, font, transform, settings);
+				aRenderer->SubmitText(trc.text, font, transform, settings, (uint32_t)entity);
 			}
 		}
 

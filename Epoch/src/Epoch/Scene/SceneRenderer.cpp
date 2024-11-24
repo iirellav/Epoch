@@ -112,6 +112,7 @@ namespace Epoch
 			{ ShaderDataType::Float4, "ROW", 0 },
 			{ ShaderDataType::Float4, "ROW", 1 },
 			{ ShaderDataType::Float4, "ROW", 2 },
+			{ ShaderDataType::UInt, "ID", 0 },
 			}
 		};
 
@@ -145,6 +146,7 @@ namespace Epoch
 			{ TextureFormat::RG16F,			"Normal" },
 			{ TextureFormat::R11G11B10F,	"Emission" },
 			{ TextureFormat::RGBA32F,		"WorldPosition" },
+			{ TextureFormat::R32UI,			"EntityID" },
 			{ TextureFormat::DEPTH32,		"Depth" } };
 
 			PipelineSpecification pipelineSpecs("GBuffer");
@@ -216,11 +218,13 @@ namespace Epoch
 				{ ShaderDataType::Float3,	"POSITION" },
 				{ ShaderDataType::UInt,		"TEXINDEX" },
 				{ ShaderDataType::Float4,	"TINT" },
-				{ ShaderDataType::Float2,	"UV" }
+				{ ShaderDataType::Float2,	"UV" },
+				{ ShaderDataType::UInt,		"ID" }
 			};
 
 			FramebufferSpecification specs;
 			specs.existingAttachments.push_back(myUberPipeline->GetSpecification().targetFramebuffer->GetTarget());
+			specs.existingAttachments.push_back(myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(5));
 			specs.existingDepthAttachment = myGBufferPipeline->GetSpecification().targetFramebuffer->GetDepthAttachment();
 			specs.clearColorOnLoad = false;
 			specs.clearDepthOnLoad = false;
@@ -241,11 +245,13 @@ namespace Epoch
 				{ ShaderDataType::Float3,	"POSITION" },
 				{ ShaderDataType::UInt,		"TEXINDEX" },
 				{ ShaderDataType::Float4,	"TINT" },
-				{ ShaderDataType::Float2,	"UV" }
+				{ ShaderDataType::Float2,	"UV" },
+				{ ShaderDataType::UInt,		"ID" }
 			};
 
 			FramebufferSpecification specs;
 			specs.existingAttachments.push_back(myUberPipeline->GetSpecification().targetFramebuffer->GetTarget());
+			specs.existingAttachments.push_back(myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(5));
 			specs.existingDepthAttachment = myGBufferPipeline->GetSpecification().targetFramebuffer->GetDepthAttachment();
 			specs.clearColorOnLoad = false;
 			specs.clearDepthOnLoad = false;
@@ -277,6 +283,7 @@ namespace Epoch
 		{
 			FramebufferSpecification specs;
 			specs.existingAttachments.push_back(myUberPipeline->GetSpecification().targetFramebuffer->GetTarget());
+			specs.existingAttachments.push_back(myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(5));
 			specs.existingDepthAttachment = myGBufferPipeline->GetSpecification().targetFramebuffer->GetDepthAttachment();
 			specs.clearColorOnLoad = false;
 			specs.clearDepthOnLoad = false;
@@ -742,7 +749,7 @@ namespace Epoch
 		}
 	}
 
-	void SceneRenderer::SubmitMesh(std::shared_ptr<Mesh> aMesh, std::shared_ptr<MaterialTable> aMaterialTable, const CU::Matrix4x4f& aTransform)
+	void SceneRenderer::SubmitMesh(std::shared_ptr<Mesh> aMesh, std::shared_ptr<MaterialTable> aMaterialTable, const CU::Matrix4x4f& aTransform, uint32_t aEntityID)
 	{
 		const auto& submeshData = aMesh->GetSubmeshes();
 
@@ -781,6 +788,7 @@ namespace Epoch
 			transformStorage.row[0] = { submeshTransform(1, 1), submeshTransform(1, 2), submeshTransform(1, 3), submeshTransform(4, 1) };
 			transformStorage.row[1] = { submeshTransform(2, 1), submeshTransform(2, 2), submeshTransform(2, 3), submeshTransform(4, 2) };
 			transformStorage.row[2] = { submeshTransform(3, 1), submeshTransform(3, 2), submeshTransform(3, 3), submeshTransform(4, 3) };
+			transformStorage.id = aEntityID;
 
 			auto& drawCall = myDrawList[meshKey];
 			drawCall.mesh = aMesh;
@@ -798,9 +806,9 @@ namespace Epoch
 		drawCall.boneTransforms = aBoneTransforms;
 	}
 
-	void SceneRenderer::SubmitQuad(const CU::Matrix4x4f aTransform, const CU::Color& aColor)
+	void SceneRenderer::SubmitQuad(const CU::Matrix4x4f aTransform, const CU::Color& aColor, uint32_t aEntityID)
 	{
-		SubmitQuad(aTransform, nullptr, aColor);
+		SubmitQuad(aTransform, nullptr, aColor, aEntityID);
 	}
 
 	static CU::Vector2f FlipUVCoord(const CU::Vector2f& aCoord, bool aFlipX, bool aFlipY)
@@ -808,7 +816,7 @@ namespace Epoch
 		return { CU::Math::Abs(aCoord.x - (float)aFlipX), CU::Math::Abs(aCoord.y - (float)aFlipY) };
 	}
 
-	void SceneRenderer::SubmitQuad(const CU::Matrix4x4f aTransform, std::shared_ptr<Texture2D> aTexture, const CU::Color& aTint, bool aFlipX, bool aFlipY)
+	void SceneRenderer::SubmitQuad(const CU::Matrix4x4f aTransform, std::shared_ptr<Texture2D> aTexture, const CU::Color& aTint, bool aFlipX, bool aFlipY, uint32_t aEntityID)
 	{
 		uint32_t textureIndex = 0;
 		if (aTexture)
@@ -849,6 +857,7 @@ namespace Epoch
 			vertex.uv = FlipUVCoord(myQuadUVCoords[i], aFlipX, aFlipY);
 			vertex.tint = aTint.GetVector4();
 			vertex.texIndex = textureIndex;
+			vertex.entityID = aEntityID;
 		}
 		++myQuadCount;
 	}
@@ -930,7 +939,7 @@ namespace Epoch
 		}
 	}
 
-	void SceneRenderer::SubmitText(const std::string& aString, const std::shared_ptr<Font>& aFont, const CU::Matrix4x4f& aTransform, const TextSettings& aSettings)
+	void SceneRenderer::SubmitText(const std::string& aString, const std::shared_ptr<Font>& aFont, const CU::Matrix4x4f& aTransform, const TextSettings& aSettings, uint32_t aEntityID)
 	{
 		if (aString.empty()) return;
 
@@ -1100,6 +1109,7 @@ namespace Epoch
 						vertex.tint = aSettings.color.GetVector4();
 						vertex.uv = { (float)l, (float)b };
 						vertex.texIndex = textureIndex;
+						vertex.entityID = aEntityID;
 					}
 
 					{
@@ -1108,6 +1118,7 @@ namespace Epoch
 						vertex.tint = aSettings.color.GetVector4();
 						vertex.uv = { (float)l, (float)t };
 						vertex.texIndex = textureIndex;
+						vertex.entityID = aEntityID;
 					}
 
 					{
@@ -1116,6 +1127,7 @@ namespace Epoch
 						vertex.tint = aSettings.color.GetVector4();
 						vertex.uv = { (float)r, (float)t };
 						vertex.texIndex = textureIndex;
+						vertex.entityID = aEntityID;
 					}
 
 					{
@@ -1124,6 +1136,7 @@ namespace Epoch
 						vertex.tint = aSettings.color.GetVector4();
 						vertex.uv = { (float)r, (float)b };
 						vertex.texIndex = textureIndex;
+						vertex.entityID = aEntityID;
 					}
 
 					++myTextQuadCount;

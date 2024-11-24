@@ -9,6 +9,7 @@ struct VertexInput
     float2 uv : UV;
     float3 color : COLOR;
     float4 row[3] : ROW;
+    uint entityID : ID;
 };
 
 struct VertexOutput
@@ -20,6 +21,7 @@ struct VertexOutput
     float3 binormal : BINORMAL;
     float2 uv : UV;
     float3 color : COLOR;
+    uint entityID : ID;
 };
 
 VertexOutput main(VertexInput input)
@@ -42,6 +44,7 @@ VertexOutput main(VertexInput input)
     output.binormal = normalize(cross(output.normal, output.tangent));
     output.uv = input.uv;
     output.color = input.color;
+    output.entityID = input.entityID;
     
     return output;
 }
@@ -58,6 +61,7 @@ struct VertexOutput
     float3 binormal : BINORMAL;
     float2 uv : UV;
     float3 color : COLOR;
+    uint entityID : ID;
 };
 
 cbuffer MaterialBuffer : register(b1)
@@ -80,6 +84,7 @@ struct GBufferOutput
     float4 normals : SV_TARGET2;
     float4 emission : SV_TARGET3;
     float4 worldPos : SV_TARGET4;
+    uint entityID : SV_TARGET5;
 };
 
 SamplerState wrapSampler : register(s0);
@@ -116,6 +121,7 @@ GBufferOutput main(VertexOutput input) : SV_TARGET
     output.normals = float4(EncodeOct(pixelNormal), 0.0f, 1.0f);
     output.emission = float4(MB_EmissionColor * MB_EmissionStrength, 1.0f);
     output.worldPos = input.worldPos;
+    output.entityID = input.entityID;
     
     return output;
 }

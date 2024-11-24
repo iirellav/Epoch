@@ -108,7 +108,8 @@ namespace Epoch
 				{ ShaderDataType::Float3,	"POSITION" },
 				{ ShaderDataType::UInt,		"TEXINDEX" },
 				{ ShaderDataType::Float4,	"TINT" },
-				{ ShaderDataType::Float2,	"UV" }
+				{ ShaderDataType::Float2,	"UV" },
+				{ ShaderDataType::UInt,		"ID" }
 			};
 
 			FramebufferSpecification specs;
@@ -605,7 +606,7 @@ namespace Epoch
 		Renderer::RemoveRenderPipeline(myGridPipelineState);
 	}
 
-	void DebugRenderer::DrawQuad(std::shared_ptr<Texture2D> aTexture, const CU::Matrix4x4f& aTransform, const CU::Color& aTint)
+	void DebugRenderer::DrawQuad(std::shared_ptr<Texture2D> aTexture, const CU::Matrix4x4f& aTransform, const CU::Color& aTint, uint32_t aEntityID)
 	{
 		uint32_t textureIndex = 0;
 		if (aTexture)
@@ -633,6 +634,7 @@ namespace Epoch
 			vertex.uv = myQuadUVCoords[i];
 			vertex.tint = aTint.GetVector4();
 			vertex.texIndex = textureIndex;
+			vertex.entityID = aEntityID;
 		}
 		++myQuadCount;
 	}

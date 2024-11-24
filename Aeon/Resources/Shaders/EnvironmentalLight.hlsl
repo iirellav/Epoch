@@ -38,6 +38,7 @@ VertexOutput main(unsigned int aVertexIndex : SV_VertexID)
 
 #stage pixel
 #include "Include/Common.hlsli"
+#include "Include/GBuffer.hlsli"
 #include "Include/Samplers.hlsli"
 #include "Include/Lighting.hlsli"
 #include "Include/LightBuffer.hlsli"
@@ -49,11 +50,6 @@ struct VertexOutput
     float2 uv   : UV;
 };
 
-Texture2D albedoTexture : register(t0);
-Texture2D materialTexture : register(t1);
-Texture2D normalTexture : register(t2);
-Texture2D emissionTexture : register(t3);
-Texture2D worldPositionTexture : register(t4);
 TextureCube environmentTexture : register(t10);
 Texture2D brdfLUT : register(t11);
 

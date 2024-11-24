@@ -89,11 +89,11 @@ namespace Epoch
 		void BeginScene(const SceneRendererCamera& aCamera);
 		void EndScene();
 
-		void SubmitMesh(std::shared_ptr<Mesh> aMesh, std::shared_ptr<MaterialTable> aMaterialTable, const CU::Matrix4x4f& aTransform);
+		void SubmitMesh(std::shared_ptr<Mesh> aMesh, std::shared_ptr<MaterialTable> aMaterialTable, const CU::Matrix4x4f& aTransform, uint32_t aEntityID = 0);
 		void SubmitAnimatedMesh(std::shared_ptr<Mesh> aMesh, const CU::Matrix4x4f& aTransform, const std::vector<CU::Matrix4x4f>& aBoneTransforms);
 
-		void SubmitQuad(const CU::Matrix4x4f aTransform, const CU::Color& aColor);
-		void SubmitQuad(const CU::Matrix4x4f aTransform, std::shared_ptr<Texture2D> aTexture, const CU::Color& aTint = CU::Color::White, bool aFlipX = false, bool aFlipY = false);
+		void SubmitQuad(const CU::Matrix4x4f aTransform, const CU::Color& aColor, uint32_t aEntityID = 0);
+		void SubmitQuad(const CU::Matrix4x4f aTransform, std::shared_ptr<Texture2D> aTexture, const CU::Color& aTint = CU::Color::White, bool aFlipX = false, bool aFlipY = false, uint32_t aEntityID = 0);
 
 		struct TextSettings
 		{
@@ -103,7 +103,7 @@ namespace Epoch
 			float lineHeightOffset = 0.0f;
 			float letterSpacing = 0.0f;
 		};
-		void SubmitText(const std::string& aString, const std::shared_ptr<Font>& aFont, const CU::Matrix4x4f& aTransform, const TextSettings& aSettings);
+		void SubmitText(const std::string& aString, const std::shared_ptr<Font>& aFont, const CU::Matrix4x4f& aTransform, const TextSettings& aSettings, uint32_t aEntityID = 0);
 
 		std::shared_ptr<Texture2D> GetFinalPassTexture();
 		std::shared_ptr<Framebuffer> GetExternalCompositingFramebuffer();
@@ -241,6 +241,7 @@ namespace Epoch
 		struct MeshInstanceData
 		{
 			CU::Vector4f row[3];
+			uint32_t id;
 		};
 		
 		std::map<MeshKey, std::vector<MeshInstanceData>> myMeshTransformMap;
@@ -269,6 +270,7 @@ namespace Epoch
 			uint32_t texIndex = 0;
 			CU::Vector4f tint;
 			CU::Vector2f uv;
+			uint32_t entityID = 0;
 		};
 
 		CU::Vector4f myQuadVertexPositions[4];
@@ -283,9 +285,10 @@ namespace Epoch
 		struct TextVertex
 		{
 			CU::Vector3f position;
-			uint32_t texIndex;
+			uint32_t texIndex = 0;
 			CU::Vector4f tint;
 			CU::Vector2f uv;
+			uint32_t entityID = 0;
 		};
 		std::vector<TextVertex> myTextVertices;
 		std::shared_ptr<VertexBuffer> myTextVertexBuffer;

@@ -6,6 +6,7 @@ struct VertexInput
     uint texIndex   : TEXINDEX;
     float4 tint     : TINT;
     float2 uv       : UV;
+    uint entityID   : ID;
 };
 
 struct VertexOutput
@@ -14,6 +15,7 @@ struct VertexOutput
     uint texIndex   : TEXINDEX;
     float4 tint     : TINT;
     float2 uv       : UV;
+    uint entityID   : ID;
 };
 
 cbuffer CameraBuffer : register(b0)
@@ -29,6 +31,7 @@ VertexOutput main(VertexInput input)
     output.uv = input.uv;
     output.tint = input.tint;
     output.texIndex = input.texIndex;
+    output.entityID = input.entityID;
     return output;
 }
 
@@ -40,6 +43,7 @@ struct VertexOutput
     uint texIndex   : TEXINDEX;
     float4 tint     : TINT;
     float2 uv       : UV;
+    uint entityID   : ID;
 };
 
 float median(float r, float g, float b)
@@ -59,7 +63,13 @@ float ScreenPxRange()
 SamplerState clampSampler : register(s1);
 Texture2D fontAtlases[32] : register(t0);
 
-float4 main(VertexOutput input) : SV_TARGET
+struct Output
+{
+    float4 color : SV_TARGET0;
+    uint entityID : SV_TARGET1;
+};
+
+Output main(VertexOutput input)
 {
     float4 fgColor = input.tint;
     float4 msd = float4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -146,11 +156,17 @@ float4 main(VertexOutput input) : SV_TARGET
     float2 screenTexSize = (float2) 1.0f / fwidth(input.uv);
     float screenPxDistance = max(0.5f * dot(unitRange, screenTexSize), 1.0f) * (sd - 0.5f);
     
+    Output output;
+    
     float opacity = clamp(screenPxDistance + 0.5f, 0.0f, 1.0f);
     if (opacity < 0.000001f)
     {
         discard;
-        return float4(0.0f, 0.0f, 0.0f, 0.0f);
+        output.color = float4(0.0f, 0.0f, 0.0f, 0.0f);
+        output.entityID = 0;
+        return output;
     }
-    return fgColor;
+    output.color = fgColor;
+    output.entityID = input.entityID;
+    return output;
 }
