@@ -1060,9 +1060,15 @@ namespace Epoch
 				myPostProcessingData.bufferData.flags |= (vc.distanceFog.enabled << 2);
 				if (vc.distanceFog.enabled)
 				{
-					myPostProcessingData.bufferData.distanceFogColor = vc.distanceFog.color;
+					myPostProcessingData.bufferData.distanceFogColor = vc.distanceFog.color.GetVector3();
 					myPostProcessingData.bufferData.distanceFogDensity = vc.distanceFog.density;
 					myPostProcessingData.bufferData.distanceFogOffset = vc.distanceFog.offset;
+				}
+
+				myPostProcessingData.bufferData.flags |= (vc.posterization.enabled << 3);
+				if (vc.posterization.enabled)
+				{
+					myPostProcessingData.bufferData.posterizationSteps = vc.posterization.steps;
 				}
 
 				break;

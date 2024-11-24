@@ -152,6 +152,8 @@ namespace Epoch::UI
 
 	bool Property_DragInt(const char* aLabel, int& outValue, int aDelta = 1, int aMin = 0, int aMax = 0, const char* aFormat = "%d", ImGuiSliderFlags aFlags = 0, const char* aTooltip = "");
 
+	bool Property_DragUInt(const char* aLabel, uint32_t& outValue, uint32_t aDelta = 1, uint32_t aMin = 0, uint32_t aMax = 0, const char* aFormat = "%d", ImGuiSliderFlags aFlags = 0, const char* aTooltip = "");
+
 	bool Property_DragInt2(const char* aLabel, CU::Vector2i& outValue, int aDelta = 1, int aMin = 0, int aMax = 0, const char* aFormat = "%d", ImGuiSliderFlags aFlags = 0, const char* aTooltip = "");
 
 	bool Property_SliderFloat(const char* aLabel, float& outValue, float aMin = 0.0f, float aMax = 0.0f, const char* aFormat = "%.3f", ImGuiSliderFlags aFlags = 0, const char* aTooltip = "");

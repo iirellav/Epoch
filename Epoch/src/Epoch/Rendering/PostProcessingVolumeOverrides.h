@@ -47,4 +47,11 @@ namespace Epoch::PostProcessing
 		float density = 0.3f;
 		float offset = 0.0f;
 	};
+
+	struct Posterization
+	{
+		bool enabled = false;
+
+		uint32_t steps = 16;
+	};
 }

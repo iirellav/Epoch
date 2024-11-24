@@ -711,6 +711,15 @@ namespace Epoch
 					aOut << YAML::EndMap;
 				}
 
+				//Posterization
+				{
+					aOut << YAML::Key << "Posterization";
+					aOut << YAML::BeginMap;
+
+					aOut << YAML::Key << "Enabled" << YAML::Value << v.posterization.enabled;
+					aOut << YAML::Key << "Steps" << YAML::Value << v.posterization.steps;
+				}
+
 				aOut << YAML::EndMap;
 			}
 
@@ -1351,6 +1360,14 @@ namespace Epoch
 					vc.distanceFog.color = vignetteData["Color"].as<CU::Vector3f>(CU::Color::White.GetVector3());
 					vc.distanceFog.density = vignetteData["Density"].as<float>(0.3f);
 					vc.distanceFog.offset = vignetteData["Offset"].as<float>(0.0f);
+				}
+
+				//Posterization
+				{
+					YAML::Node posterizationData = volumeComponent["Posterization"];
+
+					vc.posterization.enabled = posterizationData["Enabled"].as<bool>(false);
+					vc.posterization.steps = posterizationData["Steps"].as<uint32_t>(0);
 				}
 			}
 

@@ -693,7 +693,6 @@ namespace Epoch
 					UI::EndPropertyGrid();
 				}
 
-
 				if (UI::SubHeaderWithCheckbox("Color Grading", &aFirstComponent.colorGrading.enabled, false))
 				{
 					UI::BeginPropertyGrid();
@@ -705,7 +704,7 @@ namespace Epoch
 
 					AssetHandle assetHandle = aFirstComponent.colorGrading.lut;
 					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<AssetHandle, VolumeComponent>([](const VolumeComponent& aOther) { return aOther.colorGrading.lut; }));
-					if (UI::Property_AssetReference<Texture2D>("LUT", assetHandle, ""))
+					if (UI::Property_AssetReference<Texture2D>("LUT", assetHandle))
 					{
 						for (auto& entityID : aEntities)
 						{
@@ -849,6 +848,35 @@ namespace Epoch
 					ImGui::PopItemFlag();
 
 					if (!aFirstComponent.distanceFog.enabled)
+					{
+						ImGui::EndDisabled();
+					}
+
+					UI::EndPropertyGrid();
+				}
+
+				if (UI::SubHeaderWithCheckbox("Posterization", &aFirstComponent.posterization.enabled, false))
+				{
+					UI::BeginPropertyGrid();
+
+					if (!aFirstComponent.posterization.enabled)
+					{
+						ImGui::BeginDisabled();
+					}
+
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<uint32_t, VolumeComponent>([](const VolumeComponent& aOther) { return aOther.posterization.steps; }));
+					if (UI::Property_DragUInt("Steps", aFirstComponent.posterization.steps))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& vc = entity.GetComponent<VolumeComponent>();
+							vc.posterization.steps = aFirstComponent.posterization.steps;
+						}
+					}
+					ImGui::PopItemFlag();
+
+					if (!aFirstComponent.posterization.enabled)
 					{
 						ImGui::EndDisabled();
 					}

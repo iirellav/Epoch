@@ -260,6 +260,7 @@ namespace Epoch
 		PostProcessing::ColorGrading colorGrading;
 		PostProcessing::Vignette vignette;
 		PostProcessing::DistanceFog distanceFog;
+		PostProcessing::Posterization posterization;
 	};
 
 #pragma endregion

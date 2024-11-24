@@ -78,7 +78,8 @@ namespace Epoch
 			float distanceFogDensity = 0.0f;
 			float distanceFogOffset = 0.0f;
 
-			CU::Color distanceFogColor;
+			CU::Vector3f distanceFogColor;
+			uint32_t posterizationSteps;
 		} bufferData;
 	};
 }

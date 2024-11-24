@@ -70,7 +70,8 @@ cbuffer PostProcessingBuffer : register(b1)
     float DistannceFog_Density;
     float DistannceFog_Offset;
     
-    float4 DistannceFog_Color;
+    float3 DistannceFog_Color;
+    uint Posterization_Steps;
 };
 
 float3 Tonemap_UnrealEngine(float3 input)
@@ -169,7 +170,7 @@ float3 DistanceFog(const float3 color, float4 worldPos)
     float fogFactor = ((DistannceFog_Density / 10000) / sqrt(log(2))) * max(0.0f, viewDistance - (DistannceFog_Offset * 100));
     fogFactor = exp2(-fogFactor * fogFactor);
     
-    return lerp(DistannceFog_Color.rgb, color, saturate(fogFactor));
+    return lerp(DistannceFog_Color, color, saturate(fogFactor));
 }
 
 float3 Vignette(const float3 color, const float2 uv)
@@ -189,7 +190,7 @@ float3 Posterize(const float3 color)
 {
     float3 HSV = RGBToHSV(color);
     
-    HSV.z = round(HSV.z * 12) / 12;
+    HSV.z = round(HSV.z * Posterization_Steps) / Posterization_Steps;
     
     return HSVToRGB(HSV);
 }
