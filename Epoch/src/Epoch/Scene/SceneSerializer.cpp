@@ -718,6 +718,8 @@ namespace Epoch
 
 					aOut << YAML::Key << "Enabled" << YAML::Value << v.posterization.enabled;
 					aOut << YAML::Key << "Steps" << YAML::Value << v.posterization.steps;
+
+					aOut << YAML::EndMap;
 				}
 
 				aOut << YAML::EndMap;
