@@ -106,6 +106,7 @@ namespace Epoch
 		void SubmitText(const std::string& aString, const std::shared_ptr<Font>& aFont, const CU::Matrix4x4f& aTransform, const TextSettings& aSettings, uint32_t aEntityID = 0);
 
 		std::shared_ptr<Texture2D> GetFinalPassTexture();
+		std::shared_ptr<Texture2D> GetEntityIDTexture();
 		std::shared_ptr<Framebuffer> GetExternalCompositingFramebuffer();
 
 		DrawMode GetDrawMode() { return myDrawMode; }

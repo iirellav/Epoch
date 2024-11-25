@@ -1161,6 +1161,18 @@ namespace Epoch
 		}
 	}
 
+	std::shared_ptr<Texture2D> SceneRenderer::GetEntityIDTexture()
+	{
+		if (myDrawMode == DrawMode::Shaded)
+		{
+			return myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(5);
+		}
+		else
+		{
+			return nullptr;
+		}
+	}
+
 	std::shared_ptr<Framebuffer> SceneRenderer::GetExternalCompositingFramebuffer()
 	{
 		return myExternalCompositingFramebuffer;
