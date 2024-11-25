@@ -275,8 +275,6 @@ namespace Epoch
 
 		if (mySceneState == SceneState::Edit && (!ImGui::IsMouseDown(ImGuiMouseButton_Right) && !ImGui::IsMouseDown(ImGuiMouseButton_Middle)))
 		{
-			ViewportSelection();
-
 			if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
 			{
 				if (ImGui::IsKeyPressed(ImGuiKey_O))
@@ -753,10 +751,9 @@ namespace Epoch
 		return (mouseX > -1.0f && mouseX < 1.0f && mouseY > -1.0f && mouseY < 1.0f);
 	}
 
-	//TODO: Get working
 	void EditorLayer::ViewportSelection()
 	{
-		//if (!myViewportFocused) return;
+		if (!myViewportFocused) return;
 		if (ImGuizmo::IsOver()) return;
 		
 		if (Input::IsMouseButtonPressed(MouseButton::Left))
@@ -1897,6 +1894,7 @@ namespace Epoch
 
 		if (mySceneState == SceneState::Edit)
 		{
+			ViewportSelection();
 			DrawGizmos();
 		}
 
