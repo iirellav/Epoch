@@ -553,7 +553,7 @@ namespace Epoch
 		myPanelManager->OnImGuiRender();
 		//ImGui::ShowDemoWindow();
 
-		if (ImGui::Begin("Scene Renderer (TEMP)"))
+		if (ImGui::Begin("Editor Options (TEMP)"))
 		{
 			UI::BeginPropertyGrid();
 
