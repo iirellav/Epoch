@@ -411,7 +411,7 @@ namespace Epoch
 	void ContentBrowserPanel::RenderNewScriptDialogue()
 	{
 		UI::Fonts::PushFont("Bold");
-		if (ImGui::BeginPopupModal("New Script", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
+		if (ImGui::BeginPopupModal("New Script", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			UI::Fonts::PushFont("Regular");
 

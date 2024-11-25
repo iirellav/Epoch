@@ -95,7 +95,7 @@ namespace Epoch::UI::Widgets
 
 		static bool grabFocus = true;
 		
-		if (ImGui::BeginPopup(aPopupID, /*ImGuiWindowFlags_NoMove | */ImGuiWindowFlags_NoResize))
+		if (ImGui::BeginPopup(aPopupID, ImGuiWindowFlags_NoResize))
 		{
 			static std::string searchString;
 
@@ -224,7 +224,7 @@ namespace Epoch::UI::Widgets
 
 		static bool grabFocus = true;
 		
-		if (ImGui::BeginPopup(aPopupID, /*ImGuiWindowFlags_NoMove | */ImGuiWindowFlags_NoResize))
+		if (ImGui::BeginPopup(aPopupID, ImGuiWindowFlags_NoResize))
 		{
 			static std::string searchString;
 

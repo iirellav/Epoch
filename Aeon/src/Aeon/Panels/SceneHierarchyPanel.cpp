@@ -196,12 +196,12 @@ namespace Epoch
 
 		bool isSelected = SelectionManager::IsSelected(SelectionContext::Entity, aEntity.GetUUID());
 
-		ImGuiTreeNodeFlags flags = ((isSelected) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_SpanAvailWidth;
+		ImGuiTreeNodeFlags flags = ((isSelected) ? ImGuiTreeNodeFlags_Selected : 0)/* | ImGuiTreeNodeFlags_SpanAvailWidth*/;
 		aEntity.Children().empty() ? flags |= ImGuiTreeNodeFlags_Leaf : flags |= ImGuiTreeNodeFlags_OpenOnArrow;
 
 		const bool anyDescendantSelected = IsAnyDescendantSelected(aEntity, true);
 
-		if ((anyDescendantSelected || (!aSearchFilter.empty() && childMatchesSearch))/* && (!ImGui::IsMouseDown(ImGuiMouseButton_Left) && !ImGui::IsMouseReleased(ImGuiMouseButton_Left))*/)
+		if ((anyDescendantSelected || (!aSearchFilter.empty() && childMatchesSearch)) && (!ImGui::IsMouseDown(ImGuiMouseButton_Left) && !ImGui::IsMouseReleased(ImGuiMouseButton_Left)))
 		{
 			ImGui::SetNextItemOpen(true);
 		}

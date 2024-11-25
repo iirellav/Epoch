@@ -185,11 +185,6 @@ namespace Epoch
 						aOut << YAML::Key << "Name" << YAML::Value << fieldInfo->name; // This is only here for the sake of debugging. All we need is the ID
 						aOut << YAML::Key << "Type" << YAML::Value << FieldUtils::FieldTypeToString(fieldInfo->type);
 
-						if (fieldInfo->IsArray())
-						{
-							//out << YAML::Key << "Length" << YAML::Value << storage.As<ArrayFieldStorage>()->GetLength(); // Not strictly necessary but useful for readability
-						}
-
 						aOut << YAML::Key << "Data" << YAML::Value;
 
 						if (fieldInfo->IsArray())
