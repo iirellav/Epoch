@@ -759,7 +759,7 @@ namespace Epoch
 		//if (!myViewportFocused) return;
 		if (ImGuizmo::IsOver()) return;
 		
-		if (ImGui::IsKeyPressed(ImGuiKey_MouseLeft))
+		if (Input::IsMouseButtonPressed(MouseButton::Left))
 		{
 			if (MouseInViewport())
 			{
