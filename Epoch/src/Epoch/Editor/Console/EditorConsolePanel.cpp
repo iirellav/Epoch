@@ -182,10 +182,10 @@ namespace Epoch
 
 					if (set.find(msg.hash) == set.end())
 					{
-						msgMap.emplace(msg.hash, messages.size());
+						msgMap[msg.hash] = (uint32_t)messages.size();
 						messages.push_back(msg);
 						set.insert(msg.hash);
-						msgCountMap.emplace(msg.hash, 1);
+						msgCountMap[msg.hash] = 1;
 					}
 					else
 					{
