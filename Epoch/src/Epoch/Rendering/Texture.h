@@ -77,6 +77,8 @@ namespace Epoch
 		virtual void Resize(uint32_t aWidth, uint32_t aHeight) = 0;
 		virtual void SetData(Buffer aTextureData) = 0;
 
+		virtual Buffer ReadData(uint32_t aWidth, uint32_t aHeight, uint32_t aX, uint32_t aY) const = 0;
+
 		uint32_t GetMipLevelCount() const { return CU::Math::FloorToUInt(log2f((float)CU::Math::Min(mySpecification.width, mySpecification.height)) + 1); }
 		std::pair<uint32_t, uint32_t> GetMipSize(uint32_t aMipLevel) const;
 

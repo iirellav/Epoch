@@ -122,6 +122,50 @@ namespace Epoch
 		Create();
 	}
 
+	Buffer DX11Texture2D::ReadData(uint32_t aWidth, uint32_t aHeight, uint32_t aX, uint32_t aY) const
+	{
+		Buffer outputData;
+
+		auto stagingBuffer = CreateStagingTexture(mySpecification.format, aWidth, aHeight);
+
+		if (!stagingBuffer)
+		{
+			return outputData;
+		}
+		
+		auto dataSize = GetMemorySize(mySpecification.format, aWidth, aHeight);
+		outputData.Allocate(dataSize);
+
+		aY = mySpecification.height - aY;
+
+		D3D11_BOX box = {};
+		box.left = aX;
+		box.right = aX + aWidth;
+		box.top = aY;
+		box.bottom = aY + aHeight;
+		box.front = 0;
+		box.back = 1;
+
+		{
+			ID3D11Resource* resource = nullptr;
+			myRTV.Get()->GetResource(&resource);
+			RHI::GetContext()->CopySubresourceRegion(stagingBuffer->myTexture.Get(), 0, 0, 0, 0, resource, 0, &box);
+		}
+
+		{
+			D3D11_MAPPED_SUBRESOURCE resource;
+			ZeroMemory(&resource, sizeof(D3D11_MAPPED_SUBRESOURCE));
+			RHI::GetContext()->Map(stagingBuffer->myTexture.Get(), 0, D3D11_MAP_READ, 0, &resource);
+			if (resource.pData)
+			{
+				memcpy(outputData.data, resource.pData, dataSize);
+			}
+			RHI::GetContext()->Unmap(stagingBuffer->myTexture.Get(), 0);
+		}
+
+		return outputData;
+	}
+
 	void DX11Texture2D::Create()
 	{
 		auto size = GetMemorySize(mySpecification.format, mySpecification.width, mySpecification.height);
@@ -254,6 +298,36 @@ namespace Epoch
 		myAccessFlags = 0;
 
 		D3D_SET_OBJECT_NAME_A(myTexture, mySpecification.debugName.data());
+	}
+
+	std::shared_ptr<DX11Texture2D> DX11Texture2D::CreateStagingTexture(TextureFormat aFormat, uint32_t aWidth, uint32_t aHeight)
+	{
+		std::shared_ptr<DX11Texture2D> output = std::make_shared<DX11Texture2D>();
+
+		DXGI_FORMAT format = DX11TextureFormat(aFormat);
+
+		D3D11_TEXTURE2D_DESC description;
+		ZeroMemory(&description, sizeof(description));
+		description.Width = aWidth;
+		description.Height = aHeight;
+		description.MipLevels = 1;
+		description.ArraySize = 1;
+		description.Format = format;
+		description.SampleDesc.Count = 1;
+		description.SampleDesc.Quality = 0;
+		description.Usage = D3D11_USAGE_STAGING;
+		description.BindFlags = 0;
+		description.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+		description.MiscFlags = 0;
+
+		HRESULT result = RHI::GetDevice()->CreateTexture2D(&description, nullptr, reinterpret_cast<ID3D11Texture2D**>(output->myTexture.GetAddressOf()));
+		if (FAILED(result))
+		{
+			EPOCH_ASSERT(false, "Failed to create a staging texture!");
+			output = nullptr;
+		}
+
+		return output;
 	}
 
 	DX11TextureCube::DX11TextureCube(const TextureSpecification& aSpec, Buffer aTextureData)

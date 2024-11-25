@@ -63,9 +63,11 @@ namespace Epoch
 		
 		void Resize(uint32_t aWidth, uint32_t aHeight) override;
 		void SetData(Buffer aTextureData) override;
+		Buffer ReadData(uint32_t aWidth, uint32_t aHeight, uint32_t aX, uint32_t aY) const override;
 
 	private:
 		void Create();
+		static std::shared_ptr<DX11Texture2D> CreateStagingTexture(TextureFormat aFormat, uint32_t aWidth, uint32_t aHeight);
 
 	private:
 		ComPtr<ID3D11Resource> myTexture = nullptr;
