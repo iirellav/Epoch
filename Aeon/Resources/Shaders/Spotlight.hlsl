@@ -88,7 +88,5 @@ float4 main(VertexOutput input) : SV_TARGET
     float3 cookie = cookieTexture.Sample(clampSampler, lightSpaceUV).rgb;
     float cookieIntensity = RGBToHSV(cookie).b;
     
-    //return float4(cookieUV * coneAttenuation, 0.0f, 1.0f);
-    //float cookieIntensity = 1 - cookie.SampleLevel(clampSampler, cookieUV, 0).r;
     return float4(lightContribution * coneAttenuation * rangeAttenuation /* * normalAttenuation*/ * cookie, 1.0f);
 }
