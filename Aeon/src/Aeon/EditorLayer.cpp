@@ -273,15 +273,9 @@ namespace Epoch
 		//TODO: Put in an OnEvent() function//
 		//////////////////////////////////////
 
-
-		if (ImGui::IsKeyPressed(ImGuiKey_F9))
-		{
-			myDisplayCurrentColorGradingLUT = !myDisplayCurrentColorGradingLUT;
-		}
-
 		if (mySceneState == SceneState::Edit && (!ImGui::IsMouseDown(ImGuiMouseButton_Right) && !ImGui::IsMouseDown(ImGuiMouseButton_Middle)))
 		{
-			//ViewportSelection();
+			ViewportSelection();
 
 			if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
 			{
@@ -307,33 +301,6 @@ namespace Epoch
 					}
 				}
 			}
-
-			//if (CU::InputHandler::GetKeyDown(KeyCode::CONTROL))
-			//{
-			//	if (CU::InputHandler::GetKeyPressed(KeyCode::O))
-			//	{
-			//		OpenScene();
-			//		CU::InputHandler::Reset();
-			//	}
-			//
-			//	if (CU::InputHandler::GetKeyPressed(KeyCode::N))
-			//	{
-			//		NewScene();
-			//	}
-			//
-			//	if (CU::InputHandler::GetKeyPressed(KeyCode::S))
-			//	{
-			//		if (CU::InputHandler::GetKeyDown(KeyCode::SHIFT))
-			//		{
-			//			SaveSceneAs();
-			//			CU::InputHandler::Reset();
-			//		}
-			//		else
-			//		{
-			//			SaveScene();
-			//		}
-			//	}
-			//}
 
 			if (myViewportHovered && !ImGui::IsAnyItemActive())
 			{
@@ -602,6 +569,8 @@ namespace Epoch
 			UI::Property_Checkbox("Show Gizmos", myShowGizmos);
 			UI::Property_DragFloat("Gizmos Scale", myGizmoScale, 0.02f, 0.2f, 1.0f);
 
+			UI::Property_Checkbox("Show Color Grading LUT", myDisplayCurrentColorGradingLUT);
+
 			UI::EndPropertyGrid();
 
 			ImGui::End();
@@ -787,34 +756,53 @@ namespace Epoch
 	//TODO: Get working
 	void EditorLayer::ViewportSelection()
 	{
-		////if (!myViewportFocused) return;
-		//if (ImGuizmo::IsOver()) return;
-		//
-		//if (ImGui::IsKeyPressed(ImGuiKey_MouseLeft))
-		//{
-		//	if (MouseInViewport())
-		//	{
-		//		ImGui::ClearActiveID();
-		//
-		//		auto [pX, pY] = GetMouseViewportCord();
-		// 
-		//		//int pixelData = m_Framebuffer->ReadPixel(1, mouseX, mouseY);
-		//		Entity clickedEntity;/* = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_ActiveScene.get());*/
-		//
-		//		bool ctrlDown = CU::InputHandler::GetKeyDown(KeyCode::LCONTROL) || CU::InputHandler::GetKeyDown(KeyCode::RCONTROL);
-		//		bool shiftDown = CU::InputHandler::GetKeyDown(KeyCode::LSHIFT) || CU::InputHandler::GetKeyDown(KeyCode::RSHIFT);
-		//
-		//		if (!ctrlDown)
-		//		{
-		//			SelectionManager::DeselectAll();
-		//		}
-		//
-		//		if (clickedEntity)
-		//		{
-		//			SelectionManager::Select(SelectionContext::Entity, clickedEntity.GetUUID());
-		//		}
-		//	}
-		//}
+		//if (!myViewportFocused) return;
+		if (ImGuizmo::IsOver()) return;
+		
+		if (ImGui::IsKeyPressed(ImGuiKey_MouseLeft))
+		{
+			if (MouseInViewport())
+			{
+				ImGui::ClearActiveID();
+		
+				auto [pX, pY] = GetMouseViewportCord();
+		 
+				auto IDBuffer = mySceneRenderer->GetEntityIDTexture();
+				if (!IDBuffer) return;
+				auto pixelData = IDBuffer->ReadData(1, 1, (uint32_t)pX, (uint32_t)pY);
+				if (!pixelData) return;
+				uint32_t id = *pixelData.As<uint32_t>();
+				pixelData.Release();
+				if (id == 0)
+				{
+					SelectionManager::DeselectAll(SelectionContext::Entity);
+					return;
+				}
+
+				Entity clickedEntity = Entity((entt::entity)(id - 1), myActiveScene.get());
+				if (!clickedEntity) return;
+		
+				bool ctrlDown = Input::IsKeyHeld(KeyCode::LeftControl) || Input::IsKeyHeld(KeyCode::RightControl);
+				//bool shiftDown = Input::IsKeyHeld(KeyCode::LeftShift) || Input::IsKeyHeld(KeyCode::RightShift);
+		
+				if (!ctrlDown)
+				{
+					SelectionManager::DeselectAll(SelectionContext::Entity);
+				}
+		
+				if (clickedEntity)
+				{
+					if (ctrlDown && SelectionManager::IsSelected(SelectionContext::Entity, clickedEntity.GetUUID()))
+					{
+						SelectionManager::Deselect(SelectionContext::Entity, clickedEntity.GetUUID());
+					}
+					else
+					{
+						SelectionManager::Select(SelectionContext::Entity, clickedEntity.GetUUID());
+					}
+				}
+			}
+		}
 	}
 
 	void EditorLayer::HandleAssetDrop()
@@ -1029,53 +1017,7 @@ namespace Epoch
 					myDebugRenderer->DrawWireSphere(transform.GetTranslation(), transform.GetRotation(), plc.range, plc.color);
 				}
 
-
-				if (entity.HasComponent<BoxColliderComponent>())
-				{
-					auto& bcc = entity.GetComponent<BoxColliderComponent>();
-
-					const CU::Transform transform = myActiveScene->GetWorldSpaceTransform(entity);
-
-					const CU::Vector3f pos = transform.GetTranslation() + (transform.GetRotationQuat().GetRotationMatrix3x3() * bcc.offset);
-					myDebugRenderer->DrawWireBox(pos, transform.GetRotation(), bcc.halfSize * transform.GetScale(), CU::Color::Green);
-				}
-
-				if (entity.HasComponent<SphereColliderComponent>())
-				{
-					auto& scc = entity.GetComponent<SphereColliderComponent>();
-
-					const CU::Transform transform = myActiveScene->GetWorldSpaceTransform(entity);
-
-					const CU::Vector3f pos = transform.GetTranslation() + (transform.GetRotationQuat().GetRotationMatrix3x3() * scc.offset);
-					float radius = CU::Math::Max(transform.GetScale().x, CU::Math::Max(transform.GetScale().y, transform.GetScale().z)) * scc.radius;
-					myDebugRenderer->DrawWireSphere(pos, transform.GetRotation(), radius, CU::Color::Green);
-				}
-
-				if (entity.HasAny<CapsuleColliderComponent, CharacterControllerComponent>())
-				{
-					CU::Vector3f pos;
-					float radius = 0;
-					float height = 0;
-
-					const CU::Transform transform = myActiveScene->GetWorldSpaceTransform(entity);
-
-					if (entity.HasComponent<CapsuleColliderComponent>())
-					{
-						auto& ccc = entity.GetComponent<CapsuleColliderComponent>();
-						pos = transform.GetTranslation() + (transform.GetRotationQuat().GetRotationMatrix3x3() * ccc.offset);
-						radius = CU::Math::Max(transform.GetScale().x, transform.GetScale().z) * ccc.radius;
-						height = ccc.height * transform.GetScale().y;
-					}
-					else
-					{
-						auto& ccc = entity.GetComponent<CharacterControllerComponent>();
-						pos = transform.GetTranslation() + (transform.GetRotationQuat().GetRotationMatrix3x3() * ccc.offset);
-						radius = CU::Math::Max(transform.GetScale().x, transform.GetScale().z) * ccc.radius;
-						height = ccc.height * transform.GetScale().y;
-					}
-
-					myDebugRenderer->DrawWireCapsule(pos, transform.GetRotation(), radius, height, CU::Color::Green);
-				}
+				OnRenderColliders(entity);
 			}
 		}
 
@@ -1151,6 +1093,65 @@ namespace Epoch
 		}
 		
 		myDebugRenderer->Render(myEditorCamera.GetViewMatrix(), myEditorCamera.GetProjectionMatrix());
+	}
+
+	void EditorLayer::OnRenderColliders(Entity aEntity)
+	{
+		if (aEntity.HasComponent<RigidbodyComponent>() && !aEntity.HasAny<BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent>())
+		{
+			for (auto child : aEntity.GetChildren())
+			{
+				OnRenderColliders(child);
+			}
+			return;
+		}
+
+		if (aEntity.HasComponent<BoxColliderComponent>())
+		{
+			auto& bcc = aEntity.GetComponent<BoxColliderComponent>();
+
+			const CU::Transform transform = myActiveScene->GetWorldSpaceTransform(aEntity);
+
+			const CU::Vector3f pos = transform.GetTranslation() + (transform.GetRotationQuat().GetRotationMatrix3x3() * bcc.offset);
+			myDebugRenderer->DrawWireBox(pos, transform.GetRotation(), bcc.halfSize * transform.GetScale(), CU::Color::Green);
+		}
+
+		if (aEntity.HasComponent<SphereColliderComponent>())
+		{
+			auto& scc = aEntity.GetComponent<SphereColliderComponent>();
+
+			const CU::Transform transform = myActiveScene->GetWorldSpaceTransform(aEntity);
+
+			const CU::Vector3f pos = transform.GetTranslation() + (transform.GetRotationQuat().GetRotationMatrix3x3() * scc.offset);
+			float radius = CU::Math::Max(transform.GetScale().x, CU::Math::Max(transform.GetScale().y, transform.GetScale().z)) * scc.radius;
+			myDebugRenderer->DrawWireSphere(pos, transform.GetRotation(), radius, CU::Color::Green);
+		}
+
+		if (aEntity.HasAny<CapsuleColliderComponent, CharacterControllerComponent>())
+		{
+			CU::Vector3f pos;
+			float radius = 0;
+			float height = 0;
+
+			const CU::Transform transform = myActiveScene->GetWorldSpaceTransform(aEntity);
+
+			if (aEntity.HasComponent<CapsuleColliderComponent>())
+			{
+				auto& ccc = aEntity.GetComponent<CapsuleColliderComponent>();
+				pos = transform.GetTranslation() + (transform.GetRotationQuat().GetRotationMatrix3x3() * ccc.offset);
+				radius = CU::Math::Max(transform.GetScale().x, transform.GetScale().z) * ccc.radius;
+				height = ccc.height * transform.GetScale().y;
+			}
+			else
+			{
+				auto& ccc = aEntity.GetComponent<CharacterControllerComponent>();
+				pos = transform.GetTranslation() + (transform.GetRotationQuat().GetRotationMatrix3x3() * ccc.offset);
+				radius = CU::Math::Max(transform.GetScale().x, transform.GetScale().z) * ccc.radius;
+				height = ccc.height * transform.GetScale().y;
+			}
+
+			myDebugRenderer->DrawWireCapsule(pos, transform.GetRotation(), radius, height, CU::Color::Green);
+		}
 	}
 
 	void EditorLayer::OnRenderGizmos()

@@ -48,6 +48,7 @@ namespace Epoch
 
 		//Renders component Gizmos and lines
 		void OnRenderOverlay();
+		void OnRenderColliders(Entity aEntity);
 		//Calls OnDrawGizmos & OnDrawGizmosSelected
 		void OnRenderGizmos();
 
