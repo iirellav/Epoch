@@ -1,5 +1,5 @@
 #pragma once
-#include <unordered_map>
+#include <map>
 #include "AssetMetadata.h"
 
 namespace Epoch
@@ -25,6 +25,6 @@ namespace Epoch
 		auto end() const { return myAssetRegistry.cend(); }
 
 	private:
-		std::unordered_map<AssetHandle, AssetMetadata> myAssetRegistry;
+		std::map<AssetHandle, AssetMetadata> myAssetRegistry;
 	};
 }
