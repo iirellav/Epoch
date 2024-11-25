@@ -1291,10 +1291,9 @@ namespace Epoch
 			
 			physicsBody->SetMass(aMass);
 
-			//RigidbodyComponent& rigidbodyComp = entity.GetComponent<RigidbodyComponent>();
-			//rigidbodyComp.mass = aMass;
+			auto& rb = entity.GetComponent<RigidbodyComponent>();
+			rb.mass = aMass;
 		}
-
 
 		bool RigidbodyComponent_GetUseGravity(uint64_t aEntityID)
 		{
@@ -1326,8 +1325,10 @@ namespace Epoch
 			}
 			
 			physicsBody->SetUseGravity(aState);
-		}
 
+			auto& rb = entity.GetComponent<RigidbodyComponent>();
+			rb.useGravity = aState;
+		}
 
 		float RigidbodyComponent_GetDrag(uint64_t aEntityID)
 		{
@@ -1359,8 +1360,10 @@ namespace Epoch
 			}
 
 			physicsBody->SetDrag(aDrag);
-		}
 
+			auto& rb = entity.GetComponent<RigidbodyComponent>();
+			rb.linearDrag = aDrag;
+		}
 
 		float RigidbodyComponent_GetAngularDrag(uint64_t aEntityID)
 		{
@@ -1392,8 +1395,10 @@ namespace Epoch
 			}
 			
 			physicsBody->SetAngularDrag(aDrag);
-		}
 
+			auto& rb = entity.GetComponent<RigidbodyComponent>();
+			rb.angularDrag = aDrag;
+		}
 
 		void RigidbodyComponent_GetVelocity(uint64_t aEntityID, CU::Vector3f* outVelocity)
 		{
@@ -1427,7 +1432,6 @@ namespace Epoch
 			physicsBody->SetVelocity(*aVelocity);
 		}
 
-
 		void RigidbodyComponent_GetAngularVelocity(uint64_t aEntityID, CU::Vector3f* outVelocity)
 		{
 			auto entity = GetEntity(aEntityID);
@@ -1459,7 +1463,6 @@ namespace Epoch
 			
 			physicsBody->SetAngularVelocity(*aVelocity);
 		}
-
 
 		void RigidbodyComponent_GetPosition(uint64_t aEntityID, CU::Vector3f* outPosition)
 		{
@@ -1493,7 +1496,6 @@ namespace Epoch
 			physicsBody->SetPosition(*aPosition);
 		}
 
-
 		void RigidbodyComponent_GetRotation(uint64_t aEntityID, CU::Vector3f* outRotation)
 		{
 			auto entity = GetEntity(aEntityID);
@@ -1526,7 +1528,6 @@ namespace Epoch
 			physicsBody->SetRotation(*aRotation);
 		}
 
-
 		PhysicsAxis RigidbodyComponent_GetConstraints(uint64_t aEntityID)
 		{
 			auto entity = GetEntity(aEntityID);
@@ -1557,8 +1558,10 @@ namespace Epoch
 			}
 
 			physicsBody->SetConstraints(aConstraints);
-		}
 
+			auto& rb = entity.GetComponent<RigidbodyComponent>();
+			rb.constraints = aConstraints;
+		}
 
 		void RigidbodyComponent_AddForce(uint64_t aEntityID, CU::Vector3f* aForce, ForceMode aForceMode)
 		{
@@ -1608,7 +1611,6 @@ namespace Epoch
 			physicsBody->AddTorque(*aTorque, aForceMode);
 		}
 
-
 		void RigidbodyComponent_Teleport(uint64_t aEntityID, CU::Vector3f* aTargetPosition, CU::Vector3f* aTargetRotation)
 		{
 			std::shared_ptr<Scene> scene = ScriptEngine::GetSceneContext();
@@ -1656,6 +1658,9 @@ namespace Epoch
 			}
 
 			characterController->SetStepOffset(aStepOffset);
+
+			auto& cc = entity.GetComponent<CharacterControllerComponent>();
+			cc.stepOffset = aStepOffset;
 		}
 
 		float CharacterControllerComponent_GetSlopeLimit(uint64_t aEntityID)
@@ -1688,6 +1693,9 @@ namespace Epoch
 			}
 
 			characterController->SetSlopeLimit(aSlopeLimit);
+
+			auto& cc = entity.GetComponent<CharacterControllerComponent>();
+			cc.slopeLimit = aSlopeLimit;
 		}
 
 		void CharacterControllerComponent_Resize(uint64_t aEntityID, float aHeight)
@@ -1704,6 +1712,9 @@ namespace Epoch
 			}
 
 			characterController->Resize(aHeight);
+
+			auto& cc = entity.GetComponent<CharacterControllerComponent>();
+			cc.height = aHeight;
 		}
 
 		void CharacterControllerComponent_Move(uint64_t aEntityID, CU::Vector3f* aDisplacement)

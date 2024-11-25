@@ -95,12 +95,12 @@ namespace Epoch
 
 	bool PhysXBody::GetUseGravity()
 	{
-		return ((physx::PxRigidDynamic*)myActor)->getActorFlags() & physx::PxActorFlag::eDISABLE_GRAVITY;
+		return !(((physx::PxRigidDynamic*)myActor)->getActorFlags() & physx::PxActorFlag::eDISABLE_GRAVITY);
 	}
 
 	void PhysXBody::SetUseGravity(bool aState)
 	{
-		((physx::PxRigidDynamic*)myActor)->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, aState);
+		((physx::PxRigidDynamic*)myActor)->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, !aState);
 	}
 
 	float PhysXBody::GetDrag()
