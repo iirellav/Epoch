@@ -167,6 +167,6 @@ Output main(VertexOutput input)
         return output;
     }
     output.color = fgColor;
-    output.entityID = input.entityID;
+    output.entityID = input.entityID + 1;
     return output;
 }

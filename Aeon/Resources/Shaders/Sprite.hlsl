@@ -105,6 +105,6 @@ Output main(VertexOutput input) : SV_TARGET
         return output;
     }
     output.color = texColor * input.tint;
-    output.entityID = input.entityID;
+    output.entityID = input.entityID + 1;
     return output;
 }

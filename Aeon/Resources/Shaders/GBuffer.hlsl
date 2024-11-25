@@ -121,7 +121,7 @@ GBufferOutput main(VertexOutput input) : SV_TARGET
     output.normals = float4(EncodeOct(pixelNormal), 0.0f, 1.0f);
     output.emission = float4(MB_EmissionColor * MB_EmissionStrength, 1.0f);
     output.worldPos = input.worldPos;
-    output.entityID = input.entityID;
+    output.entityID = input.entityID + 1;
     
     return output;
 }
