@@ -167,6 +167,7 @@ namespace Epoch
 		static const char* s_Columns[] = { "Type", "Timestamp", "Message" };
 
 		std::vector<ConsoleMessage> messages;
+		std::unordered_map<uint64_t, uint32_t> msgMap;
 		std::unordered_map<uint64_t, uint32_t> msgCountMap;
 
 		{
@@ -181,6 +182,7 @@ namespace Epoch
 
 					if (set.find(msg.hash) == set.end())
 					{
+						msgMap.emplace(msg.hash, messages.size());
 						messages.push_back(msg);
 						set.insert(msg.hash);
 						msgCountMap.emplace(msg.hash, 1);
@@ -188,6 +190,7 @@ namespace Epoch
 					else
 					{
 						msgCountMap[msg.hash]++;
+						messages[msgMap[msg.hash]].time = msg.time;
 					}
 				}
 			}
