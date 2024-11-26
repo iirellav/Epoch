@@ -780,8 +780,10 @@ namespace Epoch
 		if (ImGuizmo::IsOver()) return;
 
 		static bool dragging = false;
+		static CU::Vector2f boxStartPos;
+		static CU::Vector2f boxEndPos;
 		static CU::Vector2f dragStartPos;
-		static CU::Vector2f dragPos;
+		static CU::Vector2f dragEndPos;
 
 		const bool ctrlDown = Input::IsKeyHeld(KeyCode::LeftControl) || Input::IsKeyHeld(KeyCode::RightControl);
 		const bool shiftDown = Input::IsKeyHeld(KeyCode::LeftShift) || Input::IsKeyHeld(KeyCode::RightShift);
@@ -790,11 +792,12 @@ namespace Epoch
 		if (!shiftDown && Input::IsMouseButtonPressed(MouseButton::Left) && MouseInViewport())
 		{
 			ImGui::ClearActiveID();
-		
-			auto mousePos = ImGui::GetMousePos();
+
+			auto [px, py] = GetMouseViewportCord();
+			auto mousePos = CU::Vector2f(px, py);
 		 
 			auto IDBuffer = mySceneRenderer->GetEntityIDTexture();
-			auto pixelData = IDBuffer->ReadData(1, 1, (uint32_t)(mousePos.x - myViewportBounds.min.x), (uint32_t)(mousePos.y - myViewportBounds.min.y));
+			auto pixelData = IDBuffer->ReadData(1, 1, (uint32_t)mousePos.x, (uint32_t)mousePos.y);
 			if (pixelData)
 			{
 				uint32_t id = *pixelData.As<uint32_t>();
@@ -830,25 +833,31 @@ namespace Epoch
 			ImGui::ClearActiveID();
 		
 			auto mousePos = ImGui::GetMousePos();
-			dragStartPos.x = mousePos.x;
-			dragStartPos.y = mousePos.y;
+			boxStartPos.x = mousePos.x;
+			boxStartPos.y = mousePos.y;
+
+			auto [px, py] = GetMouseViewportCord();
+			dragStartPos = CU::Vector2f(px, py);
 		}
 		else if ((shiftReleased && dragging) || (Input::IsMouseButtonReleased(MouseButton::Left) && dragging))
 		{
 			dragging = false;
 
-			auto mousePos = ImGui::GetMousePos();
-			dragPos.x = mousePos.x;
-			dragPos.y = mousePos.y;
+			auto [px, py] = GetMouseViewportCord();
+			dragEndPos = CU::Vector2f(px, py);
 
-			const CU::Vector2f selectionBoxMin = { CU::Math::Min(dragStartPos.x, dragPos.x), CU::Math::Min(dragStartPos.y, dragPos.y) };
-			const CU::Vector2f selectionBoxMax = { CU::Math::Max(dragStartPos.x, dragPos.x), CU::Math::Max(dragStartPos.y, dragPos.y) };
+			const CU::Vector2f selectionBoxMin = { CU::Math::Min(dragStartPos.x, dragEndPos.x), CU::Math::Min(dragStartPos.y, dragEndPos.y) };
+			const CU::Vector2f selectionBoxMax = { CU::Math::Max(dragStartPos.x, dragEndPos.x), CU::Math::Max(dragStartPos.y, dragEndPos.y) };
 			
 			const CU::Vector2f boxSize = selectionBoxMax - selectionBoxMin;
 			if (boxSize.x > 0 && boxSize.y > 0)
 			{
+				CONSOLE_LOG_DEBUG("Start: {}, {}", dragStartPos.x, dragStartPos.y);
+				CONSOLE_LOG_DEBUG("End: {}, {}", dragEndPos.x, dragEndPos.y);
+				CONSOLE_LOG_DEBUG("Size: {}, {}", boxSize.x, boxSize.y);
+
 				auto IDBuffer = mySceneRenderer->GetEntityIDTexture();
-				auto pixelData = IDBuffer->ReadData((uint32_t)boxSize.x, (uint32_t)boxSize.y, (uint32_t)(selectionBoxMin.x - myViewportBounds.min.x), (uint32_t)(selectionBoxMin.y - myViewportBounds.min.y));
+				auto pixelData = IDBuffer->ReadData((uint32_t)boxSize.x, (uint32_t)boxSize.y, (uint32_t)selectionBoxMin.x, (uint32_t)selectionBoxMin.y);
 				if (pixelData)
 				{
 					std::set<uint32_t> ids;
@@ -859,6 +868,7 @@ namespace Epoch
 						ids.insert(id);
 					}
 					pixelData.Release();
+					CONSOLE_LOG_DEBUG("Entity count: {}", ids.size());
 
 					if (!ctrlDown)
 					{
@@ -886,11 +896,11 @@ namespace Epoch
 		if (dragging)
 		{
 			auto mousePos = ImGui::GetMousePos();
-			dragPos.x = mousePos.x;
-			dragPos.y = mousePos.y;
+			boxEndPos.x = mousePos.x;
+			boxEndPos.y = mousePos.y;
 
-			const CU::Vector2f selectionBoxMin = { CU::Math::Min(dragStartPos.x, dragPos.x), CU::Math::Min(dragStartPos.y, dragPos.y) };
-			const CU::Vector2f selectionBoxMax = { CU::Math::Max(dragStartPos.x, dragPos.x), CU::Math::Max(dragStartPos.y, dragPos.y) };
+			const CU::Vector2f selectionBoxMin = { CU::Math::Min(boxStartPos.x, boxEndPos.x), CU::Math::Min(boxStartPos.y, boxEndPos.y) };
+			const CU::Vector2f selectionBoxMax = { CU::Math::Max(boxStartPos.x, boxEndPos.x), CU::Math::Max(boxStartPos.y, boxEndPos.y) };
 
 			const ImU32 fill IM_COL32(38, 147, 255, 50);
 			const ImU32 frame IM_COL32(0, 179, 255, 150);
