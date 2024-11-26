@@ -794,34 +794,33 @@ namespace Epoch
 			auto mousePos = ImGui::GetMousePos();
 		 
 			auto IDBuffer = mySceneRenderer->GetEntityIDTexture();
-			if (!IDBuffer) return;
 			auto pixelData = IDBuffer->ReadData(1, 1, (uint32_t)(mousePos.x - myViewportBounds.min.x), (uint32_t)(mousePos.y - myViewportBounds.min.y));
-			if (!pixelData) return;
-			uint32_t id = *pixelData.As<uint32_t>();
-			pixelData.Release();
-			if (id == 0)
+			if (pixelData)
 			{
-				SelectionManager::DeselectAll(SelectionContext::Entity);
-				return;
-			}
-
-			Entity clickedEntity = Entity((entt::entity)(id - 1), myActiveScene.get());
-			if (!clickedEntity || !myActiveScene->IsEntityValid(clickedEntity)) return;
-		
-			if (!ctrlDown)
-			{
-				SelectionManager::DeselectAll(SelectionContext::Entity);
-			}
-		
-			if (clickedEntity)
-			{
-				if (ctrlDown && SelectionManager::IsSelected(SelectionContext::Entity, clickedEntity.GetUUID()))
+				uint32_t id = *pixelData.As<uint32_t>();
+				pixelData.Release();
+				if (id == 0)
 				{
-					SelectionManager::Deselect(SelectionContext::Entity, clickedEntity.GetUUID());
+					SelectionManager::DeselectAll(SelectionContext::Entity);
 				}
 				else
 				{
-					SelectionManager::Select(SelectionContext::Entity, clickedEntity.GetUUID());
+					Entity clickedEntity = Entity((entt::entity)(id - 1), myActiveScene.get());
+					if (!clickedEntity || !myActiveScene->IsEntityValid(clickedEntity)) return;
+		
+					if (!ctrlDown)
+					{
+						SelectionManager::DeselectAll(SelectionContext::Entity);
+					}
+		
+					if (ctrlDown && SelectionManager::IsSelected(SelectionContext::Entity, clickedEntity.GetUUID()))
+					{
+						SelectionManager::Deselect(SelectionContext::Entity, clickedEntity.GetUUID());
+					}
+					else
+					{
+						SelectionManager::Select(SelectionContext::Entity, clickedEntity.GetUUID());
+					}
 				}
 			}
 		}
@@ -846,41 +845,39 @@ namespace Epoch
 			const CU::Vector2f selectionBoxMax = { CU::Math::Max(dragStartPos.x, dragPos.x), CU::Math::Max(dragStartPos.y, dragPos.y) };
 			
 			const CU::Vector2f boxSize = selectionBoxMax - selectionBoxMin;
-			if (boxSize.x == 0 || boxSize.y == 0) return;
-
-			auto IDBuffer = mySceneRenderer->GetEntityIDTexture();
-			if (!IDBuffer) return;
-			auto pixelData = IDBuffer->ReadData((uint32_t)boxSize.x, (uint32_t)boxSize.y, (uint32_t)(selectionBoxMin.x - myViewportBounds.min.x), (uint32_t)(selectionBoxMin.y - myViewportBounds.min.y));
-			if (!pixelData) return;
-
-			std::set<uint32_t> ids;
-			for (size_t i = 0; i < pixelData.size; i += 4)
+			if (boxSize.x > 0 && boxSize.y > 0)
 			{
-				uint32_t id = pixelData.Read<uint32_t>(i);
-				if (id == 0) continue;
-				ids.insert(id);
-			}
-			pixelData.Release();
-
-			if (!ctrlDown)
-			{
-				SelectionManager::DeselectAll(SelectionContext::Entity);
-			}
-
-			for (uint32_t id : ids)
-			{
-				Entity clickedEntity = Entity((entt::entity)(id - 1), myActiveScene.get());
-				if (!clickedEntity || !myActiveScene->IsEntityValid(clickedEntity)) continue;
-
-				if (clickedEntity)
+				auto IDBuffer = mySceneRenderer->GetEntityIDTexture();
+				auto pixelData = IDBuffer->ReadData((uint32_t)boxSize.x, (uint32_t)boxSize.y, (uint32_t)(selectionBoxMin.x - myViewportBounds.min.x), (uint32_t)(selectionBoxMin.y - myViewportBounds.min.y));
+				if (pixelData)
 				{
-					if (ctrlDown && SelectionManager::IsSelected(SelectionContext::Entity, clickedEntity.GetUUID()))
+					std::set<uint32_t> ids;
+					for (size_t i = 0; i < pixelData.size; i += 4)
 					{
-						SelectionManager::Deselect(SelectionContext::Entity, clickedEntity.GetUUID());
+						uint32_t id = pixelData.Read<uint32_t>(i);
+						if (id == 0) continue;
+						ids.insert(id);
 					}
-					else
+					pixelData.Release();
+
+					if (!ctrlDown)
 					{
-						SelectionManager::Select(SelectionContext::Entity, clickedEntity.GetUUID());
+						SelectionManager::DeselectAll(SelectionContext::Entity);
+					}
+
+					for (uint32_t id : ids)
+					{
+						Entity clickedEntity = Entity((entt::entity)(id - 1), myActiveScene.get());
+						if (!clickedEntity || !myActiveScene->IsEntityValid(clickedEntity)) continue;
+
+						if (ctrlDown && SelectionManager::IsSelected(SelectionContext::Entity, clickedEntity.GetUUID()))
+						{
+							SelectionManager::Deselect(SelectionContext::Entity, clickedEntity.GetUUID());
+						}
+						else
+						{
+							SelectionManager::Select(SelectionContext::Entity, clickedEntity.GetUUID());
+						}
 					}
 				}
 			}
