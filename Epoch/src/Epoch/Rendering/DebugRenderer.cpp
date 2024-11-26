@@ -121,7 +121,6 @@ namespace Epoch
 			pipelineSpecs.targetFramebuffer = Framebuffer::Create(specs);
 			pipelineSpecs.shader = Renderer::GetShaderLibrary()->Get("Sprite");
 			pipelineSpecs.vertexLayouts.push_back(layout);
-			pipelineSpecs.blendMode = BlendMode::Alpha;
 			pipelineSpecs.rasterizerState = RasterizerState::CullNone;
 			myQuadPipelineState = RenderPipeline::Create(pipelineSpecs);
 		}
