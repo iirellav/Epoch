@@ -52,7 +52,17 @@ namespace Epoch
 		settings.loadLastOpenProject = rootNode["LoadLastOpenProject"].as<bool>(true);
 		settings.lastProjectPath = rootNode["LastProjectPath"].as<std::string>(std::string());
 		settings.autoSaveSceneBeforePlay = rootNode["AutoSaveSceneBeforePlay"].as<bool>(true);
-		
+
+		for (auto recentProject : rootNode["RecentProjects"])
+		{
+			RecentProject entry;
+			entry.name = recentProject["Name"].as<std::string>();
+			entry.filePath = recentProject["ProjectPath"].as<std::string>();
+			entry.lastOpened = recentProject["LastOpened"].as<time_t>(time(NULL));
+			if (!FileSystem::Exists(entry.filePath)) continue;
+			settings.recentProjects[entry.lastOpened] = entry;
+		}
+
 		//---------- Level Editor ------------
 		settings.translationSnapValue = rootNode["TranslationSnapValue"].as<float>(0.5f);
 		settings.rotationSnapValue = rootNode["RotationSnapValue"].as<float>(45.0f);
@@ -62,7 +72,8 @@ namespace Epoch
 		settings.multiTransformTarget = (TransformationTarget)rootNode["MultiTransformTarget"].as<int>((int)TransformationTarget::MedianPoint);
 
 		settings.createEntitiesAtOrigin = rootNode["CreateEntitiesAtOrigin"].as<bool>(true);
-
+		
+		//---------- Grid ------------
 		settings.gridEnabled = rootNode["GridEnabled"].as<bool>(true);
 		settings.gridOpacity = rootNode["GridOpacity"].as<float>(0.5f);
 		settings.gridSize.x = rootNode["GridSizeX"].as<int>(20);
@@ -98,6 +109,18 @@ namespace Epoch
 		out << YAML::Key << "LastProjectPath" << YAML::Value << settings.lastProjectPath;
 		out << YAML::Key << "AutoSaveSceneBeforePlay" << YAML::Value << settings.autoSaveSceneBeforePlay;
 
+		out << YAML::Key << "RecentProjects";
+		out << YAML::Value << YAML::BeginSeq;
+		for (const auto& [lastOpened, projectConfig] : settings.recentProjects)
+		{
+			out << YAML::BeginMap;
+			out << YAML::Key << "Name" << YAML::Value << projectConfig.name;
+			out << YAML::Key << "ProjectPath" << YAML::Value << projectConfig.filePath;
+			out << YAML::Key << "LastOpened" << YAML::Value << projectConfig.lastOpened;
+			out << YAML::EndMap;
+		}
+		out << YAML::EndSeq;
+
 		//---------- Level Editor ------------
 		out << YAML::Key << "TranslationSnapValue" << YAML::Value << settings.translationSnapValue;
 		out << YAML::Key << "RotationSnapValue" << YAML::Value << settings.rotationSnapValue;
@@ -107,7 +130,8 @@ namespace Epoch
 		out << YAML::Key << "MultiTransformTarget" << YAML::Value << (int)settings.multiTransformTarget;
 
 		out << YAML::Key << "CreateEntitiesAtOrigin" << YAML::Value << settings.createEntitiesAtOrigin;
-
+		
+		//---------- Grid ------------
 		out << YAML::Key << "GridEnabled" << YAML::Value << settings.gridEnabled;
 		out << YAML::Key << "GridOpacity" << YAML::Value << settings.gridOpacity;
 		out << YAML::Key << "GridSizeX" << YAML::Value << settings.gridSize.x;

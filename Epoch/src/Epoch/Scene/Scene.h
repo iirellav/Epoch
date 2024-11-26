@@ -83,6 +83,7 @@ namespace Epoch
 		Entity GetEntityWithUUID(UUID aUUID);
 		Entity TryGetEntityWithUUID(UUID aUUID);
 		Entity TryGetDescendantEntityWithName(Entity aEntity, const std::string& aName);
+		bool IsEntityValid(Entity aEntity) const;
 
 		Entity GetPrimaryCameraEntity();
 

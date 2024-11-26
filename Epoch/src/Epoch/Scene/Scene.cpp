@@ -624,6 +624,11 @@ namespace Epoch
 		return {};
 	}
 
+	bool Scene::IsEntityValid(Entity aEntity) const
+	{
+		return myRegistry.valid(aEntity);
+	}
+
 	Entity Scene::GetPrimaryCameraEntity()
 	{
 		auto view = myRegistry.view<CameraComponent>();

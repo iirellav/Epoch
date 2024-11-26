@@ -9,12 +9,21 @@ namespace Epoch
 	enum class GridPlane { X, Y, Z };
 	enum class ReloadScriptAssemblyWhilePlaying { Stop, Wait };
 
+	struct RecentProject
+	{
+		std::string name;
+		std::string filePath;
+		time_t lastOpened;
+	};
+
 	struct EditorSettings
 	{
 		//---------- General ------------
 		bool loadLastOpenProject = true;
 		std::string lastProjectPath = "";
 		bool autoSaveSceneBeforePlay = true;
+
+		std::map<time_t, RecentProject, std::greater<time_t>> recentProjects;
 
 		//---------- Level Editor ------------
 		float translationSnapValue = 50.0f;
@@ -25,7 +34,8 @@ namespace Epoch
 		TransformationTarget multiTransformTarget = TransformationTarget::MedianPoint;
 
 		bool createEntitiesAtOrigin = true;
-
+		
+		//---------- Grid ------------
 		bool gridEnabled = true;
 		float gridOpacity = 0.5f;
 		CU::Vector2i gridSize = { 20, 20 };

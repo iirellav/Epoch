@@ -136,8 +136,6 @@ namespace Epoch
 		auto dataSize = GetMemorySize(mySpecification.format, aWidth, aHeight);
 		outputData.Allocate(dataSize);
 
-		aY = mySpecification.height - aY;
-
 		D3D11_BOX box = {};
 		box.left = aX;
 		box.right = aX + aWidth;
