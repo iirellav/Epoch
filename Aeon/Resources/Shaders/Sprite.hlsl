@@ -55,7 +55,7 @@ struct Output
     uint entityID : SV_TARGET1;
 };
 
-Output main(VertexOutput input) : SV_TARGET
+Output main(VertexOutput input)
 {
     float4 texColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
     switch (input.texIndex)

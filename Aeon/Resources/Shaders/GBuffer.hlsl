@@ -93,7 +93,7 @@ Texture2D albedoTexture : register(t0);
 Texture2D normalTexture : register(t1);
 Texture2D materialTexture : register(t2);
 
-GBufferOutput main(VertexOutput input) : SV_TARGET
+GBufferOutput main(VertexOutput input)
 {
     GBufferOutput output;
     
