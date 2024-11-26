@@ -199,25 +199,25 @@ namespace Epoch
 			ImGui::Text(("Meshes: " + CU::NumberFormat(stats.meshes)).c_str());
 			ImGui::Text(("Sub meshes: " + CU::NumberFormat(stats.submeshes)).c_str());
 
-			UI::Spacing(2);
+			//UI::Spacing(2);
 
-			if (UI::PropertyGridHeader("Render Statistics", true))
-			{
-				//Get GPU times
+			//if (UI::PropertyGridHeader("Render Statistics", true))
+			//{
+			//	//TODO: Get GPU times
+			//
+			//	ImGui::TreePop();
+			//}
 
-				ImGui::TreePop();
-			}
-
-			if (UI::PropertyGridHeader("Debug Renderer", false))
-			{
-				const auto& debugStats = myDebugRendererReference.lock()->GetStats();
-
-				ImGui::Text("Draw Calls: %u", debugStats.drawCalls);
-				ImGui::Text("Vertices: %u", debugStats.vertices);
-				ImGui::Text("Indices: %u", debugStats.indices);
-
-				ImGui::TreePop();
-			}
+			//if (UI::PropertyGridHeader("Debug Renderer", false))
+			//{
+			//	const auto& debugStats = myDebugRendererReference.lock()->GetStats();
+			//
+			//	ImGui::Text("Draw Calls: %u", debugStats.drawCalls);
+			//	ImGui::Text("Vertices: %u", debugStats.vertices);
+			//	ImGui::Text("Indices: %u", debugStats.indices);
+			//
+			//	ImGui::TreePop();
+			//}
 		}
 
 #if 0
