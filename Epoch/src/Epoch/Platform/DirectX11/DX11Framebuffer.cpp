@@ -113,8 +113,6 @@ namespace Epoch
 
 	void DX11Framebuffer::Resize(uint32_t aWidth, uint32_t aHeight)
 	{
-		EPOCH_PROFILE_FUNC();
-
 		if (myWidth == aWidth && myHeight == aHeight)
 		{
 			return;

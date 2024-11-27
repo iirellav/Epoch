@@ -59,8 +59,6 @@ namespace Epoch
 
 	void DX11IndexBuffer::SetData(void* aBuffer, uint32_t aCount, uint64_t aOffset)
 	{
-		EPOCH_PROFILE_FUNC();
-
 		uint64_t size = aCount * sizeof(uint32_t);
 		EPOCH_ASSERT(size <= mySize, "Buffer overflow!");
 		EPOCH_ASSERT(myUsage == IndexBufferUsage::Dynamic, "Tried to set the data of a static buffer!");

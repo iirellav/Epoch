@@ -68,8 +68,6 @@ namespace Epoch
 
 	void DX11ConstantBuffer::SetData(void* aBuffer, uint64_t aSize, uint64_t aOffset)
 	{
-		EPOCH_PROFILE_FUNC();
-
 		EPOCH_ASSERT(aSize <= mySize, "Buffer overflow!");
 		
 		if (aSize == 0) aSize = mySize;

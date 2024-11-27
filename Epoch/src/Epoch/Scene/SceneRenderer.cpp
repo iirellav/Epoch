@@ -942,8 +942,6 @@ namespace Epoch
 	{
 		if (aString.empty()) return;
 
-		EPOCH_PROFILE_FUNC();
-
 		std::shared_ptr<Texture2D> fontAtlas = aFont->GetFontAtlas();
 		EPOCH_ASSERT(fontAtlas, "Font didn't have a valid font atlas!");
 
@@ -1180,8 +1178,6 @@ namespace Epoch
 	//Temp
 	void SceneRenderer::SetMaterial(std::shared_ptr<Material> aMaterial)
 	{
-		EPOCH_PROFILE_FUNC();
-
 		Material::Data matData;
 		matData.albedoColor = aMaterial->GetAlbedoColor();
 		matData.roughness = aMaterial->GetRoughness();

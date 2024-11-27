@@ -105,8 +105,6 @@ namespace Epoch
 
 	void DX11Renderer::SetComputePipeline(std::shared_ptr<ComputePipeline> aComputePipeline)
 	{
-		EPOCH_PROFILE_FUNC();
-
 		EPOCH_ASSERT(aComputePipeline, "Invalid render pipeline!");
 
 		auto dxShader = std::dynamic_pointer_cast<DX11Shader>(aComputePipeline->GetSpecification().shader);
@@ -121,22 +119,16 @@ namespace Epoch
 
 	void DX11Renderer::RemoveComputePipeline(std::shared_ptr<ComputePipeline> aComputePipeline)
 	{
-		EPOCH_PROFILE_FUNC();
-
 		EPOCH_ASSERT(aComputePipeline, "Invalid render pipeline!");
 	}
 
 	void DX11Renderer::DispatchCompute(const CU::Vector3ui& aWorkGroups)
 	{
-		EPOCH_PROFILE_FUNC();
-
 		RHI::GetContext()->Dispatch(aWorkGroups.x, aWorkGroups.y, aWorkGroups.z);
 	}
 
 	void DX11Renderer::SetRenderPipeline(std::shared_ptr<RenderPipeline> aRenderPipeline)
 	{
-		EPOCH_PROFILE_FUNC();
-
 		EPOCH_ASSERT(aRenderPipeline, "Invalid render pipeline!");
 
 		std::shared_ptr<DX11RenderPipeline> renderPipeline = std::dynamic_pointer_cast<DX11RenderPipeline>(aRenderPipeline);
@@ -234,8 +226,6 @@ namespace Epoch
 
 	void DX11Renderer::RemoveRenderPipeline(std::shared_ptr<RenderPipeline> aRenderPipeline)
 	{
-		EPOCH_PROFILE_FUNC();
-
 		EPOCH_ASSERT(aRenderPipeline, "Invalid render pipeline!");
 		
 		RHI::GetContext()->IASetInputLayout(nullptr);
@@ -257,8 +247,6 @@ namespace Epoch
 
 	void DX11Renderer::RenderInstancedMesh(std::shared_ptr<Mesh> aMesh, uint32_t aSubmeshIndex, std::shared_ptr<VertexBuffer> aTransformBuffer, uint32_t aInstanceCount)
 	{
-		EPOCH_PROFILE_FUNC();
-
 		const auto& meshVertexBuffer = std::dynamic_pointer_cast<DX11VertexBuffer>(aMesh->GetVertexBuffer());
 		const auto& transformVertexBuffer = std::dynamic_pointer_cast<DX11VertexBuffer>(aTransformBuffer);
 		const auto& meshIndexBuffer = std::dynamic_pointer_cast<DX11IndexBuffer>(aMesh->GetIndexBuffer());
@@ -280,8 +268,6 @@ namespace Epoch
 
 	void DX11Renderer::RenderAnimatedMesh(std::shared_ptr<Mesh> aMesh)
 	{
-		EPOCH_PROFILE_FUNC();
-
 		const auto& meshVertexBuffer = std::dynamic_pointer_cast<DX11VertexBuffer>(aMesh->GetVertexBuffer());
 		const auto& boneInfluenceBuffer = std::dynamic_pointer_cast<DX11VertexBuffer>(aMesh->GetBoneInfluenceBuffer());
 		const auto& meshIndexBuffer = std::dynamic_pointer_cast<DX11IndexBuffer>(aMesh->GetIndexBuffer());
@@ -300,15 +286,11 @@ namespace Epoch
 
 	void DX11Renderer::RenderQuad()
 	{
-		EPOCH_PROFILE_FUNC();
-
 		RHI::GetContext()->Draw(6, 0);
 	}
 
 	void DX11Renderer::RenderGeometry(std::shared_ptr<VertexBuffer> aVertexBuffer, std::shared_ptr<IndexBuffer> aIndexBuffer, uint32_t aIndexCount)
 	{
-		EPOCH_PROFILE_FUNC();
-
 		if (aIndexCount == 0) aIndexCount = aIndexBuffer->GetCount();
 
 		const auto& dxVertexBuffer = std::dynamic_pointer_cast<DX11VertexBuffer>(aVertexBuffer);
