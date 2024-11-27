@@ -52,6 +52,9 @@ namespace Epoch
 
 	private:
 		Stats myStats;
+		bool myNeedsResize = false;
+		uint32_t myViewportWidth = 0;
+		uint32_t myViewportHeight = 0;
 		
 		std::shared_ptr<RenderPipeline> myLinePipelineState;
 		std::shared_ptr<RenderPipeline> myOccludedLinePipelineState;

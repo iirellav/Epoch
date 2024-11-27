@@ -21,8 +21,6 @@ namespace Epoch
 
 	void DebugRenderer::Init(std::shared_ptr<Framebuffer> aTargetBuffer)
 	{
-		EPOCH_PROFILE_FUNC();
-
 		myVertexBuffer = VertexBuffer::Create(MaxLineVertices, sizeof(LineVertex));
 		myVertices.reserve(MaxLineVertices);
 
@@ -132,10 +130,12 @@ namespace Epoch
 
 	void DebugRenderer::SetViewportSize(unsigned aWidth, unsigned aHeight)
 	{
-		myLinePipelineState->GetSpecification().targetFramebuffer->Resize(aWidth, aHeight);
-		myGridPipelineState->GetSpecification().targetFramebuffer->Resize(aWidth, aHeight);
-		myOccludedLinePipelineState->GetSpecification().targetFramebuffer->Resize(aWidth, aHeight);
-		myQuadPipelineState->GetSpecification().targetFramebuffer->Resize(aWidth, aHeight);
+		if (myViewportWidth != aWidth || myViewportHeight != aHeight)
+		{
+			myViewportWidth = aWidth;
+			myViewportHeight = aHeight;
+			myNeedsResize = true;
+		}
 	}
 
 	void DebugRenderer::Shutdown()
@@ -145,6 +145,16 @@ namespace Epoch
 	void DebugRenderer::Render(const CU::Matrix4x4f& aView, const CU::Matrix4x4f& aProjection)
 	{
 		EPOCH_PROFILE_FUNC();
+
+		if (myNeedsResize)
+		{
+			myLinePipelineState->GetSpecification().targetFramebuffer->Resize(myViewportWidth, myViewportHeight);
+			myGridPipelineState->GetSpecification().targetFramebuffer->Resize(myViewportWidth, myViewportHeight);
+			myOccludedLinePipelineState->GetSpecification().targetFramebuffer->Resize(myViewportWidth, myViewportHeight);
+			myQuadPipelineState->GetSpecification().targetFramebuffer->Resize(myViewportWidth, myViewportHeight);
+
+			myNeedsResize = false;
+		}
 
 		myStats = Stats();
 
