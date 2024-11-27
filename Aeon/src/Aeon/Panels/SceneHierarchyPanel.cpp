@@ -2057,6 +2057,7 @@ namespace Epoch
 			ImGui::Separator();
 			ImGui::Spacing();
 
+#pragma region Wiki: DisplayAddComponent
 			if (aComponentSearchString.empty())
 			{
 				//Sort by category
@@ -2129,6 +2130,7 @@ namespace Epoch
 
 				DisplayAddScriptComponentEntry(aComponentSearchString);
 			}
+#pragma endregion
 
 			ImGui::EndPopup();
 		}

@@ -14,7 +14,6 @@ namespace CU
 		static void Update();
 
 		static float GetDeltaTime();
-
 		static double GetTotalTime();
 
 	private:
