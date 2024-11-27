@@ -97,7 +97,7 @@ Output main(VertexOutput input)
     
     Output output;
     
-    if (texColor.a * input.tint.a < 0.000001f)
+    if (texColor.a * input.tint.a < 0.1f)
     {
         discard;
         output.color = float4(0.0f, 0.0f, 0.0f, 0.0f);
