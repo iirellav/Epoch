@@ -865,7 +865,7 @@ namespace Epoch
 					{
 						uint32_t id = pixelData.Read<uint32_t>(i);
 						if (id == 0) continue;
-						ids.insert(id);
+						ids.insert(id - 1);
 					}
 					pixelData.Release();
 					CONSOLE_LOG_DEBUG("Entity count: {}", ids.size());
@@ -877,7 +877,7 @@ namespace Epoch
 
 					for (uint32_t id : ids)
 					{
-						Entity clickedEntity = Entity((entt::entity)(id - 1), myActiveScene.get());
+						Entity clickedEntity = Entity((entt::entity)id, myActiveScene.get());
 						if (!clickedEntity || !myActiveScene->IsEntityValid(clickedEntity)) continue;
 
 						if (ctrlDown && SelectionManager::IsSelected(SelectionContext::Entity, clickedEntity.GetUUID()))
@@ -902,12 +902,10 @@ namespace Epoch
 			const CU::Vector2f selectionBoxMin = { CU::Math::Min(boxStartPos.x, boxEndPos.x), CU::Math::Min(boxStartPos.y, boxEndPos.y) };
 			const CU::Vector2f selectionBoxMax = { CU::Math::Max(boxStartPos.x, boxEndPos.x), CU::Math::Max(boxStartPos.y, boxEndPos.y) };
 
-			const ImU32 fill IM_COL32(38, 147, 255, 50);
-			const ImU32 frame IM_COL32(0, 179, 255, 150);
 			ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-			draw_list->AddRectFilled(ImVec2(selectionBoxMin.x, selectionBoxMin.y), ImVec2(selectionBoxMax.x, selectionBoxMax.y), fill);
-			draw_list->AddRect(ImVec2(selectionBoxMin.x, selectionBoxMin.y), ImVec2(selectionBoxMax.x, selectionBoxMax.y), frame);
+			draw_list->AddRectFilled(ImVec2(selectionBoxMin.x, selectionBoxMin.y), ImVec2(selectionBoxMax.x, selectionBoxMax.y), Colors::Theme::dragBoxFill);
+			draw_list->AddRect(ImVec2(selectionBoxMin.x, selectionBoxMin.y), ImVec2(selectionBoxMax.x, selectionBoxMax.y), Colors::Theme::dragBoxFrame);
 		}
 	}
 
@@ -1408,13 +1406,14 @@ namespace Epoch
 			CU::Vector3f medianTranslation;
 			CU::Vector3f medianRotation;
 			CU::Vector3f medianScale;
-			for (auto entityID : selections)
+			for (UUID entityID : selections)
 			{
 				Entity entity = myActiveScene->GetEntityWithUUID(entityID);
 				myActiveScene->ConvertToWorldSpace(entity); // Needed for the matrix to be relative, but fucks up if parent and child selected
-				medianTranslation += entity.Transform().GetTranslation();
-				medianRotation += entity.Transform().GetRotation();
-				medianScale += entity.Transform().GetScale();
+				const CU::Transform& entityTransform = entity.Transform();
+				medianTranslation += entityTransform.GetTranslation();
+				medianRotation += entityTransform.GetRotation();
+				medianScale += entityTransform.GetScale();
 			}
 			medianTranslation /= (float)selections.size();
 			medianRotation /= (float)selections.size();
@@ -1496,7 +1495,7 @@ namespace Epoch
 			}
 
 			// Needed for the matrix to be relative, but fucks up if parent and child selected
-			for (auto entityID : selections)
+			for (UUID entityID : selections)
 			{
 				Entity entity = myActiveScene->GetEntityWithUUID(entityID);
 				myActiveScene->ConvertToLocalSpace(entity);

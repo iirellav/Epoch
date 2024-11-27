@@ -15,5 +15,8 @@ namespace Colors
 		constexpr auto info						= IM_COL32(79, 192, 255, 255);
 		constexpr auto warning					= IM_COL32(255, 227, 15, 255);
 		constexpr auto error					= IM_COL32(255, 79, 79, 255);
+
+		constexpr auto dragBoxFill				= IM_COL32(38, 147, 255, 50);
+		constexpr auto dragBoxFrame				= IM_COL32(38, 147, 255, 150);
 	}
 }
