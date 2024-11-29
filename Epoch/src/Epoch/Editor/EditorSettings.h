@@ -11,9 +11,9 @@ namespace Epoch
 
 	struct RecentProject
 	{
-		std::string name;
-		std::string filePath;
-		time_t lastOpened;
+		std::string name = "";
+		std::string filePath = "";
+		time_t lastOpened = 0;
 	};
 
 	struct EditorSettings
