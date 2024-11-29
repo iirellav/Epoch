@@ -12,6 +12,6 @@ namespace Epoch
 		static bool TryLoadData(const AssetMetadata& aMetadata, std::shared_ptr<Asset>& aAsset);
 
 	private:
-		inline static std::unordered_map<AssetType, std::shared_ptr<AssetSerializer>> staticSerializers;
+		inline static std::unordered_map<AssetType, std::unique_ptr<AssetSerializer>> staticSerializers;
 	};
 }
