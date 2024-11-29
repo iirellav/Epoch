@@ -1,1 +1,1 @@
-start chrome "https://ui.perfetto.dev/"
+start "" "https://ui.perfetto.dev/"
