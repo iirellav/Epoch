@@ -40,8 +40,6 @@ namespace Epoch
 
 		//Quad Data/Buffers
 		{
-			myTextureSlots[0] = Renderer::GetWhiteTexture();
-
 			myQuadUVCoords[0] = { 0.0f, 1.0f };
 			myQuadUVCoords[1] = { 0.0f, 0.0f };
 			myQuadUVCoords[2] = { 1.0f, 0.0f };
@@ -216,10 +214,9 @@ namespace Epoch
 			VertexBufferLayout layout =
 			{
 				{ ShaderDataType::Float3,	"POSITION" },
-				{ ShaderDataType::UInt,		"TEXINDEX" },
+				{ ShaderDataType::UInt,		"ID" },
 				{ ShaderDataType::Float4,	"TINT" },
-				{ ShaderDataType::Float2,	"UV" },
-				{ ShaderDataType::UInt,		"ID" }
+				{ ShaderDataType::Float2,	"UV" }
 			};
 
 			FramebufferSpecification specs;
@@ -637,35 +634,31 @@ namespace Epoch
 			{
 				Renderer::SetRenderPipeline(mySpritePipeline);
 
-				uint32_t textureCount = 0;
-				std::vector<ID3D11ShaderResourceView*> SRVs;
-				SRVs.reserve(MaxTextureSlots);
-				for (size_t i = 0; i < MaxTextureSlots; i++)
+				for (const auto& [texture, vertexList] : myQuadVertices)
 				{
-					if (myTextureSlots[i])
+					if (!myTextures[texture])
 					{
-						SRVs.push_back((ID3D11ShaderResourceView*)myTextureSlots[i]->GetView());
-						++textureCount;
+						continue;
 					}
-					else
+
+					std::vector<ID3D11ShaderResourceView*> SRVs(1);
+					auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(myTextures[texture]);
+					SRVs[0] = dxTexture->GetSRV().Get();
+					RHI::GetContext()->PSSetShaderResources(0, 1, SRVs.data());
+
+					const uint32_t quadCount = (uint32_t)vertexList.size() / 4;
+					for (uint32_t i = 0; i < quadCount; i += MaxQuads)
 					{
-						break;
+						uint32_t count = CU::Math::Min(quadCount - i, MaxQuads);
+
+						myQuadVertexBuffer->SetData((void*)vertexList.data(), count * 4, i * 4 * sizeof(QuadVertex));
+						Renderer::RenderGeometry(myQuadVertexBuffer, myQuadIndexBuffer, count * 6);
 					}
+
+					std::vector<ID3D11ShaderResourceView*> emptySRVs(1);
+					RHI::GetContext()->PSSetShaderResources(0, 1, emptySRVs.data());
 				}
-
-				RHI::GetContext()->PSSetShaderResources(0, textureCount, SRVs.data());
-
-				for (uint32_t i = 0; i < myQuadCount; i += MaxQuads)
-				{
-					uint32_t count = CU::Math::Min(myQuadCount - i, MaxQuads);
-
-					myQuadVertexBuffer->SetData(myQuadVertices.data(), count * 4, i * 4 * sizeof(QuadVertex));
-					Renderer::RenderGeometry(myQuadVertexBuffer, myQuadIndexBuffer, count * 6);
-				}
-
-				std::vector<ID3D11ShaderResourceView*> emptySRVs(textureCount);
-				RHI::GetContext()->PSSetShaderResources(0, textureCount, emptySRVs.data());
-
+				
 				Renderer::RemoveRenderPipeline(mySpritePipeline);
 			}
 
@@ -673,34 +666,30 @@ namespace Epoch
 			{
 				Renderer::SetRenderPipeline(myTextPipeline);
 
-				uint32_t textureCount = 0;
-				std::vector<ID3D11ShaderResourceView*> SRVs;
-				SRVs.reserve(MaxTextureSlots);
-				for (size_t i = 0; i < MaxTextureSlots; i++)
+				for (const auto& [font, vertexList] : myTextVertices)
 				{
-					if (myFontAtlasesSlots[i])
+					if (!myFontAtlases[font])
 					{
-						SRVs.push_back((ID3D11ShaderResourceView*)myFontAtlasesSlots[i]->GetView());
-						++textureCount;
+						continue;
 					}
-					else
+
+					std::vector<ID3D11ShaderResourceView*> SRVs(1);
+					auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(myFontAtlases[font]);
+					SRVs[0] = dxTexture->GetSRV().Get();
+					RHI::GetContext()->PSSetShaderResources(0, 1, SRVs.data());
+
+					const uint32_t quadCount = (uint32_t)vertexList.size() / 4;
+					for (uint32_t i = 0; i < quadCount; i += MaxQuads)
 					{
-						break;
+						uint32_t count = CU::Math::Min(quadCount - i, MaxQuads);
+
+						myTextVertexBuffer->SetData((void*)vertexList.data(), count * 4, i * 4 * sizeof(TextVertex));
+						Renderer::RenderGeometry(myTextVertexBuffer, myTextIndexBuffer, count * 6);
 					}
+
+					std::vector<ID3D11ShaderResourceView*> emptySRVs(1);
+					RHI::GetContext()->PSSetShaderResources(0, 1, emptySRVs.data());
 				}
-
-				RHI::GetContext()->PSSetShaderResources(0, textureCount, SRVs.data());
-
-				for (uint32_t i = 0; i < myTextQuadCount; i += MaxQuads)
-				{
-					uint32_t count = CU::Math::Min(myTextQuadCount - i, MaxQuads);
-
-					myTextVertexBuffer->SetData(myTextVertices.data(), count * 4, i * 4 * sizeof(TextVertex));
-					Renderer::RenderGeometry(myTextVertexBuffer, myTextIndexBuffer, count * 6);
-				}
-
-				std::vector<ID3D11ShaderResourceView*> emptySRVs(textureCount);
-				RHI::GetContext()->PSSetShaderResources(0, textureCount, emptySRVs.data());
 
 				Renderer::RemoveRenderPipeline(myTextPipeline);
 			}
@@ -740,12 +729,6 @@ namespace Epoch
 
 		myTextVertices.clear();
 		myTextQuadCount = 0;
-
-		for (size_t i = 1; i < MaxTextureSlots; i++)
-		{
-			myTextureSlots[i] = nullptr;
-			myFontAtlasesSlots[i] = nullptr;
-		}
 	}
 
 	void SceneRenderer::SubmitMesh(std::shared_ptr<Mesh> aMesh, std::shared_ptr<MaterialTable> aMaterialTable, const CU::Matrix4x4f& aTransform, uint32_t aEntityID)
@@ -817,24 +800,9 @@ namespace Epoch
 
 	void SceneRenderer::SubmitQuad(const CU::Matrix4x4f aTransform, std::shared_ptr<Texture2D> aTexture, const CU::Color& aTint, bool aFlipX, bool aFlipY, uint32_t aEntityID)
 	{
-		uint32_t textureIndex = 0;
-		if (aTexture)
-		{
-			for (size_t i = 0; i < MaxTextureSlots; i++)
-			{
-				if (!myTextureSlots[i])
-				{
-					myTextureSlots[i] = aTexture;
-					textureIndex = (uint32_t)i;
-					break;
-				}
-				else if (myTextureSlots[i]->GetHandle() == aTexture->GetHandle())
-				{
-					textureIndex = (uint32_t)i;
-					break;
-				}
-			}
-		}
+		auto& vertexList = myQuadVertices[aTexture->GetHandle()];
+		if (!aTexture) aTexture = Renderer::GetWhiteTexture();
+		myTextures[aTexture->GetHandle()] = aTexture;
 
 		CU::Vector4f sizeMultiplier = CU::Vector4f::One;
 		if (aTexture)
@@ -851,11 +819,10 @@ namespace Epoch
 
 		for (size_t i = 0; i < 4; i++)
 		{
-			QuadVertex& vertex = myQuadVertices.emplace_back();
+			QuadVertex& vertex = vertexList.emplace_back();
 			vertex.position = aTransform * (myQuadVertexPositions[i] * sizeMultiplier);
 			vertex.uv = FlipUVCoord(myQuadUVCoords[i], aFlipX, aFlipY);
 			vertex.tint = aTint.GetVector4();
-			vertex.texIndex = textureIndex;
 			vertex.entityID = aEntityID;
 		}
 		++myQuadCount;
@@ -945,24 +912,8 @@ namespace Epoch
 		std::shared_ptr<Texture2D> fontAtlas = aFont->GetFontAtlas();
 		EPOCH_ASSERT(fontAtlas, "Font didn't have a valid font atlas!");
 
-		uint32_t textureIndex = 0;
-		if (aFont)
-		{
-			for (size_t i = 0; i < MaxTextureSlots; i++)
-			{
-				if (!myFontAtlasesSlots[i])
-				{
-					myFontAtlasesSlots[i] = aFont->GetFontAtlas();
-					textureIndex = (uint32_t)i;
-					break;
-				}
-				else if (myFontAtlasesSlots[i]->GetHandle() == aFont->GetHandle())
-				{
-					textureIndex = (uint32_t)i;
-					break;
-				}
-			}
-		}
+		auto& vertexList = myTextVertices[aFont->GetHandle()];
+		myFontAtlases[aFont->GetHandle()] = fontAtlas;
 
 		auto& fontGeometry = aFont->GetMSDFData()->fontGeometry;
 		const auto& metrics = fontGeometry.getMetrics();
@@ -1101,38 +1052,34 @@ namespace Epoch
 				if (character != ' ')
 				{
 					{
-						TextVertex& vertex = myTextVertices.emplace_back();
+						TextVertex& vertex = vertexList.emplace_back();
 						vertex.position = aTransform * CU::Vector4f((float)pl * 100.0f, (float)pb * 100.0f, 0.0f, 1.0f);
 						vertex.tint = aSettings.color.GetVector4();
 						vertex.uv = { (float)l, (float)b };
-						vertex.texIndex = textureIndex;
 						vertex.entityID = aEntityID;
 					}
 
 					{
-						TextVertex& vertex = myTextVertices.emplace_back();
+						TextVertex& vertex = vertexList.emplace_back();
 						vertex.position = aTransform * CU::Vector4f((float)pl * 100.0f, (float)pt * 100.0f, 0.0f, 1.0f);
 						vertex.tint = aSettings.color.GetVector4();
 						vertex.uv = { (float)l, (float)t };
-						vertex.texIndex = textureIndex;
 						vertex.entityID = aEntityID;
 					}
 
 					{
-						TextVertex& vertex = myTextVertices.emplace_back();
+						TextVertex& vertex = vertexList.emplace_back();
 						vertex.position = aTransform * CU::Vector4f((float)pr * 100.0f, (float)pt * 100.0f, 0.0f, 1.0f);
 						vertex.tint = aSettings.color.GetVector4();
 						vertex.uv = { (float)r, (float)t };
-						vertex.texIndex = textureIndex;
 						vertex.entityID = aEntityID;
 					}
 
 					{
-						TextVertex& vertex = myTextVertices.emplace_back();
+						TextVertex& vertex = vertexList.emplace_back();
 						vertex.position = aTransform * CU::Vector4f((float)pr * 100.0f, (float)pb * 100.0f, 0.0f, 1.0f);
 						vertex.tint = aSettings.color.GetVector4();
 						vertex.uv = { (float)r, (float)b };
-						vertex.texIndex = textureIndex;
 						vertex.entityID = aEntityID;
 					}
 

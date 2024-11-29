@@ -268,33 +268,31 @@ namespace Epoch
 		struct QuadVertex
 		{
 			CU::Vector3f position;
-			uint32_t texIndex = 0;
+			uint32_t entityID = 0;
 			CU::Vector4f tint;
 			CU::Vector2f uv;
-			uint32_t entityID = 0;
 		};
 
 		CU::Vector4f myQuadVertexPositions[4];
 		CU::Vector2f myQuadUVCoords[4];
-		std::vector<QuadVertex> myQuadVertices;
+		std::unordered_map<AssetHandle, std::vector<QuadVertex>> myQuadVertices;
+		std::unordered_map<AssetHandle, std::shared_ptr<Texture2D>> myTextures;
 		std::shared_ptr<VertexBuffer> myQuadVertexBuffer;
 		std::shared_ptr<IndexBuffer> myQuadIndexBuffer;
 		uint32_t myQuadCount = 0;
-		std::array<std::shared_ptr<Texture2D>, MaxTextureSlots> myTextureSlots;
 		
 		// Text
 		struct TextVertex
 		{
 			CU::Vector3f position;
-			uint32_t texIndex = 0;
+			uint32_t entityID = 0;
 			CU::Vector4f tint;
 			CU::Vector2f uv;
-			uint32_t entityID = 0;
 		};
-		std::vector<TextVertex> myTextVertices;
+		std::unordered_map<AssetHandle, std::vector<TextVertex>> myTextVertices;
+		std::unordered_map<AssetHandle, std::shared_ptr<Texture2D>> myFontAtlases;
 		std::shared_ptr<VertexBuffer> myTextVertexBuffer;
 		std::shared_ptr<IndexBuffer> myTextIndexBuffer;
 		uint32_t myTextQuadCount = 0;
-		std::array<std::shared_ptr<Texture2D>, MaxTextureSlots> myFontAtlasesSlots;
 	};
 }

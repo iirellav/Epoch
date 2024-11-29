@@ -69,8 +69,6 @@ namespace Epoch
 
 		// Quads
 		{
-			myTextureSlots[0] = Renderer::GetWhiteTexture();
-
 			myQuadUVCoords[0] = { 0.0f, 1.0f };
 			myQuadUVCoords[1] = { 0.0f, 0.0f };
 			myQuadUVCoords[2] = { 1.0f, 0.0f };
@@ -104,10 +102,9 @@ namespace Epoch
 			VertexBufferLayout layout =
 			{
 				{ ShaderDataType::Float3,	"POSITION" },
-				{ ShaderDataType::UInt,		"TEXINDEX" },
+				{ ShaderDataType::UInt,		"ID" },
 				{ ShaderDataType::Float4,	"TINT" },
-				{ ShaderDataType::Float2,	"UV" },
-				{ ShaderDataType::UInt,		"ID" }
+				{ ShaderDataType::Float2,	"UV" }
 			};
 
 			FramebufferSpecification specs;
@@ -231,34 +228,30 @@ namespace Epoch
 		{
 			Renderer::SetRenderPipeline(myQuadPipelineState);
 
-			uint32_t textureCount = 0;
-			std::vector<ID3D11ShaderResourceView*> SRVs;
-			SRVs.reserve(MaxTextureSlots);
-			for (size_t i = 0; i < MaxTextureSlots; i++)
+			for (const auto& [texture, vertexList] : myQuadVertices)
 			{
-				if (myTextureSlots[i])
+				if (!myTextures[texture])
 				{
-					SRVs.push_back((ID3D11ShaderResourceView*)myTextureSlots[i]->GetView());
-					++textureCount;
+					continue;
 				}
-				else
+
+				std::vector<ID3D11ShaderResourceView*> SRVs(1);
+				auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(myTextures[texture]);
+				SRVs[0] = dxTexture->GetSRV().Get();
+				RHI::GetContext()->PSSetShaderResources(0, 1, SRVs.data());
+
+				const uint32_t quadCount = (uint32_t)vertexList.size() / 4;
+				for (uint32_t i = 0; i < quadCount; i += MaxQuads)
 				{
-					break;
+					uint32_t count = CU::Math::Min(quadCount - i, MaxQuads);
+
+					myQuadVertexBuffer->SetData((void*)vertexList.data(), count * 4, i * 4 * sizeof(QuadVertex));
+					Renderer::RenderGeometry(myQuadVertexBuffer, myQuadIndexBuffer, count * 6);
 				}
+
+				std::vector<ID3D11ShaderResourceView*> emptySRVs(1);
+				RHI::GetContext()->PSSetShaderResources(0, 1, emptySRVs.data());
 			}
-
-			RHI::GetContext()->PSSetShaderResources(0, textureCount, SRVs.data());
-
-			for (uint32_t i = 0; i < myQuadCount; i += MaxQuads)
-			{
-				uint32_t count = CU::Math::Min(myQuadCount - i, MaxQuads);
-
-				myQuadVertexBuffer->SetData(myQuadVertices.data(), count * 4, i * 4 * sizeof(QuadVertex));
-				Renderer::RenderGeometry(myQuadVertexBuffer, myQuadIndexBuffer, count * 6);
-			}
-
-			std::vector<ID3D11ShaderResourceView*> emptySRVs(textureCount);
-			RHI::GetContext()->PSSetShaderResources(0, textureCount, emptySRVs.data());
 
 			Renderer::RemoveRenderPipeline(myQuadPipelineState);
 		}
@@ -274,11 +267,6 @@ namespace Epoch
 
 		myQuadVertices.clear();
 		myQuadCount = 0;
-
-		for (size_t i = 1; i < MaxTextureSlots; i++)
-		{
-			myTextureSlots[i] = nullptr;
-		}
 	}
 
 	void DebugRenderer::Flush()
@@ -617,32 +605,16 @@ namespace Epoch
 
 	void DebugRenderer::DrawQuad(std::shared_ptr<Texture2D> aTexture, const CU::Matrix4x4f& aTransform, const CU::Color& aTint, uint32_t aEntityID)
 	{
-		uint32_t textureIndex = 0;
-		if (aTexture)
-		{
-			for (size_t i = 0; i < MaxTextureSlots; i++)
-			{
-				if (!myTextureSlots[i])
-				{
-					myTextureSlots[i] = aTexture;
-					textureIndex = (uint32_t)i;
-					break;
-				}
-				else if (myTextureSlots[i]->GetHandle() == aTexture->GetHandle())
-				{
-					textureIndex = (uint32_t)i;
-					break;
-				}
-			}
-		}
+		auto& vertexList = myQuadVertices[aTexture->GetHandle()];
+		if (!aTexture) aTexture = Renderer::GetWhiteTexture();
+		myTextures[aTexture->GetHandle()] = aTexture;
 
 		for (size_t i = 0; i < 4; i++)
 		{
-			QuadVertex& vertex = myQuadVertices.emplace_back();
+			QuadVertex& vertex = vertexList.emplace_back();
 			vertex.position = aTransform * myQuadVertexPositions[i];
 			vertex.uv = myQuadUVCoords[i];
 			vertex.tint = aTint.GetVector4();
-			vertex.texIndex = textureIndex;
 			vertex.entityID = aEntityID;
 		}
 		++myQuadCount;

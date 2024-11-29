@@ -1163,7 +1163,7 @@ namespace Epoch
 				{
 					//texture = AssetManager::GetAssetAsync<Texture2D>(src.texture);
 					texture = AssetManager::GetAsset<Texture2D>(src.texture); //TODO: Make async
-					assetAccelerationMap[src.texture] = texture;
+					if (texture) assetAccelerationMap[src.texture] = texture;
 				}
 
 				CU::Matrix4x4f transform = GetWorldSpaceTransformMatrix(entity);
@@ -1183,17 +1183,6 @@ namespace Epoch
 				const auto& trc = view.get<TextRendererComponent>(id);
 				if (!trc.isActive) continue;
 
-				//std::shared_ptr<Texture2D> texture;
-				//if (assetAccelerationMap.find(trc.) != assetAccelerationMap.end())
-				//{
-				//	texture = std::static_pointer_cast<Texture2D>(assetAccelerationMap[src.texture]);
-				//}
-				//else
-				//{
-				//	texture = AssetManager::GetAssetAsync<Texture2D>(src.texture);
-				//	assetAccelerationMap[src.texture] = texture;
-				//}
-
 				CU::Matrix4x4f transform = GetWorldSpaceTransformMatrix(entity);
 				std::shared_ptr<Font> font;
 				if (assetAccelerationMap.find(trc.font) != assetAccelerationMap.end())
@@ -1203,7 +1192,7 @@ namespace Epoch
 				else
 				{
 					font = AssetManager::GetAssetAsync<Font>(trc.font);
-					assetAccelerationMap[trc.font] = font;
+					if (font) assetAccelerationMap[trc.font] = font;
 				}
 
 				if (!font)
