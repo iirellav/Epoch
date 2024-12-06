@@ -152,6 +152,19 @@ namespace Epoch
 
 	void PreferencesPanel::DrawRendererPage()
 	{
+		bool modified = false;
+		auto& settings = EditorSettings::Get();
+
+		UI::BeginPropertyGrid();
+
+		modified |= UI::Property_Checkbox("Automatically Reload Shaders", settings.automaticallyReloadShaders);
+
+		UI::EndPropertyGrid();
+
+		if (modified)
+		{
+			EditorSettingsSerializer::SaveSettings();
+		}
 	}
 
 	void PreferencesPanel::DrawScriptingPage()

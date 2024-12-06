@@ -1,4 +1,5 @@
 #include "epch.h"
+#include <filewatch/FileWatch.hpp>
 #include "Renderer.h"
 #include "RendererAPI.h"
 #include "Epoch/Platform/DirectX11/DX11Renderer.h"
@@ -6,6 +7,7 @@
 #include "Epoch/Rendering/Shader.h"
 #include "Epoch/Rendering/Texture.h"
 #include "Epoch/Rendering/RenderPipeline.h"
+#include "Epoch/Editor/EditorSettings.h"
 
 namespace Epoch
 {
@@ -19,6 +21,8 @@ namespace Epoch
 		std::shared_ptr<Texture2D> defaultMaterialTexture;
 		std::shared_ptr<Texture2D> defaultColorGradingLUT;
 		std::shared_ptr<Texture2D> BRDFLUTTexture;
+
+		std::unique_ptr<filewatch::FileWatch<std::wstring>> shaderWatcherHandle = nullptr;
 	};
 
 	static RendererData staticRendererData;
@@ -67,6 +71,14 @@ namespace Epoch
 			staticRendererData.shaderLibrary->Load("Resources/Shaders/UberShader.hlsl");
 			
 			js.WaitUntilDone();
+
+			if (!Application::Get().IsRuntime())
+			{
+				staticRendererData.shaderWatcherHandle = std::make_unique<filewatch::FileWatch<std::wstring>>(std::filesystem::path("Resources/Shaders"), [](const auto& aFile, filewatch::Event aEventType)
+					{
+						Renderer::OnShaderFileChanged(aFile, (FilewatchEvent)aEventType);
+					});
+			}
 		}
 
 		//Textures
@@ -215,5 +227,19 @@ namespace Epoch
 	std::shared_ptr<Texture2D> Renderer::GetBRDFLut()
 	{
 		return staticRendererData.BRDFLUTTexture;
+	}
+	
+	void Renderer::OnShaderFileChanged(const std::filesystem::path& aFilepath, FilewatchEvent aEventType)
+	{
+		if (!EditorSettings::Get().automaticallyReloadShaders) return;
+
+		if (aEventType != FilewatchEvent::Modified) return;
+		if (aFilepath.extension().string() != ".hlsl") return;
+
+		const std::string shaderName = aFilepath.stem().string();
+		if (!staticRendererData.shaderLibrary->Exists(shaderName)) return;
+
+		//Should be scheduled
+		staticRendererData.shaderLibrary->Reload(shaderName);
 	}
 }

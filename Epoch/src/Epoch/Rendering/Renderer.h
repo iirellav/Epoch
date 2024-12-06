@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <CommonUtilities/Math/Matrix/Matrix4x4.hpp>
+#include "Epoch/Utils/FileSystem.h"
 
 namespace Epoch
 {
@@ -48,5 +49,8 @@ namespace Epoch
 		static std::shared_ptr<Texture2D> GetDefaultMaterialTexture();
 		static std::shared_ptr<Texture2D> GetDefaultColorGradingLut();
 		static std::shared_ptr<Texture2D> GetBRDFLut();
+
+	private:
+		static void OnShaderFileChanged(const std::filesystem::path& aFilepath, FilewatchEvent aEventType);
 	};
 }
