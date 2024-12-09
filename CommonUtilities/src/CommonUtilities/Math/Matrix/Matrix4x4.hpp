@@ -42,10 +42,6 @@ namespace CU
 		static Matrix4x4<T> CreateRotationAroundY(const T aAngleInRadians);
 		static Matrix4x4<T> CreateRotationAroundZ(const T aAngleInRadians);
 
-		static Matrix4x4<T> GetTranspose(const Matrix4x4<T>& aMatrix);
-		static Matrix4x4<T> GetInverse(const Matrix4x4<T>& aMatrix); // TODO: CREATE
-		static Matrix4x4<T> GetFastInverse(const Matrix4x4<T>& aMatrix);
-
 		static Matrix4x4<T> LookAt(const Vector3<T>& aPosition, const Vector3<T>& aTarget, const Vector3<T>& aUp = Vector3<T>::Up);
 
 		static Matrix4x4<T> CreatePerspectiveProjection(float aFOV, float aNearPlane, float aFarPlane, float aAspectRatio);
@@ -456,7 +452,13 @@ namespace CU
 	template<typename T>
 	inline Matrix4x4<T> Matrix4x4<T>::GetTranspose() const
 	{
-		return GetTranspose(*this);
+		return
+		{
+			myData[0], myData[4], myData[8], myData[12],
+			myData[1], myData[5], myData[9], myData[13],
+			myData[2], myData[6], myData[10], myData[14],
+			myData[3], myData[7], myData[11], myData[15]
+		};
 	}
 
 	template<typename T>
@@ -480,7 +482,27 @@ namespace CU
 	template<typename T>
 	inline Matrix4x4<T> Matrix4x4<T>::GetFastInverse() const
 	{
-		return GetFastInverse(*this);
+		Matrix4x4<T> result;
+
+		result[0] = myData[0];
+		result[1] = myData[4];
+		result[2] = myData[8];
+
+		result[4] = myData[1];
+		result[5] = myData[5];
+		result[6] = myData[9];
+
+		result[8] = myData[2];
+		result[9] = myData[6];
+		result[10] = myData[10];
+
+		result[15] = myData[15];
+
+		result[12] = ((-myData[12]) * result[0]) + ((-myData[13]) * result[4]) + ((-myData[14]) * result[8]);
+		result[13] = ((-myData[12]) * result[1]) + ((-myData[13]) * result[5]) + ((-myData[14]) * result[9]);
+		result[14] = ((-myData[12]) * result[2]) + ((-myData[13]) * result[6]) + ((-myData[14]) * result[10]);
+
+		return result;
 	}
 
 	template<typename T>
@@ -543,44 +565,6 @@ namespace CU
 			T(0), T(0), T(1),T(0),
 			T(0), T(0), T(0), T(1)
 		};
-	}
-
-	template<typename T>
-	inline Matrix4x4<T> Matrix4x4<T>::GetTranspose(const Matrix4x4<T>& aMatrix)
-	{
-		return
-		{
-			aMatrix[0], aMatrix[4], aMatrix[8], aMatrix[12],
-			aMatrix[1], aMatrix[5], aMatrix[9], aMatrix[13],
-			aMatrix[2], aMatrix[6], aMatrix[10], aMatrix[14],
-			aMatrix[3], aMatrix[7], aMatrix[11], aMatrix[15]
-		};
-	}
-
-	template<typename T>
-	inline Matrix4x4<T> Matrix4x4<T>::GetFastInverse(const Matrix4x4<T>& aMatrix)
-	{
-		Matrix4x4<T> result;
-
-		result[0] = aMatrix[0];
-		result[1] = aMatrix[4];
-		result[2] = aMatrix[8];
-
-		result[4] = aMatrix[1];
-		result[5] = aMatrix[5];
-		result[6] = aMatrix[9];
-
-		result[8] = aMatrix[2];
-		result[9] = aMatrix[6];
-		result[10] = aMatrix[10];
-
-		result[15] = aMatrix[15];
-
-		result[12] = ((-aMatrix[12]) * result[0]) + ((-aMatrix[13]) * result[4]) + ((-aMatrix[14]) * result[8]);
-		result[13] = ((-aMatrix[12]) * result[1]) + ((-aMatrix[13]) * result[5]) + ((-aMatrix[14]) * result[9]);
-		result[14] = ((-aMatrix[12]) * result[2]) + ((-aMatrix[13]) * result[6]) + ((-aMatrix[14]) * result[10]);
-
-		return result;
 	}
 
 	template<typename T>

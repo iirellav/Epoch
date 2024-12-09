@@ -123,6 +123,19 @@ namespace Epoch
             return myComponentCache[componentType] as T;
         }
 
+        public bool TryGetComponent<T>(ref T aOut) where T : Component, new()
+        {
+            var component = GetComponent<T>();
+            if (component == null)
+            {
+                aOut = null;
+                return false;
+            }
+
+            aOut = component;
+            return true;
+        }
+
 
         private TransformComponent myTransformComponent;
         public TransformComponent Transform

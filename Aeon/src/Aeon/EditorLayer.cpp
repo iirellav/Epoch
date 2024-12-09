@@ -852,10 +852,6 @@ namespace Epoch
 			const CU::Vector2f boxSize = selectionBoxMax - selectionBoxMin;
 			if (boxSize.x > 0 && boxSize.y > 0)
 			{
-				CONSOLE_LOG_DEBUG("Start: {}, {}", dragStartPos.x, dragStartPos.y);
-				CONSOLE_LOG_DEBUG("End: {}, {}", dragEndPos.x, dragEndPos.y);
-				CONSOLE_LOG_DEBUG("Size: {}, {}", boxSize.x, boxSize.y);
-
 				auto IDBuffer = mySceneRenderer->GetEntityIDTexture();
 				auto pixelData = IDBuffer->ReadData((uint32_t)boxSize.x, (uint32_t)boxSize.y, (uint32_t)selectionBoxMin.x, (uint32_t)selectionBoxMin.y);
 				if (pixelData)
@@ -868,7 +864,6 @@ namespace Epoch
 						ids.insert(id - 1);
 					}
 					pixelData.Release();
-					CONSOLE_LOG_DEBUG("Entity count: {}", ids.size());
 
 					if (!ctrlDown)
 					{
@@ -1349,7 +1344,7 @@ namespace Epoch
 				if (parent)
 				{
 					CU::Matrix4x4f parentTransform = myActiveScene->GetWorldSpaceTransformMatrix(parent);
-					transform = transform * CU::Matrix4x4f::GetFastInverse(parentTransform);
+					transform = transform * parentTransform.GetFastInverse();
 				}
 
 				CU::Vector3f translation, rotation, scale;

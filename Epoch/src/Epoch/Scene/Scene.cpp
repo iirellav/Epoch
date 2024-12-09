@@ -753,7 +753,7 @@ namespace Epoch
 
 		auto& transform = aEntity.Transform();
 		const CU::Matrix4x4f parentTransform = GetWorldSpaceTransformMatrix(parent);
-		const CU::Matrix4x4f localTransform = transform.GetMatrix() * CU::Matrix4x4f::GetFastInverse(parentTransform);
+		const CU::Matrix4x4f localTransform = transform.GetMatrix() * parentTransform.GetFastInverse();
 
 		transform.SetTransform(localTransform);
 	}
