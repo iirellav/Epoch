@@ -1,6 +1,7 @@
 #include "epch.h"
 #include "ScriptEngine.h"
 #include <stack>
+#include <filewatch/FileWatch.hpp>
 #include <CommonUtilities/Timer.h>
 
 #include <mono/jit/jit.h>
@@ -640,7 +641,7 @@ namespace Epoch
 
 		staticData->watcherHandle = std::make_unique<filewatch::FileWatch<std::wstring>>(filepath, [](const auto& aFile, filewatch::Event aEventType)
 		{
-			ScriptEngine::OnAppAssemblyFolderChanged(aFile, aEventType);
+			ScriptEngine::OnAppAssemblyFolderChanged(aFile, (FilewatchEvent)aEventType);
 		});
 	}
 
@@ -1017,11 +1018,11 @@ namespace Epoch
 		ScriptUtils::HandleException(exception);
 	}
 
-	void ScriptEngine::OnAppAssemblyFolderChanged(const std::filesystem::path& aFilepath, filewatch::Event aEventType)
+	void ScriptEngine::OnAppAssemblyFolderChanged(const std::filesystem::path& aFilepath, FilewatchEvent aEventType)
 	{
 		if (!EditorSettings::Get().automaticallyReloadScriptAssembly) return;
 
-		if (aEventType != filewatch::Event::modified) return;
+		if (aEventType != FilewatchEvent::Modified) return;
 		if (aFilepath.extension().string() != ".dll") return;
 		if (aFilepath.filename().string().find(Project::GetActive()->GetConfig().projectFileName.stem().string()) == std::string::npos) return;
 

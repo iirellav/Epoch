@@ -13,6 +13,8 @@
 
 namespace Epoch
 {
+	enum class FilewatchEvent { Added, Removed, Modified, RenamedOld, RenamedNew };
+
 	class FileSystem
 	{
 	public:

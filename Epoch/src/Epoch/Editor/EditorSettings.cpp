@@ -93,6 +93,9 @@ namespace Epoch
 		settings.clearConsoleOnPlay = rootNode["ClearConsoleOnPlay"].as<bool>(true);
 		settings.collapseConsoleMessages = rootNode["CollapseConsoleMessages"].as<bool>(true);
 
+		//---------- Renderer ------------
+		settings.automaticallyReloadShaders = rootNode["AutomaticallyReloadShader"].as<bool>(true);
+
 		return true;
 	}
 
@@ -150,6 +153,9 @@ namespace Epoch
 		out << YAML::Key << "ReloadScriptAssemblyWhilePlaying" << YAML::Value << (int)settings.reloadScriptAssemblyWhilePlaying;
 		out << YAML::Key << "ClearConsoleOnPlay" << YAML::Value << settings.clearConsoleOnPlay;
 		out << YAML::Key << "CollapseConsoleMessages" << YAML::Value << settings.collapseConsoleMessages;
+
+		//---------- Renderer ------------
+		out << YAML::Key << "AutomaticallyReloadShader" << YAML::Value << settings.automaticallyReloadShaders;
 
 		out << YAML::EndMap;
 		out << YAML::EndMap;

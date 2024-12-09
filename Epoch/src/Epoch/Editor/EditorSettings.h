@@ -48,12 +48,13 @@ namespace Epoch
 		bool autosaveEnabled = true;
 		int autosaveIntervalSeconds = 300;
 
-		//---------- Scripting ------------
 		bool automaticallyReloadScriptAssembly = true;
 		ReloadScriptAssemblyWhilePlaying reloadScriptAssemblyWhilePlaying = ReloadScriptAssemblyWhilePlaying::Stop;
 		bool clearConsoleOnPlay = true;
 		bool collapseConsoleMessages = true;
 
+		//---------- Renderer ------------
+		bool automaticallyReloadShaders = true;
 
 		static EditorSettings& Get() { static EditorSettings staticSettings; return staticSettings; }
 	};

@@ -1,10 +1,10 @@
 #pragma once
-#include <filewatch/FileWatch.hpp>
 #include "ScriptEngineConfig.h"
 #include "ScriptTypes.h"
 #include "Epoch/Core/Hash.h"
 #include "Epoch/Scene/Scene.h"
 #include "Epoch/Project/Project.h"
+#include "Epoch/Utils/FileSystem.h"
 #include "ScriptCache.h"
 
 extern "C"
@@ -140,7 +140,7 @@ namespace Epoch
 		static void InitRuntimeObject(MonoObject* aMonoObject);
 		static void CallMethod(MonoObject* aMonoObject, ManagedMethod* aManagedMethod, const void** aParameters);
 
-		static void OnAppAssemblyFolderChanged(const std::filesystem::path& aFilepath, filewatch::Event aEventType);
+		static void OnAppAssemblyFolderChanged(const std::filesystem::path& aFilepath, FilewatchEvent aEventType);
 
 		template<typename... TConstructorArgs>
 		static MonoObject* CreateManagedObject_Internal(ManagedClass* aManagedClass, TConstructorArgs&&... aArgs)
