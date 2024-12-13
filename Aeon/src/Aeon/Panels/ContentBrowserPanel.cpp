@@ -3,6 +3,7 @@
 #include <CommonUtilities/Math/CommonMath.hpp>
 #include <CommonUtilities/StringUtils.h>
 #include <Epoch/ImGui/ImGui.h>
+#include <Epoch/Core/Events/EditorEvents.h>
 #include <Epoch/Debug/Log.h>
 #include <Epoch/Debug/Instrumentor.h>
 #include <Epoch/Utils/FileSystem.h>
@@ -50,6 +51,9 @@ namespace Epoch
 		myDeleteSelected = false;
 
 		ImGui::Begin(CONTENT_BROWSER_PANEL_ID);
+
+		myIsContentBrowserHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
+		myIsContentBrowserFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
 
 		if (myBaseDirectory.empty())
 		{
@@ -260,6 +264,14 @@ namespace Epoch
 				}
 			}
 		}
+	}
+
+	void ContentBrowserPanel::OnEvent(Event& aEvent)
+	{
+		if (!myIsContentBrowserHovered) return;
+
+		EventDispatcher dispatcher(aEvent);
+		dispatcher.Dispatch<EditorFileDroppedEvent>([this](EditorFileDroppedEvent& aEvent) { return ImportAssets(aEvent.GetPaths()); });
 	}
 
 	void ContentBrowserPanel::OnProjectChanged(const std::shared_ptr<Project>& aProject)
@@ -872,35 +884,7 @@ namespace Epoch
 			if (ImGui::MenuItem("Import..."))
 			{
 				std::vector<std::filesystem::path> assetPaths = FileSystem::OpenFileDialogMultiple({ { "Asset",	"png,jpg,jpeg,hdr,fbx,obj,gltf,glb,ttf" } }, myCurrentDirectory.string().c_str());
-
-				if (assetPaths.size() > 0)
-				{
-					auto assetManager = Project::GetEditorAssetManager();
-					for (const auto& path : assetPaths)
-					{
-						if (FileSystem::Exists(myCurrentDirectory / path.filename()))
-						{
-							assetManager->ImportAsset(myCurrentDirectory / path.filename());
-						}
-						else if (path.extension() == ".gltf")
-						{
-							auto binPath = CU::RemoveExtension(path.string()) + ".bin";
-							if (FileSystem::CopyFile(path, myCurrentDirectory) && FileSystem::CopyFile(binPath, myCurrentDirectory))
-							{
-								assetManager->ImportAsset(myCurrentDirectory / path.filename());
-							}
-						}
-						else
-						{
-							if (FileSystem::CopyFile(path, myCurrentDirectory))
-							{
-								assetManager->ImportAsset(myCurrentDirectory / path.filename());
-							}
-						}
-					}
-
-					Refresh();
-				}
+				ImportAssets(assetPaths);
 			}
 
 			ImGui::Separator();
@@ -936,6 +920,52 @@ namespace Epoch
 			}
 
 			ImGui::EndPopup();
+		}
+	}
+
+	bool ContentBrowserPanel::ImportAssets(const std::vector<std::string>& aPaths)
+	{
+		std::vector<std::filesystem::path> paths;
+		for (size_t i = 0; i < aPaths.size(); i++)
+		{
+			std::filesystem::path path(aPaths[i]);
+			if (staticAssetExtensionMap.find(path.extension().string()) == staticAssetExtensionMap.end()) continue;
+			paths.push_back(path);
+		}
+		ImportAssets(paths);
+
+		return true;
+	}
+
+	void ContentBrowserPanel::ImportAssets(const std::vector<std::filesystem::path>& aPaths)
+	{
+		if (aPaths.size() > 0)
+		{
+			auto assetManager = Project::GetEditorAssetManager();
+			for (const auto& path : aPaths)
+			{
+				if (FileSystem::Exists(myCurrentDirectory / path.filename()))
+				{
+					assetManager->ImportAsset(myCurrentDirectory / path.filename());
+				}
+				else if (path.extension() == ".gltf")
+				{
+					auto binPath = CU::RemoveExtension(path.string()) + ".bin";
+					if (FileSystem::CopyFile(path, myCurrentDirectory) && FileSystem::CopyFile(binPath, myCurrentDirectory))
+					{
+						assetManager->ImportAsset(myCurrentDirectory / path.filename());
+					}
+				}
+				else
+				{
+					if (FileSystem::CopyFile(path, myCurrentDirectory))
+					{
+						assetManager->ImportAsset(myCurrentDirectory / path.filename());
+					}
+				}
+			}
+
+			Refresh();
 		}
 	}
 

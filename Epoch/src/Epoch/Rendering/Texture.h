@@ -68,8 +68,8 @@ namespace Epoch
 		static std::shared_ptr<Texture2D> Create(const std::filesystem::path& aFilepath);
 		static std::shared_ptr<Texture2D> Create(const TextureSpecification& aSpec, Buffer aTextureData = Buffer());
 		
-		unsigned GetWidth() const { return mySpecification.width; }
-		unsigned GetHeight() const { return mySpecification.height; }
+		uint32_t GetWidth() const { return mySpecification.width; }
+		uint32_t GetHeight() const { return mySpecification.height; }
 		
 		TextureFormat GetFormat() const override { return mySpecification.format; }
 		bool Loaded() const { return myTextureData; }

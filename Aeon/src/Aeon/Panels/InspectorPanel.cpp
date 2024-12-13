@@ -13,6 +13,7 @@ namespace Epoch
 		myDrawFunctions[AssetType::Material] = [this](UUID aAssetID) { DrawMaterialInspector(aAssetID); };
 		myDrawFunctions[AssetType::Mesh] = [this](UUID aAssetID) { DrawMeshInspector(aAssetID); };
 		myDrawFunctions[AssetType::Prefab] = [this](UUID aAssetID) { DrawPrefabInspector(aAssetID); };
+		myDrawFunctions[AssetType::Texture] = [this](UUID aAssetID) { DrawTextureInspector(aAssetID); };
 	}
 
 	void InspectorPanel::OnImGuiRender(bool& aIsOpen)
@@ -208,5 +209,19 @@ namespace Epoch
 
 		count = prefab->myScene->GetAllEntitiesWith<SpotlightComponent>().size();
 		ImGui::Text("Spotlights: %u", (uint32_t)count);
+	}
+
+	void InspectorPanel::DrawTextureInspector(UUID aAssetID)
+	{
+		std::shared_ptr<Texture2D> texture = AssetManager::GetAsset<Texture2D>(aAssetID);
+
+		if (!texture)
+		{
+			return;
+		}
+
+		WriteHeader(aAssetID);
+
+		ImGui::Text("%u x %u", texture->GetWidth(), texture->GetHeight());
 	}
 }

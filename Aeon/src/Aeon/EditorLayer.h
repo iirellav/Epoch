@@ -19,6 +19,7 @@ namespace Epoch
 {
 	class KeyPressedEvent;
 	class MouseButtonPressedEvent;
+	class EditorFileDroppedEvent;
 
 	class EditorLayer : public Layer
 	{
@@ -46,7 +47,6 @@ namespace Epoch
 		std::pair<float, float> GetMouseViewportSpace() const;
 		bool MouseInViewport();
 
-		void ViewportSelection();
 		void HandleAssetDrop();
 
 		void ShowCreateProjectPopup();
@@ -93,6 +93,9 @@ namespace Epoch
 		bool OnKeyPressedEvent(KeyPressedEvent& aEvent);
 		bool OnMouseButtonPressed(MouseButtonPressedEvent& aEvent);
 
+		bool OnViewportClickSelection();
+		void UpdateViewportBoxSelection();
+
 		void OnSetToEditorCameraTransform(Entity aEntity);
 		void OnResetBoneTransforms(Entity aEntity);
 		void OnCurrentSceneRenamed(const AssetMetadata& aMetadata);
@@ -131,5 +134,12 @@ namespace Epoch
 		bool myDisplayCurrentColorGradingLUT = false;
 		bool myShowGizmos = true;
 		float myGizmoScale = 0.5f;
+
+		struct DragSelectionBox
+		{
+			CU::Vector2f start;
+			CU::Vector2f end;
+			bool dragging = false;
+		} myDragSelectionBox;
 	};
 }

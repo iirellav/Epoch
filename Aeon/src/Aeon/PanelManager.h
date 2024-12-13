@@ -26,6 +26,8 @@ namespace Epoch
 
 		void OnImGuiRender();
 
+		void OnEvent(Event& aEvent);
+
 		void OnProjectChanged(const std::shared_ptr<Project>& aProject);
 		void OnSceneChanged(const std::shared_ptr<Scene>& aScene);
 

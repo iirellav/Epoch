@@ -28,6 +28,17 @@ namespace Epoch
 		}
 	}
 
+	void PanelManager::OnEvent(Event& aEvent)
+	{
+		for (auto& panelMap : myPanels)
+		{
+			for (auto& [id, panelData] : panelMap)
+			{
+				panelData.panel->OnEvent(aEvent);
+			}
+		}
+	}
+
 	void PanelManager::OnProjectChanged(const std::shared_ptr<Project>& aProject)
 	{
 		for (auto& panelMap : myPanels)

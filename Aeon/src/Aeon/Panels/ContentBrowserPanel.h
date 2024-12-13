@@ -23,6 +23,8 @@ namespace Epoch
 
 		void OnImGuiRender(bool& aIsOpen) override;
 
+		void OnEvent(Event& aEvent) override;
+
 		void OnProjectChanged(const std::shared_ptr<Project>& aProject) override;
 		void OnSceneChanged(const std::shared_ptr<Scene>& aScene) override { mySceneContext = aScene; }
 
@@ -45,6 +47,9 @@ namespace Epoch
 		void RenderDirectoryHierarchy(const std::filesystem::directory_entry& aEntry, bool aDefaultOpen = false);
 		void ContentView();
 		void ContentViewPopup();
+
+		bool ImportAssets(const std::vector<std::string>& aPaths);
+		void ImportAssets(const std::vector<std::filesystem::path>& aPaths);
 
 		std::string GetNewName(const std::string& aName) const;
 		std::string GetNameWithoutIndex(const std::string& aName) const;
@@ -85,6 +90,9 @@ namespace Epoch
 		std::filesystem::path myCurrentDirectory;
 
 		std::shared_ptr<Scene> mySceneContext;
+
+		bool myIsContentBrowserHovered = false;
+		bool myIsContentBrowserFocused = false;
 
 		bool myRefresh = false;
 		bool myDeleteSelected = false;

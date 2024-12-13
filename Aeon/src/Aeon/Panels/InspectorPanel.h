@@ -18,6 +18,7 @@ namespace Epoch
 		void DrawMaterialInspector(UUID aAssetID);
 		void DrawMeshInspector(UUID aAssetID);
 		void DrawPrefabInspector(UUID aAssetID);
+		void DrawTextureInspector(UUID aAssetID);
 		
 	private:
 		std::unordered_map<AssetType, std::function<void(UUID aAssetID)>> myDrawFunctions;
