@@ -2,12 +2,12 @@
 
 namespace CU
 {
-	Transform::Transform(Vector3f aTranslation, Vector3f aRotation, Vector3f aScale) : myTranslation(aTranslation), myRotation(aRotation), myRotationQuat(aRotation), myScale(aScale), myIsDirty(true) {}
+	Transform::Transform(Vector3f aTranslation, Vector3f aRotation, Vector3f aScale) : myTranslation(aTranslation), myRotationEuler(aRotation), myRotationQuat(aRotation), myScale(aScale), myIsDirty(true) {}
 
 	Transform::Transform(const Matrix4x4f& aMatrix) : myMatrix(aMatrix)
 	{
-		aMatrix.Decompose(myTranslation, myRotation, myScale);
-		myRotationQuat = Quatf(myRotation);
+		aMatrix.Decompose(myTranslation, myRotationQuat, myScale);
+		myRotationEuler = myRotationQuat.GetEulerAngles();
 		myIsDirty = false;
 	}
 
@@ -28,8 +28,8 @@ namespace CU
 
 	void Transform::SetTransform(const Matrix4x4f& aMatrix)
 	{
-		aMatrix.Decompose(myTranslation, myRotation, myScale);
-		myRotationQuat = Quatf(myRotation);
+		aMatrix.Decompose(myTranslation, myRotationQuat, myScale);
+		myRotationEuler = myRotationQuat.GetEulerAngles();
 		myMatrix = aMatrix;
 		myIsDirty = false;
 	}
@@ -37,11 +37,11 @@ namespace CU
 	void Transform::SetTransform(const Transform& aTransform)
 	{
 		myTranslation = aTransform.myTranslation;
-		myRotation = aTransform.myRotation;
+		myRotationEuler = aTransform.myRotationEuler;
 		myScale = aTransform.myScale;
 		myRotationQuat = aTransform.myRotationQuat;
 		myMatrix = aTransform.myMatrix;
-		myIsDirty = false;
+		myIsDirty = aTransform.myIsDirty;
 	}
 
 	void Transform::SetTranslation(const Vector3f& aTranslation)
@@ -60,15 +60,15 @@ namespace CU
 
 	void Transform::SetRotation(const Vector3f& aRotation)
 	{
-		myRotation = aRotation;
-		myRotationQuat = Quatf(myRotation);
+		myRotationEuler = aRotation;
+		myRotationQuat = Quatf(myRotationEuler);
 		myIsDirty = true;
 	}
 
 	void Transform::SetRotation(float aX, float aY, float aZ)
 	{
-		myRotation = Vector3f(aX, aY, aZ);
-		myRotationQuat = Quatf(myRotation);
+		myRotationEuler = Vector3f(aX, aY, aZ);
+		myRotationQuat = Quatf(myRotationEuler);
 		myIsDirty = true;
 	}
 
@@ -94,8 +94,8 @@ namespace CU
 
 	void Transform::Rotate(const Vector3f& aRotation)
 	{
-		myRotation += aRotation;
-		myRotationQuat = Quatf(myRotation);
+		myRotationEuler += aRotation;
+		myRotationQuat = Quatf(myRotationEuler);
 		myIsDirty = true;
 	}
 
@@ -109,7 +109,7 @@ namespace CU
 	{
 		const Quatf quat = Quatf(aAxis, aAngle);
 		myRotationQuat *= quat;
-		myRotation += quat.GetEulerAngles();
+		myRotationEuler += quat.GetEulerAngles();
 
 		myTranslation = Quatf::RotateVectorByQuaternion((myTranslation - aPoint), quat) + aPoint;
 		myIsDirty = true;
@@ -126,7 +126,7 @@ namespace CU
 
 		const Matrix3x3f rotationMatrix = Matrix4x4f::CreateRotationMatrix(rightDir, upDir, forwardDir);
 		myRotationQuat = Quatf(rotationMatrix);
-		myRotation = myRotationQuat.GetEulerAngles();
+		myRotationEuler = myRotationQuat.GetEulerAngles();
 		myIsDirty = true;
 	}
 }

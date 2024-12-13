@@ -16,8 +16,8 @@ namespace CU
 		const Vector3f& GetTranslation() const { return myTranslation; }
 		Vector3f& GetTranslation() { return myTranslation; }
 		Vector4f GetTranslationVec4() const { return Vector4f(myTranslation, 1.0f); }
-		const Vector3f& GetRotation() const { return myRotation; }
-		Vector3f& GetRotation() { return myRotation; }
+		const Vector3f& GetRotation() const { return myRotationEuler; }
+		Vector3f& GetRotation() { return myRotationEuler; }
 		const Quatf& GetRotationQuat() const { return myRotationQuat; }
 		const Vector3f& GetScale() const { return myScale; }
 		Vector3f& GetScale() { return myScale; }
@@ -46,7 +46,7 @@ namespace CU
 
 	private:
 		Vector3f myTranslation;
-		Vector3f myRotation;
+		Vector3f myRotationEuler;
 		Quatf myRotationQuat;
 		Vector3f myScale;
 

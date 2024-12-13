@@ -93,7 +93,7 @@ namespace Epoch
 		return nullptr;
 	}
 
-	//TODO: This is kinda disgusting, maybe make a seperate class to handle this
+	//TODO: This is kinda messy, maybe make a separate class to handle this
 	std::shared_ptr<Asset> EditorAssetManager::GetAssetAsync(AssetHandle aHandle)
 	{
 		if (IsMemoryAsset(aHandle))

@@ -48,7 +48,7 @@ namespace Epoch
 		void PreSimulate();
 		void PostSimulate();
 
-		void OnPhysicsEvent(EventType aType, Entity aEntityA, Entity aEntityB);
+		void OnPhysicsEvent(PhysicsEventType aType, Entity aEntityA, Entity aEntityB);
 		
 	protected:
 		Scene* mySceneContext;
@@ -61,7 +61,7 @@ namespace Epoch
 		uint32_t mySubSteps = 1;
 
 	private:
-		struct PhysicsEvent { EventType type = EventType::None; UUID entityA; UUID entityB; };
+		struct PhysicsEvent { PhysicsEventType type = PhysicsEventType::None; UUID entityA; UUID entityB; };
 		std::vector<PhysicsEvent> myPhysicsEvents;
 	};
 }

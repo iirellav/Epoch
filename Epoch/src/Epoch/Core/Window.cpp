@@ -2,6 +2,10 @@
 #include "Window.h"
 #include "Epoch/Core/Application.h"
 #include "Epoch/Core/Input.h"
+#include "Epoch/Core/Events/EditorEvents.h"
+#include "Epoch/Core/Events/WindowEvent.h"
+#include "Epoch/Core/Events/MouseEvent.h"
+#include "Epoch/Core/Events/KeyEvent.h"
 
 namespace Epoch
 {
@@ -174,26 +178,39 @@ namespace Epoch
 			{
 				auto& data = *((WindowData*)glfwGetWindowUserPointer(window));
 
-				//TEMP: TODO: Fix later with events
-				Application::Get().OnWindowResized(width, height);
+				WindowResizeEvent event((uint32_t)width, (uint32_t)height);
 				data.width = width;
 				data.height = height;
+				data.eventCallback(event);
 			});
 
 		glfwSetWindowCloseCallback(myWindow, [](GLFWwindow* window)
 			{
-				//TEMP: TODO: Fix later with events
-				Application::Get().Close();
+				auto& data = *((WindowData*)glfwGetWindowUserPointer(window));
+
+				WindowCloseEvent event;
+				data.eventCallback(event);
 			});
 
 		glfwSetWindowIconifyCallback(myWindow, [](GLFWwindow* window, int iconified)
 			{
-				Application::Get().OnWindowMinimize((bool)iconified);
+				auto& data = *((WindowData*)glfwGetWindowUserPointer(window));
+				WindowMinimizeEvent event((bool)iconified);
+				data.eventCallback(event);
 			});
 
 		glfwSetDropCallback(myWindow, [](GLFWwindow* window, int path_count, const char* paths[])
 			{
-				//TODO: Add an event or something to handle this
+				auto& data = *((WindowData*)glfwGetWindowUserPointer(window));
+
+				std::vector<std::string> droppedPaths(path_count);
+				for (size_t i = 0; i < path_count; i++)
+				{
+					droppedPaths[i] = std::string(paths[i]);
+				}
+
+				EditorFileDroppedEvent event(droppedPaths);
+				data.eventCallback(event);
 			});
 
 		glfwSetKeyCallback(myWindow, [](GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -205,25 +222,31 @@ namespace Epoch
 				case GLFW_PRESS:
 				{
 					Input::UpdateKeyState((KeyCode)key, KeyState::Pressed);
-					//KeyPressedEvent event((KeyCode)key, 0);
-					//data.EventCallback(event);
+					KeyPressedEvent event((KeyCode)key);
+					data.eventCallback(event);
 					break;
 				}
 				case GLFW_RELEASE:
 				{
 					Input::UpdateKeyState((KeyCode)key, KeyState::Released);
-					//KeyReleasedEvent event((KeyCode)key);
-					//data.EventCallback(event);
+					KeyReleasedEvent event((KeyCode)key);
+					data.eventCallback(event);
 					break;
 				}
 				case GLFW_REPEAT:
 				{
 					Input::UpdateKeyState((KeyCode)key, KeyState::Held);
-					//KeyPressedEvent event((KeyCode)key, 1);
-					//data.EventCallback(event);
 					break;
 				}
 				}
+			});
+
+		glfwSetCharCallback(myWindow, [](GLFWwindow* window, uint32_t codepoint)
+			{
+				auto& data = *((WindowData*)glfwGetWindowUserPointer(window));
+
+				KeyTypedEvent event((KeyCode)codepoint);
+				data.eventCallback(event);
 			});
 
 		glfwSetMouseButtonCallback(myWindow, [](GLFWwindow* window, int button, int action, int mods)
@@ -235,15 +258,15 @@ namespace Epoch
 				case GLFW_PRESS:
 				{
 					Input::UpdateButtonState((MouseButton)button, KeyState::Pressed);
-					//MouseButtonPressedEvent event((MouseButton)button);
-					//data.EventCallback(event);
+					MouseButtonPressedEvent event((MouseButton)button);
+					data.eventCallback(event);
 					break;
 				}
 				case GLFW_RELEASE:
 				{
 					Input::UpdateButtonState((MouseButton)button, KeyState::Released);
-					//MouseButtonReleasedEvent event((MouseButton)button);
-					//data.EventCallback(event);
+					MouseButtonReleasedEvent event((MouseButton)button);
+					data.eventCallback(event);
 					break;
 				}
 				}
@@ -254,16 +277,16 @@ namespace Epoch
 				auto& data = *((WindowData*)glfwGetWindowUserPointer(window));
 
 				Input::SetScrollValues({ (float)xOffset, (float)yOffset });
-				//MouseScrolledEvent event((float)xOffset, (float)yOffset);
-				//data.EventCallback(event);
+				MouseScrolledEvent event((float)xOffset, (float)yOffset);
+				data.eventCallback(event);
 			});
 
 		glfwSetCursorPosCallback(myWindow, [](GLFWwindow* window, double x, double y)
 			{
 				auto& data = *((WindowData*)glfwGetWindowUserPointer(window));
 
-				//MouseMovedEvent event((float)x, (float)y);
-				//data.EventCallback(event);
+				MouseMovedEvent event((float)x, (float)y);
+				data.eventCallback(event);
 			});
 
 		// Update window size to actual size

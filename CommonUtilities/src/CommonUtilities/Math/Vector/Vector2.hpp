@@ -1,5 +1,5 @@
 #pragma once
-#include "../../Math/CommonMath.hpp"
+#include "CommonUtilities/Math/CommonMath.hpp"
 
 namespace CU
 {
@@ -36,9 +36,6 @@ namespace CU
 		Vector2<T> Slerp(const Vector2<T>& aTo, float aLerpFactor);
 
 		Vector2<T> Reflect(const Vector2<T>& aNormal);
-
-		T FindAngleBetweenRadians(const Vector2<T>& aVector);
-		T FindAngleBetweenDegrees(const Vector2<T>& aVector);
 
 
 		static T Distance(const Vector2<T>& aVector0, const Vector2<T>& aVector1);
@@ -78,19 +75,19 @@ namespace CU
 	}
 	
 	template <class T> 
-	Vector2<T> operator*(const Vector2<T>& aVector, const T& aScalar)
+	Vector2<T> operator*(const Vector2<T>& aVector, T aScalar)
 	{
 		return { aVector.x * aScalar, aVector.y * aScalar };
 	}
 
 	template <class T>
-	Vector2<T> operator*(const T& aScalar, const Vector2<T>& aVector)
+	Vector2<T> operator*(T aScalar, const Vector2<T>& aVector)
 	{
 		return { aVector.x * aScalar, aVector.y * aScalar };
 	}
 
 	template <class T> 
-	Vector2<T> operator/(const Vector2<T>& aVector, const T& aScalar)
+	Vector2<T> operator/(const Vector2<T>& aVector, T aScalar)
 	{
 		if (aScalar == 0)
 		{
@@ -120,13 +117,13 @@ namespace CU
 	}
 
 	template <class T> 
-	void operator*=(Vector2<T>& aVector, const T& aScalar)
+	void operator*=(Vector2<T>& aVector, T aScalar)
 	{
 		aVector = aVector * aScalar;
 	}
 
 	template <class T> 
-	void operator/=(Vector2<T>& aVector, const T& aScalar)
+	void operator/=(Vector2<T>& aVector, T aScalar)
 	{
 		if (aScalar == 0)
 		{
@@ -254,18 +251,6 @@ namespace CU
 	inline Vector2<T> Vector2<T>::Reflect(const Vector2<T>& aNormal)
 	{
 		return Reflect(*this, aNormal);
-	}
-
-	template<typename T>
-	inline T Vector2<T>::FindAngleBetweenRadians(const Vector2<T>& aVector)
-	{
-		return FindAngelBetweenInRadians(*this, aVector);
-	}
-
-	template<typename T>
-	inline T Vector2<T>::FindAngleBetweenDegrees(const Vector2<T>& aVector)
-	{
-		return FindAngelBetweenInDegrees(*this, aVector);
 	}
 
 

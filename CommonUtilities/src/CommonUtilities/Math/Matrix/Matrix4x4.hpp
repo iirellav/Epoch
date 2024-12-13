@@ -3,9 +3,9 @@
 #include <algorithm>
 //#include <dvec.h>
 #include "Matrix3x3.hpp"
-#include "../CommonMath.hpp"
-#include "../Vector/Vector3.hpp"
-#include "../Vector/Vector4.hpp"
+#include "CommonUtilities/Math/CommonMath.hpp"
+#include "CommonUtilities/Math/Vector/Vector3.hpp"
+#include "CommonUtilities/Math/Vector/Vector4.hpp"
 
 namespace CU
 {
@@ -36,7 +36,15 @@ namespace CU
 		Matrix4x4<T> GetInverse() const;
 		Matrix4x4<T> GetFastInverse() const;
 
+		CU::Vector4<T> GetRow(uint32_t aRow);
+		CU::Vector4<T> GetColumn(uint32_t aColumn);
+
+		CU::Vector4<T> GetRight();
+		CU::Vector4<T> GetUp();
+		CU::Vector4<T> GetForward();
+
 		void Decompose(Vector3<T>& aPosition, Vector3<T>& aRotation, Vector3<T>& aScale) const;
+		void Decompose(Vector3<T>& aPosition, Quaternion<T>& aOrientaion, Vector3<T>& aScale) const;
 
 		static Matrix4x4<T> CreateRotationAroundX(const T aAngleInRadians);
 		static Matrix4x4<T> CreateRotationAroundY(const T aAngleInRadians);
@@ -47,10 +55,10 @@ namespace CU
 		static Matrix4x4<T> CreatePerspectiveProjection(float aFOV, float aNearPlane, float aFarPlane, float aAspectRatio);
 		static Matrix4x4<T> CreateOrthographicProjection(float aLeftPlane, float aRightPlane, float aBottomPlane, float aTopPlane, float aNearPlane, float aFarPlane);
 
-		static Matrix4x4<T> CreateScaleMatrix(const Vector3<T>& aScaleVector);
+		static Matrix4x4<T> CreateScaleMatrix(const Vector3<T>& aScale);
 		static Matrix4x4<T> CreateRotationMatrix(const Vector3<T>& aRight, const Vector3<T>& aUp, const Vector3<T>& aForward);
-		static Matrix4x4<T> CreateRotationMatrix(const Vector3<T>& aRotaion);
-		static Matrix4x4<T> CreateTranslationMatrix(const Vector3<T>& aTranslationVector);
+		static Matrix4x4<T> CreateRotationMatrix(const Vector3<T>& aRotation);
+		static Matrix4x4<T> CreateTranslationMatrix(const Vector3<T>& aTranslation);
 
 		static const Matrix4x4<T> Zero;
 		static const Matrix4x4<T> Identity;
@@ -68,13 +76,6 @@ namespace CU
 			//	__m128 m3;
 			//	__m128 m4;
 			//};
-			struct
-			{
-				Vector4<T> m1;
-				Vector4<T> m2;
-				Vector4<T> m3;
-				Vector4<T> m4;
-			};
 			struct
 			{
 				T m11;
@@ -329,7 +330,46 @@ namespace CU
 	}
 
 	template <class T>
-	Matrix4x4<T> operator*(const Matrix4x4<T>& aMatrix, const float aScalar)
+	Vector4<T> operator*(const Vector4<T>& aVector, const Matrix4x4<T>& aMatrix)
+	{
+		return
+		{
+			aVector.x * aMatrix[0] + aVector.y * aMatrix[4] + aVector.z * aMatrix[8] + aVector.w * aMatrix[12],
+			aVector.x * aMatrix[1] + aVector.y * aMatrix[5] + aVector.z * aMatrix[9] + aVector.w * aMatrix[13],
+			aVector.x * aMatrix[2] + aVector.y * aMatrix[6] + aVector.z * aMatrix[10] + aVector.w * aMatrix[14],
+			aVector.x * aMatrix[3] + aVector.y * aMatrix[7] + aVector.z * aMatrix[11] + aVector.w * aMatrix[15]
+		};
+	}
+
+	template <class T>
+	Matrix4x4<T> operator*(const Matrix4x4<T>& aMatrix, T aScalar)
+	{
+		return
+		{
+			aMatrix[0] * aScalar,
+			aMatrix[1] * aScalar,
+			aMatrix[2] * aScalar,
+			aMatrix[3] * aScalar,
+
+			aMatrix[4] * aScalar,
+			aMatrix[5] * aScalar,
+			aMatrix[6] * aScalar,
+			aMatrix[7] * aScalar,
+
+			aMatrix[8] * aScalar,
+			aMatrix[9] * aScalar,
+			aMatrix[10] * aScalar,
+			aMatrix[11] * aScalar,
+
+			aMatrix[12] * aScalar,
+			aMatrix[13] * aScalar,
+			aMatrix[14] * aScalar,
+			aMatrix[15] * aScalar
+		};
+	}
+
+	template <class T>
+	Matrix4x4<T> operator*(T aScalar, const Matrix4x4<T>& aMatrix)
 	{
 		return
 		{
@@ -413,7 +453,6 @@ namespace CU
 	inline Matrix4x4<T>::Matrix4x4(const T aArray[16])
 	{
 		memcpy_s(&myData.front(), sizeof(T) * 16, &aArray[0], sizeof(T) * 16);
-		//std::copy(aArray, aArray + 16, myData.begin());
 	}
 
 	template<typename T>
@@ -506,6 +545,48 @@ namespace CU
 	}
 
 	template<typename T>
+	inline CU::Vector4<T> Matrix4x4<T>::GetRow(uint32_t aRow)
+	{
+		return
+		{
+			myData[0 + 4 * (aRow - 1)],
+			myData[1 + 4 * (aRow - 1)],
+			myData[2 + 4 * (aRow - 1)],
+			myData[3 + 4 * (aRow - 1)]
+		};
+	}
+
+	template<typename T>
+	inline CU::Vector4<T> Matrix4x4<T>::GetColumn(uint32_t aColumn)
+	{
+		return
+		{
+			myData[0 + (aColumn - 1)],
+			myData[4 + (aColumn - 1)],
+			myData[8 + (aColumn - 1)],
+			myData[12 + (aColumn - 1)]
+		};
+	}
+
+	template<typename T>
+	inline CU::Vector4<T> Matrix4x4<T>::GetRight()
+	{
+		return CU::Vector4<T>(m11, m12, m13, T(0)).GetNormalized();
+	}
+
+	template<typename T>
+	inline CU::Vector4<T> Matrix4x4<T>::GetUp()
+	{
+		return CU::Vector4<T>(m21, m22, m23, T(0)).GetNormalized();
+	}
+
+	template<typename T>
+	inline CU::Vector4<T> Matrix4x4<T>::GetForward()
+	{
+		return CU::Vector4<T>(m31, m32, m33, T(0)).GetNormalized();
+	}
+
+	template<typename T>
 	inline void Matrix4x4<T>::Decompose(Vector3<T>& aPosition, Vector3<T>& aRotation, Vector3<T>& aScale) const
 	{
 		aPosition = { m41, m42, m43 };
@@ -516,6 +597,23 @@ namespace CU
 
 		const Matrix3x3<T> rotationMatrix = Matrix4x4<T>::CreateRotationMatrix(rightDir.GetNormalized(), upDir.GetNormalized(), forwardDir.GetNormalized());
 		aRotation = Quaternion<T>(rotationMatrix).GetEulerAngles();
+
+		aScale.x = rightDir.Length();
+		aScale.y = upDir.Length();
+		aScale.z = forwardDir.Length();
+	}
+
+	template<typename T>
+	inline void Matrix4x4<T>::Decompose(Vector3<T>& aPosition, Quaternion<T>& aOrientaion, Vector3<T>& aScale) const
+	{
+		aPosition = { m41, m42, m43 };
+
+		Vector3<T> rightDir = { m11, m12, m13 };
+		Vector3<T> upDir = { m21, m22, m23 };
+		Vector3<T> forwardDir = { m31, m32, m33 };
+
+		const Matrix3x3<T> rotationMatrix = Matrix4x4<T>::CreateRotationMatrix(rightDir.GetNormalized(), upDir.GetNormalized(), forwardDir.GetNormalized());
+		aOrientaion = Quaternion<T>(rotationMatrix);
 
 		aScale.x = rightDir.Length();
 		aScale.y = upDir.Length();
@@ -616,12 +714,12 @@ namespace CU
 	}
 
 	template<typename T>
-	inline Matrix4x4<T> Matrix4x4<T>::CreateScaleMatrix(const Vector3<T>& aScaleVector)
+	inline Matrix4x4<T> Matrix4x4<T>::CreateScaleMatrix(const Vector3<T>& aScale)
 	{
 		Matrix4x4<T> result;
-		result.myData[0] = aScaleVector.x;
-		result.myData[5] = aScaleVector.y;
-		result.myData[10] = aScaleVector.z;
+		result.myData[0] = aScale.x;
+		result.myData[5] = aScale.y;
+		result.myData[10] = aScale.z;
 		return result;
 	}
 
@@ -644,18 +742,18 @@ namespace CU
 	}
 
 	template<typename T>
-	inline Matrix4x4<T> Matrix4x4<T>::CreateRotationMatrix(const Vector3<T>& aRotaion)
+	inline Matrix4x4<T> Matrix4x4<T>::CreateRotationMatrix(const Vector3<T>& aRotation)
 	{
-		return Quaternion<T>(aRotaion).GetRotationMatrix4x4f();
+		return Quaternion<T>(aRotation).GetRotationMatrix4x4f();
 	}
 
 	template<typename T>
-	inline Matrix4x4<T> Matrix4x4<T>::CreateTranslationMatrix(const Vector3<T>& aTranslationVector)
+	inline Matrix4x4<T> Matrix4x4<T>::CreateTranslationMatrix(const Vector3<T>& aTranslation)
 	{
 		Matrix4x4<T> result;
-		result.myData[12] = aTranslationVector.x;
-		result.myData[13] = aTranslationVector.y;
-		result.myData[14] = aTranslationVector.z;
+		result.myData[12] = aTranslation.x;
+		result.myData[13] = aTranslation.y;
+		result.myData[14] = aTranslation.z;
 		return result;
 	}
 

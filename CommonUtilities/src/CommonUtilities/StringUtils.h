@@ -73,13 +73,13 @@ namespace CU
 
 	constexpr bool StartsWith(std::string_view aString, std::string_view s)
 	{
-		auto len = s.length();
+		const auto len = s.length();
 		return aString.length() >= len && aString.substr(0, len) == s;
 	}
 
 	constexpr bool EndsWith(std::string_view aString, std::string_view s)
 	{
-		auto len1 = aString.length(), len2 = s.length();
+		const auto len1 = aString.length(), len2 = s.length();
 		return len1 >= len2 && aString.substr(len1 - len2) == s;
 	}
 }

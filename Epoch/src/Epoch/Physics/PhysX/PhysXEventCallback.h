@@ -8,7 +8,7 @@ namespace Epoch
 	class PhysXEventCallback : public physx::PxSimulationEventCallback
 	{
 	public:
-		PhysXEventCallback(const EventCallbackFn& aEventCallback) : 
+		PhysXEventCallback(const PhysicsEventCallbackFn& aEventCallback) : 
 			myEventCallback(aEventCallback), physx::PxSimulationEventCallback() { }
 
 		void onConstraintBreak(physx::PxConstraintInfo* constraints, physx::PxU32 count) override { }
@@ -30,6 +30,6 @@ namespace Epoch
 		void OnTriggerExit(UUID aBody1, UUID aBody2);
 
 	private:
-		EventCallbackFn myEventCallback;;
+		PhysicsEventCallbackFn myEventCallback;
 	};
 }

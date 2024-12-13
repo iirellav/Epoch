@@ -42,7 +42,7 @@ namespace Epoch
 			return;
 		}
 
-		myEventCallback(EventType::CollisionEnter, entity1, entity2);
+		myEventCallback(PhysicsEventType::CollisionEnter, entity1, entity2);
 	}
 
 	void PhysXEventCallback::OnCollisionExit(UUID aBody1, UUID aBody2)
@@ -55,7 +55,7 @@ namespace Epoch
 			return;
 		}
 
-		myEventCallback(EventType::CollisionExit, entity1, entity2);
+		myEventCallback(PhysicsEventType::CollisionExit, entity1, entity2);
 	}
 
 	void PhysXEventCallback::OnTriggerEnter(UUID aBody1, UUID aBody2)
@@ -68,7 +68,7 @@ namespace Epoch
 			return;
 		}
 
-		myEventCallback(EventType::TriggerEnter, entity1, entity2);
+		myEventCallback(PhysicsEventType::TriggerEnter, entity1, entity2);
 	}
 
 	void PhysXEventCallback::OnTriggerExit(UUID aBody1, UUID aBody2)
@@ -81,6 +81,6 @@ namespace Epoch
 			return;
 		}
 
-		myEventCallback(EventType::TriggerExit, entity1, entity2);
+		myEventCallback(PhysicsEventType::TriggerExit, entity1, entity2);
 	}
 }

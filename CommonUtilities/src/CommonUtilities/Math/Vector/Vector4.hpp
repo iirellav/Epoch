@@ -1,5 +1,5 @@
 #pragma once
-#include "../../Math/CommonMath.hpp"
+#include "CommonUtilities/Math/CommonMath.hpp"
 
 namespace CU
 {
@@ -69,19 +69,19 @@ namespace CU
 	}
 
 	template <class T> 
-	Vector4<T> operator*(const Vector4<T>& aVector, const T& aScalar)
+	Vector4<T> operator*(const Vector4<T>& aVector, T aScalar)
 	{
 		return { aVector.x * aScalar, aVector.y * aScalar, aVector.z * aScalar, aVector.w * aScalar };
 	}
 
 	template <class T>
-	Vector4<T> operator*(const T& aScalar, const Vector4<T>& aVector)
+	Vector4<T> operator*(T aScalar, const Vector4<T>& aVector)
 	{
 		return { aVector.x * aScalar, aVector.y * aScalar, aVector.z * aScalar, aVector.w * aScalar };
 	}
 
 	template <class T> 
-	Vector4<T> operator/(const Vector4<T>& aVector, const T& aScalar)
+	Vector4<T> operator/(const Vector4<T>& aVector, T aScalar)
 	{
 		if (aScalar == 0)
 		{
@@ -111,13 +111,13 @@ namespace CU
 	}
 
 	template <class T> 
-	void operator*=(Vector4<T>& aVector, const T& aScalar)
+	void operator*=(Vector4<T>& aVector, T aScalar)
 	{
 		aVector = aVector * aScalar;
 	}
 
 	template <class T> 
-	void operator/=(Vector4<T>& aVector, const T& aScalar)
+	void operator/=(Vector4<T>& aVector, T aScalar)
 	{
 		if (aScalar == 0)
 		{

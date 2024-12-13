@@ -4,6 +4,6 @@
 
 namespace Epoch
 {
-	enum class EventType : int8_t { None = -1, CollisionEnter, CollisionExit, TriggerEnter, TriggerExit };
-	using EventCallbackFn = std::function<void(EventType, Entity, Entity)>;
+	enum class PhysicsEventType : int8_t { None = -1, CollisionEnter, CollisionExit, TriggerEnter, TriggerExit };
+	using PhysicsEventCallbackFn = std::function<void(PhysicsEventType, Entity, Entity)>;
 }

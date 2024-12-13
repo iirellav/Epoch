@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include "Events/Event.h"
 
 namespace Epoch
 {
@@ -13,6 +14,7 @@ namespace Epoch
 		virtual void OnDetach() {}
 		virtual void OnUpdate() {}
 		virtual void OnImGuiRender() {}
+		virtual void OnEvent(Event& aEvent) {}
 
 		const std::string& GetName() const { return myDebugName; }
 

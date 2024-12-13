@@ -5,6 +5,7 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <glfw/glfw3native.h>
 #endif
+#include "Events/Event.h"
 
 namespace Epoch
 {
@@ -24,11 +25,14 @@ namespace Epoch
 
 	class Window
 	{
+		using EventCallbackFn = std::function<void(Event&)>;
+
 	public:
 		Window() = delete;
 		~Window();
 
 		static Window* Create(const WindowProperties& aProps = WindowProperties());
+		virtual void SetEventCallback(const EventCallbackFn& aCallback) { myData.eventCallback = aCallback; }
 
 		void Update();
 
@@ -68,6 +72,8 @@ namespace Epoch
 			std::string title = "";
 			uint32_t width = 0;
 			uint32_t height = 0;
+
+			EventCallbackFn eventCallback;
 		};
 		WindowData myData;
 

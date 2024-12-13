@@ -183,25 +183,25 @@ namespace Epoch
 
 			switch (event.type)
 			{
-				case EventType::CollisionEnter:
+				case PhysicsEventType::CollisionEnter:
 				{
 					CallScriptPhysicsCallback("OnCollisionEnterInternal", entityA, entityB);
 					CallScriptPhysicsCallback("OnCollisionEnterInternal", entityB, entityA);
 					break;
 				}
-				case EventType::CollisionExit:
+				case PhysicsEventType::CollisionExit:
 				{
 					CallScriptPhysicsCallback("OnCollisionExitInternal", entityA, entityB);
 					CallScriptPhysicsCallback("OnCollisionExitInternal", entityB, entityA);
 					break;
 				}
-				case EventType::TriggerEnter:
+				case PhysicsEventType::TriggerEnter:
 				{
 					CallScriptPhysicsCallback("OnTriggerEnterInternal", entityA, entityB);
 					CallScriptPhysicsCallback("OnTriggerEnterInternal", entityB, entityA);
 					break;
 				}
-				case EventType::TriggerExit:
+				case PhysicsEventType::TriggerExit:
 				{
 					CallScriptPhysicsCallback("OnTriggerExitInternal", entityA, entityB);
 					CallScriptPhysicsCallback("OnTriggerExitInternal", entityB, entityA);
@@ -213,7 +213,7 @@ namespace Epoch
 		myPhysicsEvents.clear();
 	}
 
-	void PhysicsScene::OnPhysicsEvent(EventType aType, Entity aEntityA, Entity aEntityB)
+	void PhysicsScene::OnPhysicsEvent(PhysicsEventType aType, Entity aEntityA, Entity aEntityB)
 	{
 		auto& contactEvent = myPhysicsEvents.emplace_back();;
 		contactEvent.type = aType;

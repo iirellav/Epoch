@@ -27,7 +27,7 @@ namespace Epoch
 
 		bool Raycast(CU::Vector3f aOrigin, CU::Vector3f aDirection, float aMaxDistance = FLT_MAX, HitInfo* outHitInfo = nullptr) override;
 
-		void AddRadialImpulse(CU::Vector3f aOrigin, float aRadius, float aStrength) override; //TODO: Move to PhysicsScene when Iv'e made a wrapper for everything
+		void AddRadialImpulse(CU::Vector3f aOrigin, float aRadius, float aStrength) override; //TODO: Move to PhysicsScene when I've made a wrapper for everything
 
 		void Teleport(Entity aEntity, const CU::Vector3f& aTargetPosition, const CU::Quatf& aTargetRotation) override;
 

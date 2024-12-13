@@ -30,6 +30,7 @@ namespace Epoch
 		windowProperties.height = aAppSpec.windowHeight;
 
 		myWindow = std::unique_ptr<Window>(Window::Create(windowProperties));
+		myWindow->SetEventCallback([this](Event& aEvent) { OnEvent(aEvent); });
 		if (aAppSpec.startFullscreen) myWindow->SetFullscreen();
 		else if (aAppSpec.startMaximized) myWindow->Maximize();
 
@@ -88,6 +89,23 @@ namespace Epoch
 		myIsRunning = false;
 	}
 
+	void Application::OnEvent(Event& aEvent)
+	{
+		EventDispatcher dispatcher(aEvent);
+		dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent& e) { return OnWindowClose(e); });
+		dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& e) { return OnWindowResize(e); });
+		dispatcher.Dispatch<WindowMinimizeEvent>([this](WindowMinimizeEvent& e) { return OnWindowMinimize(e); });
+
+		for (auto it = myLayerStack.end(); it != myLayerStack.begin();)
+		{
+			(*--it)->OnEvent(aEvent);
+			if (aEvent.IsHandled())
+			{
+				break;
+			}
+		}
+	}
+
 	void Application::PushLayer(Layer* aLayer)
 	{
 		myLayerStack.PushLayer(aLayer);
@@ -98,30 +116,6 @@ namespace Epoch
 	{
 		myLayerStack.PushOverlay(aLayer);
 		aLayer->OnAttach();
-	}
-
-	void Application::OnWindowResized(unsigned aWidth, unsigned aHeight)
-	{
-		if (aWidth == 0 || aHeight == 0)
-		{
-			return;
-		}
-
-		myWindowResized = true;
-	}
-
-	void Application::OnWindowMinimize(bool aMinimized)
-	{
-		if (aMinimized)
-		{
-			LOG_DEBUG("Minimized");
-		}
-		else
-		{
-			LOG_DEBUG("Opened");
-		}
-
-		myWindowMinimized = aMinimized;
 	}
 
 	uint32_t Application::GetWindowWidth()
@@ -178,12 +172,6 @@ namespace Epoch
 			}
 
 			CU::Timer::Update();
-
-			if (myWindowResized)
-			{
-				myWindowResized = false;
-				GraphicsEngine::Get().OnWindowResize();
-			}
 			
 			ProcessEvents();
 		}
@@ -201,5 +189,28 @@ namespace Epoch
 			func();
 			myEventQueue.pop();
 		}
+	}
+
+	bool Application::OnWindowClose(const WindowCloseEvent& aEvent)
+	{
+		Close();
+		return false;
+	}
+
+	bool Application::OnWindowResize(const WindowResizeEvent& aEvent)
+	{
+		const uint32_t width = aEvent.GetWidth(), height = aEvent.GetHeight();
+		if (width > 0 && height > 0)
+		{
+			QueueEvent([]() { GraphicsEngine::Get().OnWindowResize(); });
+		}
+
+		return false;
+	}
+
+	bool Application::OnWindowMinimize(const WindowMinimizeEvent& aEvent)
+	{
+		myWindowMinimized = aEvent.IsMinimized();
+		return false;
 	}
 }

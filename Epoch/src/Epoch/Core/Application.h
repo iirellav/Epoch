@@ -2,7 +2,9 @@
 #include <memory>
 #include <string>
 #include "LayerStack.h"
-#include "Epoch/Core/JobSystem.h"
+#include "JobSystem.h"
+#include "Events/Event.h"
+#include "Events/WindowEvent.h"
 #include "Epoch/Script/ScriptEngineConfig.h"
 
 int main(int argc, char** argv);
@@ -47,22 +49,31 @@ namespace Epoch
 		void Run();
 		void Close();
 
+		virtual void OnEvent(Event& aEvent);
+
 		void PushLayer(Layer* aLayer);
 		void PushOverlay(Layer* aLayer);
 
-		void OnWindowResized(unsigned aWidth, unsigned aHeight);
-		void OnWindowMinimize(bool aMinimized);
+		template<typename Func>
+		void QueueEvent(Func&& func)
+		{
+			std::scoped_lock<std::mutex> lock(myEventQueueMutex);
+			myEventQueue.emplace(func);
+		}
 
 		static bool IsRuntime() { return staticIsRuntime; }
 
 	private:
 		void ProcessEvents();
 
+		bool OnWindowClose(const WindowCloseEvent& aEvent);
+		bool OnWindowResize(const WindowResizeEvent& aEvent);
+		bool OnWindowMinimize(const WindowMinimizeEvent& aEvent);
+
 	private:
 		ApplicationSpecification myApplicationSpecification;
 
 		bool myIsRunning = true;
-		bool myWindowResized = false;
 		bool myWindowMinimized = false;
 
 		std::unique_ptr<Window> myWindow;

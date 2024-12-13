@@ -18,7 +18,7 @@ namespace Epoch
 
 		PhysXAPI* api = (PhysXAPI*)PhysicsSystem::GetAPI();
 
-		myEventCallback = std::make_unique<PhysXEventCallback>([this](EventType aEventType, Entity aEntityA, Entity aEntityB)
+		myEventCallback = std::make_unique<PhysXEventCallback>([this](PhysicsEventType aEventType, Entity aEntityA, Entity aEntityB)
 			{
 				OnPhysicsEvent(aEventType, aEntityA, aEntityB);
 			});

@@ -1390,7 +1390,7 @@ namespace Epoch
 					if (fabs(deltaScale.y) < CU::Math::Epsilon) deltaScale.y = 0.0f;
 					if (fabs(deltaScale.z) < CU::Math::Epsilon) deltaScale.z = 0.0f;
 
-					entityTransform.SetScale(originalScale + deltaScale);
+					entityTransform.Scale(deltaScale);
 					break;
 				}
 				}
@@ -1476,7 +1476,7 @@ namespace Epoch
 							if (fabs(deltaScale.z) < CU::Math::Epsilon) deltaScale.z = 0.0f;
 
 							const CU::Vector3f originalScale = transform.GetScale();
-							transform.SetScale(originalScale * deltaScale);
+							transform.Scale(deltaScale);
 							break;
 						}
 						}

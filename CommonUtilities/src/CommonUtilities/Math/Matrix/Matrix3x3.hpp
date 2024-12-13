@@ -1,6 +1,6 @@
 #pragma once
 #include <array>
-#include "../Vector/Vector3.hpp"
+#include "CommonUtilities/Math/Vector/Vector3.hpp"
 
 namespace CU
 {
@@ -28,16 +28,41 @@ namespace CU
 		Matrix3x3<T> GetTranspose() const;
 		void Transpose();
 
+		CU::Vector3<T> GetRow(uint32_t aRow);
+		CU::Vector3<T> GetColumn(uint32_t aColumn);
+
+		CU::Vector3<T> GetRight();
+		CU::Vector3<T> GetUp();
+		CU::Vector3<T> GetForward();
+
 		static Matrix3x3<T> CreateRotationAroundX(const T aAngleInRadians);
 		static Matrix3x3<T> CreateRotationAroundY(const T aAngleInRadians);
 		static Matrix3x3<T> CreateRotationAroundZ(const T aAngleInRadians);
 
-		static Matrix3x3<T> GetTranspose(const Matrix3x3<T>& aMatrixToTranspose);
-
 		static const Matrix3x3<T> Zero;
 
 	private:
-		std::array<T, 9> myData;
+#pragma warning(disable : 4201)
+		union
+		{
+			std::array<T, 9> myData;
+
+			struct
+			{
+				T m11;
+				T m12;
+				T m13;
+
+				T m21;
+				T m22;
+				T m23;
+
+				T m31;
+				T m32;
+				T m33;
+			};
+		};
+#pragma warning( default : 4201 )
 	};
 
 	template <class T> 
@@ -145,7 +170,37 @@ namespace CU
 	}
 
 	template <class T>
-	Matrix3x3<T> operator*(const Matrix3x3<T>& aMatrix, const float aScalar)
+	Vector3<T> operator*(const Vector3<T>& aVector, const Matrix3x3<T>& aMatrix)
+	{
+		return
+		{
+			aVector.x * aMatrix[0] + aVector.y * aMatrix[3] + aVector.z * aMatrix[6],
+			aVector.x * aMatrix[1] + aVector.y * aMatrix[4] + aVector.z * aMatrix[7],
+			aVector.x * aMatrix[2] + aVector.y * aMatrix[5] + aVector.z * aMatrix[8]
+		};
+	}
+
+	template <class T>
+	Matrix3x3<T> operator*(const Matrix3x3<T>& aMatrix, T aScalar)
+	{
+		return
+		{
+			aMatrix[0] * aScalar,
+			aMatrix[1] * aScalar,
+			aMatrix[2] * aScalar,
+
+			aMatrix[3] * aScalar,
+			aMatrix[4] * aScalar,
+			aMatrix[5] * aScalar,
+
+			aMatrix[6] * aScalar,
+			aMatrix[7] * aScalar,
+			aMatrix[8] * aScalar
+		};
+	}
+
+	template <class T>
+	Matrix3x3<T> operator*(T aScalar, const Matrix3x3<T>& aMatrix)
 	{
 		return
 		{
@@ -192,7 +247,6 @@ namespace CU
 	{
 		aMatrix = aMatrix * aScalar;
 	}
-
 
 	template<typename T>
 	inline Matrix3x3<T>::Matrix3x3()
@@ -262,7 +316,12 @@ namespace CU
 	template<typename T>
 	inline Matrix3x3<T> Matrix3x3<T>::GetTranspose() const
 	{
-		return GetTranspose(*this);
+		return
+		{
+			myData[0], myData[3], myData[6],
+			myData[1], myData[4], myData[7],
+			myData[2], myData[5], myData[8]
+		};
 	}
 
 	template<typename T>
@@ -276,6 +335,45 @@ namespace CU
 		};
 	}
 
+	template<typename T>
+	inline CU::Vector3<T> Matrix3x3<T>::GetRow(uint32_t aRow)
+	{
+		return
+		{
+			myData[0 + 3 * (aRow - 1)],
+			myData[1 + 3 * (aRow - 1)],
+			myData[2 + 3 * (aRow - 1)]
+		};
+	}
+
+	template<typename T>
+	inline CU::Vector3<T> Matrix3x3<T>::GetColumn(uint32_t aColumn)
+	{
+		return
+		{
+			myData[0 + (aColumn - 1)],
+			myData[3 + (aColumn - 1)],
+			myData[6 + (aColumn - 1)]
+		};
+	}
+
+	template<typename T>
+	inline CU::Vector3<T> Matrix3x3<T>::GetRight()
+	{
+		return CU::Vector3<T>(m11, m12, m13).GetNormalized();
+	}
+
+	template<typename T>
+	inline CU::Vector3<T> Matrix3x3<T>::GetUp()
+	{
+		return CU::Vector3<T>(m21, m22, m23).GetNormalized();
+	}
+
+	template<typename T>
+	inline CU::Vector3<T> Matrix3x3<T>::GetForward()
+	{
+		return CU::Vector3<T>(m31, m32, m33).GetNormalized();
+	}
 
 	template<typename T>
 	inline Matrix3x3<T> Matrix3x3<T>::CreateRotationAroundX(const T aAngleInRadians)
@@ -318,18 +416,6 @@ namespace CU
 			T(0), T(0), T(1)
 		};
 	}
-
-	template<typename T>
-	inline Matrix3x3<T> Matrix3x3<T>::GetTranspose(const Matrix3x3<T>& aMatrix)
-	{
-		return
-		{
-			aMatrix[0], aMatrix[3], aMatrix[6],
-			aMatrix[1], aMatrix[4], aMatrix[7],
-			aMatrix[2], aMatrix[5], aMatrix[8]
-		};
-	}
-
 
 	template<typename T>
 	const Matrix3x3<T> Matrix3x3<T>::Zero({ 0, 0, 0, 0, 0, 0, 0, 0, 0 });

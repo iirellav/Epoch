@@ -239,7 +239,9 @@ namespace Epoch
 		const std::string shaderName = aFilepath.stem().string();
 		if (!staticRendererData.shaderLibrary->Exists(shaderName)) return;
 
-		//Should be scheduled
-		staticRendererData.shaderLibrary->Reload(shaderName);
+		Application::Get().QueueEvent([shaderName]()
+			{
+				staticRendererData.shaderLibrary->Reload(shaderName);
+			});
 	}
 }

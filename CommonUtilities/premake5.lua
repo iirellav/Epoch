@@ -10,3 +10,8 @@ project "CommonUtilities"
 		"src/**.hpp",
 		"src/**.cpp"
 	}
+
+	includedirs
+	{
+		"src",
+	}
