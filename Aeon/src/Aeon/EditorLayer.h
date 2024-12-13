@@ -17,6 +17,9 @@ namespace ImGuizmo
 
 namespace Epoch
 {
+	class KeyPressedEvent;
+	class MouseButtonPressedEvent;
+
 	class EditorLayer : public Layer
 	{
 	public:
@@ -28,6 +31,8 @@ namespace Epoch
 
 		void OnUpdate() override;
 		void OnImGuiRender() override;
+
+		void OnEvent(Event& aEvent) override;
 
 	private:
 		void BeginDockspace();
@@ -84,6 +89,9 @@ namespace Epoch
 
 		void OnEntityCreated(Entity aEntity);
 		void OnEntityDeleted(Entity aEntity);
+
+		bool OnKeyPressedEvent(KeyPressedEvent& aEvent);
+		bool OnMouseButtonPressed(MouseButtonPressedEvent& aEvent);
 
 		void OnSetToEditorCameraTransform(Entity aEntity);
 		void OnResetBoneTransforms(Entity aEntity);

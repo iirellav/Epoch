@@ -12,20 +12,22 @@
 #include <Epoch/Core/Application.h>
 #include <Epoch/Core/Window.h>
 #include <Epoch/Core/Input.h>
+#include <Epoch/Core/Events/KeyEvent.h>
+#include <Epoch/Core/Events/MouseEvent.h>
 #include <Epoch/Rendering/Renderer.h>
 #include <Epoch/Project/ProjectSerializer.h>
 #include <Epoch/Project/RuntimeBuilder.h>
 #include <Epoch/Scene/SceneSerializer.h>
 #include <Epoch/Scene/Prefab.h>
-#include <Epoch/Editor/SelectionManager.h>
 #include <Epoch/Script/ScriptEngine.h>
 #include <Epoch/Script/ScriptBuilder.h>
-#include <Epoch/Editor/FontAwesome.h>
+#include <Epoch/Editor/SelectionManager.h>
 #include <Epoch/Editor/GradientEditor.h>
 #include <Epoch/Editor/EditorSettings.h>
 #include <Epoch/Editor/Console/EditorConsolePanel.h>
-#include "EditorResources.h"
+#include <Epoch/Editor/PanelIDs.h>
 
+#include "EditorResources.h"
 #include "Panels/SceneHierarchyPanel.h"
 #include "Panels/ContentBrowserPanel.h"
 #include "Panels/InspectorPanel.h"
@@ -268,153 +270,6 @@ namespace Epoch
 		{
 			myStartedCameraClickInViewport = false;
 		}
-
-		//////////////////////////////////////
-		//TODO: Put in an OnEvent() function//
-		//////////////////////////////////////
-
-		if (mySceneState == SceneState::Edit && (!ImGui::IsMouseDown(ImGuiMouseButton_Right) && !ImGui::IsMouseDown(ImGuiMouseButton_Middle)))
-		{
-			if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
-			{
-				if (ImGui::IsKeyPressed(ImGuiKey_O))
-				{
-					OpenScene();
-				}
-
-				if (ImGui::IsKeyPressed(ImGuiKey_N))
-				{
-					NewScene();
-				}
-
-				if (ImGui::IsKeyPressed(ImGuiKey_S))
-				{
-					if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
-					{
-						SaveSceneAs();
-					}
-					else
-					{
-						SaveScene();
-					}
-				}
-			}
-
-			if (myViewportHovered && !ImGui::IsAnyItemActive())
-			{
-				if (ImGui::IsKeyPressed(ImGuiKey_F))
-				{
-					if (SelectionManager::GetSelectionCount(SelectionContext::Entity) == 1)
-					{
-						Entity entity = myActiveScene->GetEntityWithUUID(SelectionManager::GetSelections(SelectionContext::Entity)[0]);
-						myEditorCamera.Focus(entity.GetWorldSpaceTransform().GetTranslation());
-					}
-				}
-
-
-				if (ImGui::IsKeyPressed(ImGuiKey_Q))
-				{
-					myGizmoOperation = GizmoOperation::None;
-				}
-
-				if (ImGui::IsKeyPressed(ImGuiKey_W))
-				{
-					myGizmoOperation = GizmoOperation::Translate;
-				}
-
-				if (ImGui::IsKeyPressed(ImGuiKey_E))
-				{
-					myGizmoOperation = GizmoOperation::Rotate;
-				}
-
-				if (ImGui::IsKeyPressed(ImGuiKey_R))
-				{
-					myGizmoOperation = GizmoOperation::Scale;
-				}
-
-				if (ImGui::IsKeyPressed(ImGuiKey_X))
-				{
-					const bool isLocal = EditorSettings::Get().axisOrientationMode == AxisOrientationMode::Local;
-					EditorSettings::Get().axisOrientationMode = isLocal ? AxisOrientationMode::World : AxisOrientationMode::Local;
-				}
-
-				//if (!CU::InputHandler::GetKeyDown(KeyCode::RIGHTMBUTTON) && !CU::InputHandler::GetKeyDown(KeyCode::MIDDLEMBUTTON))
-				//{
-				//	if (CU::InputHandler::GetKeyPressed(KeyCode::Q))
-				//	{
-				//		myGizmoOperation = GizmoOperation::None;
-				//	}
-				//
-				//	if (CU::InputHandler::GetKeyPressed(KeyCode::W))
-				//	{
-				//		myGizmoOperation = GizmoOperation::Translate;
-				//	}
-				//
-				//	if (CU::InputHandler::GetKeyPressed(KeyCode::E))
-				//	{
-				//		myGizmoOperation = GizmoOperation::Rotate;
-				//	}
-				//
-				//	if (CU::InputHandler::GetKeyPressed(KeyCode::R))
-				//	{
-				//		myGizmoOperation = GizmoOperation::Scale;
-				//	}
-				//
-				//	if (CU::InputHandler::GetKeyPressed(KeyCode::X))
-				//	{
-				//		const bool isLocal = EditorSettings::Get().axisOrientationMode == AxisOrientationMode::Local;
-				//		EditorSettings::Get().axisOrientationMode = isLocal ? AxisOrientationMode::World : AxisOrientationMode::Local;
-				//	}
-				//}
-			}
-		}
-
-		if (UI::IsWindowFocused(std::format("{}  Viewport", EP_ICON_DESKTOP).c_str()) || UI::IsWindowFocused(std::format("{}  Scene Hierarchy", EP_ICON_LIST).c_str()))
-		{
-			if (ImGui::IsKeyPressed(ImGuiKey_Delete))
-			{
-				auto selection = SelectionManager::GetSelections(SelectionContext::Entity);
-
-				for (auto entityID : selection)
-				{
-					auto entity = myActiveScene->TryGetEntityWithUUID(entityID);
-					if (!entity) continue;
-					myActiveScene->DestroyEntity(entity);
-				}
-			}
-
-			if (!ImGui::IsMouseDown(ImGuiMouseButton_Right) && ImGui::IsKeyPressed(ImGuiKey_D) && ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
-			{
-				auto& selection = SelectionManager::GetSelections(SelectionContext::Entity);
-				std::vector<UUID> newSelection(selection.size());
-
-				for (size_t i = 0; i < selection.size(); i++)
-				{
-					newSelection[i] = myActiveScene->DuplicateEntity(myActiveScene->GetEntityWithUUID(selection[i])).GetUUID();
-				}
-
-				SelectionManager::DeselectAll(SelectionContext::Entity);
-				for (UUID id : newSelection)
-				{
-					SelectionManager::Select(SelectionContext::Entity, id);
-				}
-			}
-		}
-
-		if (ImGui::IsKeyPressed(ImGuiKey_P))
-		{
-			if (ImGui::IsKeyDown(ImGuiKey_LeftAlt) && myViewportHovered)
-			{
-				if (mySceneState == SceneState::Play)
-				{
-					OnSceneStop();
-				}
-				else
-				{
-					OnScenePlay();
-				}
-			}
-		}
 	}
 
 	void EditorLayer::OnImGuiRender()
@@ -600,6 +455,13 @@ namespace Epoch
 		EndDockspace();
 	}
 
+	void EditorLayer::OnEvent(Event& aEvent)
+	{
+		EventDispatcher dispatcher(aEvent);
+		dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent& aEvent) { return OnKeyPressedEvent(aEvent); });
+		dispatcher.Dispatch<MouseButtonPressedEvent>([this](MouseButtonPressedEvent& aEvent) { return OnMouseButtonPressed(aEvent); });
+	}
+
 	void EditorLayer::BeginDockspace()
 	{
 		// Note: Switch this to true to enable dockspace
@@ -776,132 +638,94 @@ namespace Epoch
 
 	void EditorLayer::ViewportSelection()
 	{
-		if (!myViewportFocused) return;
-		if (ImGuizmo::IsOver()) return;
-
-		static bool dragging = false;
-		static CU::Vector2f boxStartPos;
-		static CU::Vector2f boxEndPos;
-		static CU::Vector2f dragStartPos;
-		static CU::Vector2f dragEndPos;
-
-		const bool ctrlDown = Input::IsKeyHeld(KeyCode::LeftControl) || Input::IsKeyHeld(KeyCode::RightControl);
-		const bool shiftDown = Input::IsKeyHeld(KeyCode::LeftShift) || Input::IsKeyHeld(KeyCode::RightShift);
-		const bool shiftReleased = Input::IsKeyReleased(KeyCode::LeftShift) || Input::IsKeyReleased(KeyCode::RightShift);
-
-		if (!shiftDown && Input::IsMouseButtonPressed(MouseButton::Left) && MouseInViewport())
-		{
-			ImGui::ClearActiveID();
-
-			auto [px, py] = GetMouseViewportCord();
-			auto mousePos = CU::Vector2f(px, py);
-		 
-			auto IDBuffer = mySceneRenderer->GetEntityIDTexture();
-			auto pixelData = IDBuffer->ReadData(1, 1, (uint32_t)mousePos.x, (uint32_t)mousePos.y);
-			if (pixelData)
-			{
-				uint32_t id = *pixelData.As<uint32_t>();
-				pixelData.Release();
-				if (id == 0)
-				{
-					SelectionManager::DeselectAll(SelectionContext::Entity);
-				}
-				else
-				{
-					Entity clickedEntity = Entity((entt::entity)(id - 1), myActiveScene.get());
-					if (!clickedEntity || !myActiveScene->IsEntityValid(clickedEntity)) return;
-		
-					if (!ctrlDown)
-					{
-						SelectionManager::DeselectAll(SelectionContext::Entity);
-					}
-		
-					if (ctrlDown && SelectionManager::IsSelected(SelectionContext::Entity, clickedEntity.GetUUID()))
-					{
-						SelectionManager::Deselect(SelectionContext::Entity, clickedEntity.GetUUID());
-					}
-					else
-					{
-						SelectionManager::Select(SelectionContext::Entity, clickedEntity.GetUUID());
-					}
-				}
-			}
-		}
-		else if (shiftDown && Input::IsMouseButtonPressed(MouseButton::Left))
-		{
-			dragging = true;
-			ImGui::ClearActiveID();
-		
-			auto mousePos = ImGui::GetMousePos();
-			boxStartPos.x = mousePos.x;
-			boxStartPos.y = mousePos.y;
-
-			auto [px, py] = GetMouseViewportCord();
-			dragStartPos = CU::Vector2f(px, py);
-		}
-		else if ((shiftReleased && dragging) || (Input::IsMouseButtonReleased(MouseButton::Left) && dragging))
-		{
-			dragging = false;
-
-			auto [px, py] = GetMouseViewportCord();
-			dragEndPos = CU::Vector2f(px, py);
-
-			const CU::Vector2f selectionBoxMin = { CU::Math::Min(dragStartPos.x, dragEndPos.x), CU::Math::Min(dragStartPos.y, dragEndPos.y) };
-			const CU::Vector2f selectionBoxMax = { CU::Math::Max(dragStartPos.x, dragEndPos.x), CU::Math::Max(dragStartPos.y, dragEndPos.y) };
-			
-			const CU::Vector2f boxSize = selectionBoxMax - selectionBoxMin;
-			if (boxSize.x > 0 && boxSize.y > 0)
-			{
-				auto IDBuffer = mySceneRenderer->GetEntityIDTexture();
-				auto pixelData = IDBuffer->ReadData((uint32_t)boxSize.x, (uint32_t)boxSize.y, (uint32_t)selectionBoxMin.x, (uint32_t)selectionBoxMin.y);
-				if (pixelData)
-				{
-					std::set<uint32_t> ids;
-					for (size_t i = 0; i < pixelData.size; i += 4)
-					{
-						uint32_t id = pixelData.Read<uint32_t>(i);
-						if (id == 0) continue;
-						ids.insert(id - 1);
-					}
-					pixelData.Release();
-
-					if (!ctrlDown)
-					{
-						SelectionManager::DeselectAll(SelectionContext::Entity);
-					}
-
-					for (uint32_t id : ids)
-					{
-						Entity clickedEntity = Entity((entt::entity)id, myActiveScene.get());
-						if (!clickedEntity || !myActiveScene->IsEntityValid(clickedEntity)) continue;
-
-						if (ctrlDown && SelectionManager::IsSelected(SelectionContext::Entity, clickedEntity.GetUUID()))
-						{
-							SelectionManager::Deselect(SelectionContext::Entity, clickedEntity.GetUUID());
-						}
-						else
-						{
-							SelectionManager::Select(SelectionContext::Entity, clickedEntity.GetUUID());
-						}
-					}
-				}
-			}
-		}
-
-		if (dragging)
-		{
-			auto mousePos = ImGui::GetMousePos();
-			boxEndPos.x = mousePos.x;
-			boxEndPos.y = mousePos.y;
-
-			const CU::Vector2f selectionBoxMin = { CU::Math::Min(boxStartPos.x, boxEndPos.x), CU::Math::Min(boxStartPos.y, boxEndPos.y) };
-			const CU::Vector2f selectionBoxMax = { CU::Math::Max(boxStartPos.x, boxEndPos.x), CU::Math::Max(boxStartPos.y, boxEndPos.y) };
-
-			ImDrawList* draw_list = ImGui::GetWindowDrawList();
-
-			draw_list->AddRectFilled(ImVec2(selectionBoxMin.x, selectionBoxMin.y), ImVec2(selectionBoxMax.x, selectionBoxMax.y), Colors::Theme::dragBoxFill);
-			draw_list->AddRect(ImVec2(selectionBoxMin.x, selectionBoxMin.y), ImVec2(selectionBoxMax.x, selectionBoxMax.y), Colors::Theme::dragBoxFrame);
-		}
+		//if (!myViewportFocused) return;
+		//if (ImGuizmo::IsOver()) return;
+		//
+		//static bool dragging = false;
+		//static CU::Vector2f boxStartPos;
+		//static CU::Vector2f boxEndPos;
+		//static CU::Vector2f dragStartPos;
+		//static CU::Vector2f dragEndPos;
+		//
+		//const bool ctrlDown = Input::IsKeyHeld(KeyCode::LeftControl);
+		//const bool shiftDown = Input::IsKeyHeld(KeyCode::LeftShift);
+		//const bool shiftReleased = Input::IsKeyReleased(KeyCode::LeftShift);
+		//
+		//if (shiftDown && Input::IsMouseButtonPressed(MouseButton::Left))
+		//{
+		//	dragging = true;
+		//	ImGui::ClearActiveID();
+		//
+		//	auto mousePos = ImGui::GetMousePos();
+		//	boxStartPos.x = mousePos.x;
+		//	boxStartPos.y = mousePos.y;
+		//
+		//	auto [px, py] = GetMouseViewportCord();
+		//	dragStartPos = CU::Vector2f(px, py);
+		//}
+		//else if ((shiftReleased && dragging) || (Input::IsMouseButtonReleased(MouseButton::Left) && dragging))
+		//{
+		//	dragging = false;
+		//
+		//	auto [px, py] = GetMouseViewportCord();
+		//	dragEndPos = CU::Vector2f(px, py);
+		//
+		//	const CU::Vector2f selectionBoxMin = { CU::Math::Min(dragStartPos.x, dragEndPos.x), CU::Math::Min(dragStartPos.y, dragEndPos.y) };
+		//	const CU::Vector2f selectionBoxMax = { CU::Math::Max(dragStartPos.x, dragEndPos.x), CU::Math::Max(dragStartPos.y, dragEndPos.y) };
+		//	
+		//	const CU::Vector2f boxSize = selectionBoxMax - selectionBoxMin;
+		//	if (boxSize.x > 0 && boxSize.y > 0)
+		//	{
+		//		auto IDBuffer = mySceneRenderer->GetEntityIDTexture();
+		//		auto pixelData = IDBuffer->ReadData((uint32_t)boxSize.x, (uint32_t)boxSize.y, (uint32_t)selectionBoxMin.x, (uint32_t)selectionBoxMin.y);
+		//		if (pixelData)
+		//		{
+		//			std::set<uint32_t> ids;
+		//			for (size_t i = 0; i < pixelData.size; i += 4)
+		//			{
+		//				uint32_t id = pixelData.Read<uint32_t>(i);
+		//				if (id == 0) continue;
+		//				ids.insert(id - 1);
+		//			}
+		//			pixelData.Release();
+		//
+		//			if (!ctrlDown)
+		//			{
+		//				SelectionManager::DeselectAll(SelectionContext::Entity);
+		//			}
+		//
+		//			for (uint32_t id : ids)
+		//			{
+		//				Entity clickedEntity = Entity((entt::entity)id, myActiveScene.get());
+		//				if (!clickedEntity || !myActiveScene->IsEntityValid(clickedEntity)) continue;
+		//
+		//				if (ctrlDown && SelectionManager::IsSelected(SelectionContext::Entity, clickedEntity.GetUUID()))
+		//				{
+		//					SelectionManager::Deselect(SelectionContext::Entity, clickedEntity.GetUUID());
+		//				}
+		//				else
+		//				{
+		//					SelectionManager::Select(SelectionContext::Entity, clickedEntity.GetUUID());
+		//				}
+		//			}
+		//		}
+		//	}
+		//}
+		//
+		//if (dragging)
+		//{
+		//	auto mousePos = ImGui::GetMousePos();
+		//	boxEndPos.x = mousePos.x;
+		//	boxEndPos.y = mousePos.y;
+		//
+		//	const CU::Vector2f selectionBoxMin = { CU::Math::Min(boxStartPos.x, boxEndPos.x), CU::Math::Min(boxStartPos.y, boxEndPos.y) };
+		//	const CU::Vector2f selectionBoxMax = { CU::Math::Max(boxStartPos.x, boxEndPos.x), CU::Math::Max(boxStartPos.y, boxEndPos.y) };
+		//
+		//	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+		//
+		//	draw_list->AddRectFilled(ImVec2(selectionBoxMin.x, selectionBoxMin.y), ImVec2(selectionBoxMax.x, selectionBoxMax.y), Colors::Theme::dragBoxFill);
+		//	draw_list->AddRect(ImVec2(selectionBoxMin.x, selectionBoxMin.y), ImVec2(selectionBoxMax.x, selectionBoxMax.y), Colors::Theme::dragBoxFrame);
+		//}
 	}
 
 	void EditorLayer::HandleAssetDrop()
@@ -1981,7 +1805,7 @@ namespace Epoch
 		ToolbarPanel();
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-		ImGui::Begin(std::format("{}  Viewport", EP_ICON_DESKTOP).c_str());
+		ImGui::Begin(VIEWPORT_PANEL_ID);
 
 		if (staticFocusOnViewport)
 		{
@@ -2164,6 +1988,173 @@ namespace Epoch
 	void EditorLayer::OnEntityDeleted(Entity aEntity)
 	{
 		SelectionManager::Deselect(SelectionContext::Entity, aEntity.GetUUID());
+	}
+
+	bool EditorLayer::OnKeyPressedEvent(KeyPressedEvent& aEvent)
+	{
+		if (mySceneState == SceneState::Edit && (!Input::IsMouseButtonHeld(MouseButton::Right) && !Input::IsMouseButtonHeld(MouseButton::Middle)))
+		{
+			if (Input::IsKeyHeld(KeyCode::LeftControl))
+			{
+				switch (aEvent.GetKeyCode())
+				{
+				case KeyCode::O:
+					OpenScene();
+					break;
+				case KeyCode::N:
+					NewScene();
+					break;
+				case KeyCode::S:
+				{
+					if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
+					{
+						SaveSceneAs();
+					}
+					else
+					{
+						SaveScene();
+					}
+					break;
+				}
+				}
+			}
+
+			if (myViewportHovered && !ImGui::IsAnyItemActive())
+			{
+				switch (aEvent.GetKeyCode())
+				{
+				case KeyCode::Q:
+					myGizmoOperation = GizmoOperation::None;
+					break;
+				case KeyCode::W:
+					myGizmoOperation = GizmoOperation::Translate;
+					break;
+				case KeyCode::E:
+					myGizmoOperation = GizmoOperation::Rotate;
+					break;
+				case KeyCode::R:
+					myGizmoOperation = GizmoOperation::Scale;
+					break;
+				case KeyCode::F:
+				{
+					if (SelectionManager::GetSelectionCount(SelectionContext::Entity) == 1)
+					{
+						Entity entity = myActiveScene->GetEntityWithUUID(SelectionManager::GetSelections(SelectionContext::Entity)[0]);
+						myEditorCamera.Focus(entity.GetWorldSpaceTransform().GetTranslation());
+					}
+					break;
+				}
+				case KeyCode::X:
+				{
+					const bool isLocal = EditorSettings::Get().axisOrientationMode == AxisOrientationMode::Local;
+					EditorSettings::Get().axisOrientationMode = isLocal ? AxisOrientationMode::World : AxisOrientationMode::Local;
+					break;
+				}
+				}
+			}
+		}
+
+		if (UI::IsWindowFocused(VIEWPORT_PANEL_ID) || UI::IsWindowFocused(SCENE_HIERARCHY_PANEL_ID))
+		{
+			switch (aEvent.GetKeyCode())
+			{
+			case KeyCode::Delete:
+			{
+				auto selection = SelectionManager::GetSelections(SelectionContext::Entity);
+
+				for (auto entityID : selection)
+				{
+					auto entity = myActiveScene->TryGetEntityWithUUID(entityID);
+					if (!entity) continue;
+					myActiveScene->DestroyEntity(entity);
+				}
+
+				break;
+			}
+			case KeyCode::D:
+			{
+				if (!Input::IsMouseButtonHeld(MouseButton::Right) && !Input::IsMouseButtonHeld(MouseButton::Middle) && ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
+				{
+					auto selection = SelectionManager::GetSelections(SelectionContext::Entity);
+					for (const auto& entityID : selection)
+					{
+						Entity entity = myActiveScene->GetEntityWithUUID(entityID);
+
+						Entity duplicate = myActiveScene->DuplicateEntity(entity);
+						SelectionManager::Deselect(SelectionContext::Entity, entity.GetUUID());
+						SelectionManager::Select(SelectionContext::Entity, duplicate.GetUUID());
+					}
+				}
+
+				break;
+			}
+			}
+		}
+
+		if (aEvent.GetKeyCode() == KeyCode::P && Input::IsKeyHeld(KeyCode::LeftAlt) && myViewportHovered)
+		{
+			if (mySceneState == SceneState::Play)
+			{
+				OnSceneStop();
+			}
+			else
+			{
+				OnScenePlay();
+			}
+		}
+
+		return false;
+	}
+
+	bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent& aEvent)
+	{
+		if (aEvent.GetMouseButton() != MouseButton::Left) return false;
+		if (mySceneState != SceneState::Edit) return false;
+		if (!myViewportFocused) return false;
+		if (ImGuizmo::IsOver()) return false;
+		if (!MouseInViewport()) return false;
+		if (Input::IsKeyHeld(KeyCode::LeftShift)) return false;
+
+		const bool ctrlDown = Input::IsKeyHeld(KeyCode::LeftControl);
+
+		ImGui::ClearActiveID();
+
+		auto [px, py] = GetMouseViewportCord();
+
+		auto IDBuffer = mySceneRenderer->GetEntityIDTexture();
+		auto pixelData = IDBuffer->ReadData(1, 1, (uint32_t)px, (uint32_t)py);
+		if (!pixelData)
+		{
+			return false;
+		}
+
+		uint32_t id = *pixelData.As<uint32_t>();
+		pixelData.Release();
+		if (id == 0)
+		{
+			SelectionManager::DeselectAll(SelectionContext::Entity);
+		}
+		else
+		{
+			Entity clickedEntity = Entity((entt::entity)(id - 1), myActiveScene.get());
+			if (!clickedEntity || !myActiveScene->IsEntityValid(clickedEntity)) return false;
+
+			if (!ctrlDown)
+			{
+				SelectionManager::DeselectAll(SelectionContext::Entity);
+			}
+
+			if (ctrlDown && SelectionManager::IsSelected(SelectionContext::Entity, clickedEntity.GetUUID()))
+			{
+				SelectionManager::Deselect(SelectionContext::Entity, clickedEntity.GetUUID());
+			}
+			else
+			{
+				SelectionManager::Select(SelectionContext::Entity, clickedEntity.GetUUID());
+			}
+		}
+
+		return false;
 	}
 
 	void EditorLayer::OnSetToEditorCameraTransform(Entity aEntity)

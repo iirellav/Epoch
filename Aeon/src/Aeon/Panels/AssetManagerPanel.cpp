@@ -3,6 +3,7 @@
 #include <Epoch/ImGui/ImGui.h>
 #include <Epoch/Debug/Instrumentor.h>
 #include <Epoch/Project/Project.h>
+#include <Epoch/Editor/PanelIDs.h>
 
 namespace Epoch
 {
@@ -24,7 +25,7 @@ namespace Epoch
 
 		if (!aIsOpen) return;
 
-		ImGui::Begin("Asset Registry", &aIsOpen);
+		ImGui::Begin(ASSET_MANAGER_PANEL_ID, &aIsOpen);
 
 		static std::string searchString;
 		ImGui::InputTextWithHint("##Search", "Search...", &searchString, ImGuiInputTextFlags_AutoSelectAll);

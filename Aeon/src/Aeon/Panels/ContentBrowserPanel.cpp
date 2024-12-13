@@ -16,7 +16,7 @@
 #include <Epoch/Rendering/Material.h>
 #include <Epoch/Editor/EditorSettings.h>
 #include <Epoch/Editor/SelectionManager.h>
-#include <Epoch/Editor/FontAwesome.h>
+#include <Epoch/Editor/PanelIDs.h>
 #include "Aeon/EditorResources.h"
 
 namespace Epoch
@@ -49,7 +49,7 @@ namespace Epoch
 		myAnEntryHovered = false;
 		myDeleteSelected = false;
 
-		ImGui::Begin(std::format("{}  Content Browser", EP_ICON_INBOX).c_str());
+		ImGui::Begin(CONTENT_BROWSER_PANEL_ID);
 
 		if (myBaseDirectory.empty())
 		{

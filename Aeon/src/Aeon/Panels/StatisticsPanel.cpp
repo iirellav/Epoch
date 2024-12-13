@@ -7,14 +7,14 @@
 #include <Epoch/Scene/SceneRenderer.h>
 #include <Epoch/Rendering/DebugRenderer.h>
 #include <Epoch/Rendering/Font.h>
-#include <Epoch/Editor/FontAwesome.h>
+#include <Epoch/Editor/PanelIDs.h>
 #include "../EditorResources.h"
 
 namespace Epoch
 {
 	void StatisticsPanel::OnImGuiRender(bool& aIsOpen)
 	{
-		ImGui::Begin(std::format("{}  Statistics", EP_ICON_SIGNAL).c_str(), &aIsOpen);
+		ImGui::Begin(STATISTICS_PANEL_ID, &aIsOpen);
 
 		//Profiler
 		{

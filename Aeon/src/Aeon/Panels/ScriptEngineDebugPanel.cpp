@@ -2,6 +2,7 @@
 #include <Epoch/ImGui/ImGui.h>
 #include <Epoch/Script/ScriptCache.h>
 #include <Epoch/Script/ScriptEngine.h>
+#include <Epoch/Editor/PanelIDs.h>
 
 namespace Epoch
 {
@@ -9,7 +10,7 @@ namespace Epoch
 
 	void ScriptEngineDebugPanel::OnImGuiRender(bool& aIsOpen)
 	{
-		ImGui::Begin("Script Engine", &aIsOpen);
+		ImGui::Begin(SCRIPT_ENGINE_DEBUG_PANEL_ID, &aIsOpen);
 
 		if (UI::PropertyGridHeader(fmt::format("Loaded Assemblies ({})", staticLoadedAssembliesMetadata.size()), false))
 		{

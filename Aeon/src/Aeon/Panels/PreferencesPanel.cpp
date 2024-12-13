@@ -2,11 +2,11 @@
 #include <CommonUtilities/Math/CommonMath.hpp>
 #include <Epoch/ImGui/ImGui.h>
 #include <Epoch/Editor/EditorSettings.h>
-#include <Epoch/Editor/FontAwesome.h>
+#include <Epoch/Editor/PanelIDs.h>
 
 namespace Epoch
 {
-	PreferencesPanel::PreferencesPanel() : PagePanel(std::format("{}  Preferences", EP_ICON_COG).c_str())
+	PreferencesPanel::PreferencesPanel() : PagePanel(PREFERENCES_PANEL_ID)
 	{
 		myPages.push_back({ "General", [this](){ DrawGeneralPage(); }});
 		myPages.push_back({ "Level Editor", [this](){ DrawLevelEditorPage(); }});

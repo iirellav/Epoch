@@ -10,7 +10,7 @@
 #include <Epoch/Rendering/Environment.h>
 #include <Epoch/Script/ScriptEngine.h>
 #include <Epoch/Script/ScriptAsset.h>
-#include <Epoch/Editor/FontAwesome.h>
+#include <Epoch/Editor/PanelIDs.h>
 
 namespace Epoch
 {
@@ -32,7 +32,7 @@ namespace Epoch
 	{
 		EPOCH_PROFILE_FUNC();
 
-		ImGui::Begin(std::format("{}  Scene Hierarchy", EP_ICON_LIST).c_str());
+		ImGui::Begin(SCENE_HIERARCHY_PANEL_ID);
 		ImRect windowRect = { ImGui::GetWindowContentRegionMin(), ImGui::GetWindowContentRegionMax() };
 
 		if (myContext)

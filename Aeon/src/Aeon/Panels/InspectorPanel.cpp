@@ -2,7 +2,7 @@
 #include <CommonUtilities/StringUtils.h>
 #include <Epoch/ImGui/ImGui.h>
 #include <Epoch/Editor/SelectionManager.h>
-#include <Epoch/Editor/FontAwesome.h>
+#include <Epoch/Editor/PanelIDs.h>
 #include <Epoch/Rendering/Material.h>
 #include <Epoch/Rendering/Texture.h>
 
@@ -19,7 +19,7 @@ namespace Epoch
 	{
 		EPOCH_PROFILE_FUNC();
 
-		ImGui::Begin(std::format("{}  Inspector", EP_ICON_INFO_CIRCLE).c_str(), &aIsOpen);
+		ImGui::Begin(INSPECTOR_PANEL_ID, &aIsOpen);
 		
 		size_t selectionCount = SelectionManager::GetSelectionCount(SelectionContext::Asset);
 		if (selectionCount > 1)

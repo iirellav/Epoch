@@ -2,7 +2,7 @@
 #include <Epoch/ImGui/ImGui.h>
 #include <Epoch/Rendering/Renderer.h>
 #include <Epoch/Rendering/Shader.h>
-#include <Epoch/Editor/FontAwesome.h>
+#include <Epoch/Editor/PanelIDs.h>
 
 namespace Epoch
 {
@@ -10,7 +10,7 @@ namespace Epoch
 	{
 		auto& shaders = Renderer::GetShaderLibrary()->GetShaders();
 
-		ImGui::Begin(std::format("{}  Shader Library", EP_ICON_BOOK).c_str(), &aIsOpen);
+		ImGui::Begin(SHADER_LIBRARY_PANEL_ID, &aIsOpen);
 
 		static std::string searchString;
 		ImGui::InputTextWithHint("##Search", "Search...", &searchString, ImGuiInputTextFlags_AutoSelectAll);

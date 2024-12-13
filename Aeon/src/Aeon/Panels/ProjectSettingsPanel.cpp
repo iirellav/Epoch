@@ -3,11 +3,11 @@
 #include <Epoch/Project/Project.h>
 #include <Epoch/Project/ProjectSerializer.h>
 #include <Epoch/Physics/PhysicsSystem.h>
-#include <Epoch/Editor/FontAwesome.h>
+#include <Epoch/Editor/PanelIDs.h>
 
 namespace Epoch
 {
-	ProjectSettingsPanel::ProjectSettingsPanel() : PagePanel(std::format("{}  Project Settings", EP_ICON_COG).c_str())
+	ProjectSettingsPanel::ProjectSettingsPanel() : PagePanel(PROJECT_SETTINGS_PANEL_ID)
 	{
 		myPages.push_back({ "General", [this](){ DrawGeneralPage(); }});
 		myPages.push_back({ "Renderer", [this](){ DrawRendererPage(); }});

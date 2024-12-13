@@ -1,8 +1,8 @@
 #include "epch.h"
 #include "EditorConsolePanel.h"
 #include "Epoch/ImGui/Colors.h"
-#include "Epoch/Editor/FontAwesome.h"
 #include "Epoch/Editor/EditorSettings.h"
+#include "Epoch/Editor/PanelIDs.h"
 
 namespace Epoch
 {
@@ -25,7 +25,7 @@ namespace Epoch
 	{
 		if (!aIsOpen) return;
 
-		ImGui::Begin(std::format("{}  Console", EP_ICON_LIST_ALT).c_str());
+		ImGui::Begin(CONSOLE_PANEL_ID);
 
 		ImVec2 consoleSize = ImGui::GetContentRegionAvail();
 		consoleSize.y -= 32.0f;
