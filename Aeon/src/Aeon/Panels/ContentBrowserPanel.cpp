@@ -268,8 +268,6 @@ namespace Epoch
 
 	void ContentBrowserPanel::OnEvent(Event& aEvent)
 	{
-		if (!myIsContentBrowserHovered) return;
-
 		EventDispatcher dispatcher(aEvent);
 		dispatcher.Dispatch<EditorFileDroppedEvent>([this](EditorFileDroppedEvent& aEvent) { return ImportAssets(aEvent.GetPaths()); });
 	}
