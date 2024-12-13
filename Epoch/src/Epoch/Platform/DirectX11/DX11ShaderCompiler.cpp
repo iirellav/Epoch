@@ -128,16 +128,6 @@ namespace Epoch
 		return true;
 	}
 
-	static void ReplaceToken(std::string& outString, const char* aToken, const std::string& aValue)
-	{
-		size_t pos = 0;
-		while ((pos = outString.find(aToken, pos)) != std::string::npos)
-		{
-			outString.replace(pos, strlen(aToken), aValue);
-			pos += strlen(aToken);
-		}
-	}
-
 	bool DX11ShaderCompiler::PreProcess(const std::string& aSource)
 	{
 		EPOCH_PROFILE_FUNC();
@@ -159,11 +149,6 @@ namespace Epoch
 
 			myShaderSources[ShaderTypeFromString(stage)] = (pos == std::string::npos) ? aSource.substr(nextLinePos) : aSource.substr(nextLinePos, pos - nextLinePos);
 		}
-
-		//for (auto&& [stage, source] : myShaderSources)
-		//{
-		//	ReplaceToken(source, "#include \"", "#include \"Resources/Shaders/");
-		//}
 
 		return true;
 	}

@@ -67,6 +67,8 @@ namespace CU
 	int SkipBOM(std::istream& aIn);
 	std::string ReadFileAndSkipBOM(const std::filesystem::path& aFilepath);
 
+	void ReplaceToken(std::string& outStr, const char* aToken, const std::string& aValue);
+
 	///=====================///
 	/// Constexpr Utilities ///
 	///=====================///

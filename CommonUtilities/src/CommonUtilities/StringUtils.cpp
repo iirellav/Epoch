@@ -164,4 +164,14 @@ namespace CU
 		in.close();
 		return result;
 	}
+
+	void ReplaceToken(std::string& outStr, const char* aToken, const std::string& aValue)
+	{
+		size_t pos = 0;
+		while ((pos = outStr.find(aToken, pos)) != std::string::npos)
+		{
+			outStr.replace(pos, strlen(aToken), aValue);
+			pos += strlen(aToken);
+		}
+	}
 }

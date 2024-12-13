@@ -1252,16 +1252,6 @@ namespace Epoch
 		return 0.0f;
 	}
 
-	static void ReplaceToken(std::string& outStr, const char* aToken, const std::string& aValue)
-	{
-		size_t pos = 0;
-		while ((pos = outStr.find(aToken, pos)) != std::string::npos)
-		{
-			outStr.replace(pos, strlen(aToken), aValue);
-			pos += strlen(aToken);
-		}
-	}
-
 	void EditorLayer::CreateProject(const std::filesystem::path& aPath)
 	{
 		EPOCH_PROFILE_FUNC();
@@ -1284,7 +1274,7 @@ namespace Epoch
 			stream.close();
 
 			std::string str = ss.str();
-			ReplaceToken(str, "$PROJECT_NAME$", projName);
+			CU::ReplaceToken(str, "$PROJECT_NAME$", projName);
 
 			std::ofstream ostream(aPath / "premake5.lua");
 			ostream << str;

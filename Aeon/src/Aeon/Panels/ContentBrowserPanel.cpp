@@ -22,6 +22,8 @@
 
 namespace Epoch
 {
+	static bool staticOpenNewScriptPopup = false;
+
 	void ContentBrowserPanel::Init()
 	{
 		myAssetIconMap[""]			= EditorResources::DirectoryIcon;
@@ -41,8 +43,6 @@ namespace Epoch
 		myAssetIconMap[".ttf"]		= EditorResources::FontIcon;
 	}
 
-	static bool staticOpenNewScriptPopup = false;
-
 	void ContentBrowserPanel::OnImGuiRender(bool& aIsOpen)
 	{
 		EPOCH_PROFILE_FUNC();
@@ -51,9 +51,6 @@ namespace Epoch
 		myDeleteSelected = false;
 
 		ImGui::Begin(CONTENT_BROWSER_PANEL_ID);
-
-		myIsContentBrowserHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
-		myIsContentBrowserFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
 
 		if (myBaseDirectory.empty())
 		{

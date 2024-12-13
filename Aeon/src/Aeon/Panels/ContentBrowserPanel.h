@@ -61,8 +61,6 @@ namespace Epoch
 			return CreateAssetInDirectory<T>(aFilename, myCurrentDirectory, std::forward<Args>(aArgs)...);
 		}
 
-		// NOTE: This should only be used within the ContentBrowserPanel!
-		//		 For creating a new asset outside the content browser, use AssetManager::CreateNewAsset!
 		template<typename T, typename... Args>
 		std::shared_ptr<T> CreateAssetInDirectory(const std::string& aFilename, const std::filesystem::path& aDirectory, Args&&... aArgs)
 		{
@@ -90,9 +88,6 @@ namespace Epoch
 		std::filesystem::path myCurrentDirectory;
 
 		std::shared_ptr<Scene> mySceneContext;
-
-		bool myIsContentBrowserHovered = false;
-		bool myIsContentBrowserFocused = false;
 
 		bool myRefresh = false;
 		bool myDeleteSelected = false;
