@@ -13,7 +13,7 @@ namespace Epoch
 		std::string productName = "Untitled";
 		std::string name = "Untitled";
 		std::string companyName = "";
-		float version = 0.1f;
+		std::string version = "1.0.0";
 
 		std::filesystem::path startScene;
 		CU::Vector3f editorCameraPosition;

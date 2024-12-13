@@ -24,6 +24,9 @@ namespace Epoch
 
 		modified |= UI::Property_InputText("Product Name", config.productName);
 		modified |= UI::Property_InputText("Company Name", config.companyName);
+		modified |= UI::Property_InputText("Version", config.version);
+
+		UI::Spacing();
 
 		modified |= UI::Property_InputText("Default Namespace", config.defaultScriptNamespace);
 

@@ -84,7 +84,7 @@ namespace Epoch
 		aConfig.projectDirectory = projectPath.parent_path().string();
 		
 		aConfig.companyName = rootNode["CompanyName"].as<std::string>("");
-		aConfig.version = rootNode["Version"].as<float>(0.1f);
+		aConfig.version = rootNode["Version"].as<std::string>(aConfig.version);
 
 		aConfig.startScene = rootNode["StartScene"].as<std::string>("");
 		aConfig.editorCameraPosition = rootNode["EditorCameraPosition"].as<CU::Vector3f>(CU::Vector3f::Zero);
@@ -183,7 +183,7 @@ namespace Epoch
 		aConfig.projectDirectory = projectPath.parent_path().string();
 		
 		aConfig.companyName = rootNode["CompanyName"].as<std::string>("");
-		aConfig.version = rootNode["Version"].as<float>(0.1f);
+		aConfig.version = rootNode["Version"].as<std::string>(aConfig.version);
 
 		physicsSettings.fixedTimestep = rootNode["FixedTimestep"].as<float>(1.0f/60.0f);
 		physicsSettings.gravity = rootNode["Gravity"].as<CU::Vector3f>(CU::Vector3f(0.0f, -982.0f, 0.0f));
