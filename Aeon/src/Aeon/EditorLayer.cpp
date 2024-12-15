@@ -1290,7 +1290,7 @@ namespace Epoch
 			stream.close();
 
 			std::string str = ss.str();
-			ReplaceToken(str, "$PROJECT_NAME$", projName);
+			CU::ReplaceToken(str, "$PROJECT_NAME$", projName);
 
 			std::ofstream ostream(aPath / "Project.eproj");
 			ostream << str;
