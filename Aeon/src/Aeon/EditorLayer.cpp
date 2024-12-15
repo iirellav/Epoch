@@ -2077,94 +2077,99 @@ namespace Epoch
 
 	void EditorLayer::UpdateViewportBoxSelection()
 	{
-		//if (!myViewportFocused) return;
-		//if (ImGuizmo::IsOver()) return;
-		//
-		//static bool dragging = false;
-		//static CU::Vector2f boxStartPos;
-		//static CU::Vector2f boxEndPos;
-		//static CU::Vector2f dragStartPos;
-		//static CU::Vector2f dragEndPos;
-		//
-		//const bool ctrlDown = Input::IsKeyHeld(KeyCode::LeftControl);
-		//const bool shiftDown = Input::IsKeyHeld(KeyCode::LeftShift);
-		//const bool shiftReleased = Input::IsKeyReleased(KeyCode::LeftShift);
-		//
-		//if (shiftDown && Input::IsMouseButtonPressed(MouseButton::Left))
-		//{
-		//	dragging = true;
-		//	ImGui::ClearActiveID();
-		//
-		//	auto mousePos = ImGui::GetMousePos();
-		//	boxStartPos.x = mousePos.x;
-		//	boxStartPos.y = mousePos.y;
-		//
-		//	auto [px, py] = GetMouseViewportCord();
-		//	dragStartPos = CU::Vector2f(px, py);
-		//}
-		//else if ((shiftReleased && dragging) || (Input::IsMouseButtonReleased(MouseButton::Left) && dragging))
-		//{
-		//	dragging = false;
-		//
-		//	auto [px, py] = GetMouseViewportCord();
-		//	dragEndPos = CU::Vector2f(px, py);
-		//
-		//	const CU::Vector2f selectionBoxMin = { CU::Math::Min(dragStartPos.x, dragEndPos.x), CU::Math::Min(dragStartPos.y, dragEndPos.y) };
-		//	const CU::Vector2f selectionBoxMax = { CU::Math::Max(dragStartPos.x, dragEndPos.x), CU::Math::Max(dragStartPos.y, dragEndPos.y) };
-		//	
-		//	const CU::Vector2f boxSize = selectionBoxMax - selectionBoxMin;
-		//	if (boxSize.x > 0 && boxSize.y > 0)
-		//	{
-		//		auto IDBuffer = mySceneRenderer->GetEntityIDTexture();
-		//		auto pixelData = IDBuffer->ReadData((uint32_t)boxSize.x, (uint32_t)boxSize.y, (uint32_t)selectionBoxMin.x, (uint32_t)selectionBoxMin.y);
-		//		if (pixelData)
-		//		{
-		//			std::set<uint32_t> ids;
-		//			for (size_t i = 0; i < pixelData.size; i += 4)
-		//			{
-		//				uint32_t id = pixelData.Read<uint32_t>(i);
-		//				if (id == 0) continue;
-		//				ids.insert(id - 1);
-		//			}
-		//			pixelData.Release();
-		//
-		//			if (!ctrlDown)
-		//			{
-		//				SelectionManager::DeselectAll(SelectionContext::Entity);
-		//			}
-		//
-		//			for (uint32_t id : ids)
-		//			{
-		//				Entity clickedEntity = Entity((entt::entity)id, myActiveScene.get());
-		//				if (!clickedEntity || !myActiveScene->IsEntityValid(clickedEntity)) continue;
-		//
-		//				if (ctrlDown && SelectionManager::IsSelected(SelectionContext::Entity, clickedEntity.GetUUID()))
-		//				{
-		//					SelectionManager::Deselect(SelectionContext::Entity, clickedEntity.GetUUID());
-		//				}
-		//				else
-		//				{
-		//					SelectionManager::Select(SelectionContext::Entity, clickedEntity.GetUUID());
-		//				}
-		//			}
-		//		}
-		//	}
-		//}
-		//
-		//if (dragging)
-		//{
-		//	auto mousePos = ImGui::GetMousePos();
-		//	boxEndPos.x = mousePos.x;
-		//	boxEndPos.y = mousePos.y;
-		//
-		//	const CU::Vector2f selectionBoxMin = { CU::Math::Min(boxStartPos.x, boxEndPos.x), CU::Math::Min(boxStartPos.y, boxEndPos.y) };
-		//	const CU::Vector2f selectionBoxMax = { CU::Math::Max(boxStartPos.x, boxEndPos.x), CU::Math::Max(boxStartPos.y, boxEndPos.y) };
-		//
-		//	ImDrawList* draw_list = ImGui::GetWindowDrawList();
-		//
-		//	draw_list->AddRectFilled(ImVec2(selectionBoxMin.x, selectionBoxMin.y), ImVec2(selectionBoxMax.x, selectionBoxMax.y), Colors::Theme::dragBoxFill);
-		//	draw_list->AddRect(ImVec2(selectionBoxMin.x, selectionBoxMin.y), ImVec2(selectionBoxMax.x, selectionBoxMax.y), Colors::Theme::dragBoxFrame);
-		//}
+		static bool dragging = false;
+		static CU::Vector2f boxStartPos;
+		static CU::Vector2f boxEndPos;
+		static CU::Vector2f dragStartPos;
+		static CU::Vector2f dragEndPos;
+
+		if (mySceneState != SceneState::Edit ||
+			!myViewportFocused ||
+			(!dragging && ImGuizmo::IsOver()) ||
+			!MouseInViewport())
+		{
+			return;
+		}
+
+		const bool ctrlDown = Input::IsKeyHeld(KeyCode::LeftControl);
+		const bool shiftDown = Input::IsKeyHeld(KeyCode::LeftShift);
+		const bool shiftReleased = Input::IsKeyReleased(KeyCode::LeftShift);
+		
+		if (shiftDown && Input::IsMouseButtonPressed(MouseButton::Left))
+		{
+			dragging = true;
+			ImGui::ClearActiveID();
+		
+			auto mousePos = ImGui::GetMousePos();
+			boxStartPos.x = mousePos.x;
+			boxStartPos.y = mousePos.y;
+		
+			auto [px, py] = GetMouseViewportCord();
+			dragStartPos = CU::Vector2f(px, py);
+		}
+		else if ((shiftReleased && dragging) || (Input::IsMouseButtonReleased(MouseButton::Left) && dragging))
+		{
+			dragging = false;
+		
+			auto [px, py] = GetMouseViewportCord();
+			dragEndPos = CU::Vector2f(px, py);
+		
+			const CU::Vector2f selectionBoxMin = { CU::Math::Min(dragStartPos.x, dragEndPos.x), CU::Math::Min(dragStartPos.y, dragEndPos.y) };
+			const CU::Vector2f selectionBoxMax = { CU::Math::Max(dragStartPos.x, dragEndPos.x), CU::Math::Max(dragStartPos.y, dragEndPos.y) };
+			
+			const CU::Vector2f boxSize = selectionBoxMax - selectionBoxMin;
+			if (boxSize.x > 0 && boxSize.y > 0)
+			{
+				auto IDBuffer = mySceneRenderer->GetEntityIDTexture();
+				auto pixelData = IDBuffer->ReadData((uint32_t)boxSize.x, (uint32_t)boxSize.y, (uint32_t)selectionBoxMin.x, (uint32_t)selectionBoxMin.y);
+				if (pixelData)
+				{
+					std::set<uint32_t> ids;
+					for (size_t i = 0; i < pixelData.size; i += 4)
+					{
+						uint32_t id = pixelData.Read<uint32_t>(i);
+						if (id == 0) continue;
+						ids.insert(id - 1);
+					}
+					pixelData.Release();
+		
+					if (!ctrlDown)
+					{
+						SelectionManager::DeselectAll(SelectionContext::Entity);
+					}
+		
+					for (uint32_t id : ids)
+					{
+						Entity clickedEntity = Entity((entt::entity)id, myActiveScene.get());
+						if (!clickedEntity || !myActiveScene->IsEntityValid(clickedEntity)) continue;
+		
+						if (ctrlDown && SelectionManager::IsSelected(SelectionContext::Entity, clickedEntity.GetUUID()))
+						{
+							SelectionManager::Deselect(SelectionContext::Entity, clickedEntity.GetUUID());
+						}
+						else
+						{
+							SelectionManager::Select(SelectionContext::Entity, clickedEntity.GetUUID());
+						}
+					}
+				}
+			}
+		}
+		
+		if (dragging)
+		{
+			auto mousePos = ImGui::GetMousePos();
+			boxEndPos.x = mousePos.x;
+			boxEndPos.y = mousePos.y;
+		
+			const CU::Vector2f selectionBoxMin = { CU::Math::Min(boxStartPos.x, boxEndPos.x), CU::Math::Min(boxStartPos.y, boxEndPos.y) };
+			const CU::Vector2f selectionBoxMax = { CU::Math::Max(boxStartPos.x, boxEndPos.x), CU::Math::Max(boxStartPos.y, boxEndPos.y) };
+		
+			ImDrawList* draw_list = ImGui::GetWindowDrawList();
+		
+			draw_list->AddRectFilled(ImVec2(selectionBoxMin.x, selectionBoxMin.y), ImVec2(selectionBoxMax.x, selectionBoxMax.y), Colors::Theme::dragBoxFill);
+			draw_list->AddRect(ImVec2(selectionBoxMin.x, selectionBoxMin.y), ImVec2(selectionBoxMax.x, selectionBoxMax.y), Colors::Theme::dragBoxFrame);
+		}
 	}
 
 	void EditorLayer::OnSetToEditorCameraTransform(Entity aEntity)

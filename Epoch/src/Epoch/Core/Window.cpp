@@ -199,6 +199,11 @@ namespace Epoch
 				data.eventCallback(event);
 			});
 
+		glfwSetWindowFocusCallback(myWindow, [](GLFWwindow* window, int focused)
+			{
+
+			});
+
 		glfwSetDropCallback(myWindow, [](GLFWwindow* window, int path_count, const char* paths[])
 			{
 				auto& data = *((WindowData*)glfwGetWindowUserPointer(window));
@@ -287,6 +292,11 @@ namespace Epoch
 
 				MouseMovedEvent event((float)x, (float)y);
 				data.eventCallback(event);
+			});
+
+		glfwSetCursorEnterCallback(myWindow, [](GLFWwindow* window, int entered)
+			{
+
 			});
 
 		// Update window size to actual size

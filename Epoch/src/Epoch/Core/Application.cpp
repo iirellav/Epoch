@@ -92,7 +92,6 @@ namespace Epoch
 	void Application::OnEvent(Event& aEvent)
 	{
 		EventDispatcher dispatcher(aEvent);
-		dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent& e) { return OnWindowClose(e); });
 		dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& e) { return OnWindowResize(e); });
 		dispatcher.Dispatch<WindowMinimizeEvent>([this](WindowMinimizeEvent& e) { return OnWindowMinimize(e); });
 
@@ -104,6 +103,13 @@ namespace Epoch
 				break;
 			}
 		}
+
+		if (aEvent.IsHandled())
+		{
+			return;
+		}
+
+		dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent& e) { return OnWindowClose(e); });
 	}
 
 	void Application::PushLayer(Layer* aLayer)
