@@ -551,7 +551,11 @@ namespace Epoch
 			std::shared_ptr<Scene> scene = ScriptEngine::GetSceneContext();
 			EPOCH_ASSERT(scene, "No active scene!");
 			Entity parent = GetEntity(aEntityID);
-			if (!parent) return 0;
+			if (!parent)
+			{
+				MonoArray* result = ManagedArrayUtils::Create<Entity>(0);
+				return result;
+			}
 
 			const auto& children = parent.Children();
 			MonoArray* result = ManagedArrayUtils::Create<Entity>(children.size());
