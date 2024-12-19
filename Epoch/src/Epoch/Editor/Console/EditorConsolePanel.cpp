@@ -245,7 +245,7 @@ namespace Epoch
 				ImGui::TableNextColumn();
 				UI::ShiftCursorX(4.0f);
 				uint32_t msgCount = msgCountMap[msg.hash];
-				if (msgCount)
+				if (msgCount > 1u)
 				{
 					ImGui::TextWrapped("[%u] %s", msgCount, msg.message.c_str());
 				}

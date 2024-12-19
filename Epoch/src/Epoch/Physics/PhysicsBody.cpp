@@ -36,17 +36,17 @@ namespace Epoch
 		{
 			if (aEntity.HasComponent<BoxColliderComponent>())
 			{
-				myShapes[ShapeType::Box].push_back(BoxShape::Create(aEntity, myMass, !aIsFirst));
+				myShapes[Physics::ShapeType::Box].push_back(BoxShape::Create(aEntity, myMass, !aIsFirst));
 			}
 
 			if (aEntity.HasComponent<SphereColliderComponent>())
 			{
-				myShapes[ShapeType::Sphere].push_back(SphereShape::Create(aEntity, myMass, !aIsFirst));
+				myShapes[Physics::ShapeType::Sphere].push_back(SphereShape::Create(aEntity, myMass, !aIsFirst));
 			}
 
 			if (aEntity.HasComponent<CapsuleColliderComponent>())
 			{
-				myShapes[ShapeType::Capsule].push_back(CapsuleShape::Create(aEntity, myMass, !aIsFirst));
+				myShapes[Physics::ShapeType::Capsule].push_back(CapsuleShape::Create(aEntity, myMass, !aIsFirst));
 			}
 		}
 	}

@@ -72,6 +72,13 @@ namespace CU
 		myIsDirty = true;
 	}
 
+	void Transform::SetRotation(const CU::Quatf& aOrientation)
+	{
+		myRotationQuat = aOrientation;
+		myRotationEuler = aOrientation.GetEulerAngles();
+		myIsDirty = true;
+	}
+
 	void Transform::SetScale(const Vector3f& aScale)
 	{
 		myScale = aScale;

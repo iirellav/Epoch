@@ -37,13 +37,13 @@ namespace Epoch
 		virtual CU::Vector3f GetRotation() = 0;
 		virtual void SetRotation(CU::Vector3f aRotation) = 0;
 		
-		virtual PhysicsAxis GetConstraints() = 0;
-		virtual void SetConstraints(PhysicsAxis aConstraints) = 0;
+		virtual Physics::Axis GetConstraints() = 0;
+		virtual void SetConstraints(Physics::Axis aConstraints) = 0;
 
-		virtual void AddForce(CU::Vector3f aForce, ForceMode aForceMode = ForceMode::Force) = 0;
-		virtual void AddForceAtPosition(CU::Vector3f aForce, CU::Vector3f aPosition, ForceMode aForceMode = ForceMode::Force) = 0;
+		virtual void AddForce(CU::Vector3f aForce, Physics::ForceMode aForceMode = Physics::ForceMode::Force) = 0;
+		virtual void AddForceAtPosition(CU::Vector3f aForce, CU::Vector3f aPosition, Physics::ForceMode aForceMode = Physics::ForceMode::Force) = 0;
 
-		virtual void AddTorque(CU::Vector3f aTorque, ForceMode aForceMode = ForceMode::Force) = 0;
+		virtual void AddTorque(CU::Vector3f aTorque, Physics::ForceMode aForceMode = Physics::ForceMode::Force) = 0;
 
 		virtual void AddRadialImpulse(CU::Vector3f aOrigin, float aRadius, float aStrength) = 0;
 
@@ -54,6 +54,6 @@ namespace Epoch
 		Entity myEntity;
 		bool myIsStatic = true;
 		float myMass = 0.0f;
-		std::unordered_map<ShapeType, std::vector<std::shared_ptr<PhysicsShape>>> myShapes;
+		std::unordered_map<Physics::ShapeType, std::vector<std::shared_ptr<PhysicsShape>>> myShapes;
 	};
 }

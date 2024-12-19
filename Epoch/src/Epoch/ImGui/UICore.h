@@ -170,7 +170,9 @@ namespace Epoch::UI
 
 	bool Property_Dropdown(const char* aLabel, const char** aOptions, int aOptionCount, int& outSelected, const bool* aInconsistent, const char* aTooltip = "");
 
-	void Property_Gradient(const char* aLabel, CU::Gradient& outGradient, const char* aTooltip = "");
+	bool Property_Gradient(const char* aLabel, CU::Gradient& outGradient, const char* aTooltip = "");
+
+	bool Property_CubicBezier(const char* aLabel, const char* aTooltip = "");
 
 
 	static inline std::function<void(AssetHandle)> OnAssetReferenceDoubleClickedCallback;

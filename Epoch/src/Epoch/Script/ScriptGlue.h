@@ -1,4 +1,6 @@
 #pragma once
+#include <CommonUtilities/Math/Vector/Vector.h>
+#include <CommonUtilities/Color.h>
 #include "Epoch/Assets/Asset.h"
 #include "Epoch/Core/KeyCodes.h"
 #include "Epoch/Physics/SceneQueries.h"
@@ -218,6 +220,7 @@ namespace Epoch
 		bool Input_IsMouseButtonHeld(MouseButton aButton);
 		bool Input_IsMouseButtonReleased(MouseButton aButton);
 
+		void Input_GetMousePosition(CU::Vector2f* outPosition);
 		void Input_GetMouseDelta(CU::Vector2f* outDelta);
 		
 		CursorMode Input_GetCursorMode();
@@ -236,6 +239,9 @@ namespace Epoch
 #pragma region Physics
 
 		bool Physics_Raycast(CU::Vector3f* aOrigin, CU::Vector3f* aDirection, float aMaxDistance, HitInfo* outHitInfo);
+
+		bool Physics_SphereCast(CU::Vector3f* aOrigin, CU::Vector3f* aDirection, float aRadius, float aMaxDistance, HitInfo* outHitInfo);
+		MonoArray* Physics_OverlapSphere(CU::Vector3f* aOrigin, float aRadius);
 
 		void Physics_GetGravity(CU::Vector3f* outGravity);
 		void Physics_SetGravity(CU::Vector3f* aGravity);
@@ -270,13 +276,13 @@ namespace Epoch
 		void RigidbodyComponent_GetRotation(uint64_t aEntityID, CU::Vector3f* outRotation);
 		void RigidbodyComponent_SetRotation(uint64_t aEntityID, CU::Vector3f* aRotation);
 		
-		PhysicsAxis RigidbodyComponent_GetConstraints(uint64_t aEntityID);
-		void RigidbodyComponent_SetConstraints(uint64_t aEntityID, PhysicsAxis aConstraints);
+		Physics::Axis RigidbodyComponent_GetConstraints(uint64_t aEntityID);
+		void RigidbodyComponent_SetConstraints(uint64_t aEntityID, Physics::Axis aConstraints);
 
-		void RigidbodyComponent_AddForce(uint64_t aEntityID, CU::Vector3f* aForce, ForceMode aForceMode);
-		void RigidbodyComponent_AddForceAtPosition(uint64_t aEntityID, CU::Vector3f* aForce, CU::Vector3f* aPosition, ForceMode aForceMode);
+		void RigidbodyComponent_AddForce(uint64_t aEntityID, CU::Vector3f* aForce, Physics::ForceMode aForceMode);
+		void RigidbodyComponent_AddForceAtPosition(uint64_t aEntityID, CU::Vector3f* aForce, CU::Vector3f* aPosition, Physics::ForceMode aForceMode);
 
-		void RigidbodyComponent_AddTorque(uint64_t aEntityID, CU::Vector3f* aTorque, ForceMode aForceMode);
+		void RigidbodyComponent_AddTorque(uint64_t aEntityID, CU::Vector3f* aTorque, Physics::ForceMode aForceMode);
 
 		void RigidbodyComponent_Teleport(uint64_t aEntityID, CU::Vector3f* aTargetPosition, CU::Vector3f* aTargetRotation);
 		

@@ -25,7 +25,9 @@ namespace Epoch
 		CU::Vector3f GetGravity() const override;
 		void SetGravity(const CU::Vector3f& aGravity) override;
 
-		bool Raycast(CU::Vector3f aOrigin, CU::Vector3f aDirection, float aMaxDistance = FLT_MAX, HitInfo* outHitInfo = nullptr) override;
+		bool Raycast(CU::Vector3f aOrigin, CU::Vector3f aDirection, float aMaxDistance = FLT_MAX, HitInfo* outHit = nullptr) override;
+		bool ShapeCast(const ShapeCastInfo* aShapeCastInfo, HitInfo* outHit) override;
+		std::vector<UUID> OverlapShape(const ShapeOverlapInfo* aShapeOverlapInfo) override;
 
 		void AddRadialImpulse(CU::Vector3f aOrigin, float aRadius, float aStrength) override; //TODO: Move to PhysicsScene when I've made a wrapper for everything
 

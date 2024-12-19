@@ -16,7 +16,6 @@ namespace Epoch
 	{
 		int id;
 		std::string name;
-		std::map<GamepadButton, bool> buttonDown;
 		std::map<GamepadButton, ControllerButtonData> buttonStates;
 		std::map<int, float> axisStates;
 		std::map<int, float> deadZones;
@@ -42,12 +41,10 @@ namespace Epoch
 	public:
 		static bool IsKeyPressed(KeyCode aKeyCode);
 		static bool IsKeyHeld(KeyCode aKeyCode);
-		static bool IsKeyDown(KeyCode aKeyCode);
 		static bool IsKeyReleased(KeyCode aKeyCode);
 
 		static bool IsMouseButtonPressed(MouseButton aButton);
 		static bool IsMouseButtonHeld(MouseButton aButton);
-		static bool IsMouseButtonDown(MouseButton aButton);
 		static bool IsMouseButtonReleased(MouseButton aButton);
 
 		static float GetMouseX();
@@ -68,7 +65,6 @@ namespace Epoch
 
 		static bool IsControllerButtonPressed(int aControllerID, GamepadButton aButton);
 		static bool IsControllerButtonHeld(int aControllerID, GamepadButton aButton);
-		static bool IsControllerButtonDown(int aControllerID, GamepadButton aButton);
 		static bool IsControllerButtonReleased(int aControllerID, GamepadButton aButton);
 		
 		static float GetControllerAxis(int aControllerID, GamepadAxis aAxis);

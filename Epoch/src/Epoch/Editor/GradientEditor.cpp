@@ -12,16 +12,18 @@ namespace Epoch
 	constexpr float GradientPresetBarHeight = 15.0f;
 	constexpr float GradientDeleteDiff = 50.0f;
 
-	void GradientEditor::OnImGuiRender()
+	bool GradientEditor::OnImGuiRender()
 	{
 		if (!myGradient)
 		{
-			return;
+			return false;
 		}
 
 		EPOCH_PROFILE_FUNC();
 
 		ImGui::Begin("Gradient Editor", 0, ImGuiWindowFlags_NoDocking);
+
+		bool modified = false;
 
 		if (mySetFocus)
 		{
@@ -33,7 +35,7 @@ namespace Epoch
 		{
 			Close();
 			ImGui::End();
-			return;
+			return false;
 		}
 
 		ImGui::Dummy({ 0.0f, 10.0f }); // Offset Y so that the alpha keys fit on top of the bar.
@@ -64,6 +66,8 @@ namespace Epoch
 
 			mySelectedKey = newKey;
 			myDraggingKey = true;
+
+			modified = true;
 		}
 
 		UI::Widgets::GradientBar(myGradient, CU::Vector2f(barPos.x, barPos.y), maxWidth, GradientBarHeight);
@@ -85,6 +89,8 @@ namespace Epoch
 				mySelectedKey->time = CU::Math::Clamp01(mySelectedKey->time);
 
 				myGradient->RefreshCache();
+
+				modified = true;
 			}
 
 			if (mySelectedKey->type == CU::Gradient::KeyType::Color)
@@ -96,6 +102,8 @@ namespace Epoch
 					myGradient->RemoveColorKey(mySelectedKey);
 					mySelectedKey = nullptr;
 					myDraggingKey = false;
+
+					modified = true;
 				}
 			}
 			else
@@ -107,6 +115,8 @@ namespace Epoch
 					myGradient->RemoveAlphaKey(mySelectedKey);
 					mySelectedKey = nullptr;
 					myDraggingKey = false;
+
+					modified = true;
 				}
 			}
 		}
@@ -119,8 +129,6 @@ namespace Epoch
 		if (mySelectedKey)
 		{
 			UI::BeginPropertyGrid();
-
-			bool modified = false;
 
 			if (mySelectedKey->type == CU::Gradient::KeyType::Color)
 			{
@@ -214,6 +222,8 @@ namespace Epoch
 		}
 
 		ImGui::End();
+
+		return modified;
 	}
 
 	void GradientEditor::SetGradientToEdit(CU::Gradient* aGradient)
@@ -239,6 +249,7 @@ namespace Epoch
 
 		ImU32 keyColor = IM_COL32(255.0f, 255.0f, 255.0f, 255);
 		const ImU32 keyOutlineColor = IM_COL32(255.0f, 255.0f, 255.0f, 255);
+		const ImU32 selectedKeyOutlineColor = Colors::Theme::blue;
 
 		ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
@@ -248,6 +259,11 @@ namespace Epoch
 			const float to = aBarPos.x + key->time * aMaxWidth;
 
 			if (key == mySelectedKey)
+			{
+				draw_list->AddTriangleFilled(ImVec2(to, barBottom - 4), ImVec2(to - 7, barBottom + 7), ImVec2(to + 7, barBottom + 7), selectedKeyOutlineColor);
+				draw_list->AddRectFilled(ImVec2(to - 7, barBottom + 7), ImVec2(to + 7, barBottom + 17), selectedKeyOutlineColor, 0.0f, ImDrawFlags_Closed);
+			}
+			else
 			{
 				draw_list->AddTriangleFilled(ImVec2(to, barBottom - 4), ImVec2(to - 7, barBottom + 7), ImVec2(to + 7, barBottom + 7), keyOutlineColor);
 				draw_list->AddRectFilled(ImVec2(to - 7, barBottom + 7), ImVec2(to + 7, barBottom + 17), keyOutlineColor, 0.0f, ImDrawFlags_Closed);
@@ -270,16 +286,22 @@ namespace Epoch
 	{
 		const float barTop = aBarPos.y;
 
-		ImU32 keyColor = IM_COL32(150.0f, 150.0f, 150.0f, 255);
-		const ImU32 keyOutlineColor = IM_COL32(255.0f, 255.0f, 255.0f, 255);
+		const ImU32 keyOutlineColor = IM_COL32(255.0f, 255.0f, 255.0f, 255.0f);
+		const ImU32 selectedKeyOutlineColor = Colors::Theme::blue;
 
 		ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 		for (const auto& key : myGradient->alphaKeys)
 		{
+			ImU32 keyColor = IM_COL32(255.0f * key->alpha, 255.0f * key->alpha, 255.0f * key->alpha, 255.0f);
 			const float to = aBarPos.x + key->time * aMaxWidth;
-
+			
 			if (key == mySelectedKey)
+			{
+				draw_list->AddTriangleFilled(ImVec2(to, barTop + 4), ImVec2(to - 7, barTop - 7), ImVec2(to + 7, barTop - 7), selectedKeyOutlineColor);
+				draw_list->AddRectFilled(ImVec2(to - 7, barTop - 7), ImVec2(to + 7, barTop - 17), selectedKeyOutlineColor, 0.0f, ImDrawFlags_Closed);
+			}
+			else
 			{
 				draw_list->AddTriangleFilled(ImVec2(to, barTop + 4), ImVec2(to - 7, barTop - 7), ImVec2(to + 7, barTop - 7), keyOutlineColor);
 				draw_list->AddRectFilled(ImVec2(to - 7, barTop - 7), ImVec2(to + 7, barTop - 17), keyOutlineColor, 0.0f, ImDrawFlags_Closed);

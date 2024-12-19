@@ -34,6 +34,7 @@ namespace CU
 		void SetTranslation(float aX, float aY, float aZ);
 		void SetRotation(const Vector3f& aRotation);
 		void SetRotation(float aX, float aY, float aZ);
+		void SetRotation(const CU::Quatf& aOrientation);
 		void SetScale(const Vector3f& aScale);
 		void SetScale(float aX, float aY, float aZ);
 

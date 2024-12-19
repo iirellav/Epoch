@@ -128,7 +128,6 @@ namespace Epoch
 				aOut << YAML::Key << "PrefabComponent";
 				aOut << YAML::BeginMap;
 
-
 				const PrefabComponent& pc = entity.GetComponent<PrefabComponent>();
 				aOut << YAML::Key << "PrefabID" << YAML::Value << pc.prefabID;
 				aOut << YAML::Key << "EntityID" << YAML::Value << pc.entityID;
@@ -1378,7 +1377,7 @@ namespace Epoch
 				rb.useGravity = rigidbodyComponent["UseGravity"].as<bool>(true);
 				rb.isKinematic = rigidbodyComponent["IsKinematic"].as<bool>(false);
 
-				rb.constraints = (PhysicsAxis)rigidbodyComponent["Constraints"].as<uint32_t>((uint32_t)(uint8_t)PhysicsAxis::None);
+				rb.constraints = (Physics::Axis)rigidbodyComponent["Constraints"].as<uint32_t>((uint32_t)(uint8_t)Physics::Axis::None);
 
 				rb.initialLinearVelocity = rigidbodyComponent["InitialLinearVelocity"].as<CU::Vector3f>();
 				rb.initialAngularVelocity = rigidbodyComponent["InitialAngularVelocity"].as<CU::Vector3f>();

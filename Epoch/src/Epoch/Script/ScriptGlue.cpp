@@ -25,6 +25,7 @@
 #include "Epoch/Core/GraphicsEngine.h"
 #include "Epoch/Scene/SceneRenderer.h"
 #include "Epoch/Rendering/DebugRenderer.h"
+#include "Epoch/Editor/PanelIDs.h"
 
 namespace Epoch
 {
@@ -204,6 +205,7 @@ namespace Epoch
 		EPOCH_ADD_INTERNAL_CALL(Input_IsMouseButtonHeld);
 		EPOCH_ADD_INTERNAL_CALL(Input_IsMouseButtonReleased);
 
+		EPOCH_ADD_INTERNAL_CALL(Input_GetMousePosition);
 		EPOCH_ADD_INTERNAL_CALL(Input_GetMouseDelta);
 
 		EPOCH_ADD_INTERNAL_CALL(Input_GetCursorMode);
@@ -219,6 +221,9 @@ namespace Epoch
 
 
 		EPOCH_ADD_INTERNAL_CALL(Physics_Raycast);
+
+		EPOCH_ADD_INTERNAL_CALL(Physics_SphereCast);
+		EPOCH_ADD_INTERNAL_CALL(Physics_OverlapSphere);
 
 		EPOCH_ADD_INTERNAL_CALL(Physics_GetGravity);
 		EPOCH_ADD_INTERNAL_CALL(Physics_SetGravity);
@@ -275,7 +280,7 @@ namespace Epoch
 			return scene->TryGetEntityWithUUID(aEntityID);
 		};
 		
-		std::shared_ptr<PhysicsBody> GetPhysicsBody(uint64_t entityID)
+		static inline std::shared_ptr<PhysicsBody> GetPhysicsBody(uint64_t entityID)
 		{
 			std::shared_ptr<Scene> scene = ScriptEngine::GetSceneContext();
 
@@ -287,7 +292,7 @@ namespace Epoch
 			return scene->GetPhysicsScene()->GetPhysicsBody(entity);
 		}
 
-		std::shared_ptr<CharacterController> GetCharacterController(uint64_t entityID)
+		static inline std::shared_ptr<CharacterController> GetCharacterController(uint64_t entityID)
 		{
 			std::shared_ptr<Scene> scene = ScriptEngine::GetSceneContext();
 
@@ -297,6 +302,20 @@ namespace Epoch
 			if (!entity) return nullptr;
 
 			return scene->GetPhysicsScene()->GetCharacterController(entity);
+		}
+
+		static inline void ViewportHovered(bool& outValue)
+		{
+			const bool enableImGui = Application::Get().GetSpecification().enableImGui;
+			if (outValue && enableImGui && GImGui->HoveredWindow != nullptr)
+			{
+				// Make sure we're in the viewport panel
+				ImGuiWindow* viewportWindow = ImGui::FindWindowByName(VIEWPORT_PANEL_ID);
+				if (viewportWindow != nullptr)
+				{
+					outValue = GImGui->HoveredWindow->ID == viewportWindow->ID;
+				}
+			}
 		}
 
 #pragma region Application
@@ -539,7 +558,7 @@ namespace Epoch
 
 			for (size_t i = 0; i < children.size(); i++)
 			{
-				ManagedArrayUtils::SetValue(result, i, children[i]);
+				ManagedArrayUtils::SetValue(result, uintptr_t(i), children[i]);
 			}
 
 			return result;
@@ -1162,16 +1181,7 @@ namespace Epoch
 		{
 			bool isPressed = Input::IsMouseButtonPressed(aButton);
 
-			const bool enableImGui = Application::Get().GetSpecification().enableImGui;
-			if (isPressed && enableImGui && GImGui->HoveredWindow != nullptr)
-			{
-				// Make sure we're in the viewport panel
-				ImGuiWindow* viewportWindow = ImGui::FindWindowByName("Viewport");
-				if (viewportWindow != nullptr)
-				{
-					isPressed = GImGui->HoveredWindow->ID == viewportWindow->ID;
-				}
-			}
+			ViewportHovered(isPressed);
 
 			return isPressed;
 		}
@@ -1180,16 +1190,7 @@ namespace Epoch
 		{
 			bool isHeld = Input::IsMouseButtonHeld(aButton);
 
-			const bool enableImGui = Application::Get().GetSpecification().enableImGui;
-			if (isHeld && enableImGui && GImGui->HoveredWindow != nullptr)
-			{
-				// Make sure we're in the viewport panel
-				ImGuiWindow* viewportWindow = ImGui::FindWindowByName("Viewport");
-				if (viewportWindow != nullptr)
-				{
-					isHeld = GImGui->HoveredWindow->ID == viewportWindow->ID;
-				}
-			}
+			ViewportHovered(isHeld);
 
 			return isHeld;
 		}
@@ -1198,18 +1199,15 @@ namespace Epoch
 		{
 			bool released = Input::IsMouseButtonReleased(aButton);
 
-			const bool enableImGui = Application::Get().GetSpecification().enableImGui;
-			if (released && enableImGui && GImGui->HoveredWindow != nullptr)
-			{
-				// Make sure we're in the viewport panel
-				ImGuiWindow* viewportWindow = ImGui::FindWindowByName("Viewport");
-				if (viewportWindow != nullptr)
-				{
-					released = GImGui->HoveredWindow->ID == viewportWindow->ID;
-				}
-			}
+			ViewportHovered(released);
 
 			return released;
+		}
+
+		void Input_GetMousePosition(CU::Vector2f* outPosition)
+		{
+			auto [x, y] = Input::GetMousePosition();
+			*outPosition = { x, y };
 		}
 
 		void Input_GetMouseDelta(CU::Vector2f* outDelta) { *outDelta = Input::GetMouseDelta(); }
@@ -1236,6 +1234,40 @@ namespace Epoch
 			bool hit = scene->GetPhysicsScene()->Raycast(*aOrigin, *aDirection, aMaxDistance, outHitInfo);
 
 			return hit;
+		}
+
+		bool Physics_SphereCast(CU::Vector3f* aOrigin, CU::Vector3f* aDirection, float aRadius, float aMaxDistance, HitInfo* outHitInfo)
+		{
+			std::shared_ptr<Scene> scene = ScriptEngine::GetSceneContext();
+
+			SphereCastInfo sphereCastInfo;
+			sphereCastInfo.origin = *aOrigin;
+			sphereCastInfo.direction = *aDirection;
+			sphereCastInfo.radius = aRadius;
+			sphereCastInfo.maxDistance = aMaxDistance;
+			bool hit = scene->GetPhysicsScene()->ShapeCast(&sphereCastInfo, outHitInfo);
+
+			return hit;
+		}
+
+		MonoArray* Physics_OverlapSphere(CU::Vector3f* aOrigin, float aRadius)
+		{
+			std::shared_ptr<Scene> scene = ScriptEngine::GetSceneContext();
+
+			SphereOverlapInfo sphereOverlapInfo;
+			sphereOverlapInfo.origin = *aOrigin;
+			sphereOverlapInfo.radius = aRadius;
+
+			std::vector<UUID> overlapedEntities = scene->GetPhysicsScene()->OverlapShape(&sphereOverlapInfo);
+
+			MonoArray* result = ManagedArrayUtils::Create<Entity>(uintptr_t(overlapedEntities.size()));
+
+			for (size_t i = 0; i < overlapedEntities.size(); i++)
+			{
+				ManagedArrayUtils::SetValue(result, uintptr_t(i), overlapedEntities[i]);
+			}
+
+			return result;
 		}
 
 		void Physics_GetGravity(CU::Vector3f* outGravity)
@@ -1528,23 +1560,23 @@ namespace Epoch
 			physicsBody->SetRotation(*aRotation);
 		}
 
-		PhysicsAxis RigidbodyComponent_GetConstraints(uint64_t aEntityID)
+		Physics::Axis RigidbodyComponent_GetConstraints(uint64_t aEntityID)
 		{
 			auto entity = GetEntity(aEntityID);
-			if (!entity) return PhysicsAxis::None;
-			if (!entity.HasComponent<RigidbodyComponent>()) return PhysicsAxis::None;
+			if (!entity) return Physics::Axis::None;
+			if (!entity.HasComponent<RigidbodyComponent>()) return Physics::Axis::None;
 			
 			std::shared_ptr<PhysicsBody> physicsBody = GetPhysicsBody(aEntityID);
 			if (!physicsBody)
 			{
 				LOG_ERROR("Couldn't find physics body for entity '{}'", entity.GetName());
-				return PhysicsAxis::None;
+				return Physics::Axis::None;
 			}
 
 			return physicsBody->GetConstraints();
 		}
 
-		void RigidbodyComponent_SetConstraints(uint64_t aEntityID, PhysicsAxis aConstraints)
+		void RigidbodyComponent_SetConstraints(uint64_t aEntityID, Physics::Axis aConstraints)
 		{
 			auto entity = GetEntity(aEntityID);
 			if (!entity) return;
@@ -1563,7 +1595,7 @@ namespace Epoch
 			rb.constraints = aConstraints;
 		}
 
-		void RigidbodyComponent_AddForce(uint64_t aEntityID, CU::Vector3f* aForce, ForceMode aForceMode)
+		void RigidbodyComponent_AddForce(uint64_t aEntityID, CU::Vector3f* aForce, Physics::ForceMode aForceMode)
 		{
 			auto entity = GetEntity(aEntityID);
 			if (!entity) return;
@@ -1579,7 +1611,7 @@ namespace Epoch
 			physicsBody->AddForce(*aForce, aForceMode);
 		}
 
-		void RigidbodyComponent_AddForceAtPosition(uint64_t aEntityID, CU::Vector3f* aForce, CU::Vector3f* aPosition, ForceMode aForceMode)
+		void RigidbodyComponent_AddForceAtPosition(uint64_t aEntityID, CU::Vector3f* aForce, CU::Vector3f* aPosition, Physics::ForceMode aForceMode)
 		{
 			auto entity = GetEntity(aEntityID);
 			if (!entity) return;
@@ -1595,7 +1627,7 @@ namespace Epoch
 			physicsBody->AddForceAtPosition(*aForce, *aPosition, aForceMode);
 		}
 
-		void RigidbodyComponent_AddTorque(uint64_t aEntityID, CU::Vector3f* aTorque, ForceMode aForceMode)
+		void RigidbodyComponent_AddTorque(uint64_t aEntityID, CU::Vector3f* aTorque, Physics::ForceMode aForceMode)
 		{
 			auto entity = GetEntity(aEntityID);
 			if (!entity) return;

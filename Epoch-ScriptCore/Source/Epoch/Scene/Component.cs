@@ -280,16 +280,16 @@ namespace Epoch
             set => InternalCalls.RigidbodyComponent_SetRotation(entity.id, ref value);
         }
 
-        public PhysicsAxis Constraints
+        public Physics.Axis Constraints
         {
             get => InternalCalls.RigidbodyComponent_GetConstraints(entity.id);
             set => InternalCalls.RigidbodyComponent_SetConstraints(entity.id, value);
         }
 
-        public void AddForce(Vector3 aForce, ForceMode aForceMode = ForceMode.Force) => InternalCalls.RigidbodyComponent_AddForce(entity.id, ref aForce, aForceMode);
-        public void AddForceAtPosition(Vector3 aForce, Vector3 aPosition, ForceMode aForceMode = ForceMode.Force) => InternalCalls.RigidbodyComponent_AddForceAtPosition(entity.id, ref aForce, ref aPosition, aForceMode);
+        public void AddForce(Vector3 aForce, Physics.ForceMode aForceMode = Physics.ForceMode.Force) => InternalCalls.RigidbodyComponent_AddForce(entity.id, ref aForce, aForceMode);
+        public void AddForceAtPosition(Vector3 aForce, Vector3 aPosition, Physics.ForceMode aForceMode = Physics.ForceMode.Force) => InternalCalls.RigidbodyComponent_AddForceAtPosition(entity.id, ref aForce, ref aPosition, aForceMode);
 
-        public void AddTorque(Vector3 aTorque, ForceMode aForceMode = ForceMode.Force) => InternalCalls.RigidbodyComponent_AddTorque(entity.id, ref aTorque, aForceMode);
+        public void AddTorque(Vector3 aTorque, Physics.ForceMode aForceMode = Physics.ForceMode.Force) => InternalCalls.RigidbodyComponent_AddTorque(entity.id, ref aTorque, aForceMode);
 
         public void Teleport(Vector3 aTargetPosition, Vector3 aTargetRotation) => InternalCalls.RigidbodyComponent_Teleport(entity.id, ref aTargetPosition, ref aTargetRotation);
     }

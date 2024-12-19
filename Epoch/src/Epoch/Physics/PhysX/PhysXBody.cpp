@@ -171,30 +171,30 @@ namespace Epoch
 		rb->setGlobalPose({ pos, rot });
 	}
 
-	PhysicsAxis PhysXBody::GetConstraints()
+	Physics::Axis PhysXBody::GetConstraints()
 	{
 		physx::PxRigidDynamic* rb = ((physx::PxRigidDynamic*)myActor);
-		return (PhysicsAxis)(uint8_t)rb->getRigidDynamicLockFlags();
+		return (Physics::Axis)(uint8_t)rb->getRigidDynamicLockFlags();
 	}
 
-	void PhysXBody::SetConstraints(PhysicsAxis aConstraints)
+	void PhysXBody::SetConstraints(Physics::Axis aConstraints)
 	{
 		physx::PxRigidDynamicLockFlags lockFlags = (physx::PxRigidDynamicLockFlags)(uint8_t)aConstraints;
 		physx::PxRigidDynamic* rb = ((physx::PxRigidDynamic*)myActor);
 		rb->setRigidDynamicLockFlags(lockFlags);
 	}
 
-	void PhysXBody::AddForce(CU::Vector3f aForce, ForceMode aForceMode)
+	void PhysXBody::AddForce(CU::Vector3f aForce, Physics::ForceMode aForceMode)
 	{
 		((physx::PxRigidBody*)myActor)->addForce(PhysXUtils::ToPhysXVector(aForce), (physx::PxForceMode::Enum)aForceMode);
 	}
 	
-	void PhysXBody::AddForceAtPosition(CU::Vector3f aForce, CU::Vector3f aPosition, ForceMode aForceMode)
+	void PhysXBody::AddForceAtPosition(CU::Vector3f aForce, CU::Vector3f aPosition, Physics::ForceMode aForceMode)
 	{
 		physx::PxRigidBodyExt::addForceAtPos(*(physx::PxRigidDynamic*)myActor, PhysXUtils::ToPhysXVector(aForce), PhysXUtils::ToPhysXVector(aPosition), (physx::PxForceMode::Enum)aForceMode);
 	}
 
-	void PhysXBody::AddTorque(CU::Vector3f aTorque, ForceMode aForceMode)
+	void PhysXBody::AddTorque(CU::Vector3f aTorque, Physics::ForceMode aForceMode)
 	{
 		((physx::PxRigidBody*)myActor)->addTorque(PhysXUtils::ToPhysXVector(aTorque), (physx::PxForceMode::Enum)aForceMode);
 	}

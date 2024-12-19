@@ -33,10 +33,10 @@ namespace Epoch
 				if (!IsControllerPresent(id))
 				{
 					Controller& controller = staticControllers[id];
-					controller.deadZones[0] = 0.2f;
-					controller.deadZones[1] = 0.2f;
-					controller.deadZones[2] = 0.2f;
-					controller.deadZones[3] = 0.2f;
+					controller.deadZones[0] = 0.1f;
+					controller.deadZones[1] = 0.1f;
+					controller.deadZones[2] = 0.1f;
+					controller.deadZones[3] = 0.1f;
 				}
 
 				Controller& controller = staticControllers[id];
@@ -49,16 +49,16 @@ namespace Epoch
 				{
 					GamepadButton button = (GamepadButton)i;
 
-					if (buttons[i] == GLFW_PRESS && !controller.buttonDown[button])
+					if (buttons[i] == GLFW_PRESS &&
+						!(controller.buttonStates[button].state == KeyState::Pressed || controller.buttonStates[button].state == KeyState::Held))
 					{
 						controller.buttonStates[button].state = KeyState::Pressed;
 					}
-					else if (buttons[i] == GLFW_RELEASE && controller.buttonDown[button])
+					else if (buttons[i] == GLFW_RELEASE &&
+						(controller.buttonStates[button].state == KeyState::Pressed || controller.buttonStates[button].state == KeyState::Held))
 					{
 						controller.buttonStates[button].state = KeyState::Released;
 					}
-
-					controller.buttonDown[button] = buttons[i] == GLFW_PRESS;
 				}
 
 				int axisCount;
@@ -86,14 +86,12 @@ namespace Epoch
 								controller.buttonStates[aButton].state == KeyState::None)
 							{
 								controller.buttonStates[aButton].state = KeyState::Pressed;
-								controller.buttonDown[aButton] = true;
 							}
 
 							if (controller.axisStates[(int)aAxis] <= 0.01f &&
 								controller.buttonStates[aButton].state == KeyState::Held)
 							{
 								controller.buttonStates[aButton].state = KeyState::Released;
-								controller.buttonDown[aButton] = false;
 							}
 						};
 
@@ -117,12 +115,16 @@ namespace Epoch
 
 	bool Input::IsKeyHeld(KeyCode aKeyCode)
 	{
-		return staticKeyData.find(aKeyCode) != staticKeyData.end() && staticKeyData[aKeyCode].state == KeyState::Held;
-	}
-
-	bool Input::IsKeyDown(KeyCode aKeyCode)
-	{
+		if (auto it = staticKeyData.find(aKeyCode); it != staticKeyData.end())
+		{
+			if (it->second.state == KeyState::Held || it->second.state == KeyState::Pressed)
+			{
+				return true;
+			}
+		}
 		return false;
+
+		//return staticKeyData.find(aKeyCode) != staticKeyData.end() && staticKeyData[aKeyCode].state == KeyState::Held;
 	}
 
 	bool Input::IsKeyReleased(KeyCode aKeyCode)
@@ -137,42 +139,16 @@ namespace Epoch
 
 	bool Input::IsMouseButtonHeld(MouseButton aButton)
 	{
-		return staticMouseData.find(aButton) != staticMouseData.end() && staticMouseData[aButton].state == KeyState::Held;
-	}
-
-	bool Input::IsMouseButtonDown(MouseButton aButton)
-	{
-		//bool enableImGui = Application::Get().GetSpecification().EnableImGui;
-		//if (!enableImGui)
+		if (auto it = staticMouseData.find(aButton); it != staticMouseData.end())
 		{
-			auto& window = static_cast<Window&>(Application::Get().GetWindow());
-			auto state = glfwGetMouseButton(static_cast<GLFWwindow*>(window.GetNativeWindow()), static_cast<int32_t>(aButton));
-			return state == GLFW_PRESS;
-		}
-	
-		ImGuiContext* context = ImGui::GetCurrentContext();
-		bool pressed = false;
-		for (ImGuiViewport* viewport : context->Viewports)
-		{
-			if (!viewport->PlatformUserData)
+			if (it->second.state == KeyState::Held || it->second.state == KeyState::Pressed)
 			{
-				continue;
-			}
-
-			GLFWwindow* windowHandle = *(GLFWwindow**)viewport->PlatformUserData; // First member is GLFWwindow
-			if (!windowHandle)
-			{
-				continue;
-			}
-
-			auto state = glfwGetMouseButton(static_cast<GLFWwindow*>(windowHandle), static_cast<int32_t>(aButton));
-			if (state == GLFW_PRESS || state == GLFW_REPEAT)
-			{
-				pressed = true;
-				break;
+				return true;
 			}
 		}
-		return pressed;
+		return false;
+
+		//return staticMouseData.find(aButton) != staticMouseData.end() && staticMouseData[aButton].state == KeyState::Held;
 	}
 
 	bool Input::IsMouseButtonReleased(MouseButton aButton)
@@ -274,23 +250,17 @@ namespace Epoch
 		}
 
 		auto& contoller = staticControllers.at(aControllerID);
-		return contoller.buttonStates.find(aButton) != contoller.buttonStates.end() && contoller.buttonStates[aButton].state == KeyState::Held;
-	}
-
-	bool Input::IsControllerButtonDown(int aControllerID, GamepadButton aButton)
-	{
-		if (!Input::IsControllerPresent(aControllerID))
+		
+		if (auto it = contoller.buttonStates.find(aButton); it != contoller.buttonStates.end())
 		{
-			return false;
+			if (it->second.state == KeyState::Held || it->second.state == KeyState::Pressed)
+			{
+				return true;
+			}
 		}
-
-		const Controller& controller = staticControllers.at(aControllerID);
-		if (controller.buttonDown.find(aButton) == controller.buttonDown.end())
-		{
-			return false;
-		}
-
-		return controller.buttonDown.at(aButton);
+		return false;
+		
+		//return contoller.buttonStates.find(aButton) != contoller.buttonStates.end() && contoller.buttonStates[aButton].state == KeyState::Held;
 	}
 
 	bool Input::IsControllerButtonReleased(int aControllerID, GamepadButton aButton)

@@ -314,6 +314,8 @@ namespace Epoch
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern bool Input_IsMouseButtonReleased(MouseButton aButton);
 
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Input_GetMousePosition(out Vector2 outMousePosition);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void Input_GetMouseDelta(out Vector2 outMouseDelta);
@@ -346,6 +348,12 @@ namespace Epoch
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern bool Physics_Raycast(ref Vector3 aOrigin, ref Vector3 aDirection, float aMaxDistance, out Physics.HitInfo aHitInfo);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool Physics_SphereCast(ref Vector3 aOrigin, ref Vector3 aDirection, float aRadius, float aMaxDistance, out Physics.HitInfo aHitInfo);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern Entity[] Physics_OverlapSphere(ref Vector3 aOrigin, float aRadius);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void Physics_GetGravity(out Vector3 outGravity);
@@ -417,21 +425,21 @@ namespace Epoch
 
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern PhysicsAxis RigidbodyComponent_GetConstraints(ulong aEntityID);
+        internal static extern Physics.Axis RigidbodyComponent_GetConstraints(ulong aEntityID);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void RigidbodyComponent_SetConstraints(ulong aEntityID, PhysicsAxis aConstraints);
-
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void RigidbodyComponent_AddForce(ulong aEntityID, ref Vector3 aForce, ForceMode aForceMode);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void RigidbodyComponent_AddForceAtPosition(ulong aEntityID, ref Vector3 aForce, ref Vector3 aPosition, ForceMode aForceMode);
+        internal static extern void RigidbodyComponent_SetConstraints(ulong aEntityID, Physics.Axis aConstraints);
 
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void RigidbodyComponent_AddTorque(ulong aEntityID, ref Vector3 aTorque, ForceMode aForceMode);
+        internal static extern void RigidbodyComponent_AddForce(ulong aEntityID, ref Vector3 aForce, Physics.ForceMode aForceMode);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void RigidbodyComponent_AddForceAtPosition(ulong aEntityID, ref Vector3 aForce, ref Vector3 aPosition, Physics.ForceMode aForceMode);
+
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void RigidbodyComponent_AddTorque(ulong aEntityID, ref Vector3 aTorque, Physics.ForceMode aForceMode);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void RigidbodyComponent_Teleport(ulong aEntityID, ref Vector3 aTargetPosition, ref Vector3 aTargetRotation);

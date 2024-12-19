@@ -187,18 +187,100 @@ namespace Epoch
 		myScene->setGravity(PhysXUtils::ToPhysXVector(aGravity));
 	}
 
-	bool PhysXScene::Raycast(CU::Vector3f aOrigin, CU::Vector3f aDirection, float aMaxDistance, HitInfo* outHitInfo)
+	bool PhysXScene::Raycast(CU::Vector3f aOrigin, CU::Vector3f aDirection, float aMaxDistance, HitInfo* outHit)
 	{
 		physx::PxRaycastBuffer hitInfo;
 		bool hit = myScene->raycast(PhysXUtils::ToPhysXVector(aOrigin), PhysXUtils::ToPhysXVector(aDirection), aMaxDistance, hitInfo);
-		if (hit)
+		if (hit && outHit)
 		{
-			outHitInfo->entity = *(uint64_t*)hitInfo.block.actor->userData;
-			outHitInfo->position = PhysXUtils::FromPhysXVector(hitInfo.block.position);
-			outHitInfo->normal = PhysXUtils::FromPhysXVector(hitInfo.block.normal);
-			outHitInfo->distance = hitInfo.block.distance;
+			outHit->entity = *(uint64_t*)hitInfo.block.actor->userData;
+			outHit->position = PhysXUtils::FromPhysXVector(hitInfo.block.position);
+			outHit->normal = PhysXUtils::FromPhysXVector(hitInfo.block.normal);
+			outHit->distance = hitInfo.block.distance;
 		}
 		return hit;
+	}
+
+	bool PhysXScene::ShapeCast(const ShapeCastInfo* aShapeCastInfo, HitInfo* outHit)
+	{
+		physx::PxSweepHit hitInfo;
+		physx::PxTransform initialPose = physx::PxTransform(PhysXUtils::ToPhysXVector(aShapeCastInfo->origin));
+		physx::PxVec3 sweepDirection = PhysXUtils::ToPhysXVector(aShapeCastInfo->direction);
+
+		bool hit = false;
+		switch (aShapeCastInfo->GetShapeType())
+		{
+		case Physics::ShapeType::Box:
+		{
+			const auto* boxCastInfo = reinterpret_cast<const BoxCastInfo*>(aShapeCastInfo);
+			physx::PxBoxGeometry shape = physx::PxBoxGeometry(boxCastInfo->halfExtent);
+			hit = physx::PxSceneQueryExt::sweepSingle(*myScene, shape, initialPose, sweepDirection, aShapeCastInfo->maxDistance, physx::PxHitFlag::ePOSITION | physx::PxHitFlag::eNORMAL | physx::PxHitFlag::eMTD, hitInfo);
+			break;
+		}
+		case Physics::ShapeType::Sphere:
+		{
+			const auto* sphereCastInfo = reinterpret_cast<const SphereCastInfo*>(aShapeCastInfo);
+			physx::PxSphereGeometry shape = physx::PxSphereGeometry(sphereCastInfo->radius);
+			hit = physx::PxSceneQueryExt::sweepSingle(*myScene, shape, initialPose, sweepDirection, aShapeCastInfo->maxDistance, physx::PxHitFlag::ePOSITION | physx::PxHitFlag::eNORMAL | physx::PxHitFlag::eMTD, hitInfo);
+			break;
+		}
+		default:
+			EPOCH_ASSERT(false, "Cannot cast mesh shapes!");
+			break;
+		}
+
+		if (!hit)
+		{
+			return false;
+		}
+
+		if (hit && outHit)
+		{
+			outHit->entity = *(uint64_t*)hitInfo.actor->userData;
+			outHit->position = PhysXUtils::FromPhysXVector(hitInfo.position);
+			outHit->normal = PhysXUtils::FromPhysXVector(hitInfo.normal);
+			outHit->distance = hitInfo.distance;
+		}
+
+		return hit;
+	}
+
+	std::vector<UUID> PhysXScene::OverlapShape(const ShapeOverlapInfo* aShapeOverlapInfo)
+	{
+		physx::PxTransform shapePose = physx::PxTransform(PhysXUtils::ToPhysXVector(aShapeOverlapInfo->origin));
+
+		int numberOfHits = 0;
+		std::unique_ptr<physx::PxOverlapHit[]> hitOv = std::make_unique<physx::PxOverlapHit[]>(4096);
+		switch (aShapeOverlapInfo->GetShapeType())
+		{
+		case Physics::ShapeType::Box:
+		{
+			const auto* boxOverlapInfo = reinterpret_cast<const BoxOverlapInfo*>(aShapeOverlapInfo);
+			physx::PxBoxGeometry shape = physx::PxBoxGeometry(boxOverlapInfo->halfExtent);
+			numberOfHits = physx::PxSceneQueryExt::overlapMultiple(*myScene, shape, shapePose, hitOv.get(), 4096);
+			break;
+		}
+		case Physics::ShapeType::Sphere:
+		{
+			const auto* sphereOverlapInfo = reinterpret_cast<const SphereOverlapInfo*>(aShapeOverlapInfo);
+			physx::PxSphereGeometry shape = physx::PxSphereGeometry(sphereOverlapInfo->radius);
+			numberOfHits = physx::PxSceneQueryExt::overlapMultiple(*myScene, shape, shapePose, hitOv.get(), 4096);
+			break;
+		}
+		default:
+			EPOCH_ASSERT(false, "Cannot cast mesh shapes!");
+			break;
+		}
+
+		std::vector<UUID> overlapHitBuffer;
+		for (size_t i = 0; i < numberOfHits; i++)
+		{
+			const physx::PxOverlapHit& hit = hitOv[i];
+			UUID entityID = *(UUID*)hit.actor->userData;
+			overlapHitBuffer.push_back(entityID);
+		}
+
+		return overlapHitBuffer;
 	}
 
 	void PhysXScene::AddRadialImpulse(CU::Vector3f aOrigin, float aRadius, float aStrength)
@@ -208,7 +290,6 @@ namespace Epoch
 
 		std::unique_ptr<physx::PxOverlapHit[]> hitOv = std::make_unique<physx::PxOverlapHit[]>(4096);
 		int numberOfHits = physx::PxSceneQueryExt::overlapMultiple(*myScene, overlapShape, shapePose, hitOv.get(), 4096);
-		//int numberOfHits = physx::PxSceneQueryExt::overlapMultiple(*myScene, overlapShape, shapePose, hitOv.get(), 4096, physx::PxQueryFilterData(physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::eDYNAMIC | physx::PxQueryFlag::eNO_BLOCK));
 
 		for (size_t i = 0; i < numberOfHits; i++)
 		{

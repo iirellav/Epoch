@@ -2,7 +2,7 @@
 #include <magic_enum.hpp>
 using namespace magic_enum::bitwise_operators; // out-of-the-box bitwise operators for enums.
 
-namespace Epoch
+namespace Epoch::Physics
 {
 	enum class ForceMode : uint8_t
 	{
@@ -12,7 +12,7 @@ namespace Epoch
 		Acceleration
 	};
 
-	enum class PhysicsAxis : uint8_t
+	enum class Axis : uint8_t
 	{
 		None = 0,
 
@@ -27,4 +27,6 @@ namespace Epoch
 		Rotation = RotationX | RotationY | RotationZ
 		
 	};
+
+	enum class ShapeType { Box, Sphere, Capsule };
 }

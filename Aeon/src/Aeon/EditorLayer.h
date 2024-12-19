@@ -38,8 +38,6 @@ namespace Epoch
 	private:
 		void BeginDockspace();
 		void EndDockspace();
-		void BeginViewportDockspace();
-		void EndViewportDockspace();
 
 		void RecursivePanelMenuItem(const std::vector<std::string>& aNameParts, uint32_t aDepth, bool& aIsOpen);
 

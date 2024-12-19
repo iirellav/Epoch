@@ -897,8 +897,10 @@ namespace Epoch::UI
 		return modified;
 	}
 
-	void Property_Gradient(const char* aLabel, CU::Gradient& outGradient, const char* aTooltip)
+	bool Property_Gradient(const char* aLabel, CU::Gradient& outGradient, const char* aTooltip)
 	{
+		bool modified = false;
+
 		//ShiftCursor(10.0f, 9.0f);
 		ShiftCursor(10.0f, 3.0f);
 		ImGui::Text(aLabel);
@@ -913,18 +915,59 @@ namespace Epoch::UI
 		//ShiftCursorY(4.0f);
 		ImGui::PushItemWidth(-1);
 
-		float barHeight = 20.0f;
-		ShiftCursorY(barHeight * 0.3f);
-		float barWidth = ImGui::GetContentRegionAvail().x;
+		float barHeight = 24.0f;
+		float barWidth = ImGui::GetContentRegionAvail().x - 1.0f;
 		ImVec2 screenPos = ImGui::GetCursorScreenPos();
 		if (ImGui::InvisibleButton("GradientBar", ImVec2(barWidth, barHeight)))
 		{
 			GradientEditor::Get().SetGradientToEdit(&outGradient);
 		}
 		UI::Widgets::GradientBar(&outGradient, { screenPos.x, screenPos.y }, barWidth, barHeight);
-		GradientEditor::Get().OnImGuiRender();
+		modified = GradientEditor::Get().OnImGuiRender();
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
+
+		return modified;
+	}
+
+	bool Property_CubicBezier(const char* aLabel, const char* aTooltip)
+	{
+		const CU::Vector2f p1 = { 0.0f, 0.0f };//TEMP: Input
+		const CU::Vector2f p2 = { 0.5f, 0.0f };//TEMP: Input
+		const CU::Vector2f p3 = { 0.5f, 1.0f };//TEMP: Input
+		const CU::Vector2f p4 = { 1.0f, 1.0f };//TEMP: Input
+
+		bool modified = false;
+		
+		//ShiftCursor(10.0f, 9.0f);
+		ShiftCursor(10.0f, 3.0f);
+		ImGui::Text(aLabel);
+
+		if (std::strlen(aTooltip) != 0)
+		{
+			ImGui::SameLine();
+			HelpMarker(aTooltip);
+		}
+
+		ImGui::NextColumn();
+		//ShiftCursorY(4.0f);
+		ImGui::PushItemWidth(-1);
+
+		float barHeight = 24.0f;
+		float barWidth = ImGui::GetContentRegionAvail().x;
+		ImVec2 screenPos = ImGui::GetCursorScreenPos();
+		if (ImGui::InvisibleButton("CubicBezierBar", ImVec2(barWidth, barHeight)))
+		{
+			//TODO: Implement
+			//CubicBezierEditor::Get().SetCurveToEdit(&outCurve);
+		}
+		UI::Widgets::CubicBezier({ p1, p2, p3, p4 }, { screenPos.x, screenPos.y }, barWidth, barHeight);
+		//modified = CubicBezierEditor::Get().OnImGuiRender();
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		return modified;
 	}
 }

@@ -34,13 +34,13 @@ namespace Epoch
 		CU::Vector3f GetRotation() override;
 		void SetRotation(CU::Vector3f aRotation) override;
 
-		PhysicsAxis GetConstraints() override;
-		void SetConstraints(PhysicsAxis aConstraints) override;
+		Physics::Axis GetConstraints() override;
+		void SetConstraints(Physics::Axis aConstraints) override;
 
-		void AddForce(CU::Vector3f aForce, ForceMode aForceMode = ForceMode::Force) override;
-		void AddForceAtPosition(CU::Vector3f aForce, CU::Vector3f aPosition, ForceMode aForceMode = ForceMode::Force) override;
+		void AddForce(CU::Vector3f aForce, Physics::ForceMode aForceMode = Physics::ForceMode::Force) override;
+		void AddForceAtPosition(CU::Vector3f aForce, CU::Vector3f aPosition, Physics::ForceMode aForceMode = Physics::ForceMode::Force) override;
 
-		void AddTorque(CU::Vector3f aTorque, ForceMode aForceMode = ForceMode::Force) override;
+		void AddTorque(CU::Vector3f aTorque, Physics::ForceMode aForceMode = Physics::ForceMode::Force) override;
 
 		void AddRadialImpulse(CU::Vector3f aOrigin, float aRadius, float aStrength) override;
 

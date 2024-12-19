@@ -1725,11 +1725,11 @@ namespace Epoch
 					{
 						UI::BeginPropertyGrid();
 
-						const PhysicsAxis constraints = aFirstComponent.constraints;
+						const Physics::Axis constraints = aFirstComponent.constraints;
 
-						bool translationX = (constraints & PhysicsAxis::TranslationX) != PhysicsAxis::None;
-						bool translationY = (constraints & PhysicsAxis::TranslationY) != PhysicsAxis::None;
-						bool translationZ = (constraints & PhysicsAxis::TranslationZ) != PhysicsAxis::None;
+						bool translationX = (constraints & Physics::Axis::TranslationX) != Physics::Axis::None;
+						bool translationY = (constraints & Physics::Axis::TranslationY) != Physics::Axis::None;
+						bool translationZ = (constraints & Physics::Axis::TranslationZ) != Physics::Axis::None;
 
 						//Freeze Position
 						{
@@ -1743,8 +1743,8 @@ namespace Epoch
 									auto& rb = entity.GetComponent<RigidbodyComponent>();
 
 									translationX ?
-										rb.constraints |= PhysicsAxis::TranslationX :
-										rb.constraints &= ~PhysicsAxis::TranslationX;
+										rb.constraints |= Physics::Axis::TranslationX :
+										rb.constraints &= ~Physics::Axis::TranslationX;
 								}
 							}
 
@@ -1756,8 +1756,8 @@ namespace Epoch
 									auto& rb = entity.GetComponent<RigidbodyComponent>();
 
 									translationY ?
-										rb.constraints |= PhysicsAxis::TranslationY :
-										rb.constraints &= ~PhysicsAxis::TranslationY;
+										rb.constraints |= Physics::Axis::TranslationY :
+										rb.constraints &= ~Physics::Axis::TranslationY;
 								}
 							}
 
@@ -1769,17 +1769,17 @@ namespace Epoch
 									auto& rb = entity.GetComponent<RigidbodyComponent>();
 
 									translationZ ?
-										rb.constraints |= PhysicsAxis::TranslationZ :
-										rb.constraints &= ~PhysicsAxis::TranslationZ;
+										rb.constraints |= Physics::Axis::TranslationZ :
+										rb.constraints &= ~Physics::Axis::TranslationZ;
 								}
 							}
 
 							UI::EndCheckboxGroup();
 						}
 
-						bool rotationX = (constraints & PhysicsAxis::RotationX) != PhysicsAxis::None;
-						bool rotationY = (constraints & PhysicsAxis::RotationY) != PhysicsAxis::None;
-						bool rotationZ = (constraints & PhysicsAxis::RotationZ) != PhysicsAxis::None;
+						bool rotationX = (constraints & Physics::Axis::RotationX) != Physics::Axis::None;
+						bool rotationY = (constraints & Physics::Axis::RotationY) != Physics::Axis::None;
+						bool rotationZ = (constraints & Physics::Axis::RotationZ) != Physics::Axis::None;
 
 						//Freeze Rotation
 						{
@@ -1793,8 +1793,8 @@ namespace Epoch
 									auto& rb = entity.GetComponent<RigidbodyComponent>();
 
 									rotationX ?
-										rb.constraints |= PhysicsAxis::RotationX :
-										rb.constraints &= ~PhysicsAxis::RotationX;
+										rb.constraints |= Physics::Axis::RotationX :
+										rb.constraints &= ~Physics::Axis::RotationX;
 								}
 							}
 
@@ -1806,8 +1806,8 @@ namespace Epoch
 									auto& rb = entity.GetComponent<RigidbodyComponent>();
 
 									rotationY ?
-										rb.constraints |= PhysicsAxis::RotationY :
-										rb.constraints &= ~PhysicsAxis::RotationY;
+										rb.constraints |= Physics::Axis::RotationY :
+										rb.constraints &= ~Physics::Axis::RotationY;
 								}
 							}
 
@@ -1819,8 +1819,8 @@ namespace Epoch
 									auto& rb = entity.GetComponent<RigidbodyComponent>();
 
 									rotationZ ?
-										rb.constraints |= PhysicsAxis::RotationZ :
-										rb.constraints &= ~PhysicsAxis::RotationZ;
+										rb.constraints |= Physics::Axis::RotationZ :
+										rb.constraints &= ~Physics::Axis::RotationZ;
 								}
 							}
 

@@ -41,7 +41,7 @@ namespace Epoch
 
 		const CU::Vector2f delta = -Input::GetMouseDelta() * 0.002f;
 
-		if (Input::IsMouseButtonDown(MouseButton::Right))
+		if (Input::IsMouseButtonHeld(MouseButton::Right))
 		{
 			//DisableMouse();
 

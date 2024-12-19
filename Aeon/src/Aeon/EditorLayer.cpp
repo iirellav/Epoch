@@ -266,8 +266,7 @@ namespace Epoch
 		{
 			myStartedCameraClickInViewport = true;
 		}
-
-		if (!Input::IsMouseButtonDown(MouseButton::Right) && myStartedCameraClickInViewport)
+		else if (!Input::IsMouseButtonHeld(MouseButton::Right) && myStartedCameraClickInViewport)
 		{
 			myStartedCameraClickInViewport = false;
 		}
@@ -436,6 +435,13 @@ namespace Epoch
 		{
 			UI::BeginPropertyGrid();
 
+			//const char* projTypeStrings[] = { "Perspective", "Orthographic" };
+			//int currentProjType = 0;
+			//if (UI::Property_Dropdown("Projection", projTypeStrings, 2, currentProjType))
+			//{
+			//	//TODO: Change editor camera projection type
+			//}
+
 			const char* drawModeStrings[] = { "Shaded", "Albedo", "Normals", "Ambient Occlusion", "Roughness", "Metalness", "World Position" };
 			int currentDrawMode = (int)mySceneRenderer->GetDrawMode();
 			if (UI::Property_Dropdown("Draw Mode", drawModeStrings, 7, currentDrawMode))
@@ -450,10 +456,56 @@ namespace Epoch
 
 			UI::EndPropertyGrid();
 
+			//UI::Spacing(10);
+			//
+			//
+			//static float value = 0;
+			//value += CU::Timer::GetDeltaTime();
+			//value = CU::Math::Wrap(value, 0.0f, 1.0f);
+			//
+			//UI::Widgets::Spinner("Test", CU::Math::Min(10.0f, ImGui::GetContentRegionAvail().x), 4.0f, Colors::Theme::disabled);
+			//UI::Widgets::BufferingBar("Test", value, { CU::Math::Min(200.0f, ImGui::GetContentRegionAvail().x), 5.0f }, Colors::Theme::disabled, Colors::Theme::blue);
+
+
+			UI::Spacing(10);
+
+
+			static CU::Vector2f p1 = { 0.0f, 0.0f };
+			static CU::Vector2f p2 = { 0.5f, 0.0f };
+			static CU::Vector2f p3 = { 0.5f, 1.0f };
+			static CU::Vector2f p4 = { 1.0f, 1.0f };
+
+			UI::BeginPropertyGrid();
+
+			UI::Property_DragFloat("P1", p1.y, 0.01f, 0.0f, 1.0f);
+			UI::Property_DragFloat2("P2", p2, 0.01f, 0.0f, 1.0f);
+			UI::Property_DragFloat2("P3", p3, 0.01f, 0.0f, 1.0f);
+			UI::Property_DragFloat("P4", p4.y, 0.01f, 0.0f, 1.0f);
+
+			UI::Property_CubicBezier("Test");
+
+			UI::EndPropertyGrid();
+
+			float barSize = ImGui::GetContentRegionAvail().x;
+			ImVec2 aBarPos = ImGui::GetCursorScreenPos();
+			UI::Widgets::CubicBezier({ p1, p2, p3, p4 }, { aBarPos.x, aBarPos.y }, barSize, barSize, true);
+
+			//auto [mx, my] = ImGui::GetMousePos();
+			//mx -= aBarPos.x;
+			//my -= aBarPos.y;
+			//my = barSize - my;
+			//
+			//CU::Vector2f mpos = { mx / barSize, my / barSize };
+			//
+			//ImGui::Text("%u x %u", (uint32_t)mx, (uint32_t)my);
+			//ImGui::Text("%.3f x %.3f", mpos.x, mpos.y);
+
 			ImGui::End();
 		}
 
 		EndDockspace();
+
+		//ImGui::ShowDemoWindow();
 	}
 
 	void EditorLayer::OnEvent(Event& aEvent)
@@ -531,71 +583,6 @@ namespace Epoch
 	}
 
 	void EditorLayer::EndDockspace()
-	{
-		ImGui::End();
-	}
-
-	void EditorLayer::BeginViewportDockspace()
-	{
-		// Note: Switch this to true to enable dockspace
-		static bool dockspaceOpen = true;
-		static bool opt_fullscreen_persistent = true;
-		bool opt_fullscreen = opt_fullscreen_persistent;
-		static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
-
-		// We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dock able into,
-		// because it would be confusing to have two docking targets within each others.
-		ImGuiWindowFlags window_flags = /*ImGuiWindowFlags_MenuBar | */ImGuiWindowFlags_NoDocking;
-		if (opt_fullscreen)
-		{
-			ImGuiViewport* viewport = ImGui::GetMainViewport();
-			ImGui::SetNextWindowPos(viewport->Pos);
-			ImGui::SetNextWindowSize(viewport->Size);
-			ImGui::SetNextWindowViewport(viewport->ID);
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-			window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-			window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-		}
-
-		// When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background and handle the pass-thru hole, so we ask Begin() to not render a background.
-		if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
-		{
-			window_flags |= ImGuiWindowFlags_NoBackground;
-		}
-
-		// Important: note that we proceed even if Begin() returns false (aka window is collapsed).
-		// This is because we want to keep our DockSpace() active. If a DockSpace() is inactive, 
-		// all active windows docked into it will lose their parent and become undocked.
-		// We cannot preserve the docking relationship between an active window and an inactive docking, otherwise 
-		// any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-		ImGui::Begin("DockSpace Viewport", &dockspaceOpen, window_flags);
-		ImGui::PopStyleVar();
-
-		if (opt_fullscreen)
-		{
-			ImGui::PopStyleVar(2);
-		}
-
-		// DockSpace
-		ImGuiIO& io = ImGui::GetIO();
-		ImGuiStyle& style = ImGui::GetStyle();
-		//float minWinSizeX = style.WindowMinSize.x;
-		//float minWinSizeY = style.WindowMinSize.y;
-		style.WindowMinSize.x = 100.0f;
-		style.WindowMinSize.y = 30.0f;
-		if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
-		{
-			ImGuiID dockspace_id = ImGui::GetID("MyViewportDockSpace");
-			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-		}
-
-		//style.WindowMinSize.x = minWinSizeX;
-		//style.WindowMinSize.y = minWinSizeY;
-	}
-
-	void EditorLayer::EndViewportDockspace()
 	{
 		ImGui::End();
 	}

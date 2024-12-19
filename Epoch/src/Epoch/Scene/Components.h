@@ -275,7 +275,7 @@ namespace Epoch
 		bool useGravity = true;
 		bool isKinematic = false;
 
-		PhysicsAxis constraints = PhysicsAxis::None;
+		Physics::Axis constraints = Physics::Axis::None;
 
 		CU::Vector3f initialLinearVelocity;
 		CU::Vector3f initialAngularVelocity;

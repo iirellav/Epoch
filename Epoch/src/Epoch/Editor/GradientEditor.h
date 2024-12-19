@@ -11,7 +11,7 @@ namespace Epoch
 		static GradientEditor& Get() { static GradientEditor instance; return instance; }
 		void Init() { DeserializePresets(); }
 
-		void OnImGuiRender();
+		bool OnImGuiRender();
 
 		void SetGradientToEdit(CU::Gradient* aGradient);
 		bool IsOpen() const { return myIsOpen; }
