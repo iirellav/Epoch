@@ -283,30 +283,6 @@ namespace Epoch
 		return overlapHitBuffer;
 	}
 
-	void PhysXScene::AddRadialImpulse(CU::Vector3f aOrigin, float aRadius, float aStrength)
-	{
-		physx::PxSphereGeometry overlapShape = physx::PxSphereGeometry(aRadius);
-		physx::PxTransform shapePose = physx::PxTransform(PhysXUtils::ToPhysXVector(aOrigin));
-
-		std::unique_ptr<physx::PxOverlapHit[]> hitOv = std::make_unique<physx::PxOverlapHit[]>(4096);
-		int numberOfHits = physx::PxSceneQueryExt::overlapMultiple(*myScene, overlapShape, shapePose, hitOv.get(), 4096);
-
-		for (size_t i = 0; i < numberOfHits; i++)
-		{
-			const auto& hit = hitOv[i];
-			UUID entityID = *(UUID*)hit.actor->userData;
-
-			auto entityBody = GetPhysicsBodyWithID(entityID);
-
-			if (!entityBody)
-			{
-				continue;
-			}
-
-			entityBody->AddRadialImpulse(aOrigin, aRadius, aStrength);
-		}
-	}
-
 	void PhysXScene::Teleport(Entity aEntity, const CU::Vector3f& aTargetPosition, const CU::Quatf& aTargetRotation)
 	{
 		auto body = std::static_pointer_cast<PhysXBody>(GetPhysicsBody(aEntity));

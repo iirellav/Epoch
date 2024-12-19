@@ -38,7 +38,7 @@ namespace Epoch
 		virtual bool ShapeCast(const ShapeCastInfo* aShapeCastInfo, HitInfo* outHit) = 0;
 		virtual std::vector<UUID> OverlapShape(const ShapeOverlapInfo* aShapeOverlapInfo) = 0;
 
-		virtual void AddRadialImpulse(CU::Vector3f aOrigin, float aRadius, float aStrength) = 0;
+		void AddRadialImpulse(CU::Vector3f aOrigin, float aRadius, float aStrength);
 		
 		virtual void Teleport(Entity aEntity, const CU::Vector3f& aTargetPosition, const CU::Quatf& aTargetRotation) = 0;
 

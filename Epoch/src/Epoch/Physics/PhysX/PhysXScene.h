@@ -29,8 +29,6 @@ namespace Epoch
 		bool ShapeCast(const ShapeCastInfo* aShapeCastInfo, HitInfo* outHit) override;
 		std::vector<UUID> OverlapShape(const ShapeOverlapInfo* aShapeOverlapInfo) override;
 
-		void AddRadialImpulse(CU::Vector3f aOrigin, float aRadius, float aStrength) override; //TODO: Move to PhysicsScene when I've made a wrapper for everything
-
 		void Teleport(Entity aEntity, const CU::Vector3f& aTargetPosition, const CU::Quatf& aTargetRotation) override;
 
 	private:

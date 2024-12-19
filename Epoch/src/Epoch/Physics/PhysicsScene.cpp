@@ -45,6 +45,26 @@ namespace Epoch
 		return GetCharacterControllerWithID(aEntity.GetUUID());
 	}
 
+	void PhysicsScene::AddRadialImpulse(CU::Vector3f aOrigin, float aRadius, float aStrength)
+	{
+		SphereOverlapInfo sphereOverlapInfo;
+		sphereOverlapInfo.origin = aOrigin;
+		sphereOverlapInfo.radius = aRadius;
+		auto entities = OverlapShape(&sphereOverlapInfo);
+
+		for (UUID entityID : entities)
+		{
+			auto entityBody = GetPhysicsBodyWithID(entityID);
+
+			if (!entityBody)
+			{
+				continue;
+			}
+
+			entityBody->AddRadialImpulse(aOrigin, aRadius, aStrength);
+		}
+	}
+
 	void PhysicsScene::CreatePhysicsBodies()
 	{
 		EPOCH_PROFILE_FUNC();
