@@ -67,6 +67,11 @@ namespace Epoch
 			physx::PxRigidDynamicLockFlags lockFlags = (physx::PxRigidDynamicLockFlags)(uint8_t)rigidbodyComponent.constraints;
 			pxBody->setRigidDynamicLockFlags(lockFlags);
 
+			if (rigidbodyComponent.isKinematic)
+			{
+				pxBody->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, true);
+			}
+
 			myActor = (physx::PxActor*)pxBody;
 		}
 
