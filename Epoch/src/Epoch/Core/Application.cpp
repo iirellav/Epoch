@@ -192,7 +192,7 @@ namespace Epoch
 		{
 			std::scoped_lock<std::mutex> lock(myEventQueueMutex);
 			eventQueue = myEventQueue;
-			while (eventQueue.size() > 0)
+			while (myEventQueue.size() > 0)
 			{
 				myEventQueue.pop();
 			}
