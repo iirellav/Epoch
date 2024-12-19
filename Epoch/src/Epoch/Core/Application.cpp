@@ -188,12 +188,20 @@ namespace Epoch
 		ScriptEngine::InitializeRuntimeDuplicatedEntities();
 		Input::ClearReleasedKeys();
 
-		std::scoped_lock<std::mutex> lock(myEventQueueMutex);
-		while (myEventQueue.size() > 0)
+		std::queue<std::function<void()>> eventQueue;
 		{
-			auto& func = myEventQueue.front();
+			std::scoped_lock<std::mutex> lock(myEventQueueMutex);
+			eventQueue = myEventQueue;
+			while (eventQueue.size() > 0)
+			{
+				myEventQueue.pop();
+			}
+		}
+		while (eventQueue.size() > 0)
+		{
+			auto& func = eventQueue.front();
 			func();
-			myEventQueue.pop();
+			eventQueue.pop();
 		}
 	}
 
