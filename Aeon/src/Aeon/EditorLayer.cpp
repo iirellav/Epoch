@@ -2004,7 +2004,8 @@ namespace Epoch
 		if (aEvent.GetMouseButton() == MouseButton::Left)
 		{
 			if (mySceneState != SceneState::Edit ||
-				!myViewportFocused ||
+				!myViewportHovered ||
+				ImGui::IsAnyItemHovered() ||
 				ImGuizmo::IsOver() ||
 				!MouseInViewport() ||
 				Input::IsKeyHeld(KeyCode::LeftShift))
