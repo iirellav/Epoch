@@ -30,5 +30,10 @@ namespace Epoch
         {
             return aFrom + (aTo - aFrom) * aT;
         }
+
+        public static float InverseLerp(float aMin, float aMax, float aValue)
+        {
+            return (aValue - aMin) / (aMax - aMin);
+        }
     }
 }

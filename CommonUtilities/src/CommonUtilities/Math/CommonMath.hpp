@@ -77,6 +77,9 @@ namespace CU::Math
 
 	template<typename T>
 	inline T Lerp(T aFrom, T aTo, float aLerpFactor) { return aFrom + (aTo - aFrom) * aLerpFactor; }
+	
+	template<typename T>
+	inline float InverseLerp(T aFrom, T aTo, T aValue) { return (float)((aValue - aFrom) / (aTo - aFrom)); }
 
 	template<typename T>
 	inline T Wrap(T aValue, T aMin, T aMax) { const T delta = (aMax - aMin); while (aValue > aMax) aValue -= delta; while (aValue < aMin) aValue += delta; return aValue; }
