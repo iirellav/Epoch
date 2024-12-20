@@ -44,6 +44,7 @@ namespace Epoch
 		std::pair<float, float> GetMouseViewportCord() const;
 		std::pair<float, float> GetMouseViewportSpace() const;
 		bool MouseInViewport();
+		Entity GetHoveredEntity();
 
 		void HandleAssetDrop();
 

@@ -631,6 +631,28 @@ namespace Epoch
 		return (mouseX > -1.0f && mouseX < 1.0f && mouseY > -1.0f && mouseY < 1.0f);
 	}
 
+	Entity EditorLayer::GetHoveredEntity()
+	{
+		auto [px, py] = GetMouseViewportCord();
+
+		auto IDBuffer = mySceneRenderer->GetEntityIDTexture();
+		auto pixelData = IDBuffer->ReadData(1, 1, (uint32_t)px, (uint32_t)py);
+		if (!pixelData)
+		{
+			return Entity();
+		}
+
+		uint32_t id = *pixelData.As<uint32_t>();
+		pixelData.Release();
+
+		if (id == 0)
+		{
+			return Entity();
+		}
+
+		return Entity((entt::entity)(id - 1), myActiveScene.get());
+	}
+
 	void EditorLayer::HandleAssetDrop()
 	{
 		if (mySceneState != SceneState::Edit) return;
@@ -703,6 +725,31 @@ namespace Epoch
 
 					SelectionManager::DeselectAll(SelectionContext::Entity);
 					SelectionManager::Select(SelectionContext::Entity, prefabEntity.GetUUID());
+
+					grabFocus = true;
+				}
+				else if (asset->GetAssetType() == AssetType::Material)
+				{
+					Entity hoveredEntity = GetHoveredEntity();
+					if (!hoveredEntity)
+					{
+						continue;
+					}
+
+					if (!hoveredEntity.HasComponent<MeshRendererComponent>())
+					{
+						continue;
+					}
+
+					MeshRendererComponent& mrc = hoveredEntity.GetComponent<MeshRendererComponent>();
+					if (mrc.materialTable->GetMaterialCount() > 0)
+					{
+						mrc.materialTable->SetMaterial(0, assetHandle);
+					}
+					else
+					{
+						mrc.materialTable->AddMaterial(assetHandle);
+					}
 
 					grabFocus = true;
 				}
@@ -2025,25 +2072,15 @@ namespace Epoch
 
 		ImGui::ClearActiveID();
 
-		auto [px, py] = GetMouseViewportCord();
-
-		auto IDBuffer = mySceneRenderer->GetEntityIDTexture();
-		auto pixelData = IDBuffer->ReadData(1, 1, (uint32_t)px, (uint32_t)py);
-		if (!pixelData)
-		{
-			return false;
-		}
-
-		uint32_t id = *pixelData.As<uint32_t>();
-		pixelData.Release();
-		if (id == 0)
+		Entity clickedEntity = GetHoveredEntity();
+		
+		if (!clickedEntity)
 		{
 			SelectionManager::DeselectAll(SelectionContext::Entity);
 		}
 		else
 		{
-			Entity clickedEntity = Entity((entt::entity)(id - 1), myActiveScene.get());
-			if (!clickedEntity || !myActiveScene->IsEntityValid(clickedEntity)) return false;
+			if (!myActiveScene->IsEntityValid(clickedEntity)) return false;
 
 			if (!ctrlDown)
 			{
@@ -2060,7 +2097,7 @@ namespace Epoch
 			}
 		}
 
-		return false;
+		return true;
 	}
 
 	void EditorLayer::UpdateViewportBoxSelection()
