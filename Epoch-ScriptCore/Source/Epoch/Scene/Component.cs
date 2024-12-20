@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using System.Security.Policy;
 using System.Threading;
 
@@ -102,6 +103,58 @@ namespace Epoch
         public void LookAt(Vector3 aTarget, Vector3 aUp)
         {
             InternalCalls.TransformComponent_LookAt(entity.id, ref aTarget, ref aUp);
+        }
+    }
+
+    public class MeshRendererComponent : Component
+    {
+        public Mesh Mesh
+        {
+            get
+            {
+                if (!InternalCalls.MeshRendererComponent_GetMesh(entity.id, out AssetHandle outMeshHandle))
+                {
+                    return null;
+                }
+        
+                return new Mesh(outMeshHandle);
+            }
+        
+            set => InternalCalls.MeshRendererComponent_SetMesh(entity.id, ref value.myHandle);
+        }
+
+        public bool HasMaterial(uint aIndex) => InternalCalls.MeshRendererComponent_HasMaterial(entity.id, aIndex);
+
+        public Material GetMaterial(uint aIndex)
+        {
+            if (!HasMaterial(aIndex) || !InternalCalls.MeshRendererComponent_GetMaterial(entity.id, aIndex, out AssetHandle outMaterialHandle))
+            {
+                return null;
+            }
+
+            return new Material(outMaterialHandle);
+        }
+
+        public void SetMaterial(ref Material aMaterial)
+        {
+            if (!HasMaterial(0))
+            {
+                InternalCalls.MeshRendererComponent_AddMaterial(entity.id, ref aMaterial.myHandle);
+            }
+            else
+            {
+                SetMaterial(0, ref aMaterial);
+            }
+        }
+
+        public void SetMaterial(uint aIndex, ref Material aMaterial)
+        {
+            if (!HasMaterial(aIndex))
+            {
+                return;
+            }
+
+            InternalCalls.MeshRendererComponent_SetMaterial(entity.id, aIndex, ref aMaterial.myHandle);
         }
     }
 

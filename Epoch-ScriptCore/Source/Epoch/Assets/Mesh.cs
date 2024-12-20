@@ -2,6 +2,15 @@
 
 namespace Epoch
 {
+    public struct Vertex
+    {
+        Vector3 position;
+        Vector3 normal;
+        Vector3 tangent;
+        Vector2 uv;
+        Vector3 color;
+    }
+
     public class Mesh : IEquatable<Mesh>
     {
         internal AssetHandle myHandle;
@@ -31,5 +40,26 @@ namespace Epoch
 
         public static bool operator ==(Mesh aLeft, Mesh aRight) => aLeft is null ? aRight is null : aLeft.Equals(aRight);
         public static bool operator !=(Mesh aLeft, Mesh aRight) => !(aLeft == aRight);
+
+        public static Mesh Create(Vertex[] aVertexBuffer, uint[] aIndexBuffer, string aName = "")
+        {
+            if (aVertexBuffer == null || aVertexBuffer.Length == 0)
+            {
+                throw new ArgumentException("Tried to create a Mesh with an empty vertex buffer");
+            }
+
+            if (aIndexBuffer == null || aIndexBuffer.Length == 0)
+            {
+                throw new ArgumentException("Tried to create a Mesh with an empty index buffer");
+            }
+
+            if (!InternalCalls.Mesh_Create(ref aVertexBuffer, ref aIndexBuffer, ref aName, out AssetHandle outHandle))
+            {
+                return null;
+            }
+
+            Mesh mesh = new Mesh(outHandle);
+            return mesh;
+        }
     }
 }

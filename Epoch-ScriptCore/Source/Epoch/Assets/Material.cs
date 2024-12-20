@@ -31,5 +31,7 @@ namespace Epoch
 
         public static bool operator ==(Material aLeft, Material aRight) => aLeft is null ? aRight is null : aLeft.Equals(aRight);
         public static bool operator !=(Material aLeft, Material aRight) => !(aLeft == aRight);
+
+        public void SetAlbedoTexture(Texture2D aTexture) => InternalCalls.Material_SetAlbedoTexture(ref myHandle, ref aTexture.myHandle);
     }
 }

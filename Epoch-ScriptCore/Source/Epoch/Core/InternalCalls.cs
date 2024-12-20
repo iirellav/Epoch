@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace Epoch
@@ -21,6 +22,19 @@ namespace Epoch
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern uint Application_GetHeight();
+
+        #endregion
+
+        #region Application
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Noise_SetSeed(int aSeed);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern float Noise_SimplexNoise(float x, float y);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern float Noise_PerlinNoise(float x, float y);
 
         #endregion
 
@@ -171,6 +185,26 @@ namespace Epoch
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void TransformComponent_LookAt(ulong aEntityID, ref Vector3 aTarget, ref Vector3 aUp);
+
+        #endregion
+
+        #region MeshRendererComponent
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool MeshRendererComponent_GetMesh(ulong aEntityID, out AssetHandle outHandle);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void MeshRendererComponent_SetMesh(ulong aEntityID, ref AssetHandle aHandle);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool MeshRendererComponent_HasMaterial(ulong aEntityID, uint aIndex);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void MeshRendererComponent_AddMaterial(ulong aEntityID, ref AssetHandle aHandle);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void MeshRendererComponent_SetMaterial(ulong aEntityID, uint aIndex, ref AssetHandle aHandle);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool MeshRendererComponent_GetMaterial(ulong aEntityID, uint aIndex, out AssetHandle outHandle);
 
         #endregion
 
@@ -465,6 +499,33 @@ namespace Epoch
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void CharacterControllerComponent_Move(ulong aEntityID, ref Vector3 aDisplacement);
+
+        #endregion
+
+        #region Texture2D
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool Texture2D_Create(uint aWidth, uint aHeight/*, ref string aName*/, out AssetHandle outHandle);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Texture2D_GetSize(ref AssetHandle aHandle, out uint outWidth, out uint outHeight);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Texture2D_SetData(ref AssetHandle aHandle, Color[] aData);
+
+        #endregion
+
+        #region Material
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Material_SetAlbedoTexture(ref AssetHandle aMaterialHandle, ref AssetHandle aTextureHandle);
+
+        #endregion
+
+        #region Mesh
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool Mesh_Create(ref Vertex[] aVertexBuffer, ref uint[] aIndexBuffer, ref string aName, out AssetHandle outHandle);
 
         #endregion
     }

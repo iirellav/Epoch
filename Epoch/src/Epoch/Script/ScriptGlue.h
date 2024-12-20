@@ -47,6 +47,15 @@ namespace Epoch
 
 #pragma endregion
 		
+#pragma region Noise
+
+		void Noise_SetSeed(int aSeed);
+
+		float Noise_SimplexNoise(float x, float y);
+		float Noise_PerlinNoise(float x, float y);
+
+#pragma endregion
+
 #pragma region Time
 
 		float Time_GetTimeScale();
@@ -131,6 +140,23 @@ namespace Epoch
 
 		void TransformComponent_RotateAround(uint64_t aEntityID, CU::Vector3f* aPoint, CU::Vector3f* aAxis, float aAngle);
 		void TransformComponent_LookAt(uint64_t aEntityID, CU::Vector3f* aTarget, CU::Vector3f* aUp);
+
+#pragma endregion
+
+#pragma region MeshRendererComponent
+
+		bool MeshRendererComponent_GetMesh(uint64_t aEntityID, AssetHandle* outHandle);
+
+		void MeshRendererComponent_SetMesh(uint64_t aEntityID, AssetHandle* aHandle);
+
+
+		bool MeshRendererComponent_HasMaterial(uint64_t aEntityID, uint32_t aIndex);
+
+		void MeshRendererComponent_AddMaterial(uint64_t aEntityID, AssetHandle* aHandle);
+
+		void MeshRendererComponent_SetMaterial(uint64_t aEntityID, uint32_t aIndex, AssetHandle* aHandle);
+
+		bool MeshRendererComponent_GetMaterial(uint64_t aEntityID, uint32_t aIndex, AssetHandle* outHandle);
 
 #pragma endregion
 
@@ -301,6 +327,28 @@ namespace Epoch
 		void CharacterControllerComponent_Resize(uint64_t aEntityID, float aHeight);
 
 		void CharacterControllerComponent_Move(uint64_t aEntityID, CU::Vector3f* aDisplacement);
+
+#pragma endregion
+
+#pragma region Texture2D
+
+		bool Texture2D_Create(uint32_t aWidth, uint32_t aHeight/*, MonoString* aName*/, AssetHandle* outHandle);
+
+		void Texture2D_GetSize(AssetHandle* aHandle, uint32_t* outWidth, uint32_t* outHeight);
+
+		void Texture2D_SetData(AssetHandle* aHandle, MonoArray* aData);
+
+#pragma endregion
+
+#pragma region Material
+
+		void Material_SetAlbedoTexture(AssetHandle* aMaterialHandle, AssetHandle* aTextureHandle);
+
+#pragma endregion
+
+#pragma region Mesh
+
+		bool Mesh_Create(MonoArray* aVertexBuffer, MonoArray* aIndexBuffer, MonoString* aName, AssetHandle* outHandle);
 
 #pragma endregion
 	}

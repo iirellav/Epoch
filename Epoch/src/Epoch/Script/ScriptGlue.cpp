@@ -23,6 +23,7 @@
 #include "Epoch/Core/Input.h"
 #include "Epoch/Core/Application.h"
 #include "Epoch/Core/GraphicsEngine.h"
+#include "Epoch/Math/Noise.h"
 #include "Epoch/Scene/SceneRenderer.h"
 #include "Epoch/Rendering/DebugRenderer.h"
 #include "Epoch/Editor/PanelIDs.h"
@@ -93,6 +94,11 @@ namespace Epoch
 		EPOCH_ADD_INTERNAL_CALL(Application_GetHeight);
 
 
+		EPOCH_ADD_INTERNAL_CALL(Noise_SetSeed);
+		EPOCH_ADD_INTERNAL_CALL(Noise_SimplexNoise);
+		EPOCH_ADD_INTERNAL_CALL(Noise_PerlinNoise);
+
+
 		EPOCH_ADD_INTERNAL_CALL(Time_GetTimeScale);
 		EPOCH_ADD_INTERNAL_CALL(Time_SetTimeScale);
 
@@ -152,6 +158,14 @@ namespace Epoch
 		EPOCH_ADD_INTERNAL_CALL(TransformComponent_Rotate);
 		EPOCH_ADD_INTERNAL_CALL(TransformComponent_RotateAround);
 		EPOCH_ADD_INTERNAL_CALL(TransformComponent_LookAt);
+
+
+		EPOCH_ADD_INTERNAL_CALL(MeshRendererComponent_GetMesh);
+		EPOCH_ADD_INTERNAL_CALL(MeshRendererComponent_SetMesh);
+		EPOCH_ADD_INTERNAL_CALL(MeshRendererComponent_HasMaterial);
+		EPOCH_ADD_INTERNAL_CALL(MeshRendererComponent_AddMaterial);
+		EPOCH_ADD_INTERNAL_CALL(MeshRendererComponent_SetMaterial);
+		EPOCH_ADD_INTERNAL_CALL(MeshRendererComponent_GetMaterial);
 
 
 		EPOCH_ADD_INTERNAL_CALL(ScriptComponent_GetInstance);
@@ -269,6 +283,14 @@ namespace Epoch
 		EPOCH_ADD_INTERNAL_CALL(CharacterControllerComponent_Resize);
 
 		EPOCH_ADD_INTERNAL_CALL(CharacterControllerComponent_Move);
+
+
+		EPOCH_ADD_INTERNAL_CALL(Texture2D_Create);
+		EPOCH_ADD_INTERNAL_CALL(Texture2D_GetSize);
+		EPOCH_ADD_INTERNAL_CALL(Texture2D_SetData);
+
+
+		EPOCH_ADD_INTERNAL_CALL(Material_SetAlbedoTexture);
 	}
 
 	namespace InternalCalls
@@ -346,6 +368,25 @@ namespace Epoch
 		uint32_t Application_GetHeight()
 		{
 			return ScriptEngine::GetSceneContext()->GetViewportHeight();
+		}
+
+#pragma endregion
+
+#pragma region Noise
+
+		void Noise_SetSeed(int aSeed)
+		{
+			Noise::SetSeed(aSeed);
+		}
+
+		float Noise_SimplexNoise(float x, float y)
+		{
+			return Noise::SimplexNoise(x, y);
+		}
+
+		float Noise_PerlinNoise(float x, float y)
+		{
+			return Noise::PerlinNoise(x, y);
 		}
 
 #pragma endregion
@@ -822,6 +863,122 @@ namespace Epoch
 			if (aUp == nullptr) return;
 			
 			entity.Transform().LookAt(*aTarget, *aUp);
+		}
+
+#pragma endregion
+
+#pragma region MeshRendererComponent
+
+		bool MeshRendererComponent_GetMesh(uint64_t aEntityID, AssetHandle* outHandle)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return false;
+
+			if (!entity.HasComponent<MeshRendererComponent>())
+			{
+				*outHandle = AssetHandle(0);
+				return false;
+			}
+
+			const auto& mrc = entity.GetComponent<MeshRendererComponent>();
+			auto mesh = AssetManager::GetAsset<Mesh>(mrc.mesh);
+			if (!mesh)
+			{
+				*outHandle = AssetHandle(0);
+				return false;
+			}
+
+			*outHandle = mrc.mesh;
+			return true;
+		}
+
+		void MeshRendererComponent_SetMesh(uint64_t aEntityID, AssetHandle* aHandle)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return;
+
+			if (!entity.HasComponent<MeshRendererComponent>())
+			{
+				return;
+			}
+
+			auto& mrc = entity.GetComponent<MeshRendererComponent>();
+			mrc.mesh = *aHandle;
+		}
+
+		bool MeshRendererComponent_HasMaterial(uint64_t aEntityID, uint32_t aIndex)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return false;
+
+			if (!entity.HasComponent<MeshRendererComponent>())
+			{
+				return false;
+			}
+
+			const auto& mrc = entity.GetComponent<MeshRendererComponent>();
+			if (mrc.materialTable->GetMaterialCount() > aIndex)
+			{
+				return true;
+			}
+			return false;
+		}
+
+		void MeshRendererComponent_AddMaterial(uint64_t aEntityID, AssetHandle* aHandle)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return;
+
+			if (!entity.HasComponent<MeshRendererComponent>())
+			{
+				return;
+			}
+
+			auto& mrc = entity.GetComponent<MeshRendererComponent>();
+			mrc.materialTable->AddMaterial(*aHandle);
+		}
+
+		void MeshRendererComponent_SetMaterial(uint64_t aEntityID, uint32_t aIndex, AssetHandle* aHandle)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return;
+
+			if (!entity.HasComponent<MeshRendererComponent>())
+			{
+				return;
+			}
+
+			auto& mrc = entity.GetComponent<MeshRendererComponent>();
+
+			if (mrc.materialTable->GetMaterialCount() <= aIndex)
+			{
+				return;
+			}
+
+			mrc.materialTable->SetMaterial(aIndex, *aHandle);
+		}
+
+		bool MeshRendererComponent_GetMaterial(uint64_t aEntityID, uint32_t aIndex, AssetHandle* outHandle)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return false;
+
+			if (!entity.HasComponent<MeshRendererComponent>())
+			{
+				*outHandle = AssetHandle(0);
+				return false;
+			}
+
+			const auto& mrc = entity.GetComponent<MeshRendererComponent>();
+
+			if (mrc.materialTable->GetMaterialCount() <= aIndex)
+			{
+				*outHandle = AssetHandle(0);
+				return false;
+			}
+			
+			*outHandle = mrc.materialTable->GetMaterial(aIndex);
+			return true;
 		}
 
 #pragma endregion
@@ -1767,6 +1924,126 @@ namespace Epoch
 			}
 
 			characterController->Move(*aDisplacement);
+		}
+
+#pragma endregion
+
+#pragma region Texture2D
+
+		bool Texture2D_Create(uint32_t aWidth, uint32_t aHeight/*, MonoString* aName*/, AssetHandle* outHandle)
+		{
+			//std::string name = "";
+			//if (aName)
+			//{
+			//	name = ScriptUtils::MonoStringToUTF8(aName);
+			//}
+
+			TextureSpecification spec;
+			spec.width = aWidth;
+			spec.height = aHeight;
+			//spec.debugName = name;
+
+
+			auto result = Texture2D::Create(spec);
+			*outHandle = AssetManager::AddMemoryOnlyAsset<Texture2D>(result/*, name*/);
+			return true;
+		}
+
+		void Texture2D_GetSize(AssetHandle* aHandle, uint32_t* outWidth, uint32_t* outHeight)
+		{
+			std::shared_ptr<Texture2D> instance = AssetManager::GetAsset<Texture2D>(*aHandle);
+			if (!instance)
+			{
+				LOG_ERROR("Tried to get texture size using an invalid handle!");
+				return;
+			}
+
+			*outWidth = instance->GetWidth();
+			*outHeight = instance->GetHeight();
+		}
+
+		void Texture2D_SetData(AssetHandle* aHandle, MonoArray* aData)
+		{
+			std::shared_ptr<Texture2D> instance = AssetManager::GetAsset<Texture2D>(*aHandle);
+
+			if (!instance)
+			{
+				LOG_ERROR("Tried to set texture data in an invalid texture!");
+				return;
+			}
+
+			uintptr_t count = mono_array_length(aData);
+			uint32_t dataSize = (uint32_t)(count * sizeof(CU::Color) / 4);
+
+			//Buffer buffer = instance->GetWriteableBuffer();
+			Buffer buffer;
+			buffer.Allocate(GetMemorySize(instance->GetFormat(), instance->GetWidth(), instance->GetHeight()));
+			EPOCH_ASSERT(dataSize <= buffer.size);
+
+			// Convert RGBA32F color to RGBA8
+
+			uint8_t* pixels = (uint8_t*)buffer.data;
+			uint32_t index = 0;
+			for (uint32_t i = 0; i < instance->GetWidth() * instance->GetHeight(); i++)
+			{
+				CU::Color& value = mono_array_get(aData, CU::Color, i);
+				*pixels++ = (uint32_t)(value.r * 255.0f);
+				*pixels++ = (uint32_t)(value.g * 255.0f);
+				*pixels++ = (uint32_t)(value.b * 255.0f);
+				*pixels++ = (uint32_t)(value.a * 255.0f);
+			}
+
+			instance->SetData(buffer);
+
+			buffer.Release();
+		}
+
+#pragma endregion
+
+#pragma region Material
+
+		void Material_SetAlbedoTexture(AssetHandle* aMaterialHandle, AssetHandle* aTextureHandle)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			std::shared_ptr<Texture2D> texture = AssetManager::GetAsset<Texture2D>(*aTextureHandle);
+
+			if (!material || !texture)
+			{
+				EPOCH_ASSERT(false);
+				return;
+			}
+
+			material->SetAlbedoTexture(*aTextureHandle);
+		}
+
+#pragma endregion
+
+#pragma region Mesh
+
+		bool Mesh_Create(MonoArray* aVertexBuffer, MonoArray* aIndexBuffer, MonoString* aName, AssetHandle* outHandle)
+		{
+			std::string name = "";
+			if (aName)
+			{
+				name = ScriptUtils::MonoStringToUTF8(aName);
+			}
+
+			uintptr_t vertexCount = mono_array_length(aVertexBuffer);
+			std::vector<Vertex> vertexBuffer(vertexCount);
+			for (size_t i = 0; i < vertexCount; i++)
+			{
+				vertexBuffer[i] = mono_array_get(aVertexBuffer, Vertex, i);
+			}
+
+			uintptr_t indexCount = mono_array_length(aIndexBuffer);
+			std::vector<uint32_t> indexBuffer(indexCount);
+			for (size_t i = 0; i < vertexCount; i++)
+			{
+				indexBuffer[i] = mono_array_get(aIndexBuffer, uint32_t, i);
+			}
+
+			*outHandle = AssetManager::CreateMemoryOnlyAssetWithName<Mesh>(name, vertexBuffer, indexBuffer);
+			return true;
 		}
 
 #pragma endregion
