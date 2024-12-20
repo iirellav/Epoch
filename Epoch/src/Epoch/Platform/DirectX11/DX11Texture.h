@@ -27,25 +27,6 @@ namespace Epoch
 		return DXGI_FORMAT_UNKNOWN;
 	}
 
-	inline static size_t GetMemorySize(TextureFormat format, uint32_t width, uint32_t height)
-	{
-		switch (format)
-		{
-		//case TextureFormat::RGB:			return width * height * 3;
-		case TextureFormat::RGBA:			return width * height * 4;
-		case TextureFormat::RGBA16F:		return width * height * 4 * sizeof(uint16_t);
-		case TextureFormat::RGBA32F:		return width * height * 4 * sizeof(uint32_t);
-		case TextureFormat::R11G11B10F:		return width * height * 4;
-		case TextureFormat::RGB10A2UNORM:	return width * height * 4;
-		case TextureFormat::RG16F:			return width * height * 2;
-		case TextureFormat::R32F:			return width * height * sizeof(uint32_t);
-		case TextureFormat::R32UI:			return width * height * sizeof(uint32_t);
-		case TextureFormat::DEPTH32:		return width * height * sizeof(uint32_t);
-		}
-		EPOCH_ASSERT(false, "Unknown texture format!");
-		return 0;
-	}
-
 	class DX11Texture2D : public Texture2D
 	{
 	public:

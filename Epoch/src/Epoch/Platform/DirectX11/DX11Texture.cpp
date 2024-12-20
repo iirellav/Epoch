@@ -96,7 +96,10 @@ namespace Epoch
 			return;
 		}
 
-		myTextureData.Release();
+		if (myTextureData)
+		{
+			myTextureData.Release();
+		}
 		myTextureData = Buffer::Copy(aTextureData);
 
 		if (mySRV)
