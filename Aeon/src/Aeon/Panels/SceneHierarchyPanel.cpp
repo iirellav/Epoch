@@ -1102,7 +1102,9 @@ namespace Epoch
 							}
 							else if (addSpace)
 							{
+								UI::EndPropertyGrid();
 								UI::Spacing(field->spacing);
+								UI::BeginPropertyGrid();
 							}
 
 							std::string fieldName = "";
