@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace Epoch
 {
+    [StructLayout(LayoutKind.Sequential)]
     public struct Vertex
     {
         public Vector3 position;
