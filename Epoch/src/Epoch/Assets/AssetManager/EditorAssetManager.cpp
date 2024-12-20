@@ -140,6 +140,18 @@ namespace Epoch
 		return nullptr;
 	}
 
+	void EditorAssetManager::AddMemoryOnlyAsset(std::shared_ptr<Asset> aAsset)
+	{
+		AssetMetadata metadata;
+		metadata.handle = aAsset->GetHandle();
+		metadata.isDataLoaded = true;
+		metadata.type = aAsset->GetAssetType();
+		metadata.isMemoryAsset = true;
+		myAssetRegistry[metadata.handle] = metadata;
+
+		myMemoryAssets[aAsset->GetHandle()] = aAsset;
+	}
+
 	void EditorAssetManager::AddMemoryOnlyAsset(std::shared_ptr<Asset> aAsset, const std::string& aName)
 	{
 		AssetMetadata metadata;

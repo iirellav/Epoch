@@ -21,6 +21,7 @@ namespace Epoch
 		AssetType GetAssetType(AssetHandle aHandle) override;
 		std::shared_ptr<Asset> GetAsset(AssetHandle aHandle) override;
 		std::shared_ptr<Asset> GetAssetAsync(AssetHandle aHandle) override;
+		void AddMemoryOnlyAsset(std::shared_ptr<Asset> aAsset) override;
 		void AddMemoryOnlyAsset(std::shared_ptr<Asset> aAsset, const std::string& aName) override;
 
 		bool ReloadData(AssetHandle aAssetHandle) override;

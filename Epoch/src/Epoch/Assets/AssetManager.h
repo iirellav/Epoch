@@ -59,6 +59,26 @@ namespace Epoch
 		static const std::unordered_map<AssetHandle, std::shared_ptr<Asset>>& GetLoadedAssets() { return Project::GetAssetManager()->GetLoadedAssets(); }
 
 
+		template<typename T>
+		static AssetHandle AddMemoryOnlyAsset(std::shared_ptr<T> aAsset)
+		{
+			static_assert(std::is_base_of<Asset, T>::value, "AddMemoryOnlyAsset only works for types derived from Asset");
+			aAsset->myHandle = AssetHandle();
+
+			Project::GetAssetManager()->AddMemoryOnlyAsset(aAsset);
+			return aAsset->myHandle;
+		}
+
+		template<typename T>
+		static AssetHandle AddMemoryOnlyAsset(std::shared_ptr<T> aAsset, const std::string& aName)
+		{
+			static_assert(std::is_base_of<Asset, T>::value, "AddMemoryOnlyAsset only works for types derived from Asset");
+			aAsset->myHandle = AssetHandle();
+
+			Project::GetAssetManager()->AddMemoryOnlyAsset(aAsset, aName);
+			return aAsset->myHandle;
+		}
+
 		template<typename T, typename... TArgs>
 		static AssetHandle CreateMemoryOnlyAssetWithName(const std::string& aName, TArgs&&... aArgs)
 		{
