@@ -10,7 +10,9 @@ project "Epoch"
 	files
 	{
 		"src/**.h",
-		"src/**.cpp"
+		"src/**.cpp",
+
+		"vendor/FastNoise/**.cpp"
 	}
 
 	includedirs
@@ -58,6 +60,9 @@ project "Epoch"
 	}
 
 	defines "PX_PHYSX_STATIC_LIB"
+
+	filter "files:vendor/FastNoise/**.cpp"
+		flags { "NoPCH" }
 
 	filter "configurations:Debug"
 		links
