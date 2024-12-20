@@ -20,7 +20,7 @@ namespace Epoch
 
         public void SetData(Color[] aData) => InternalCalls.Texture2D_SetData(ref myHandle, aData);
 
-        public static Texture2D Create(uint aWidth, uint aHeight, Color[] aData = null/*, string aName = null*/)
+        public static Texture2D Create(uint aWidth, uint aHeight, Color[] aData = null)
         {
             if (aWidth == 0)
             {
@@ -32,7 +32,7 @@ namespace Epoch
                 throw new ArgumentException("Tried to create a Texture2D with a height of 0.");
             }
 
-            if (!InternalCalls.Texture2D_Create(aWidth, aHeight/*, ref aName*/, out AssetHandle handle))
+            if (!InternalCalls.Texture2D_Create(aWidth, aHeight, out AssetHandle handle))
             {
                 return null;
             }

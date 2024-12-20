@@ -70,7 +70,7 @@ namespace Epoch
 		}
 
 		template<typename T>
-		static AssetHandle AddMemoryOnlyAsset(std::shared_ptr<T> aAsset, const std::string& aName)
+		static AssetHandle AddMemoryOnlyAssetWithName(std::shared_ptr<T> aAsset, const std::string& aName)
 		{
 			static_assert(std::is_base_of<Asset, T>::value, "AddMemoryOnlyAsset only works for types derived from Asset");
 			aAsset->myHandle = AssetHandle();
@@ -80,16 +80,27 @@ namespace Epoch
 		}
 
 		template<typename T, typename... TArgs>
+		static AssetHandle CreateMemoryOnlyAsset(TArgs&&... aArgs)
+		{
+			static_assert(std::is_base_of<Asset, T>::value, "CreateMemoryOnlyAsset only works for types derived from Asset");
+
+			std::shared_ptr<T> asset = std::make_shared<T>(std::forward<TArgs>(aArgs)...);
+			asset->myHandle = AssetHandle();
+
+			Project::GetAssetManager()->AddMemoryOnlyAsset(asset);
+			return asset->myHandle;
+		}
+
+		template<typename T, typename... TArgs>
 		static AssetHandle CreateMemoryOnlyAssetWithName(const std::string& aName, TArgs&&... aArgs)
 		{
 			static_assert(std::is_base_of<Asset, T>::value, "CreateMemoryOnlyAsset only works for types derived from Asset");
 
-			AssetHandle handle = Hash::GenerateFNVHash(aName);
 			std::shared_ptr<T> asset = std::make_shared<T>(std::forward<TArgs>(aArgs)...);
-			asset->myHandle = handle;
+			asset->myHandle = Hash::GenerateFNVHash(aName);
 
 			Project::GetAssetManager()->AddMemoryOnlyAsset(asset, aName);
-			return handle;
+			return asset->myHandle;
 		}
 	};
 }

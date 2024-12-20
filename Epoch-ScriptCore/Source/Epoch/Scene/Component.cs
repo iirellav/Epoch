@@ -125,7 +125,7 @@ namespace Epoch
 
         public bool HasMaterial(uint aIndex) => InternalCalls.MeshRendererComponent_HasMaterial(entity.id, aIndex);
 
-        public Material GetMaterial(uint aIndex)
+        public Material GetMaterial(uint aIndex = 0)
         {
             if (!HasMaterial(aIndex) || !InternalCalls.MeshRendererComponent_GetMaterial(entity.id, aIndex, out AssetHandle outMaterialHandle))
             {

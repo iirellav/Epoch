@@ -75,6 +75,7 @@ namespace Epoch
 	{
 		RegisterManagedComponent<NameComponent>();
 		RegisterManagedComponent<TransformComponent>();
+		RegisterManagedComponent<MeshRendererComponent>();
 		RegisterManagedComponent<ScriptComponent>();
 		RegisterManagedComponent<TextRendererComponent>();
 		RegisterManagedComponent<PointLightComponent>();
@@ -291,6 +292,9 @@ namespace Epoch
 
 
 		EPOCH_ADD_INTERNAL_CALL(Material_SetAlbedoTexture);
+
+
+		EPOCH_ADD_INTERNAL_CALL(Mesh_Create);
 	}
 
 	namespace InternalCalls
@@ -1930,22 +1934,14 @@ namespace Epoch
 
 #pragma region Texture2D
 
-		bool Texture2D_Create(uint32_t aWidth, uint32_t aHeight/*, MonoString* aName*/, AssetHandle* outHandle)
+		bool Texture2D_Create(uint32_t aWidth, uint32_t aHeight, AssetHandle* outHandle)
 		{
-			//std::string name = "";
-			//if (aName)
-			//{
-			//	name = ScriptUtils::MonoStringToUTF8(aName);
-			//}
-
 			TextureSpecification spec;
 			spec.width = aWidth;
 			spec.height = aHeight;
-			//spec.debugName = name;
 
-
-			auto result = Texture2D::Create(spec);
-			*outHandle = AssetManager::AddMemoryOnlyAsset<Texture2D>(result/*, name*/);
+			auto texture = Texture2D::Create(spec);
+			*outHandle = AssetManager::AddMemoryOnlyAsset<Texture2D>(texture);
 			return true;
 		}
 
@@ -2020,14 +2016,8 @@ namespace Epoch
 
 #pragma region Mesh
 
-		bool Mesh_Create(MonoArray* aVertexBuffer, MonoArray* aIndexBuffer, MonoString* aName, AssetHandle* outHandle)
+		bool Mesh_Create(MonoArray* aVertexBuffer, MonoArray* aIndexBuffer, AssetHandle* outHandle)
 		{
-			std::string name = "";
-			if (aName)
-			{
-				name = ScriptUtils::MonoStringToUTF8(aName);
-			}
-
 			uintptr_t vertexCount = mono_array_length(aVertexBuffer);
 			std::vector<Vertex> vertexBuffer(vertexCount);
 			for (size_t i = 0; i < vertexCount; i++)
@@ -2037,12 +2027,12 @@ namespace Epoch
 
 			uintptr_t indexCount = mono_array_length(aIndexBuffer);
 			std::vector<uint32_t> indexBuffer(indexCount);
-			for (size_t i = 0; i < vertexCount; i++)
+			for (size_t i = 0; i < indexCount; i++)
 			{
 				indexBuffer[i] = mono_array_get(aIndexBuffer, uint32_t, i);
 			}
 
-			*outHandle = AssetManager::CreateMemoryOnlyAssetWithName<Mesh>(name, vertexBuffer, indexBuffer);
+			*outHandle = AssetManager::CreateMemoryOnlyAsset<Mesh>(vertexBuffer, indexBuffer);
 			return true;
 		}
 

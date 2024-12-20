@@ -332,7 +332,7 @@ namespace Epoch
 
 #pragma region Texture2D
 
-		bool Texture2D_Create(uint32_t aWidth, uint32_t aHeight/*, MonoString* aName*/, AssetHandle* outHandle);
+		bool Texture2D_Create(uint32_t aWidth, uint32_t aHeight, AssetHandle* outHandle);
 
 		void Texture2D_GetSize(AssetHandle* aHandle, uint32_t* outWidth, uint32_t* outHeight);
 
@@ -348,7 +348,7 @@ namespace Epoch
 
 #pragma region Mesh
 
-		bool Mesh_Create(MonoArray* aVertexBuffer, MonoArray* aIndexBuffer, MonoString* aName, AssetHandle* outHandle);
+		bool Mesh_Create(MonoArray* aVertexBuffer, MonoArray* aIndexBuffer, AssetHandle* outHandle);
 
 #pragma endregion
 	}

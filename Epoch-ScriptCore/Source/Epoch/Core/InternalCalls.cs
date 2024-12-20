@@ -525,7 +525,7 @@ namespace Epoch
         #region Mesh
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern bool Mesh_Create(ref Vertex[] aVertexBuffer, ref uint[] aIndexBuffer, ref string aName, out AssetHandle outHandle);
+        internal static extern bool Mesh_Create(Vertex[] aVertexBuffer, uint[] aIndexBuffer, out AssetHandle outHandle);
 
         #endregion
     }
