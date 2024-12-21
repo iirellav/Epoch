@@ -873,6 +873,34 @@ namespace Epoch
 
 #pragma region MeshRendererComponent
 
+		bool MeshRendererComponent_GetIsActive(uint64_t aEntityID)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return false;
+
+			if (!entity.HasComponent<MeshRendererComponent>())
+			{
+				return false;
+			}
+
+			auto& mrc = entity.GetComponent<MeshRendererComponent>();
+			return mrc.isActive;
+		}
+
+		void MeshRendererComponent_SetIsActive(uint64_t aEntityID, bool aState)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return;
+
+			if (!entity.HasComponent<MeshRendererComponent>())
+			{
+				return;
+			}
+
+			auto& mrc = entity.GetComponent<MeshRendererComponent>();
+			mrc.isActive = aState;
+		}
+
 		bool MeshRendererComponent_GetMesh(uint64_t aEntityID, AssetHandle* outHandle)
 		{
 			auto entity = GetEntity(aEntityID);
@@ -908,6 +936,34 @@ namespace Epoch
 
 			auto& mrc = entity.GetComponent<MeshRendererComponent>();
 			mrc.mesh = *aHandle;
+		}
+
+		bool MeshRendererComponent_GetCastsShadows(uint64_t aEntityID)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return false;
+
+			if (!entity.HasComponent<MeshRendererComponent>())
+			{
+				return false;
+			}
+
+			auto& mrc = entity.GetComponent<MeshRendererComponent>();
+			return mrc.castsShadows;
+		}
+
+		void MeshRendererComponent_SetCastsShadows(uint64_t aEntityID, bool aState)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return;
+
+			if (!entity.HasComponent<MeshRendererComponent>())
+			{
+				return;
+			}
+
+			auto& mrc = entity.GetComponent<MeshRendererComponent>();
+			mrc.castsShadows = aState;
 		}
 
 		bool MeshRendererComponent_HasMaterial(uint64_t aEntityID, uint32_t aIndex)

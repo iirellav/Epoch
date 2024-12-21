@@ -191,9 +191,22 @@ namespace Epoch
         #region MeshRendererComponent
 
         [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool MeshRendererComponent_GetIsActive(ulong aEntityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void MeshRendererComponent_SetIsActive(ulong aEntityID, bool aState);
+
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern bool MeshRendererComponent_GetMesh(ulong aEntityID, out AssetHandle outHandle);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void MeshRendererComponent_SetMesh(ulong aEntityID, ref AssetHandle aHandle);
+
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool MeshRendererComponent_GetCastsShadows(ulong aEntityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void MeshRendererComponent_SetCastsShadows(ulong aEntityID, bool aState);
+
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern bool MeshRendererComponent_HasMaterial(ulong aEntityID, uint aIndex);

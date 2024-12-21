@@ -108,6 +108,12 @@ namespace Epoch
 
     public class MeshRendererComponent : Component
     {
+        public bool Active
+        {
+            get => InternalCalls.MeshRendererComponent_GetIsActive(entity.id);
+            set => InternalCalls.MeshRendererComponent_SetIsActive(entity.id, value);
+        }
+
         public Mesh Mesh
         {
             get
@@ -116,11 +122,17 @@ namespace Epoch
                 {
                     return null;
                 }
-        
+
                 return new Mesh(outMeshHandle);
             }
-        
+
             set => InternalCalls.MeshRendererComponent_SetMesh(entity.id, ref value.myHandle);
+        }
+
+        public bool CastsShadows
+        {
+            get => InternalCalls.MeshRendererComponent_GetCastsShadows(entity.id);
+            set => InternalCalls.MeshRendererComponent_SetCastsShadows(entity.id, value);
         }
 
         public bool HasMaterial(uint aIndex) => InternalCalls.MeshRendererComponent_HasMaterial(entity.id, aIndex);

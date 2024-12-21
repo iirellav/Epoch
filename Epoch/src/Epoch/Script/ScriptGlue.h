@@ -145,9 +145,14 @@ namespace Epoch
 
 #pragma region MeshRendererComponent
 
-		bool MeshRendererComponent_GetMesh(uint64_t aEntityID, AssetHandle* outHandle);
+		bool MeshRendererComponent_GetIsActive(uint64_t aEntityID);
+		void MeshRendererComponent_SetIsActive(uint64_t aEntityID, bool aState);
 
+		bool MeshRendererComponent_GetMesh(uint64_t aEntityID, AssetHandle* outHandle);
 		void MeshRendererComponent_SetMesh(uint64_t aEntityID, AssetHandle* aHandle);
+
+		bool MeshRendererComponent_GetCastsShadows(uint64_t aEntityID);
+		void MeshRendererComponent_SetCastsShadows(uint64_t aEntityID, bool aState);
 
 
 		bool MeshRendererComponent_HasMaterial(uint64_t aEntityID, uint32_t aIndex);
@@ -155,7 +160,6 @@ namespace Epoch
 		void MeshRendererComponent_AddMaterial(uint64_t aEntityID, AssetHandle* aHandle);
 
 		void MeshRendererComponent_SetMaterial(uint64_t aEntityID, uint32_t aIndex, AssetHandle* aHandle);
-
 		bool MeshRendererComponent_GetMaterial(uint64_t aEntityID, uint32_t aIndex, AssetHandle* outHandle);
 
 #pragma endregion
