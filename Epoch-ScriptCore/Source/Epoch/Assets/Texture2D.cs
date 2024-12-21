@@ -2,7 +2,7 @@
 
 namespace Epoch
 {
-    public class Texture2D
+    public class Texture2D : IEquatable<Texture2D>
     {
         internal AssetHandle myHandle;
         public AssetHandle Handle => myHandle;
@@ -17,6 +17,28 @@ namespace Epoch
             Width = outWidth;
             Height = outHeight;
         }
+
+        public override bool Equals(object aObj) => aObj is Texture2D aOther && Equals(aOther);
+
+        public bool Equals(Texture2D aOther)
+        {
+            if (aOther is null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, aOther))
+            {
+                return true;
+            }
+
+            return myHandle == aOther.myHandle;
+        }
+
+        public override int GetHashCode() => myHandle.GetHashCode();
+
+        public static bool operator ==(Texture2D aLeft, Texture2D aRight) => aLeft is null ? aRight is null : aLeft.Equals(aRight);
+        public static bool operator !=(Texture2D aLeft, Texture2D aRight) => !(aLeft == aRight);
 
         public void SetData(Color[] aData) => InternalCalls.Texture2D_SetData(ref myHandle, aData);
 
