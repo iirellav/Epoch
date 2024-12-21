@@ -170,6 +170,53 @@ namespace Epoch
         }
     }
 
+    public class SpriteRendererComponent : Component
+    {
+        public bool Active
+        {
+            get => InternalCalls.SpriteRendererComponent_GetIsActive(entity.id);
+            set => InternalCalls.SpriteRendererComponent_SetIsActive(entity.id, value);
+        }
+
+        public Texture2D Texture
+        {
+            get
+            {
+                if (!InternalCalls.SpriteRendererComponent_GetTexture(entity.id, out AssetHandle outTextureHandle))
+                {
+                    return null;
+                }
+
+                return new Texture2D(outTextureHandle);
+            }
+
+            set => InternalCalls.SpriteRendererComponent_SetTexture(entity.id, ref value.myHandle);
+        }
+
+        public Color Color
+        {
+            get
+            {
+                InternalCalls.SpriteRendererComponent_GetTint(entity.id, out Color color);
+                return color;
+            }
+
+            set => InternalCalls.SpriteRendererComponent_SetTint(entity.id, ref value);
+        }
+
+        public bool FlipX
+        {
+            get => InternalCalls.SpriteRendererComponent_GetFlipX(entity.id);
+            set => InternalCalls.SpriteRendererComponent_SetFlipX(entity.id, value);
+        }
+
+        public bool FlipY
+        {
+            get => InternalCalls.SpriteRendererComponent_GetFlipY(entity.id);
+            set => InternalCalls.SpriteRendererComponent_SetFlipY(entity.id, value);
+        }
+    }
+
     public class TextRendererComponent : Component
     {
         public string Text

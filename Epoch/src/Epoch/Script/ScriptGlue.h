@@ -164,6 +164,25 @@ namespace Epoch
 
 #pragma endregion
 
+#pragma region SpriteRendererComponent
+
+			bool SpriteRendererComponent_GetIsActive(uint64_t aEntityID);
+			void SpriteRendererComponent_SetIsActive(uint64_t aEntityID, bool aState);
+
+			bool SpriteRendererComponent_GetTexture(uint64_t aEntityID, AssetHandle* outHandle);
+			void SpriteRendererComponent_SetTexture(uint64_t aEntityID, AssetHandle* aHandle);
+
+			void SpriteRendererComponent_GetTint(uint64_t aEntityID, CU::Color* outColor);
+			void SpriteRendererComponent_SetTint(uint64_t aEntityID, CU::Color* aColor);
+
+			bool SpriteRendererComponent_GetFlipX(uint64_t aEntityID);
+			void SpriteRendererComponent_SetFlipX(uint64_t aEntityID, bool aState);
+
+			bool SpriteRendererComponent_GetFlipY(uint64_t aEntityID);
+			void SpriteRendererComponent_SetFlipY(uint64_t aEntityID, bool aState);
+
+#pragma endregion
+
 #pragma region ScriptComponent
 		
 		MonoObject* ScriptComponent_GetInstance(uint64_t aEntityID);

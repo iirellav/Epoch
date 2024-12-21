@@ -221,6 +221,39 @@ namespace Epoch
 
         #endregion
 
+        #region SpriteRendererComponent
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool SpriteRendererComponent_GetIsActive(ulong aEntityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SpriteRendererComponent_SetIsActive(ulong aEntityID, bool aState);
+
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool SpriteRendererComponent_GetTexture(ulong aEntityID, out AssetHandle outHandle);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SpriteRendererComponent_SetTexture(ulong aEntityID, ref AssetHandle aHandle);
+
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SpriteRendererComponent_GetTint(ulong aEntityID, out Color outColor);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SpriteRendererComponent_SetTint(ulong aEntityID, ref Color aColor);
+
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool SpriteRendererComponent_GetFlipX(ulong aEntityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SpriteRendererComponent_SetFlipX(ulong aEntityID, bool aState);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool SpriteRendererComponent_GetFlipY(ulong aEntityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SpriteRendererComponent_SetFlipY(ulong aEntityID, bool aState);
+
+        #endregion
+
         #region ScriptComponent
 
         [MethodImpl(MethodImplOptions.InternalCall)]

@@ -76,6 +76,7 @@ namespace Epoch
 		RegisterManagedComponent<NameComponent>();
 		RegisterManagedComponent<TransformComponent>();
 		RegisterManagedComponent<MeshRendererComponent>();
+		RegisterManagedComponent<SpriteRendererComponent>();
 		RegisterManagedComponent<ScriptComponent>();
 		RegisterManagedComponent<TextRendererComponent>();
 		RegisterManagedComponent<PointLightComponent>();
@@ -168,6 +169,18 @@ namespace Epoch
 		EPOCH_ADD_INTERNAL_CALL(MeshRendererComponent_AddMaterial);
 		EPOCH_ADD_INTERNAL_CALL(MeshRendererComponent_SetMaterial);
 		EPOCH_ADD_INTERNAL_CALL(MeshRendererComponent_GetMaterial);
+
+
+		EPOCH_ADD_INTERNAL_CALL(SpriteRendererComponent_GetIsActive);
+		EPOCH_ADD_INTERNAL_CALL(SpriteRendererComponent_SetIsActive);
+		EPOCH_ADD_INTERNAL_CALL(SpriteRendererComponent_GetTexture);
+		EPOCH_ADD_INTERNAL_CALL(SpriteRendererComponent_SetTexture);
+		EPOCH_ADD_INTERNAL_CALL(SpriteRendererComponent_GetTint);
+		EPOCH_ADD_INTERNAL_CALL(SpriteRendererComponent_SetTint);
+		EPOCH_ADD_INTERNAL_CALL(SpriteRendererComponent_GetFlipX);
+		EPOCH_ADD_INTERNAL_CALL(SpriteRendererComponent_SetFlipX);
+		EPOCH_ADD_INTERNAL_CALL(SpriteRendererComponent_GetFlipY);
+		EPOCH_ADD_INTERNAL_CALL(SpriteRendererComponent_SetFlipY);
 
 
 		EPOCH_ADD_INTERNAL_CALL(ScriptComponent_GetInstance);
@@ -1040,6 +1053,152 @@ namespace Epoch
 			
 			*outHandle = mrc.materialTable->GetMaterial(aIndex);
 			return true;
+		}
+
+#pragma endregion
+
+#pragma region SpriteRendererComponent
+
+		bool SpriteRendererComponent_GetIsActive(uint64_t aEntityID)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return false;
+
+			if (!entity.HasComponent<SpriteRendererComponent>())
+			{
+				return false;
+			}
+
+			const auto& src = entity.GetComponent<SpriteRendererComponent>();
+			return src.isActive;
+		}
+
+		void SpriteRendererComponent_SetIsActive(uint64_t aEntityID, bool aState)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return;
+
+			if (!entity.HasComponent<SpriteRendererComponent>())
+			{
+				return;
+			}
+
+			auto& src = entity.GetComponent<SpriteRendererComponent>();
+			src.isActive = aState;
+		}
+
+		bool SpriteRendererComponent_GetTexture(uint64_t aEntityID, AssetHandle* outHandle)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return false;
+
+			if (!entity.HasComponent<SpriteRendererComponent>())
+			{
+				*outHandle = AssetHandle(0);
+				return false;
+			}
+
+			const auto& src = entity.GetComponent<SpriteRendererComponent>();
+			*outHandle = src.texture;
+			return true;
+		}
+
+		void SpriteRendererComponent_SetTexture(uint64_t aEntityID, AssetHandle* aHandle)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return;
+
+			if (!entity.HasComponent<SpriteRendererComponent>())
+			{
+				return;
+			}
+
+			auto& src = entity.GetComponent<SpriteRendererComponent>();
+			src.texture = *aHandle;
+		}
+
+		void SpriteRendererComponent_GetTint(uint64_t aEntityID, CU::Color* outColor)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return;
+
+			if (!entity.HasComponent<SpriteRendererComponent>())
+			{
+				return;
+			}
+
+			const auto& src = entity.GetComponent<SpriteRendererComponent>();
+			*outColor = src.tint;
+		}
+
+		void SpriteRendererComponent_SetTint(uint64_t aEntityID, CU::Color* aColor)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return;
+
+			if (!entity.HasComponent<SpriteRendererComponent>())
+			{
+				return;
+			}
+
+			auto& src = entity.GetComponent<SpriteRendererComponent>();
+			src.tint = *aColor;
+		}
+
+		bool SpriteRendererComponent_GetFlipX(uint64_t aEntityID)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return false;
+
+			if (!entity.HasComponent<SpriteRendererComponent>())
+			{
+				return false;
+			}
+
+			const auto& src = entity.GetComponent<SpriteRendererComponent>();
+			return src.flipX;
+		}
+
+		void SpriteRendererComponent_SetFlipX(uint64_t aEntityID, bool aState)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return;
+
+			if (!entity.HasComponent<SpriteRendererComponent>())
+			{
+				return;
+			}
+
+			auto& src = entity.GetComponent<SpriteRendererComponent>();
+			src.flipX = aState;
+		}
+
+		bool SpriteRendererComponent_GetFlipY(uint64_t aEntityID)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return false;
+
+			if (!entity.HasComponent<SpriteRendererComponent>())
+			{
+				return false;
+			}
+
+			const auto& src = entity.GetComponent<SpriteRendererComponent>();
+			return src.flipY;
+		}
+
+		void SpriteRendererComponent_SetFlipY(uint64_t aEntityID, bool aState)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return;
+
+			if (!entity.HasComponent<SpriteRendererComponent>())
+			{
+				return;
+			}
+
+			auto& src = entity.GetComponent<SpriteRendererComponent>();
+			src.flipY = aState;
 		}
 
 #pragma endregion
