@@ -931,13 +931,8 @@ namespace Epoch::UI
 		return modified;
 	}
 
-	bool Property_CubicBezier(const char* aLabel, const char* aTooltip)
+	bool Property_CubicBezier(const char* aLabel, const CU::Vector2f& aP1, const CU::Vector2f& aP2, const CU::Vector2f& aP3, const CU::Vector2f& aP4, const char* aTooltip)
 	{
-		const CU::Vector2f p1 = { 0.0f, 0.0f };//TEMP: Input
-		const CU::Vector2f p2 = { 0.5f, 0.0f };//TEMP: Input
-		const CU::Vector2f p3 = { 0.5f, 1.0f };//TEMP: Input
-		const CU::Vector2f p4 = { 1.0f, 1.0f };//TEMP: Input
-
 		bool modified = false;
 		
 		//ShiftCursor(10.0f, 9.0f);
@@ -962,7 +957,7 @@ namespace Epoch::UI
 			//TODO: Implement
 			//CubicBezierEditor::Get().SetCurveToEdit(&outCurve);
 		}
-		UI::Widgets::CubicBezier({ p1, p2, p3, p4 }, { screenPos.x, screenPos.y }, barWidth, barHeight);
+		UI::Widgets::CubicBezier({ aP1, aP2, aP3, aP4 }, { screenPos.x, screenPos.y }, barWidth, barHeight);
 		//modified = CubicBezierEditor::Get().OnImGuiRender();
 
 		ImGui::PopItemWidth();

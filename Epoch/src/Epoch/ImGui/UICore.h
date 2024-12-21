@@ -172,7 +172,7 @@ namespace Epoch::UI
 
 	bool Property_Gradient(const char* aLabel, CU::Gradient& outGradient, const char* aTooltip = "");
 
-	bool Property_CubicBezier(const char* aLabel, const char* aTooltip = "");
+	bool Property_CubicBezier(const char* aLabel, const CU::Vector2f& aP1, const CU::Vector2f& aP2, const CU::Vector2f& aP3, const CU::Vector2f& aP4, const char* aTooltip = "");
 
 
 	static inline std::function<void(AssetHandle)> OnAssetReferenceDoubleClickedCallback;

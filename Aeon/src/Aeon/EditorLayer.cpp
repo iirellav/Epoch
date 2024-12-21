@@ -482,7 +482,7 @@ namespace Epoch
 			UI::Property_DragFloat2("P3", p3, 0.01f, 0.0f, 1.0f);
 			UI::Property_DragFloat("P4", p4.y, 0.01f, 0.0f, 1.0f);
 
-			UI::Property_CubicBezier("Test");
+			UI::Property_CubicBezier("Test", p1, p2, p3, p4 );
 
 			UI::EndPropertyGrid();
 
