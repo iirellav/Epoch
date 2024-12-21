@@ -147,7 +147,7 @@ namespace Epoch
             return new Material(outMaterialHandle);
         }
 
-        public void SetMaterial(ref Material aMaterial)
+        public void SetMaterial(Material aMaterial)
         {
             if (!HasMaterial(0))
             {
@@ -155,11 +155,11 @@ namespace Epoch
             }
             else
             {
-                SetMaterial(0, ref aMaterial);
+                SetMaterial(0, aMaterial);
             }
         }
 
-        public void SetMaterial(uint aIndex, ref Material aMaterial)
+        public void SetMaterial(uint aIndex, Material aMaterial)
         {
             if (!HasMaterial(aIndex))
             {
