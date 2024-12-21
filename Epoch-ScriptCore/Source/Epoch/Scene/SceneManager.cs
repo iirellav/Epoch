@@ -8,8 +8,7 @@ namespace Epoch
         {
             if (!aScene.Handle.IsValid())
             {
-                Console.WriteLine("SceneManager: Tried to a scene with an invalid ID '{0}'", aScene.Handle);
-                //Log.Error("SceneManager: Tried to a scene with an invalid ID '{0}'", scene.Handle);
+                Log.Error("SceneManager: Tried to a scene with an invalid ID '{0}'", aScene.Handle);
                 return;
             }
 
