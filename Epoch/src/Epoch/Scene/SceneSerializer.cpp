@@ -275,6 +275,7 @@ namespace Epoch
 								case FieldType::Prefab:
 								case FieldType::Material:
 								case FieldType::Mesh:
+								case FieldType::Texture2D:
 								{
 									aOut << arrayStorage->GetValue<UUID>(i);
 									break;
@@ -1090,6 +1091,7 @@ namespace Epoch
 										case FieldType::Prefab:
 										case FieldType::Material:
 										case FieldType::Mesh:
+										case FieldType::Texture2D:
 										{
 											fieldStorage->SetValue(dataNode.as<UUID>());
 											break;

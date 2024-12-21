@@ -602,6 +602,16 @@ namespace Epoch::UI
 			}
 			break;
 		}
+		case FieldType::Texture2D:
+		{
+			AssetHandle handle = aStorage->GetValue<AssetHandle>();
+			if (Property_AssetReference<Texture2D>(aFieldName.c_str(), handle, aTooltip, { true }))
+			{
+				aStorage->SetValue(handle);
+				result = true;
+			}
+			break;
+		}
 		case FieldType::Entity:
 		{
 			UUID uuid = aStorage->GetValue<UUID>();
@@ -768,6 +778,16 @@ namespace Epoch::UI
 				{
 					AssetHandle handle = aStorage->GetValue<AssetHandle>(i);
 					if (Property_AssetReference<Mesh>(indexString.c_str(), handle, aTooltip, { true }))
+					{
+						aStorage->SetValue(i, handle);
+						modified = true;
+					}
+					break;
+				}
+				case FieldType::Texture2D:
+				{
+					AssetHandle handle = aStorage->GetValue<AssetHandle>(i);
+					if (Property_AssetReference<Texture2D>(indexString.c_str(), handle, aTooltip, { true }))
 					{
 						aStorage->SetValue(i, handle);
 						modified = true;

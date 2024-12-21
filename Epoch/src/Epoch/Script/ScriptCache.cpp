@@ -82,6 +82,7 @@ namespace Epoch
 		CACHE_EPOCH_CORE_CLASS("Entity");
 		CACHE_EPOCH_CORE_CLASS("Prefab");
 		CACHE_EPOCH_CORE_CLASS("Mesh");
+		CACHE_EPOCH_CORE_CLASS("Texture2D");
 		CACHE_EPOCH_CORE_CLASS("Material");
 	}
 
@@ -320,6 +321,7 @@ namespace Epoch
 			case FieldType::Entity:			return EPOCH_CACHED_CLASS("Epoch.Entity")->monoClass;
 			case FieldType::Material:		return EPOCH_CACHED_CLASS("Epoch.Material")->monoClass;
 			case FieldType::Mesh:			return EPOCH_CACHED_CLASS("Epoch.Mesh")->monoClass;
+			case FieldType::Texture2D:		return EPOCH_CACHED_CLASS("Epoch.Texture2D")->monoClass;
 		}
 
 		return nullptr;

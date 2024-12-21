@@ -268,6 +268,7 @@ namespace Epoch
 			case FieldType::Prefab:
 			case FieldType::Material:
 			case FieldType::Mesh:
+			case FieldType::Texture2D:
 			{
 				Buffer handleBuffer = GetFieldValue(aObj, "myHandle", FieldType::AssetHandle, false);
 				result.Write(handleBuffer.data, sizeof(AssetHandle));
@@ -294,6 +295,7 @@ namespace Epoch
 				case FieldType::Prefab: return ScriptEngine::CreateManagedObject("Epoch.Prefab", *(AssetHandle*)aData);
 				case FieldType::Material: return ScriptEngine::CreateManagedObject("Epoch.Material", *(AssetHandle*)aData);
 				case FieldType::Mesh : return ScriptEngine::CreateManagedObject("Epoch.Mesh", *(AssetHandle*)aData);
+				case FieldType::Texture2D: return ScriptEngine::CreateManagedObject("Epoch.Texture2D", *(AssetHandle*)aData);
 				case FieldType::Entity: return ScriptEngine::CreateManagedObject("Epoch.Entity", *(UUID*)aData);
 			}
 		}
@@ -362,6 +364,7 @@ namespace Epoch
 				if (EPOCH_CORE_CLASS(Prefab) && typeClass == EPOCH_CORE_CLASS(Prefab)->monoClass) return FieldType::Prefab;
 				if (EPOCH_CORE_CLASS(Material) && typeClass == EPOCH_CORE_CLASS(Material)->monoClass) return FieldType::Material;
 				if (EPOCH_CORE_CLASS(Mesh) && typeClass == EPOCH_CORE_CLASS(Mesh)->monoClass) return FieldType::Mesh;
+				if (EPOCH_CORE_CLASS(Texture2D) && typeClass == EPOCH_CORE_CLASS(Texture2D)->monoClass) return FieldType::Texture2D;
 
 				break;
 			}

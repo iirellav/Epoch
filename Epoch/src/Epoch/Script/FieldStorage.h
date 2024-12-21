@@ -34,7 +34,8 @@ namespace Epoch
 		Prefab,
 		Entity,
 		Material,
-		Mesh
+		Mesh,
+		Texture2D
 	};
 
 	struct FieldInfo
@@ -90,6 +91,7 @@ namespace Epoch
 			if (aTypeString == "Entity")		return FieldType::Entity;
 			if (aTypeString == "Material")		return FieldType::Material;
 			if (aTypeString == "Mesh")			return FieldType::Mesh;
+			if (aTypeString == "Texture2D")		return FieldType::Texture2D;
 
 			EPOCH_ASSERT(false, "Unknown script field type!");
 			return FieldType::Void;
@@ -121,6 +123,7 @@ namespace Epoch
 				case FieldType::Entity:			return "Entity";
 				case FieldType::Material:		return "Material";
 				case FieldType::Mesh:			return "Mesh";
+				case FieldType::Texture2D:		return "Texture2D";
 			}
 			
 			EPOCH_ASSERT(false, "Unknown script field type!");
@@ -152,6 +155,7 @@ namespace Epoch
 				case FieldType::Prefab:
 				case FieldType::Material:
 				case FieldType::Mesh:
+				case FieldType::Texture2D:
 				return sizeof(UUID);
 			}
 
@@ -169,6 +173,7 @@ namespace Epoch
 				case FieldType::Prefab: return false;
 				case FieldType::Material: return false;
 				case FieldType::Mesh: return false;
+				case FieldType::Texture2D: return false;
 			}
 
 			return true;
@@ -182,6 +187,7 @@ namespace Epoch
 				case FieldType::Scene: return true;
 				case FieldType::Material: return true;
 				case FieldType::Mesh: return true;
+				case FieldType::Texture2D: return true;
 			}
 
 			return false;
