@@ -138,6 +138,7 @@ namespace Epoch
 		EPOCH_ADD_INTERNAL_CALL(Entity_GetChildren);
 		EPOCH_ADD_INTERNAL_CALL(Entity_GetChildByName);
 
+		EPOCH_ADD_INTERNAL_CALL(Entity_AddComponent);
 		EPOCH_ADD_INTERNAL_CALL(Entity_HasComponent);
 		EPOCH_ADD_INTERNAL_CALL(Entity_RemoveComponent);
 
