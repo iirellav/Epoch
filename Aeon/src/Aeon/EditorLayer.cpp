@@ -2030,7 +2030,7 @@ namespace Epoch
 			}
 		}
 
-		if (aEvent.GetKeyCode() == KeyCode::P && Input::IsKeyHeld(KeyCode::LeftAlt) && myViewportHovered)
+		if (aEvent.GetKeyCode() == KeyCode::P && Input::IsKeyHeld(KeyCode::LeftAlt) && myViewportFocused)
 		{
 			if (mySceneState == SceneState::Play)
 			{
@@ -2200,7 +2200,8 @@ namespace Epoch
 	void EditorLayer::OnSetToEditorCameraTransform(Entity aEntity)
 	{
 		myActiveScene->ConvertToWorldSpace(aEntity);
-		aEntity.Transform().SetTransform(myEditorCamera.GetTransform());
+		aEntity.Transform().SetTranslation(myEditorCamera.GetTransform().GetTranslation());
+		aEntity.Transform().SetRotation(myEditorCamera.GetTransform().GetRotationQuat());
 		myActiveScene->ConvertToLocalSpace(aEntity);
 	}
 
