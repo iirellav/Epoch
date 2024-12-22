@@ -131,6 +131,8 @@ namespace Epoch
 		GizmoOperation myGizmoOperation = GizmoOperation::None;
 
 		bool myDisplayCurrentColorGradingLUT = false;
+		bool myDebugRendererOnTop = false;
+		bool myShowBoundingBoxes = false;
 		bool myShowGizmos = true;
 		float myGizmoScale = 0.5f;
 

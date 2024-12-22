@@ -139,7 +139,7 @@ namespace Epoch
 	{
 	}
 
-	void DebugRenderer::Render(const CU::Matrix4x4f& aView, const CU::Matrix4x4f& aProjection)
+	void DebugRenderer::Render(const CU::Matrix4x4f& aView, const CU::Matrix4x4f& aProjection, bool aOnTop)
 	{
 		EPOCH_PROFILE_FUNC();
 
@@ -159,7 +159,8 @@ namespace Epoch
 		myCameraBuffer->SetData(&camBuffer);
 		myCameraBuffer->Bind(PIPELINE_STAGE_VERTEX_SHADER, 0);
 
-		for (size_t i = 0; i < 2; i++)
+		size_t renderPasses = aOnTop ? 2 : 1;
+		for (size_t i = 0; i < renderPasses; i++)
 		{
 			if (i == 0)
 			{
@@ -390,6 +391,13 @@ namespace Epoch
 
 		frame.vertexCount = (uint32_t)frame.vertices.size();
 		frame.indexCount = (uint32_t)frame.indices.size();
+	}
+
+	void DebugRenderer::DrawWireAABB(const AABB& aAABB, const CU::Matrix4x4f& aTransform, const CU::Color aColor)
+	{
+		const AABB aabb = aAABB.GetGlobal(aTransform);
+		//DrawWireBox(aabb.GetCenter(), CU::Vector3f::Zero, aabb.GetExtents(), aColor);
+		DrawWireSphere(aabb.GetCenter(), CU::Vector3f::Zero, aabb.GetExtents().Length(), aColor);
 	}
 
 	void DebugRenderer::DrawWireSphere(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, float aRadius, const CU::Color aColor)

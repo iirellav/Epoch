@@ -7,6 +7,7 @@
 #include <CommonUtilities/Math/Transform.h>
 #include "Epoch/Debug/Log.h"
 #include "Epoch/Assets/Asset.h"
+#include "Epoch/Math/AABB.h"
 
 namespace Epoch
 {
@@ -112,6 +113,7 @@ namespace Epoch
 
 		CU::Matrix4x4f transform; // World transform
 		CU::Matrix4x4f localTransform;
+		AABB boundingBox;
 
 		std::string nodeName = "";
 		std::string meshName = "";
@@ -151,12 +153,14 @@ namespace Epoch
 		uint32_t GetVertexCount() { return (uint32_t)myVertices.size(); }
 		uint32_t GetIndexCount() { return (uint32_t)myIndices.size(); }
 
+		const AABB& GetBoundingBox() const { return myBoundingBox; }
+
 		bool HasSkeleton() const { return (bool)mySkeleton; }
 		std::shared_ptr<Skeleton> GetSkeleton() const { return mySkeleton; }
 
 		uint32_t GetAnimationCount() { return myAnimationCount; }
 
-		uint32_t GetMaterialCount() { return myMaterialCount; }
+		//uint32_t GetMaterialCount() { return myMaterialCount; }
 		//const std::vector<std::string>& GetMaterialNames() { return myMaterialNames; }
 
 		const MeshNode& GetRootNode() const { return myNodes[0]; }
@@ -173,6 +177,8 @@ namespace Epoch
 		std::vector<Index> myIndices;
 
 		std::unordered_map<uint32_t, std::vector<Triangle>> myTriangleCache;
+
+		AABB myBoundingBox;
 
 		std::shared_ptr<Skeleton> mySkeleton;
 		std::vector<BoneInfluence> myBoneInfluences;

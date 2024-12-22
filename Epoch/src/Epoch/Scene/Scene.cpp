@@ -6,6 +6,7 @@
 #include "Epoch/Rendering/Font.h"
 #include "Epoch/Assets/AssetManager.h"
 #include "Epoch/Script/ScriptEngine.h"
+#include "Epoch/Rendering/DebugRenderer.h"
 
 namespace Epoch
 {
@@ -415,8 +416,6 @@ namespace Epoch
 	{
 		EPOCH_PROFILE_FUNC();
 
-		// Update frustum culled entities
-
 		if (!myIsPaused || ShouldStep())
 		{
 			// Update scripts
@@ -507,7 +506,8 @@ namespace Epoch
 		if (!cameraEntity) return;
 
 		CU::Transform worlTrans = GetWorldSpaceTransform(cameraEntity);
-		const CU::Matrix4x4f cameraViewMatrix = worlTrans.GetMatrix().GetFastInverse();
+		const CU::Matrix4x4f cameraTransformMatrix = worlTrans.GetMatrix();
+		const CU::Matrix4x4f cameraViewMatrix = cameraTransformMatrix.GetFastInverse();
 		SceneCamera& camera = cameraEntity.GetComponent<CameraComponent>().camera;
 		camera.SetViewportSize(myViewportWidth, myViewportHeight);
 
@@ -515,10 +515,12 @@ namespace Epoch
 		(
 			(Camera)camera,
 			worlTrans.GetTranslation(),
+			cameraTransformMatrix,
 			cameraViewMatrix,
 			camera.GetPerspectiveNearPlane(),
 			camera.GetPerspectiveFarPlane(),
-			camera.GetPerspectiveFOV()
+			camera.GetPerspectiveFOV(),
+			camera.AspectRatio()
 		);
 		RenderScene(aRenderer, renderCamera, true);
 	}
@@ -529,10 +531,12 @@ namespace Epoch
 		(
 			(Camera)aCamera,
 			aCamera.GetTransform().GetTranslation(),
+			aCamera.GetTransformMatrix(),
 			aCamera.GetViewMatrix(),
 			aCamera.GetNearPlane(),
 			aCamera.GetFarPlane(),
-			aCamera.GetFOV()
+			aCamera.GetFOV(),
+			aCamera.GetAspectRatio()
 		);
 		RenderScene(aRenderer, renderCamera, false);
 	}
@@ -933,6 +937,8 @@ namespace Epoch
 	{
 		EPOCH_PROFILE_FUNC();
 
+		const Frustum frustum = CreateFrustum(aCamera);
+
 		std::unordered_map<AssetHandle, std::shared_ptr<Asset>> assetAccelerationMap;
 
 		aRenderer->BeginScene(aCamera);
@@ -1108,7 +1114,72 @@ namespace Epoch
 
 					if (mesh)
 					{
-						CU::Matrix4x4f transform = GetWorldSpaceTransformMatrix(entity);
+						const CU::Matrix4x4f transform = GetWorldSpaceTransformMatrix(entity);
+
+						bool culled = false;
+						{
+							const AABB aabb = mesh->GetBoundingBox().GetGlobal(transform);
+
+							for (const Frustum::Plane& plane : frustum.planes)
+							{
+								//const auto extents = globalAABB.GetExtents();
+								//const float r = extents.x * std::abs(plane.normal.x) + extents.y * std::abs(plane.normal.y) + extents.z * std::abs(plane.normal.z);
+								//
+								//if (-r < plane.normal.Dot(globalAABB.GetCenter()) - plane.distance)
+								//{
+								//	culled = true;
+								//	break;
+								//}
+
+								//float minD, maxD;
+								//
+								//if (plane.normal.x > 0.0f)
+								//{
+								//	maxD = plane.normal.x * globalAABB.max.x;
+								//}
+								//else
+								//{
+								//	maxD = plane.normal.x * globalAABB.min.x;
+								//}
+								//
+								//if (plane.normal.y > 0.0f)
+								//{
+								//	maxD += plane.normal.y * globalAABB.max.y;
+								//}
+								//else
+								//{
+								//	maxD += plane.normal.y * globalAABB.min.y;
+								//}
+								//
+								//if (plane.normal.z > 0.0f)
+								//{
+								//	maxD += plane.normal.z * globalAABB.max.z;
+								//}
+								//else
+								//{
+								//	maxD += plane.normal.z * globalAABB.min.z;
+								//}
+								//
+								//if (maxD > plane.distance)
+								//{
+								//	culled = true;
+								//	break;
+								//}
+
+								float dist = aabb.GetCenter().Dot(plane.normal) + plane.distance + aabb.GetExtents().Length();
+								if (dist < 0)
+								{
+									culled = true;
+									break;
+								}
+							}
+						}
+
+						if (culled)
+						{
+							continue;
+						}
+
 						aRenderer->SubmitMesh(mesh, mrc.materialTable, transform, (uint32_t)entity);
 					}
 				}
@@ -1213,5 +1284,89 @@ namespace Epoch
 		}
 
 		aRenderer->EndScene();
+	}
+
+	Frustum Scene::CreateFrustum(const SceneRendererCamera& aCamera)
+	{
+		Frustum frustum;
+
+		const CU::Matrix4x4f viewProj = aCamera.viewMatrix * aCamera.camera.GetProjectionMatrix();
+
+		// Left clipping plane
+		frustum.leftPlane =
+		{
+			viewProj(1, 4) + viewProj(1, 1),
+			viewProj(2, 4) + viewProj(2, 1),
+			viewProj(3, 4) + viewProj(3, 1),
+			viewProj(4, 4) + viewProj(4, 1)
+		};
+
+		// Right clipping plane
+		frustum.rightPlane =
+		{
+			viewProj(1, 4) - viewProj(1, 1),
+			viewProj(2, 4) - viewProj(2, 1),
+			viewProj(3, 4) - viewProj(3, 1),
+			viewProj(4, 4) - viewProj(4, 1)
+		};
+
+		// Top clipping plane
+		frustum.topPlane =
+		{
+			viewProj(1, 4) - viewProj(1, 2),
+			viewProj(2, 4) - viewProj(2, 2),
+			viewProj(3, 4) - viewProj(3, 2),
+			viewProj(4, 4) - viewProj(4, 2)
+		};
+
+		// Bottom clipping plane
+		frustum.bottomPlane =
+		{
+			viewProj(1, 4) + viewProj(1, 2),
+			viewProj(2, 4) + viewProj(2, 2),
+			viewProj(3, 4) + viewProj(3, 2),
+			viewProj(4, 4) + viewProj(4, 2)
+		};
+
+		// Near clipping plane
+		frustum.nearPlane =
+		{
+			viewProj(1, 4) + viewProj(1, 3),
+			viewProj(2, 4) + viewProj(2, 3),
+			viewProj(3, 4) + viewProj(3, 3),
+			viewProj(4, 4) + viewProj(4, 3)
+		};
+
+		// Far clipping plane
+		frustum.farPlane =
+		{
+			viewProj(1, 4) - viewProj(1, 3),
+			viewProj(2, 4) - viewProj(2, 3),
+			viewProj(3, 4) - viewProj(3, 3),
+			viewProj(4, 4) - viewProj(4, 3)
+		};
+
+		//float verticalFov = 2.0f * std::atanf(std::tanf(aCamera.fov / 2.0f) * aCamera.aspect);
+		//const float halfVSide = aCamera.farPlane * std::tanf(verticalFov * 0.5f);
+		//const float halfHSide = halfVSide * aCamera.aspect;
+		//const CU::Vector3f frontMultFar = aCamera.farPlane * aCamera.viewMatrix.GetForward();
+		//
+		//frustum.nearPlane = { aCamera.position + aCamera.nearPlane * aCamera.transform.GetForward(), aCamera.transform.GetForward() };
+		//frustum.farPlane = { aCamera.position + frontMultFar, -aCamera.transform.GetForward() };
+		//frustum.rightPlane = { aCamera.position, CU::Vector3f(frontMultFar - CU::Vector3f(aCamera.transform.GetRight()) * halfHSide).Cross(aCamera.transform.GetUp()) };
+		//frustum.leftPlane = { aCamera.position, CU::Vector3f(aCamera.transform.GetUp()).Cross(frontMultFar + CU::Vector3f(aCamera.transform.GetRight()) * halfHSide) };
+		//frustum.topPlane = { aCamera.position, CU::Vector3f(aCamera.transform.GetRight()).Cross(frontMultFar - CU::Vector3f(aCamera.transform.GetUp()) * halfVSide) };
+		//frustum.bottomPlane = { aCamera.position, CU::Vector3f(frontMultFar + CU::Vector3f(aCamera.transform.GetUp()) * halfVSide).Cross(aCamera.transform.GetRight()) };
+
+		for (Frustum::Plane& plane : frustum.planes)
+		{
+			const float mag = std::sqrt(plane.normal.x * plane.normal.x + plane.normal.y * plane.normal.y + plane.normal.z * plane.normal.z);
+			plane.normal.x /= mag;
+			plane.normal.y /= mag;
+			plane.normal.z /= mag;
+			plane.distance /= mag;
+		}
+
+		return frustum;
 	}
 }

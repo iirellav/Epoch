@@ -26,5 +26,18 @@ namespace Epoch
 				myVertices[myIndices[i + 2]]
 			);
 		}
+
+		myBoundingBox.min = { FLT_MAX, FLT_MAX, FLT_MAX };
+		myBoundingBox.max = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
+
+		for (const Vertex& vertex : myVertices)
+		{
+			myBoundingBox.min.x = CU::Math::Min(vertex.position.x, myBoundingBox.min.x);
+			myBoundingBox.min.y = CU::Math::Min(vertex.position.y, myBoundingBox.min.y);
+			myBoundingBox.min.z = CU::Math::Min(vertex.position.z, myBoundingBox.min.z);
+			myBoundingBox.max.x = CU::Math::Max(vertex.position.x, myBoundingBox.max.x);
+			myBoundingBox.max.y = CU::Math::Max(vertex.position.y, myBoundingBox.max.y);
+			myBoundingBox.max.z = CU::Math::Max(vertex.position.z, myBoundingBox.max.z);
+		}
 	}
 }

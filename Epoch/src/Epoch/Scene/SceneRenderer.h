@@ -29,10 +29,12 @@ namespace Epoch
 	{
 		Camera camera;
 		CU::Vector3f position;
+		CU::Matrix4x4f transform;
 		CU::Matrix4x4f viewMatrix;
 		float nearPlane = 0.0f;
 		float farPlane = 0.0f;
 		float fov = 0.0f;
+		float aspect = 0.0f;
 	};
 
 	struct CameraBuffer

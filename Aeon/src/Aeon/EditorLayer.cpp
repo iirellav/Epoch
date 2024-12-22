@@ -449,6 +449,10 @@ namespace Epoch
 				mySceneRenderer->SetDrawMode((DrawMode)currentDrawMode);
 			}
 
+			UI::Property_Checkbox("Lines on Top", myDebugRendererOnTop, "True if the debug render should draw the lines on top.");
+
+			UI::Property_Checkbox("Show Bounding Boxes", myShowBoundingBoxes);
+
 			UI::Property_Checkbox("Show Gizmos", myShowGizmos);
 			UI::Property_DragFloat("Gizmos Scale", myGizmoScale, 0.02f, 0.2f, 1.0f);
 
@@ -894,6 +898,25 @@ namespace Epoch
 			}
 		}
 
+		if (myShowBoundingBoxes)
+		{
+			auto meshEntities = myActiveScene->GetAllEntitiesWith<MeshRendererComponent>();
+			for (auto entityID : meshEntities)
+			{
+				Entity entity = { entityID, myActiveScene.get() };
+				auto& mrc = entity.GetComponent<MeshRendererComponent>();
+				if (!entity.IsActive() || !mrc.isActive) continue;
+
+				auto transform = myActiveScene->GetWorldSpaceTransformMatrix(entity);
+				auto mesh = AssetManager::GetAssetAsync<Mesh>(mrc.mesh);
+				if (mesh)
+				{
+					const AABB& aabb = mesh->GetBoundingBox();
+					myDebugRenderer->DrawWireAABB(aabb, transform, CU::Color::Green);
+				}
+			}
+		}
+
 		if (myShowGizmos)
 		{
 			// Camera Components
@@ -965,7 +988,7 @@ namespace Epoch
 			}
 		}
 		
-		myDebugRenderer->Render(myEditorCamera.GetViewMatrix(), myEditorCamera.GetProjectionMatrix());
+		myDebugRenderer->Render(myEditorCamera.GetViewMatrix(), myEditorCamera.GetProjectionMatrix(), myDebugRendererOnTop);
 	}
 
 	void EditorLayer::OnRenderColliders(Entity aEntity)

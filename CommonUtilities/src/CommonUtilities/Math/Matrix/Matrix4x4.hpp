@@ -36,12 +36,17 @@ namespace CU
 		Matrix4x4<T> GetInverse() const;
 		Matrix4x4<T> GetFastInverse() const;
 
-		CU::Vector4<T> GetRow(uint32_t aRow);
-		CU::Vector4<T> GetColumn(uint32_t aColumn);
+		CU::Vector4<T> GetRow(uint32_t aRow) const;
+		CU::Vector4<T> GetColumn(uint32_t aColumn) const;
 
-		CU::Vector4<T> GetRight();
-		CU::Vector4<T> GetUp();
-		CU::Vector4<T> GetForward();
+		CU::Vector4<T> GetRight() const;
+		CU::Vector4<T> GetUp() const;
+		CU::Vector4<T> GetForward() const;
+
+		CU::Vector4<T> GetTranslation() const;
+		CU::Vector4<T> GetRotation() const;
+		Quaternion<T> GetOrientaion() const;
+		CU::Vector3<T> GetScale() const;
 
 		void Decompose(Vector3<T>& aPosition, Vector3<T>& aRotation, Vector3<T>& aScale) const;
 		void Decompose(Vector3<T>& aPosition, Quaternion<T>& aOrientaion, Vector3<T>& aScale) const;
@@ -545,7 +550,7 @@ namespace CU
 	}
 
 	template<typename T>
-	inline CU::Vector4<T> Matrix4x4<T>::GetRow(uint32_t aRow)
+	inline CU::Vector4<T> Matrix4x4<T>::GetRow(uint32_t aRow) const
 	{
 		return
 		{
@@ -557,7 +562,7 @@ namespace CU
 	}
 
 	template<typename T>
-	inline CU::Vector4<T> Matrix4x4<T>::GetColumn(uint32_t aColumn)
+	inline CU::Vector4<T> Matrix4x4<T>::GetColumn(uint32_t aColumn) const
 	{
 		return
 		{
@@ -569,21 +574,59 @@ namespace CU
 	}
 
 	template<typename T>
-	inline CU::Vector4<T> Matrix4x4<T>::GetRight()
+	inline CU::Vector4<T> Matrix4x4<T>::GetRight() const
 	{
 		return CU::Vector4<T>(m11, m12, m13, T(0)).GetNormalized();
 	}
 
 	template<typename T>
-	inline CU::Vector4<T> Matrix4x4<T>::GetUp()
+	inline CU::Vector4<T> Matrix4x4<T>::GetUp() const
 	{
 		return CU::Vector4<T>(m21, m22, m23, T(0)).GetNormalized();
 	}
 
 	template<typename T>
-	inline CU::Vector4<T> Matrix4x4<T>::GetForward()
+	inline CU::Vector4<T> Matrix4x4<T>::GetForward() const
 	{
 		return CU::Vector4<T>(m31, m32, m33, T(0)).GetNormalized();
+	}
+
+	template<typename T>
+	CU::Vector4<T> Matrix4x4<T>::GetTranslation() const
+	{
+		return { m41, m42, m43, 1.0f };
+	}
+
+	template<typename T>
+	CU::Vector4<T> Matrix4x4<T>::GetRotation() const
+	{
+		const Vector3<T> rightDir = { m11, m12, m13 };
+		const Vector3<T> upDir = { m21, m22, m23 };
+		const Vector3<T> forwardDir = { m31, m32, m33 };
+
+		const Matrix3x3<T> rotationMatrix = Matrix4x4<T>::CreateRotationMatrix(rightDir.GetNormalized(), upDir.GetNormalized(), forwardDir.GetNormalized());
+		return Quaternion<T>(rotationMatrix).GetEulerAngles();
+	}
+
+	template<typename T>
+	CU::Quaternion<T> Matrix4x4<T>::GetOrientaion() const
+	{
+		const Vector3<T> rightDir = { m11, m12, m13 };
+		const Vector3<T> upDir = { m21, m22, m23 };
+		const Vector3<T> forwardDir = { m31, m32, m33 };
+
+		const Matrix3x3<T> rotationMatrix = Matrix4x4<T>::CreateRotationMatrix(rightDir.GetNormalized(), upDir.GetNormalized(), forwardDir.GetNormalized());
+		return Quaternion<T>(rotationMatrix);
+	}
+
+	template<typename T>
+	CU::Vector3<T> Matrix4x4<T>::GetScale() const
+	{
+		const Vector3<T> rightDir = { m11, m12, m13 };
+		const Vector3<T> upDir = { m21, m22, m23 };
+		const Vector3<T> forwardDir = { m31, m32, m33 };
+
+		return { rightDir.Length(), upDir.Length(), forwardDir.Length() };
 	}
 
 	template<typename T>
@@ -591,9 +634,9 @@ namespace CU
 	{
 		aPosition = { m41, m42, m43 };
 
-		Vector3<T> rightDir = { m11, m12, m13 };
-		Vector3<T> upDir = { m21, m22, m23 };
-		Vector3<T> forwardDir = { m31, m32, m33 };
+		const Vector3<T> rightDir = { m11, m12, m13 };
+		const Vector3<T> upDir = { m21, m22, m23 };
+		const Vector3<T> forwardDir = { m31, m32, m33 };
 
 		const Matrix3x3<T> rotationMatrix = Matrix4x4<T>::CreateRotationMatrix(rightDir.GetNormalized(), upDir.GetNormalized(), forwardDir.GetNormalized());
 		aRotation = Quaternion<T>(rotationMatrix).GetEulerAngles();
@@ -608,9 +651,9 @@ namespace CU
 	{
 		aPosition = { m41, m42, m43 };
 
-		Vector3<T> rightDir = { m11, m12, m13 };
-		Vector3<T> upDir = { m21, m22, m23 };
-		Vector3<T> forwardDir = { m31, m32, m33 };
+		const Vector3<T> rightDir = { m11, m12, m13 };
+		const Vector3<T> upDir = { m21, m22, m23 };
+		const Vector3<T> forwardDir = { m31, m32, m33 };
 
 		const Matrix3x3<T> rotationMatrix = Matrix4x4<T>::CreateRotationMatrix(rightDir.GetNormalized(), upDir.GetNormalized(), forwardDir.GetNormalized());
 		aOrientaion = Quaternion<T>(rotationMatrix);

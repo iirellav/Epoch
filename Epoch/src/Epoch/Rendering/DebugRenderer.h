@@ -3,8 +3,9 @@
 #include <vector>
 #include <array>
 #include <CommonUtilities/Math/Matrix/Matrix4x4.hpp>
-#include <Epoch/Assets/Asset.h>
-#include <Epoch/Rendering/RenderConstants.h>
+#include "Epoch/Assets/Asset.h"
+#include "Epoch/Rendering/RenderConstants.h"
+#include "Epoch/Math/AABB.h"
 
 namespace Epoch
 {
@@ -25,11 +26,12 @@ namespace Epoch
 		void Init(std::shared_ptr<Framebuffer> aTargetBuffer);
 		void SetViewportSize(unsigned aWidth, unsigned aHeight);
 
-		void Render(const CU::Matrix4x4f& aView, const CU::Matrix4x4f& aProjection);
+		void Render(const CU::Matrix4x4f& aView, const CU::Matrix4x4f& aProjection, bool aOnTop = true);
 
 		void DrawLine(const CU::Vector3f& aP0, const CU::Vector3f& aP1, CU::Color aColor = CU::Color::White);
 		void DrawCircle(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, float aRadius, const CU::Color aColor = CU::Color::White);
 		void DrawWireBox(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, const CU::Vector3f& aExtent, const CU::Color aColor = CU::Color::White);
+		void DrawWireAABB(const AABB& aAABB, const CU::Matrix4x4f& aTransform, const CU::Color aColor = CU::Color::White);
 		void DrawWireSphere(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, float aRadius, const CU::Color aColor = CU::Color::White);
 		void DrawWireCapsule(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, float aRadius, float aHeight, const CU::Color aColor = CU::Color::White);
 		void DrawWireCone(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, float aAngle, float aRange, const CU::Color aColor = CU::Color::White);

@@ -7,6 +7,7 @@
 #include "SceneInfo.h"
 #include "Epoch/Core/UUID.h"
 #include "Epoch/Assets/Asset.h"
+#include "Epoch/Math/Frustum.h"
 #include "Epoch/Editor/EditorCamera.h"
 #include "Epoch/Physics/PhysicsSystem.h"
 
@@ -195,6 +196,7 @@ namespace Epoch
 		void GetModelSpaceBoneTransform(const std::vector<UUID>& aBoneEntityIds, std::vector<CU::Matrix4x4f>& outBoneTransforms, uint32_t aBoneIndex, const CU::Matrix4x4f& aParentTransform, std::shared_ptr<Skeleton> aSkeleton);
 
 		void RenderScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aCamera, bool aIsRuntime);
+		Frustum CreateFrustum(const SceneRendererCamera& aCamera);
 		
 		void SetName(const std::string& aName) { myName = aName; }
 		void SetAssetHandle(AssetHandle aHandle) { myHandle = aHandle; }

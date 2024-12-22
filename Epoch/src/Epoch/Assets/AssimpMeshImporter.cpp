@@ -18,7 +18,6 @@ namespace Epoch
 		aiProcess_SortByPType |             // Split meshes by primitive type
 		aiProcess_GenNormals |              // Make sure we have legit normals
 		aiProcess_GenUVCoords |             // Convert UVs if required 
-		aiProcess_GenBoundingBoxes |
 		//aiProcess_OptimizeGraph |
 		aiProcess_OptimizeMeshes |          // Batch draws where possible
 		aiProcess_JoinIdenticalVertices |
@@ -151,6 +150,9 @@ namespace Epoch
 		{
 			uint32_t vertexCount = 0;
 			uint32_t indexCount = 0;
+
+			meshAsset->myBoundingBox.min = { FLT_MAX, FLT_MAX, FLT_MAX };
+			meshAsset->myBoundingBox.max = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
 			
 			meshAsset->mySubmeshes.reserve(scene->mNumMeshes);
 			for (unsigned m = 0; m < scene->mNumMeshes; m++)
@@ -171,11 +173,21 @@ namespace Epoch
 				vertexCount += submesh.vertexCount;
 				indexCount += submesh.indexCount;
 
+				auto& aabb = submesh.boundingBox;
+				aabb.min = { FLT_MAX, FLT_MAX, FLT_MAX };
+				aabb.max = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
 				for (uint32_t i = 0; i < mesh->mNumVertices; i++)
 				{
 					Vertex vertex;
 					vertex.position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
 					vertex.normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
+
+					aabb.min.x = CU::Math::Min(vertex.position.x, aabb.min.x);
+					aabb.min.y = CU::Math::Min(vertex.position.y, aabb.min.y);
+					aabb.min.z = CU::Math::Min(vertex.position.z, aabb.min.z);
+					aabb.max.x = CU::Math::Max(vertex.position.x, aabb.max.x);
+					aabb.max.y = CU::Math::Max(vertex.position.y, aabb.max.y);
+					aabb.max.z = CU::Math::Max(vertex.position.z, aabb.max.z);
 
 					if (mesh->HasTangentsAndBitangents())
 					{
@@ -214,6 +226,20 @@ namespace Epoch
 
 			MeshNode& rootNode = meshAsset->myNodes.emplace_back();
 			TraverseNodes(meshAsset, scene->mRootNode, 0);
+
+			for (const auto& submesh : meshAsset->mySubmeshes)
+			{
+				AABB transformedSubmeshAABB = submesh.boundingBox;
+				CU::Vector3f min = CU::Vector3f(submesh.transform * CU::Vector4f(transformedSubmeshAABB.min, 1.0f));
+				CU::Vector3f max = CU::Vector3f(submesh.transform * CU::Vector4f(transformedSubmeshAABB.max, 1.0f));
+
+				meshAsset->myBoundingBox.min.x = CU::Math::Min(meshAsset->myBoundingBox.min.x, min.x);
+				meshAsset->myBoundingBox.min.y = CU::Math::Min(meshAsset->myBoundingBox.min.y, min.y);
+				meshAsset->myBoundingBox.min.z = CU::Math::Min(meshAsset->myBoundingBox.min.z, min.z);
+				meshAsset->myBoundingBox.max.x = CU::Math::Max(meshAsset->myBoundingBox.max.x, max.x);
+				meshAsset->myBoundingBox.max.y = CU::Math::Max(meshAsset->myBoundingBox.max.y, max.y);
+				meshAsset->myBoundingBox.max.z = CU::Math::Max(meshAsset->myBoundingBox.max.z, max.z);
+			}
 		}
 
 		if (meshAsset->HasSkeleton())
