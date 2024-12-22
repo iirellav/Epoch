@@ -185,7 +185,7 @@ namespace Epoch
 
 		if (aFirst)
 		{
-			UpdatePrefabInstanceEntityReferences(staticDuplicateEntityIDMap);
+			UpdateScriptInstanceEntityReferences(staticDuplicateEntityIDMap);
 			staticDuplicateEntityIDMap.clear();
 		}
 
@@ -240,7 +240,7 @@ namespace Epoch
 			}
 		}
 
-		UpdatePrefabInstanceEntityReferences(staticDuplicateEntityIDMap);
+		UpdateScriptInstanceEntityReferences(staticDuplicateEntityIDMap);
 		staticDuplicateEntityIDMap.clear();
 
 		return result;
@@ -291,9 +291,9 @@ namespace Epoch
 		return rootEntity;
 	}
 
-	void Scene::UpdatePrefabInstanceEntityReferences(const std::unordered_map<UUID, UUID>& aPrefabEntityIDMap)
+	void Scene::UpdateScriptInstanceEntityReferences(const std::unordered_map<UUID, UUID>& aEntityIDMap)
 	{
-		for (auto [orgID, newID] : aPrefabEntityIDMap)
+		for (auto [orgID, newID] : aEntityIDMap)
 		{
 			Entity entity = GetEntityWithUUID(newID);
 
@@ -328,9 +328,9 @@ namespace Epoch
 					{
 						UUID oldEntityID = fieldStorage->GetValue<UUID>((uint32_t)i);
 
-						if (aPrefabEntityIDMap.find(oldEntityID) != aPrefabEntityIDMap.end())
+						if (aEntityIDMap.find(oldEntityID) != aEntityIDMap.end())
 						{
-							UUID newEntityID = aPrefabEntityIDMap.at(oldEntityID);
+							UUID newEntityID = aEntityIDMap.at(oldEntityID);
 							fieldStorage->SetValue((uint32_t)i, newEntityID);
 						}
 					}
@@ -341,9 +341,9 @@ namespace Epoch
 
 					UUID oldEntityID = fieldStorage->GetValue<UUID>();
 
-					if (aPrefabEntityIDMap.find(oldEntityID) != aPrefabEntityIDMap.end())
+					if (aEntityIDMap.find(oldEntityID) != aEntityIDMap.end())
 					{
-						UUID newEntityID = aPrefabEntityIDMap.at(oldEntityID);
+						UUID newEntityID = aEntityIDMap.at(oldEntityID);
 						fieldStorage->SetValue(newEntityID);
 					}
 				}
@@ -414,6 +414,8 @@ namespace Epoch
 	void Scene::OnUpdateRuntime()
 	{
 		EPOCH_PROFILE_FUNC();
+
+		// Update frustum culled entities
 
 		if (!myIsPaused || ShouldStep())
 		{

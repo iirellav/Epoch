@@ -58,7 +58,7 @@ namespace Epoch
 		Entity CreatePrefabEntity(Entity aEntity, Entity aParent);
 		Entity InstantiateMesh(std::shared_ptr<Mesh> aMesh);
 
-		void UpdatePrefabInstanceEntityReferences(const std::unordered_map<UUID, UUID>& aPrefabEntityIDMap);
+		void UpdateScriptInstanceEntityReferences(const std::unordered_map<UUID, UUID>& aEntityIDMap);
 
 		void OnRuntimeStart();
 		void OnRuntimeStop();
