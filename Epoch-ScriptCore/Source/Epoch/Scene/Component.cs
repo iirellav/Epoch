@@ -1,9 +1,4 @@
-﻿using System;
-using System.Reflection;
-using System.Security.Policy;
-using System.Threading;
-
-namespace Epoch
+﻿namespace Epoch
 {
     public abstract class Component
     {
@@ -423,5 +418,10 @@ namespace Epoch
         void Resize(float aHeight) => InternalCalls.CharacterControllerComponent_Resize(entity.id, aHeight);
 
         public void Move(Vector3 aDisplacement) => InternalCalls.CharacterControllerComponent_Move(entity.id, ref aDisplacement);
+    }
+
+    public class VolumeComponent : Component
+    {
+
     }
 }
