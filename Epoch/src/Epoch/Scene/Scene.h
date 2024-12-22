@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <memory>
+#include <set>
 #include <unordered_map>
 
 #include "Entity.h"
@@ -75,7 +76,7 @@ namespace Epoch
 
 		void OnSceneTransition(AssetHandle aScene);
 
-		void SetViewportSize(unsigned aWidth, unsigned aHeight);
+		void SetViewportSize(uint32_t aWidth, uint32_t aHeight);
 		unsigned GetViewportWidth() const { return myViewportWidth; }
 		unsigned GetViewportHeight() const { return myViewportHeight; }
 
@@ -85,6 +86,7 @@ namespace Epoch
 		Entity TryGetEntityWithUUID(UUID aUUID);
 		Entity TryGetDescendantEntityWithName(Entity aEntity, const std::string& aName);
 		bool IsEntityValid(Entity aEntity) const;
+		bool WasEntityFrustumCulled(UUID aEntityID) const { return myFrustumCulledEntities.find(aEntityID) != myFrustumCulledEntities.end(); }
 
 		Entity GetPrimaryCameraEntity();
 
@@ -197,6 +199,7 @@ namespace Epoch
 
 		void RenderScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aCamera, bool aIsRuntime);
 		Frustum CreateFrustum(const SceneRendererCamera& aCamera);
+		bool FrustumIntersection(const Frustum& aFrustum, const AABB aAABB);
 		
 		void SetName(const std::string& aName) { myName = aName; }
 		void SetAssetHandle(AssetHandle aHandle) { myHandle = aHandle; }
@@ -204,6 +207,11 @@ namespace Epoch
 	private:
 		entt::registry myRegistry;
 		std::unordered_map<UUID, entt::entity> myEntityMap;
+
+		/// <summary>
+		/// NOTE: This gets filled in Scene::RenderScene, so if this is used before Scene::RenderScene has been called the set contains the last frames culled entities.
+		/// </summary>
+		std::set<UUID> myFrustumCulledEntities;
 
 		std::shared_ptr<PhysicsScene> myPhysicsScene;
 

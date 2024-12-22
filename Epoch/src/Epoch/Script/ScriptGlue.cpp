@@ -221,9 +221,9 @@ namespace Epoch
 		EPOCH_ADD_INTERNAL_CALL(Log_LogMessage);
 
 
-		EPOCH_ADD_INTERNAL_CALL(Gizmos_DrawWireSphere);
-		EPOCH_ADD_INTERNAL_CALL(Gizmos_DrawWireCube);
-		EPOCH_ADD_INTERNAL_CALL(Gizmos_DrawLine);
+		EPOCH_ADD_INTERNAL_CALL(Debug_DrawWireSphere);
+		EPOCH_ADD_INTERNAL_CALL(Debug_DrawWireCube);
+		EPOCH_ADD_INTERNAL_CALL(Debug_DrawLine);
 
 
 		EPOCH_ADD_INTERNAL_CALL(Input_IsKeyPressed);
@@ -1521,9 +1521,9 @@ namespace Epoch
 
 #pragma endregion
 
-#pragma region Gizmos
+#pragma region Debug
 
-		void Gizmos_DrawWireSphere(CU::Vector3f* aCenter, float aRadius, CU::Color* aColor)
+		void Debug_DrawWireSphere(CU::Vector3f* aCenter, float aRadius, CU::Color* aColor)
 		{
 			std::shared_ptr<DebugRenderer> dr = ScriptEngine::GetSceneRenderer()->GetDebugRenderer();
 			if (dr)
@@ -1532,7 +1532,7 @@ namespace Epoch
 			}
 		}
 
-		void Gizmos_DrawWireCube(CU::Vector3f* aCenter, CU::Vector3f* aRotation, CU::Vector3f* aSize, CU::Color* aColor)
+		void Debug_DrawWireCube(CU::Vector3f* aCenter, CU::Vector3f* aRotation, CU::Vector3f* aSize, CU::Color* aColor)
 		{
 			std::shared_ptr<DebugRenderer> dr = ScriptEngine::GetSceneRenderer()->GetDebugRenderer();
 			if (dr)
@@ -1541,7 +1541,7 @@ namespace Epoch
 			}
 		}
 
-		void Gizmos_DrawLine(CU::Vector3f* aFrom, CU::Vector3f* aTo, CU::Color* aColor)
+		void Debug_DrawLine(CU::Vector3f* aFrom, CU::Vector3f* aTo, CU::Color* aColor)
 		{
 			std::shared_ptr<DebugRenderer> dr = ScriptEngine::GetSceneRenderer()->GetDebugRenderer();
 			if (dr)

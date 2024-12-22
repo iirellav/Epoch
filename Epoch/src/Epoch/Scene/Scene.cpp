@@ -938,6 +938,8 @@ namespace Epoch
 		EPOCH_PROFILE_FUNC();
 
 		const Frustum frustum = CreateFrustum(aCamera);
+		std::set<UUID> lastFramesFrustumCulledEntities = myFrustumCulledEntities;
+		myFrustumCulledEntities.clear();
 
 		std::unordered_map<AssetHandle, std::shared_ptr<Asset>> assetAccelerationMap;
 
@@ -1116,67 +1118,9 @@ namespace Epoch
 					{
 						const CU::Matrix4x4f transform = GetWorldSpaceTransformMatrix(entity);
 
-						bool culled = false;
+						if (!FrustumIntersection(frustum, mesh->GetBoundingBox().GetGlobal(transform)))
 						{
-							const AABB aabb = mesh->GetBoundingBox().GetGlobal(transform);
-
-							for (const Frustum::Plane& plane : frustum.planes)
-							{
-								//const auto extents = globalAABB.GetExtents();
-								//const float r = extents.x * std::abs(plane.normal.x) + extents.y * std::abs(plane.normal.y) + extents.z * std::abs(plane.normal.z);
-								//
-								//if (-r < plane.normal.Dot(globalAABB.GetCenter()) - plane.distance)
-								//{
-								//	culled = true;
-								//	break;
-								//}
-
-								//float minD, maxD;
-								//
-								//if (plane.normal.x > 0.0f)
-								//{
-								//	maxD = plane.normal.x * globalAABB.max.x;
-								//}
-								//else
-								//{
-								//	maxD = plane.normal.x * globalAABB.min.x;
-								//}
-								//
-								//if (plane.normal.y > 0.0f)
-								//{
-								//	maxD += plane.normal.y * globalAABB.max.y;
-								//}
-								//else
-								//{
-								//	maxD += plane.normal.y * globalAABB.min.y;
-								//}
-								//
-								//if (plane.normal.z > 0.0f)
-								//{
-								//	maxD += plane.normal.z * globalAABB.max.z;
-								//}
-								//else
-								//{
-								//	maxD += plane.normal.z * globalAABB.min.z;
-								//}
-								//
-								//if (maxD > plane.distance)
-								//{
-								//	culled = true;
-								//	break;
-								//}
-
-								float dist = aabb.GetCenter().Dot(plane.normal) + plane.distance + aabb.GetExtents().Length();
-								if (dist < 0)
-								{
-									culled = true;
-									break;
-								}
-							}
-						}
-
-						if (culled)
-						{
+							myFrustumCulledEntities.insert(entity.GetUUID());
 							continue;
 						}
 
@@ -1284,6 +1228,22 @@ namespace Epoch
 		}
 
 		aRenderer->EndScene();
+
+		for (UUID entityID : myFrustumCulledEntities)
+		{
+			if (lastFramesFrustumCulledEntities.find(entityID) == lastFramesFrustumCulledEntities.end())
+			{
+				//Exited frustum
+			}
+		}
+
+		for (UUID entityID : lastFramesFrustumCulledEntities)
+		{
+			if (myFrustumCulledEntities.find(entityID) == myFrustumCulledEntities.end())
+			{
+				//Entered frustum
+			}
+		}
 	}
 
 	Frustum Scene::CreateFrustum(const SceneRendererCamera& aCamera)
@@ -1368,5 +1328,19 @@ namespace Epoch
 		}
 
 		return frustum;
+	}
+
+	bool Scene::FrustumIntersection(const Frustum& aFrustum, const AABB aAABB)
+	{
+		for (const Frustum::Plane& plane : aFrustum.planes)
+		{
+			float dist = aAABB.GetCenter().Dot(plane.normal) + plane.distance + aAABB.GetExtents().Length();
+			if (dist < 0)
+			{
+				return false;
+			}
+		}
+
+		return true;
 	}
 }

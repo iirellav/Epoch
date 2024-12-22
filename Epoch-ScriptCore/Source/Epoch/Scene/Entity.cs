@@ -5,6 +5,11 @@ namespace Epoch
 {
     public class Entity : IEquatable<Entity>
     {
+        public event Action<Entity> OnCollisionEnter;
+        public event Action<Entity> OnCollisionExit;
+        public event Action<Entity> OnTriggerEnter;
+        public event Action<Entity> OnTriggerExit;
+
         protected Entity() { id = 0; }
 
         internal Entity(ulong aId)
@@ -47,14 +52,7 @@ namespace Epoch
         protected virtual void OnCreate() { }
         protected virtual void OnDestroy() { }
 
-        protected virtual void OnCollisionEnter(Entity aEntity) { }
-        protected virtual void OnCollisionExit(Entity aEntity) { }
-
-        protected virtual void OnTriggerEnter(Entity aEntity) { }
-        protected virtual void OnTriggerExit(Entity aEntity) { }
-
-        protected virtual void OnDrawGizmos() { }
-        protected virtual void OnDrawGizmosSelected() { }
+        protected virtual void OnDebug() { }
 
         private void OnDestroyInternal()
         {
@@ -62,12 +60,11 @@ namespace Epoch
             myComponentCache.Clear();
         }
 
+        private void OnCollisionEnterInternal(ulong aID) => OnCollisionEnter?.Invoke(new Entity(aID));
+        private void OnCollisionExitInternal(ulong aID) => OnCollisionExit?.Invoke(new Entity(aID));
 
-        private void OnCollisionEnterInternal(ulong aID) => OnCollisionEnter(new Entity(aID));
-        private void OnCollisionExitInternal(ulong aID) => OnCollisionExit(new Entity(aID));
-
-        private void OnTriggerEnterInternal(ulong aID) => OnTriggerEnter(new Entity(aID));
-        private void OnTriggerExitInternal(ulong aID) => OnTriggerExit(new Entity(aID));
+        private void OnTriggerEnterInternal(ulong aID) => OnTriggerEnter?.Invoke(new Entity(aID));
+        private void OnTriggerExitInternal(ulong aID) => OnTriggerExit?.Invoke(new Entity(aID));
 
 
         public T AddComponent<T>() where T : Component, new()

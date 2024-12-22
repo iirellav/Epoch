@@ -225,8 +225,26 @@ namespace Epoch
 			myActiveScene->OnUpdateRuntime();
 			mySceneRenderer->SetScene(myActiveScene);
 			myActiveScene->OnRenderRuntime(mySceneRenderer);
-			
-			OnRenderGizmos();
+
+			Entity camEntity = myActiveScene->GetPrimaryCameraEntity();
+			if (camEntity)
+			{
+				for (const auto& [entityID, entityInstance] : ScriptEngine::GetEntityInstances())
+				{
+					Entity entity = myActiveScene->TryGetEntityWithUUID(entityID);
+					if (entity)
+					{
+						if (entity.IsActive() && ScriptEngine::IsEntityInstantiated(entity))
+						{
+							ScriptEngine::CallMethod(entityInstance, "OnDebug");
+						}
+					}
+				}
+
+				CU::Transform worlTrans = camEntity.GetWorldSpaceTransform();
+				const CameraComponent& camComponent = camEntity.GetComponent<CameraComponent>();
+				myDebugRenderer->Render(worlTrans.GetMatrix().GetFastInverse(), camComponent.camera.GetProjectionMatrix(), myDebugRendererOnTop);
+			}
 
 			auto sceneUpdateQueue = myPostSceneUpdateQueue;
 			myPostSceneUpdateQueue.clear();
@@ -234,7 +252,6 @@ namespace Epoch
 			{
 				fn();
 			}
-
 			break;
 		}
 		}
@@ -449,12 +466,54 @@ namespace Epoch
 				mySceneRenderer->SetDrawMode((DrawMode)currentDrawMode);
 			}
 
+			UI::EndPropertyGrid();
+
+			UI::Spacing();
+			UI::Draw::Underline();
+			UI::Spacing();
+
+			UI::BeginPropertyGrid();
+
 			UI::Property_Checkbox("Lines on Top", myDebugRendererOnTop, "True if the debug render should draw the lines on top.");
 
-			UI::Property_Checkbox("Show Bounding Boxes", myShowBoundingBoxes);
+			UI::EndPropertyGrid();
+
+			UI::Spacing();
+
+			UI::BeginPropertyGrid();
+
+			const char* debugLinesDrawModeStrings[] = { "Off", "All", "Selected" };
+
+			int currentShowBoundingBoxesMode = (int)myShowBoundingBoxesMode;
+			if (UI::Property_Dropdown("Show Bounding Box(es)", debugLinesDrawModeStrings, 3, currentShowBoundingBoxesMode))
+			{
+				myShowBoundingBoxesMode = (DebugLinesDrawMode)currentShowBoundingBoxesMode;
+			}
+
+			int currentShowCollidersMode = (int)myShowCollidersMode;
+			if (UI::Property_Dropdown("Show Collider(s)", debugLinesDrawModeStrings, 3, currentShowCollidersMode))
+			{
+				myShowCollidersMode = (DebugLinesDrawMode)currentShowCollidersMode;
+			}
+
+			UI::EndPropertyGrid();
+
+			UI::Spacing();
+			UI::Draw::Underline();
+			UI::Spacing();
+
+			UI::BeginPropertyGrid();
 
 			UI::Property_Checkbox("Show Gizmos", myShowGizmos);
 			UI::Property_DragFloat("Gizmos Scale", myGizmoScale, 0.02f, 0.2f, 1.0f);
+
+			UI::EndPropertyGrid();
+
+			UI::Spacing();
+			UI::Draw::Underline();
+			UI::Spacing();
+
+			UI::BeginPropertyGrid();
 
 			UI::Property_Checkbox("Show Color Grading LUT", myDisplayCurrentColorGradingLUT);
 
@@ -471,7 +530,9 @@ namespace Epoch
 			//UI::Widgets::BufferingBar("Test", value, { CU::Math::Min(200.0f, ImGui::GetContentRegionAvail().x), 5.0f }, Colors::Theme::disabled, Colors::Theme::blue);
 
 
-			UI::Spacing(10);
+			UI::Spacing(5);
+			UI::Draw::Underline();
+			UI::Spacing(5);
 
 
 			static CU::Vector2f p1 = { 0.0f, 0.0f };
@@ -893,26 +954,76 @@ namespace Epoch
 					const CU::Transform transform = myActiveScene->GetWorldSpaceTransform(entity);
 					myDebugRenderer->DrawWireSphere(transform.GetTranslation(), transform.GetRotation(), plc.range, plc.color);
 				}
-
-				OnRenderColliders(entity);
 			}
 		}
 
-		if (myShowBoundingBoxes)
+		if (myShowCollidersMode != DebugLinesDrawMode::Off)
+		{
+			auto entities = myActiveScene->GetAllEntitiesWith<TransformComponent>();
+			for (auto entityID : entities)
+			{
+				Entity entity = { entityID, myActiveScene.get() };
+				if (!entity.IsActive() || myActiveScene->WasEntityFrustumCulled(entity.GetUUID())) continue;
+
+				if (myShowCollidersMode == DebugLinesDrawMode::Selected)
+				{
+					if (!SelectionManager::IsSelected(SelectionContext::Entity, entity.GetUUID()))
+					{
+						continue;
+					}
+
+					if (entity.HasComponent<RigidbodyComponent>() && !entity.HasAny<BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent>())
+					{
+						for (auto child : entity.GetChildren())
+						{
+							OnRenderColliders(child);
+						}
+					}
+					else
+					{
+						OnRenderColliders(entity);
+					}
+				}
+				else
+				{
+					OnRenderColliders(entity);
+				}
+			}
+		}
+
+		if (myShowBoundingBoxesMode != DebugLinesDrawMode::Off)
 		{
 			auto meshEntities = myActiveScene->GetAllEntitiesWith<MeshRendererComponent>();
 			for (auto entityID : meshEntities)
 			{
 				Entity entity = { entityID, myActiveScene.get() };
 				auto& mrc = entity.GetComponent<MeshRendererComponent>();
-				if (!entity.IsActive() || !mrc.isActive) continue;
+				if (!entity.IsActive() || myActiveScene->WasEntityFrustumCulled(entity.GetUUID()) || !mrc.isActive) continue;
 
-				auto transform = myActiveScene->GetWorldSpaceTransformMatrix(entity);
-				auto mesh = AssetManager::GetAssetAsync<Mesh>(mrc.mesh);
-				if (mesh)
+				if (myShowBoundingBoxesMode == DebugLinesDrawMode::Selected)
 				{
-					const AABB& aabb = mesh->GetBoundingBox();
-					myDebugRenderer->DrawWireAABB(aabb, transform, CU::Color::Green);
+					if (!SelectionManager::IsSelected(SelectionContext::Entity, entity.GetUUID()))
+					{
+						continue;
+					}
+
+					auto transform = myActiveScene->GetWorldSpaceTransformMatrix(entity);
+					auto mesh = AssetManager::GetAssetAsync<Mesh>(mrc.mesh);
+					if (mesh)
+					{
+						const AABB& aabb = mesh->GetBoundingBox();
+						myDebugRenderer->DrawWireAABB(aabb, transform, CU::Color::Green);
+					}
+				}
+				else
+				{
+					auto transform = myActiveScene->GetWorldSpaceTransformMatrix(entity);
+					auto mesh = AssetManager::GetAssetAsync<Mesh>(mrc.mesh);
+					if (mesh)
+					{
+						const AABB& aabb = mesh->GetBoundingBox();
+						myDebugRenderer->DrawWireAABB(aabb, transform, CU::Color::Green);
+					}
 				}
 			}
 		}
@@ -921,87 +1032,78 @@ namespace Epoch
 		{
 			// Camera Components
 			{
-				auto view = myActiveScene->GetAllEntitiesWith<CameraComponent>();
-				for (auto entityID : view)
-				{
-					Entity entity{ entityID, myActiveScene.get() };
-					const CU::Matrix4x4f transform = CU::Transform(entity.GetWorldSpaceTransform().GetTranslation(), myEditorCamera.GetTransform().GetRotation(), CU::Vector3f(myGizmoScale)).GetMatrix();
-					myDebugRenderer->DrawQuad(EditorResources::CameraIcon, transform, CU::Color::White, (uint32_t)entity);
+					auto view = myActiveScene->GetAllEntitiesWith<CameraComponent>();
+					for (auto entityID : view)
+					{
+						Entity entity{ entityID, myActiveScene.get() };
+						const CU::Matrix4x4f transform = CU::Transform(entity.GetWorldSpaceTransform().GetTranslation(), myEditorCamera.GetTransform().GetRotation(), CU::Vector3f(myGizmoScale)).GetMatrix();
+						myDebugRenderer->DrawQuad(EditorResources::CameraIcon, transform, CU::Color::White, (uint32_t)entity);
+					}
 				}
-			}
 
 			// Sky Light Components
 			{
-				auto view = myActiveScene->GetAllEntitiesWith<SkyLightComponent>();
-				for (auto entityID : view)
-				{
-					Entity entity{ entityID, myActiveScene.get() };
-					const CU::Matrix4x4f transform = CU::Transform(entity.GetWorldSpaceTransform().GetTranslation(), myEditorCamera.GetTransform().GetRotation(), CU::Vector3f(myGizmoScale)).GetMatrix();
-					myDebugRenderer->DrawQuad(EditorResources::SkyLightIcon, transform, CU::Color::White, (uint32_t)entity);
+					auto view = myActiveScene->GetAllEntitiesWith<SkyLightComponent>();
+					for (auto entityID : view)
+					{
+						Entity entity{ entityID, myActiveScene.get() };
+						const CU::Matrix4x4f transform = CU::Transform(entity.GetWorldSpaceTransform().GetTranslation(), myEditorCamera.GetTransform().GetRotation(), CU::Vector3f(myGizmoScale)).GetMatrix();
+						myDebugRenderer->DrawQuad(EditorResources::SkyLightIcon, transform, CU::Color::White, (uint32_t)entity);
+					}
 				}
-			}
 
 			// Directional Light Components
 			{
-				auto view = myActiveScene->GetAllEntitiesWith<DirectionalLightComponent>();
-				for (auto entityID : view)
-				{
-					Entity entity{ entityID, myActiveScene.get() };
-					const auto& ls = entity.GetComponent<DirectionalLightComponent>();
-					const CU::Matrix4x4f transform = CU::Transform(entity.GetWorldSpaceTransform().GetTranslation(), myEditorCamera.GetTransform().GetRotation(), CU::Vector3f(myGizmoScale)).GetMatrix();
-					myDebugRenderer->DrawQuad(EditorResources::DirectionalLightIcon, transform, ls.color, (uint32_t)entity);
+					auto view = myActiveScene->GetAllEntitiesWith<DirectionalLightComponent>();
+					for (auto entityID : view)
+					{
+						Entity entity{ entityID, myActiveScene.get() };
+						const auto& ls = entity.GetComponent<DirectionalLightComponent>();
+						const CU::Matrix4x4f transform = CU::Transform(entity.GetWorldSpaceTransform().GetTranslation(), myEditorCamera.GetTransform().GetRotation(), CU::Vector3f(myGizmoScale)).GetMatrix();
+						myDebugRenderer->DrawQuad(EditorResources::DirectionalLightIcon, transform, ls.color, (uint32_t)entity);
+					}
 				}
-			}
 
 			// Spotlight Components
 			{
-				auto view = myActiveScene->GetAllEntitiesWith<SpotlightComponent>();
-				for (auto entityID : view)
-				{
-					Entity entity{ entityID, myActiveScene.get() };
-					const auto& ls = entity.GetComponent<SpotlightComponent>();
-					const CU::Matrix4x4f transform = CU::Transform(entity.GetWorldSpaceTransform().GetTranslation(), myEditorCamera.GetTransform().GetRotation(), CU::Vector3f(myGizmoScale)).GetMatrix();
-					myDebugRenderer->DrawQuad(EditorResources::SpotlightIcon, transform, ls.color, (uint32_t)entity);
+					auto view = myActiveScene->GetAllEntitiesWith<SpotlightComponent>();
+					for (auto entityID : view)
+					{
+						Entity entity{ entityID, myActiveScene.get() };
+						const auto& ls = entity.GetComponent<SpotlightComponent>();
+						const CU::Matrix4x4f transform = CU::Transform(entity.GetWorldSpaceTransform().GetTranslation(), myEditorCamera.GetTransform().GetRotation(), CU::Vector3f(myGizmoScale)).GetMatrix();
+						myDebugRenderer->DrawQuad(EditorResources::SpotlightIcon, transform, ls.color, (uint32_t)entity);
+					}
 				}
-			}
 
 			// Point Light Components
 			{
-				auto view = myActiveScene->GetAllEntitiesWith<PointLightComponent>();
-				for (auto entityID : view)
-				{
-					Entity entity{ entityID, myActiveScene.get() };
-					const auto& ls = entity.GetComponent<PointLightComponent>();
-					const CU::Matrix4x4f transform = CU::Transform(entity.GetWorldSpaceTransform().GetTranslation(), myEditorCamera.GetTransform().GetRotation(), CU::Vector3f(myGizmoScale)).GetMatrix();
+					auto view = myActiveScene->GetAllEntitiesWith<PointLightComponent>();
+					for (auto entityID : view)
+					{
+						Entity entity{ entityID, myActiveScene.get() };
+						const auto& ls = entity.GetComponent<PointLightComponent>();
+						const CU::Matrix4x4f transform = CU::Transform(entity.GetWorldSpaceTransform().GetTranslation(), myEditorCamera.GetTransform().GetRotation(), CU::Vector3f(myGizmoScale)).GetMatrix();
 
-					myDebugRenderer->DrawQuad(EditorResources::PointLightIcon, transform, ls.color, (uint32_t)entity);
+						myDebugRenderer->DrawQuad(EditorResources::PointLightIcon, transform, ls.color, (uint32_t)entity);
+					}
 				}
-			}
 
 			// ParticleEmitter Components
 			{
-				auto view = myActiveScene->GetAllEntitiesWith<ParticleSystemComponent>();
-				for (auto entityID : view)
-				{
-					Entity entity{ entityID, myActiveScene.get() };
+					auto view = myActiveScene->GetAllEntitiesWith<ParticleSystemComponent>();
+					for (auto entityID : view)
+					{
+						Entity entity{ entityID, myActiveScene.get() };
+					}
 				}
-			}
 		}
-		
+
 		myDebugRenderer->Render(myEditorCamera.GetViewMatrix(), myEditorCamera.GetProjectionMatrix(), myDebugRendererOnTop);
 	}
 
 	void EditorLayer::OnRenderColliders(Entity aEntity)
 	{
-		if (aEntity.HasComponent<RigidbodyComponent>() && !aEntity.HasAny<BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent>())
-		{
-			for (auto child : aEntity.GetChildren())
-			{
-				OnRenderColliders(child);
-			}
-			return;
-		}
-
 		if (aEntity.HasComponent<BoxColliderComponent>())
 		{
 			auto& bcc = aEntity.GetComponent<BoxColliderComponent>();
@@ -1048,44 +1150,6 @@ namespace Epoch
 
 			myDebugRenderer->DrawWireCapsule(pos, transform.GetRotation(), radius, height, CU::Color::Green);
 		}
-	}
-
-	void EditorLayer::OnRenderGizmos()
-	{
-		Entity cameraEntity = myActiveScene->GetPrimaryCameraEntity();
-		if (!cameraEntity) return;
-
-		CU::Transform worlTrans = myActiveScene->GetWorldSpaceTransform(cameraEntity);
-		const CU::Matrix4x4f cameraViewMatrix = worlTrans.GetMatrix().GetFastInverse();
-		SceneCamera& camera = cameraEntity.GetComponent<CameraComponent>().camera;
-		camera.SetViewportSize(myActiveScene->GetViewportWidth(), myActiveScene->GetViewportHeight());
-
-		for (const auto& [entityID, entityInstance] : ScriptEngine::GetEntityInstances())
-		{
-			Entity entity = myActiveScene->TryGetEntityWithUUID(entityID);
-			if (entity)
-			{
-				if (entity.IsActive() && ScriptEngine::IsEntityInstantiated(entity))
-				{
-					ScriptEngine::CallMethod(entityInstance, "OnDrawGizmos");
-				}
-			}
-		}
-
-		if (SelectionManager::GetSelectionCount(SelectionContext::Entity) > 0)
-		{
-			for (UUID entityID : SelectionManager::GetSelections(SelectionContext::Entity))
-			{
-				Entity entity = myActiveScene->GetEntityWithUUID(entityID);
-
-				if (entity.IsActive() && entity.HasComponent<ScriptComponent>() && ScriptEngine::IsEntityInstantiated(entity))
-				{
-					ScriptEngine::CallMethod(ScriptEngine::GetEntityInstance(entityID), "OnDrawGizmosSelected");
-				}
-			}
-		}
-		
-		myDebugRenderer->Render(cameraViewMatrix, camera.GetProjectionMatrix());
 	}
 
 	ImGuizmo::OPERATION EditorLayer::GetGizmoOperation()

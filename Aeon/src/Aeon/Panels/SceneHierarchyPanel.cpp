@@ -1013,6 +1013,13 @@ namespace Epoch
 					
 					bool isError = !ScriptEngine::IsModuleValid(aFirstComponent.scriptClassHandle);
 
+					UI::BeginPropertyGrid();
+					ImGui::BeginDisabled();
+					AssetHandle oldAssetHandle = 0;
+					UI::Property_AssetReference<ScriptAsset>("Script Class", aFirstComponent.scriptClassHandle);
+					ImGui::EndDisabled();
+					UI::EndPropertyGrid();
+
 					//AssetHandle oldAssetHandle = 0;
 					//if (UI::Property_AssetReference<ScriptAsset>("Script Class", aFirstComponent.scriptClassHandle, true))
 					//{

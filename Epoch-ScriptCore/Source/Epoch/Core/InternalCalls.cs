@@ -359,16 +359,16 @@ namespace Epoch
 
         #endregion
 
-        #region Gizmos
+        #region Debug
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void Gizmos_DrawWireSphere(ref Vector3 aCenter, float aRadius, ref Color aColor);
+        internal static extern void Debug_DrawWireSphere(ref Vector3 aCenter, float aRadius, ref Color aColor);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void Gizmos_DrawWireCube(ref Vector3 aCenter, ref Vector3 aRotation, ref Vector3 aSize, ref Color aColor);
+        internal static extern void Debug_DrawWireCube(ref Vector3 aCenter, ref Vector3 aRotation, ref Vector3 aSize, ref Color aColor);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void Gizmos_DrawLine(ref Vector3 aFrom, ref Vector3 aTo, ref Color aColor);
+        internal static extern void Debug_DrawLine(ref Vector3 aFrom, ref Vector3 aTo, ref Color aColor);
 
         #endregion
 

@@ -53,8 +53,6 @@ namespace Epoch
 		//Renders component Gizmos and lines
 		void OnRenderOverlay();
 		void OnRenderColliders(Entity aEntity);
-		//Calls OnDrawGizmos & OnDrawGizmosSelected
-		void OnRenderGizmos();
 
 		ImGuizmo::OPERATION GetGizmoOperation();
 		void DrawGizmos();
@@ -130,11 +128,15 @@ namespace Epoch
 		enum class GizmoOperation { None, Translate, Rotate, Scale };
 		GizmoOperation myGizmoOperation = GizmoOperation::None;
 
-		bool myDisplayCurrentColorGradingLUT = false;
-		bool myDebugRendererOnTop = false;
-		bool myShowBoundingBoxes = false;
 		bool myShowGizmos = true;
 		float myGizmoScale = 0.5f;
+
+		bool myDisplayCurrentColorGradingLUT = false;
+		bool myDebugRendererOnTop = false;
+
+		enum class DebugLinesDrawMode { Off, All, Selected };
+		DebugLinesDrawMode myShowBoundingBoxesMode = DebugLinesDrawMode::Off;
+		DebugLinesDrawMode myShowCollidersMode = DebugLinesDrawMode::Off;
 
 		struct DragSelectionBox
 		{
