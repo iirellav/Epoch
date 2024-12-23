@@ -927,7 +927,13 @@ namespace Epoch
 
 				if (entity.HasComponent<CameraComponent>())
 				{
+					const CU::Vector2f viewportSize = myViewportBounds.max - myViewportBounds.min;
+					auto& cc = entity.GetComponent<CameraComponent>();
+					cc.camera.SetViewportSize(viewportSize.x, viewportSize.y);
 
+					const CU::Matrix4x4f view = myActiveScene->GetWorldSpaceTransformMatrix(entity).GetFastInverse();
+					const CU::Matrix4x4f invViewProj = CU::Matrix4x4f(view * cc.camera.GetProjectionMatrix()).GetFastInverse();
+					myDebugRenderer->DrawFrustum(invViewProj);
 				}
 
 				if (entity.HasComponent<DirectionalLightComponent>())

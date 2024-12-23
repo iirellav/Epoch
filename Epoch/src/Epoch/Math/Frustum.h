@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include <CommonUtilities/Math/Vector/Vector.h>
+#include <CommonUtilities/Math/Matrix/Matrix4x4.hpp>
 
 namespace Epoch
 {
@@ -38,5 +39,7 @@ namespace Epoch
 		{
 			planes = { Plane() };
 		}
+
+		static std::array<CU::Vector4f, 8> GetCorners(const CU::Matrix4x4f& aInvViewProj);
 	};
 }

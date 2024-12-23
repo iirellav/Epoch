@@ -393,13 +393,6 @@ namespace Epoch
 		frame.indexCount = (uint32_t)frame.indices.size();
 	}
 
-	void DebugRenderer::DrawWireAABB(const AABB& aAABB, const CU::Matrix4x4f& aTransform, const CU::Color aColor)
-	{
-		const AABB aabb = aAABB.GetGlobal(aTransform);
-		//DrawWireBox(aabb.GetCenter(), CU::Vector3f::Zero, aabb.GetExtents(), aColor);
-		DrawWireSphere(aabb.GetCenter(), CU::Vector3f::Zero, aabb.GetExtents().Length(), aColor);
-	}
-
 	void DebugRenderer::DrawWireSphere(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, float aRadius, const CU::Color aColor)
 	{
 		auto& frame = myFrames.emplace_back();
@@ -595,6 +588,23 @@ namespace Epoch
 
 		frame.vertexCount = (uint32_t)frame.vertices.size();
 		frame.indexCount = (uint32_t)frame.indices.size();
+	}
+
+	void DebugRenderer::DrawFrustum(const CU::Matrix4x4f& aInvViewProj, const CU::Color aColor)
+	{
+		auto corners = Frustum::GetCorners(aInvViewProj);
+
+		for (const CU::Vector4f& corner : corners)
+		{
+			DrawWireSphere(corner, CU::Vector3f::Zero, 12.5f, aColor);
+		}
+	}
+
+	void DebugRenderer::DrawWireAABB(const AABB& aAABB, const CU::Matrix4x4f& aTransform, const CU::Color aColor)
+	{
+		const AABB aabb = aAABB.GetGlobal(aTransform);
+		//DrawWireBox(aabb.GetCenter(), CU::Vector3f::Zero, aabb.GetExtents(), aColor);
+		DrawWireSphere(aabb.GetCenter(), CU::Vector3f::Zero, aabb.GetExtents().Length(), aColor);
 	}
 
 	void DebugRenderer::DrawGrid(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, const CU::Vector2i& aSize, float aAlpha)
