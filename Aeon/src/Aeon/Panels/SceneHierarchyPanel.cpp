@@ -1016,7 +1016,7 @@ namespace Epoch
 					UI::BeginPropertyGrid();
 					ImGui::BeginDisabled();
 					AssetHandle oldAssetHandle = 0;
-					UI::Property_AssetReference<ScriptAsset>("Script Class", aFirstComponent.scriptClassHandle);
+					UI::Property_AssetReference<ScriptAsset>("Script Class", aFirstComponent.scriptClassHandle, "", { true, true });
 					ImGui::EndDisabled();
 					UI::EndPropertyGrid();
 

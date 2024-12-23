@@ -1121,10 +1121,16 @@ namespace Epoch
 						if (!FrustumIntersection(frustum, mesh->GetBoundingBox().GetGlobal(transform)))
 						{
 							myFrustumCulledEntities.insert(entity.GetUUID());
-							continue;
 						}
-
-						aRenderer->SubmitMesh(mesh, mrc.materialTable, transform, (uint32_t)entity);
+						else
+						{
+							aRenderer->SubmitMesh(mesh, mrc.materialTable, transform, (uint32_t)entity);
+						}
+						
+						if (mrc.castsShadows)
+						{
+							//TODO: Submit for shadow rendering
+						}
 					}
 				}
 			}
@@ -1234,6 +1240,26 @@ namespace Epoch
 			if (lastFramesFrustumCulledEntities.find(entityID) == lastFramesFrustumCulledEntities.end())
 			{
 				//Exited frustum
+
+				Entity entity = TryGetEntityWithUUID(entityID);
+				if (!entity)
+				{
+					continue;
+				}
+
+				if (!entity.HasComponent<ScriptComponent>())
+				{
+					continue;
+				}
+
+				const auto& sc = entity.GetComponent<ScriptComponent>();
+
+				if (!ScriptEngine::IsModuleValid(sc.scriptClassHandle) || !ScriptEngine::IsEntityInstantiated(entity))
+				{
+					continue;
+				}
+
+				ScriptEngine::CallMethod(sc.managedInstance, "OnFrustumExitInternal");
 			}
 		}
 
@@ -1242,6 +1268,26 @@ namespace Epoch
 			if (myFrustumCulledEntities.find(entityID) == myFrustumCulledEntities.end())
 			{
 				//Entered frustum
+
+				Entity entity = TryGetEntityWithUUID(entityID);
+				if (!entity)
+				{
+					continue;
+				}
+
+				if (!entity.HasComponent<ScriptComponent>())
+				{
+					continue;
+				}
+
+				const auto& sc = entity.GetComponent<ScriptComponent>();
+
+				if (!ScriptEngine::IsModuleValid(sc.scriptClassHandle) || !ScriptEngine::IsEntityInstantiated(entity))
+				{
+					continue;
+				}
+
+				ScriptEngine::CallMethod(sc.managedInstance, "OnFrustumEnterInternal");
 			}
 		}
 	}

@@ -10,6 +10,9 @@ namespace Epoch
         public event Action<Entity> OnTriggerEnter;
         public event Action<Entity> OnTriggerExit;
 
+        public event Action OnFrustumEnter;
+        public event Action OnFrustumExit;
+
         protected Entity() { id = 0; }
 
         internal Entity(ulong aId)
@@ -65,6 +68,9 @@ namespace Epoch
 
         private void OnTriggerEnterInternal(ulong aID) => OnTriggerEnter?.Invoke(new Entity(aID));
         private void OnTriggerExitInternal(ulong aID) => OnTriggerExit?.Invoke(new Entity(aID));
+
+        private void OnFrustumEnterInternal() => OnFrustumEnter?.Invoke();
+        private void OnFrustumExitInternal() => OnFrustumExit?.Invoke();
 
 
         public T AddComponent<T>() where T : Component, new()
