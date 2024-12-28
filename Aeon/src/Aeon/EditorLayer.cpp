@@ -197,7 +197,7 @@ namespace Epoch
 			myEditorCamera.OnUpdate();
 			myActiveScene->OnUpdateEditor();
 			mySceneRenderer->SetScene(myActiveScene);
-			myActiveScene->OnRenderEditor(mySceneRenderer, myEditorCamera);
+			myActiveScene->OnRenderEditor(mySceneRenderer, myEditorCamera, !myCullWithSceneCamera);
 
 			OnRenderOverlay();
 
@@ -465,6 +465,16 @@ namespace Epoch
 			{
 				mySceneRenderer->SetDrawMode((DrawMode)currentDrawMode);
 			}
+
+			UI::EndPropertyGrid();
+
+			UI::Spacing();
+			UI::Draw::Underline();
+			UI::Spacing();
+
+			UI::BeginPropertyGrid();
+
+			UI::Property_Checkbox("Cull with Scene Camera", myCullWithSceneCamera, "The primary camera in the scene will be used for culling.");
 
 			UI::EndPropertyGrid();
 
@@ -931,9 +941,16 @@ namespace Epoch
 					auto& cc = entity.GetComponent<CameraComponent>();
 					cc.camera.SetViewportSize(viewportSize.x, viewportSize.y);
 
-					const CU::Matrix4x4f view = myActiveScene->GetWorldSpaceTransformMatrix(entity).GetFastInverse();
-					const CU::Matrix4x4f invViewProj = CU::Matrix4x4f(view * cc.camera.GetProjectionMatrix()).GetFastInverse();
-					myDebugRenderer->DrawFrustum(invViewProj);
+					const CU::Matrix4x4f transform = myActiveScene->GetWorldSpaceTransformMatrix(entity);
+
+					if (cc.camera.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
+					{
+						myDebugRenderer->DrawPerspectiveFrustum(transform, cc.camera.GetPerspectiveNearPlane(), cc.camera.GetPerspectiveFarPlane(), cc.camera.GetPerspectiveFOV(), cc.camera.GetAspectRatio(), CU::Color::Green);
+					}
+					else
+					{
+						myDebugRenderer->DrawOrthographicFrustum(transform, cc.camera.GetOrthographicNearPlane(), cc.camera.GetOrthographicFarPlane(), cc.camera.GetOrthographicSize(), cc.camera.GetAspectRatio(), CU::Color::Green);
+					}
 				}
 
 				if (entity.HasComponent<DirectionalLightComponent>())

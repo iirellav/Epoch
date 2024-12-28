@@ -88,7 +88,7 @@ namespace CU
 			return aVector;
 		}
 
-		const T multiplier = 1 / aScalar;
+		const T multiplier = T(1) / aScalar;
 		return { aVector.x * multiplier, aVector.y * multiplier, aVector.z * multiplier, aVector.w * multiplier };
 	}
 

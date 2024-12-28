@@ -138,6 +138,8 @@ namespace Epoch
 		DebugLinesDrawMode myShowBoundingBoxesMode = DebugLinesDrawMode::Off;
 		DebugLinesDrawMode myShowCollidersMode = DebugLinesDrawMode::Off;
 
+		bool myCullWithSceneCamera = false;
+
 		struct DragSelectionBox
 		{
 			CU::Vector2f start;

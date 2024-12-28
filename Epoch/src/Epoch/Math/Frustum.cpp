@@ -3,7 +3,7 @@
 
 namespace Epoch
 {
-    std::array<CU::Vector4f, 8> Frustum::GetCorners(const CU::Matrix4x4f& aInvViewProj)
+    std::array<CU::Vector4f, 8> Frustum::GetCorners(const CU::Matrix4x4f& aView, const CU::Matrix4x4f& aProj)
     {
         std::array<CU::Vector4f, 8> corners =
         {
@@ -18,17 +18,17 @@ namespace Epoch
             CU::Vector4f( 1.0f, -1.0f, 1.0f, 1.0f)
         };
 
-        for (CU::Vector4f& corner : corners)
+        std::array<CU::Vector4f, 8> outputCorners;
+        for (size_t i = 0; i < 8; i++)
         {
-            corner = corner * aInvViewProj;
+            const CU::Vector4f& corner = corners[i];
 
-            const float mag = 1.0f / corner.w;
-            corner.x /= mag;
-            corner.y /= mag;
-            corner.z /= mag;
-            corner.w /= mag;
+            CU::Vector4f result = (aView * aProj).GetFastInverse() * corner;
+            result = result / result.w;
+
+            outputCorners[i] = result;
         }
 
-        return corners;
+        return outputCorners;
     }
 }

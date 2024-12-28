@@ -40,6 +40,7 @@ namespace Epoch
 			planes = { Plane() };
 		}
 
-		static std::array<CU::Vector4f, 8> GetCorners(const CU::Matrix4x4f& aInvViewProj);
+		//NOTE: Not working
+		static std::array<CU::Vector4f, 8> GetCorners(const CU::Matrix4x4f& aView, const CU::Matrix4x4f& aProj);
 	};
 }

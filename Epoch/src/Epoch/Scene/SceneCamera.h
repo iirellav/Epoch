@@ -12,7 +12,7 @@ namespace Epoch
 		~SceneCamera() = default;
 
 		void SetViewportSize(unsigned aWidth, unsigned aHeight);
-		float AspectRatio() const { return myAspectRatio; }
+		float GetAspectRatio() const { return myAspectRatio; }
 
 		void SetPerspective(float aFOV, float aNearClip, float aFarClip);
 		void SetOrthographic(float aSize, float aNearClip, float aFarClip);

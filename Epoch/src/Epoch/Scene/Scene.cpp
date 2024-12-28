@@ -520,12 +520,12 @@ namespace Epoch
 			camera.GetPerspectiveNearPlane(),
 			camera.GetPerspectiveFarPlane(),
 			camera.GetPerspectiveFOV(),
-			camera.AspectRatio()
+			camera.GetAspectRatio()
 		);
-		RenderScene(aRenderer, renderCamera, true);
+		RenderScene(aRenderer, renderCamera, renderCamera, true);
 	}
 
-	void Scene::OnRenderEditor(std::shared_ptr<SceneRenderer> aRenderer, EditorCamera& aCamera)
+	void Scene::OnRenderEditor(std::shared_ptr<SceneRenderer> aRenderer, EditorCamera& aCamera, bool aCullWithEditorCamera)
 	{
 		const SceneRendererCamera renderCamera
 		(
@@ -538,7 +538,35 @@ namespace Epoch
 			aCamera.GetFOV(),
 			aCamera.GetAspectRatio()
 		);
-		RenderScene(aRenderer, renderCamera, false);
+
+		Entity cameraEntity = GetPrimaryCameraEntity();
+
+		if (aCullWithEditorCamera || !cameraEntity)
+		{
+			RenderScene(aRenderer, renderCamera, renderCamera, false);
+		}
+		else
+		{
+			CU::Transform worlTrans = GetWorldSpaceTransform(cameraEntity);
+			const CU::Matrix4x4f cameraTransformMatrix = worlTrans.GetMatrix();
+			const CU::Matrix4x4f cameraViewMatrix = cameraTransformMatrix.GetFastInverse();
+			SceneCamera& camera = cameraEntity.GetComponent<CameraComponent>().camera;
+			camera.SetViewportSize(myViewportWidth, myViewportHeight);
+
+			const SceneRendererCamera cullingCamera
+			(
+				(Camera)camera,
+				worlTrans.GetTranslation(),
+				cameraTransformMatrix,
+				cameraViewMatrix,
+				camera.GetPerspectiveNearPlane(),
+				camera.GetPerspectiveFarPlane(),
+				camera.GetPerspectiveFOV(),
+				camera.GetAspectRatio()
+			);
+
+			RenderScene(aRenderer, renderCamera, cullingCamera, false);
+		}
 	}
 
 	void Scene::OnSceneTransition(AssetHandle aScene)
@@ -933,17 +961,17 @@ namespace Epoch
 		outBoneTransforms[aBoneIndex] = bone.invBindPose * matrix;
 	}
 
-	void Scene::RenderScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aCamera, bool aIsRuntime)
+	void Scene::RenderScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aRenderCamera, const SceneRendererCamera& aCullingCamera, bool aIsRuntime)
 	{
 		EPOCH_PROFILE_FUNC();
 
-		const Frustum frustum = CreateFrustum(aCamera);
+		const Frustum frustum = CreateFrustum(aCullingCamera);
 		std::set<UUID> lastFramesFrustumCulledEntities = myFrustumCulledEntities;
 		myFrustumCulledEntities.clear();
 
 		std::unordered_map<AssetHandle, std::shared_ptr<Asset>> assetAccelerationMap;
 
-		aRenderer->BeginScene(aCamera);
+		aRenderer->BeginScene(aRenderCamera);
 
 		{
 			EPOCH_PROFILE_SCOPE("Scene::RenderScene::UpdateLightEnvironment");
