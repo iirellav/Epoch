@@ -39,6 +39,8 @@ namespace Epoch
 		void BeginDockspace();
 		void EndDockspace();
 
+		void OnRenderMenuBar();
+
 		void RecursivePanelMenuItem(const std::vector<std::string>& aNameParts, uint32_t aDepth, bool& aIsOpen);
 
 		std::pair<float, float> GetMouseViewportCord() const;
@@ -76,6 +78,7 @@ namespace Epoch
 		void SerializeScene(std::shared_ptr<Scene> aScene, const std::filesystem::path& aPath);
 		void QueueSceneTransition(AssetHandle aScene);
 
+		void EditorOptionsPanel();
 		void ToolbarPanel();
 		void ViewportPanel();
 

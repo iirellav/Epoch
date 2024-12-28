@@ -8,7 +8,7 @@ namespace Epoch
 		RecalculateProjection();
 	}
 
-	void SceneCamera::SetViewportSize(unsigned aWidth, unsigned aHeight)
+	void SceneCamera::SetViewportSize(uint32_t aWidth, uint32_t aHeight)
 	{
 		EPOCH_ASSERT(aWidth > 0 && aHeight > 0, "Cameras viewport size can not be 0!");
 

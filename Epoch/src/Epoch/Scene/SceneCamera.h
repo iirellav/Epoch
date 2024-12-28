@@ -11,7 +11,7 @@ namespace Epoch
 		SceneCamera();
 		~SceneCamera() = default;
 
-		void SetViewportSize(unsigned aWidth, unsigned aHeight);
+		void SetViewportSize(uint32_t aWidth, uint32_t aHeight);
 		float GetAspectRatio() const { return myAspectRatio; }
 
 		void SetPerspective(float aFOV, float aNearClip, float aFarClip);
@@ -49,7 +49,7 @@ namespace Epoch
 		float myOrthographicFar = 10000.0f;
 
 		float myAspectRatio = 0.0f;
-		unsigned myViewportWidth;
-		unsigned myViewportHeight;
+		uint32_t myViewportWidth;
+		uint32_t myViewportHeight;
 	};
 }
