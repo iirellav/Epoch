@@ -9,7 +9,9 @@ namespace Epoch
 		None,
 		Scene,
 		Texture,
+		Model,
 		Mesh,
+		Animation,
 		EnvTexture,
 		Material,
 		Audio,
@@ -25,7 +27,9 @@ namespace Epoch
 		if (aAssetType == "None")			return AssetType::None;
 		if (aAssetType == "Scene")			return AssetType::Scene;
 		if (aAssetType == "Texture")		return AssetType::Texture;
+		if (aAssetType == "Model")			return AssetType::Model;
 		if (aAssetType == "Mesh")			return AssetType::Mesh;
+		if (aAssetType == "Animation")		return AssetType::Animation;
 		if (aAssetType == "EnvTexture")		return AssetType::EnvTexture;
 		if (aAssetType == "Material")		return AssetType::Material;
 		if (aAssetType == "Audio")			return AssetType::Audio;
@@ -46,7 +50,9 @@ namespace Epoch
 		case AssetType::None:			return "None";
 		case AssetType::Scene:			return "Scene";
 		case AssetType::Texture:		return "Texture";
+		case AssetType::Model:			return "Model";
 		case AssetType::Mesh:			return "Mesh";
+		case AssetType::Animation:		return "Animation";
 		case AssetType::EnvTexture:		return "EnvTexture";
 		case AssetType::Material:		return "Material";
 		case AssetType::Audio:			return "Audio";

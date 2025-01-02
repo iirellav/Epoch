@@ -490,19 +490,17 @@ namespace Epoch
 		
 		// Name Field
 		{
-			const bool inconsistentActiveState = IsInconsistentPrimitive<bool, ActiveComponent>([](const ActiveComponent& aActiveComponent) { return aActiveComponent.isActive; });
-			bool state = (isMultiSelect && inconsistentActiveState) ? false : firstEntity.IsActive();
-			if (isMultiSelect && inconsistentActiveState) ImGui::BeginDisabled();
+			bool state = firstEntity.IsActive();
+			ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, isMultiSelect && IsInconsistentPrimitive<bool, ActiveComponent>([](const ActiveComponent& aOther) { return aOther.isActive; }));
 			if (ImGui::Checkbox("##ActiveState", &state))
 			{
 				for (auto entityID : aEntityIDs)
 				{
 					Entity entity = myContext->GetEntityWithUUID(entityID);
-					//entity.GetComponent<ActiveComponent>().isActive = state;
 					entity.SetIsActive(state);
 				}
 			}
-			if (isMultiSelect && inconsistentActiveState)  ImGui::EndDisabled();
+			ImGui::PopItemFlag();
 
 			ImGui::SameLine();
 

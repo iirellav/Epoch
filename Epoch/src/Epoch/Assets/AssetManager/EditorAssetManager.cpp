@@ -54,12 +54,29 @@ namespace Epoch
 		////js.AddAJob(MeshFactory::CreateCapsule);
 		////js.AddAJob(MeshFactory::CreateCylinder);
 
-		MeshFactory::CreateCube();
-		MeshFactory::CreateSphere();
-		MeshFactory::CreateQuad();
-		MeshFactory::CreatePlane();
+		{
+			auto [verts, inds] = MeshFactory::CreateCube();
+			AssetManager::CreateMemoryOnlyAssetWithName<Mesh>("Cube - Built-In", verts, inds);
+		}
 
-		AssetManager::CreateMemoryOnlyAssetWithName<Material>("Default-Material");
+		{
+			auto [verts, inds] = MeshFactory::CreateSphere();
+			AssetManager::CreateMemoryOnlyAssetWithName<Mesh>("Sphere - Built-In", verts, inds);
+		}
+
+		{
+			auto [verts, inds] = MeshFactory::CreateQuad();
+			AssetManager::CreateMemoryOnlyAssetWithName<Mesh>("Quad - Built-In", verts, inds);
+		}
+
+		{
+			auto [verts, inds] = MeshFactory::CreatePlane();
+			AssetManager::CreateMemoryOnlyAssetWithName<Mesh>("Plane - Built-In", verts, inds);
+		}
+
+		{
+			AssetManager::CreateMemoryOnlyAssetWithName<Material>("Default-Material");
+		}
 	}
 
 	AssetType EditorAssetManager::GetAssetType(AssetHandle aHandle)
@@ -96,6 +113,28 @@ namespace Epoch
 	//TODO: This is kinda messy, maybe make a separate class to handle this
 	std::shared_ptr<Asset> EditorAssetManager::GetAssetAsync(AssetHandle aHandle)
 	{
+		if (myLoadingAssets.find(aHandle) != myLoadingAssets.end())
+		{
+			auto& future = myLoadingAssets[aHandle];
+			if (future._Is_ready())
+			{
+				std::shared_ptr<Asset> asset = future._Get_value();
+				myLoadingAssets.erase(aHandle);
+
+				if (asset)
+				{
+					auto& metadata = GetMetadataInternal(aHandle);
+					myLoadedAssets.emplace(aHandle, asset);
+					metadata.isDataLoaded = true;
+				}
+				return asset;
+			}
+			else
+			{
+				return nullptr;
+			}
+		}
+
 		if (IsMemoryAsset(aHandle))
 		{
 			return myMemoryAssets[aHandle];
@@ -112,27 +151,6 @@ namespace Epoch
 			EPOCH_ASSERT(myLoadedAssets.contains(aHandle), "\"Loaded\" asset not found in loaded assets!");
 			std::shared_ptr<Asset> asset = myLoadedAssets[aHandle];
 			return asset && asset->IsValid() ? asset : nullptr;
-		}
-
-		if (myLoadingAssets.find(aHandle) != myLoadingAssets.end())
-		{
-			auto& future = myLoadingAssets[aHandle];
-			if (future._Is_ready())
-			{
-				std::shared_ptr<Asset> asset = future._Get_value();
-				myLoadingAssets.erase(aHandle);
-
-				if (asset)
-				{
-					myLoadedAssets.emplace(aHandle, asset);
-					metadata.isDataLoaded = true;
-				}
-				return asset;
-			}
-			else
-			{
-				return nullptr;
-			}
 		}
 
 		JobSystem& js = Application::Get().GetJobSystem();
@@ -152,7 +170,20 @@ namespace Epoch
 		myMemoryAssets[aAsset->GetHandle()] = aAsset;
 	}
 
-	void EditorAssetManager::AddMemoryOnlyAsset(std::shared_ptr<Asset> aAsset, const std::string& aName)
+	void EditorAssetManager::AddMemoryOnlyAssetWithName(std::shared_ptr<Asset> aAsset, const std::string& aName)
+	{
+		AssetMetadata metadata;
+		metadata.handle = aAsset->GetHandle();
+		metadata.filePath = aName;
+		metadata.isDataLoaded = true;
+		metadata.type = aAsset->GetAssetType();
+		metadata.isMemoryAsset = true;
+		myAssetRegistry[metadata.handle] = metadata;
+
+		myMemoryAssets[aAsset->GetHandle()] = aAsset;
+	}
+	
+	void EditorAssetManager::AddMemoryOnlyAssetWithHandle(std::shared_ptr<Asset> aAsset, const std::string& aName)
 	{
 		AssetMetadata metadata;
 		metadata.handle = aAsset->GetHandle();

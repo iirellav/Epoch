@@ -969,7 +969,7 @@ namespace Epoch
 		std::set<UUID> lastFramesFrustumCulledEntities = myFrustumCulledEntities;
 		myFrustumCulledEntities.clear();
 
-		std::unordered_map<AssetHandle, std::shared_ptr<Asset>> assetAccelerationMap;
+		AssetMap assetAccelerationMap;
 
 		aRenderer->BeginScene(aRenderCamera);
 
@@ -1131,10 +1131,13 @@ namespace Epoch
 					const auto& mrc = view.get<MeshRendererComponent>(id);
 					if (!mrc.isActive) continue;
 
-					std::shared_ptr<Mesh> mesh;
-					if (assetAccelerationMap.find(mrc.mesh) != assetAccelerationMap.end())
+					std::shared_ptr<Mesh> mesh = nullptr;
+					if (auto it = assetAccelerationMap.find(mrc.mesh); it != assetAccelerationMap.end())
 					{
-						mesh = std::static_pointer_cast<Mesh>(assetAccelerationMap[mrc.mesh]);
+						if (it->second != nullptr)
+						{
+							mesh = std::static_pointer_cast<Mesh>(it->second);
+						}
 					}
 					else
 					{

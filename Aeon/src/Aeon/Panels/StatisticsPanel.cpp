@@ -176,6 +176,22 @@ namespace Epoch
 		ImGui::Separator();
 		ImGui::Spacing();
 
+		//Components/Scene
+		{
+			size_t meshRenderers = mySceneContext->GetAllEntitiesWith<MeshRendererComponent>().size();
+			ImGui::Text(("Mesh Renderers: " + CU::NumberFormat(meshRenderers)).c_str());
+
+			size_t pointLights = mySceneContext->GetAllEntitiesWith<PointLightComponent>().size();
+			ImGui::Text(("Point Lights: " + CU::NumberFormat(pointLights)).c_str());
+
+			size_t spotlights = mySceneContext->GetAllEntitiesWith<PointLightComponent>().size();
+			ImGui::Text(("Spotlights: " + CU::NumberFormat(spotlights)).c_str());
+		}
+
+		ImGui::Spacing();
+		ImGui::Separator();
+		ImGui::Spacing();
+
 		//Renderer Stats
 		{
 			const auto& stats = mySceneRendererReference.lock()->GetStats();

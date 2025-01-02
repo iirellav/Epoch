@@ -15,10 +15,10 @@ namespace Epoch
 		{ ".cs",		AssetType::ScriptFile },
 
 		// Mesh/Animation source
-		{ ".fbx",		AssetType::Mesh },
-		{ ".gltf",		AssetType::Mesh },
-		{ ".glb",		AssetType::Mesh },
-		{ ".obj",		AssetType::Mesh },
+		{ ".fbx",		AssetType::Model },
+		{ ".gltf",		AssetType::Model },
+		{ ".glb",		AssetType::Model },
+		{ ".obj",		AssetType::Model },
 
 		// Texture
 		{ ".png",		AssetType::Texture },

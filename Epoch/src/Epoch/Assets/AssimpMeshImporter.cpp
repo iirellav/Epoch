@@ -142,9 +142,9 @@ namespace Epoch
 			return meshAsset;
 		}
 
-		BoneHierarchy boneHierarchy(scene);
-		meshAsset->mySkeleton = boneHierarchy.CreateSkeleton();
-		meshAsset->myAnimationCount = scene->mNumAnimations;
+		//BoneHierarchy boneHierarchy(scene);
+		//meshAsset->mySkeleton = boneHierarchy.CreateSkeleton();
+		//meshAsset->myAnimationCount = scene->mNumAnimations;
 		
 		if (scene->HasMeshes())
 		{
@@ -215,12 +215,12 @@ namespace Epoch
 					meshAsset->myIndices.push_back(mesh->mFaces[i].mIndices[1]);
 					meshAsset->myIndices.push_back(mesh->mFaces[i].mIndices[2]);
 
-					meshAsset->myTriangleCache[m].emplace_back
-					(
-						meshAsset->myVertices[mesh->mFaces[i].mIndices[0]],
-						meshAsset->myVertices[mesh->mFaces[i].mIndices[1]],
-						meshAsset->myVertices[mesh->mFaces[i].mIndices[2]]
-					);
+					//meshAsset->myTriangleCache[m].emplace_back
+					//(
+					//	meshAsset->myVertices[mesh->mFaces[i].mIndices[0]],
+					//	meshAsset->myVertices[mesh->mFaces[i].mIndices[1]],
+					//	meshAsset->myVertices[mesh->mFaces[i].mIndices[2]]
+					//);
 				}
 			}
 
@@ -242,60 +242,60 @@ namespace Epoch
 			}
 		}
 
-		if (meshAsset->HasSkeleton())
-		{
-			meshAsset->myBoneInfluences.resize(meshAsset->myVertices.size());
-			for (uint32_t m = 0; m < scene->mNumMeshes; m++)
-			{
-				aiMesh* mesh = scene->mMeshes[m];
-				Submesh& submesh = meshAsset->mySubmeshes[m];
-
-				if (mesh->mNumBones > 0)
-				{
-					for (uint32_t i = 0; i < mesh->mNumBones; i++)
-					{
-						aiBone* bone = mesh->mBones[i];
-
-						bool hasNonZeroWeight = false;
-						for (size_t j = 0; j < bone->mNumWeights; j++)
-						{
-							if (bone->mWeights[j].mWeight > 0.000001f)
-							{
-								hasNonZeroWeight = true;
-							}
-						}
-						if (!hasNonZeroWeight)
-						{
-							continue;
-						}
-
-						// Find bone in skeleton
-						uint32_t boneIndex = meshAsset->mySkeleton->GetBoneIndex(bone->mName.C_Str());
-						if (boneIndex == Skeleton::NullIndex)
-						{
-							EPOCH_ASSERT("Could not find mesh bone '{}' in skeleton!", bone->mName.C_Str());
-						}
-
-						auto& b = meshAsset->GetSkeleton()->GetBone(boneIndex);
-						b.invBindPose = Mat4FromAIMat4(bone->mOffsetMatrix);
-
-						for (size_t j = 0; j < bone->mNumWeights; j++)
-						{
-							int VertexID = bone->mWeights[j].mVertexId;
-							float Weight = bone->mWeights[j].mWeight;
-							meshAsset->myBoneInfluences[VertexID].AddBoneData(boneIndex, Weight);
-						}
-					}
-				}
-			}
-
-			for (auto& boneInfluence : meshAsset->myBoneInfluences)
-			{
-				boneInfluence.NormalizeWeights();
-			}
-		}
+		//if (meshAsset->HasSkeleton())
+		//{
+		//	meshAsset->myBoneInfluences.resize(meshAsset->myVertices.size());
+		//	for (uint32_t m = 0; m < scene->mNumMeshes; m++)
+		//	{
+		//		aiMesh* mesh = scene->mMeshes[m];
+		//		Submesh& submesh = meshAsset->mySubmeshes[m];
+		//
+		//		if (mesh->mNumBones > 0)
+		//		{
+		//			for (uint32_t i = 0; i < mesh->mNumBones; i++)
+		//			{
+		//				aiBone* bone = mesh->mBones[i];
+		//
+		//				bool hasNonZeroWeight = false;
+		//				for (size_t j = 0; j < bone->mNumWeights; j++)
+		//				{
+		//					if (bone->mWeights[j].mWeight > 0.000001f)
+		//					{
+		//						hasNonZeroWeight = true;
+		//					}
+		//				}
+		//				if (!hasNonZeroWeight)
+		//				{
+		//					continue;
+		//				}
+		//
+		//				// Find bone in skeleton
+		//				uint32_t boneIndex = meshAsset->mySkeleton->GetBoneIndex(bone->mName.C_Str());
+		//				if (boneIndex == Skeleton::NullIndex)
+		//				{
+		//					EPOCH_ASSERT("Could not find mesh bone '{}' in skeleton!", bone->mName.C_Str());
+		//				}
+		//
+		//				auto& b = meshAsset->GetSkeleton()->GetBone(boneIndex);
+		//				b.invBindPose = Mat4FromAIMat4(bone->mOffsetMatrix);
+		//
+		//				for (size_t j = 0; j < bone->mNumWeights; j++)
+		//				{
+		//					int VertexID = bone->mWeights[j].mVertexId;
+		//					float Weight = bone->mWeights[j].mWeight;
+		//					meshAsset->myBoneInfluences[VertexID].AddBoneData(boneIndex, Weight);
+		//				}
+		//			}
+		//		}
+		//	}
+		//
+		//	for (auto& boneInfluence : meshAsset->myBoneInfluences)
+		//	{
+		//		boneInfluence.NormalizeWeights();
+		//	}
+		//}
 		
-		meshAsset->myMaterialCount = scene->mNumMaterials;
+		//meshAsset->myMaterialCount = scene->mNumMaterials;
 		//if (scene->HasMaterials())
 		//{
 		//	meshAsset->myMaterialCount = scene->mNumMaterials;
@@ -313,10 +313,10 @@ namespace Epoch
 			meshAsset->myVertexBuffer = VertexBuffer::Create(meshAsset->myVertices.data(), (uint32_t)meshAsset->myVertices.size(), sizeof(Vertex));
 		}
 
-		if (meshAsset->myBoneInfluences.size())
-		{
-			meshAsset->myBoneInfluenceBuffer = VertexBuffer::Create(meshAsset->myBoneInfluences.data(), (uint32_t)meshAsset->myBoneInfluences.size(), sizeof(BoneInfluence));
-		}
+		//if (meshAsset->myBoneInfluences.size())
+		//{
+		//	meshAsset->myBoneInfluenceBuffer = VertexBuffer::Create(meshAsset->myBoneInfluences.data(), (uint32_t)meshAsset->myBoneInfluences.size(), sizeof//(BoneInfluence));
+		//}
 
 		if (meshAsset->myIndices.size())
 		{
@@ -354,7 +354,7 @@ namespace Epoch
 			MeshNode& child = aMesh->myNodes.emplace_back();
 			size_t childIndex = aMesh->myNodes.size() - 1;
 			child.parent = parentNodeIndex;
-			aMesh->myNodes[aNodeIndex].children[i] = (uint32_t)childIndex;
+			node.children[i] = (uint32_t)childIndex;
 			TraverseNodes(aMesh, aNode->mChildren[i], uint32_t(childIndex), transform, aLevel + 1);
 		}
 	}

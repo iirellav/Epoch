@@ -6,7 +6,7 @@
 
 namespace Epoch
 {
-	void MeshFactory::CreateCube()
+	std::pair<std::vector<Vertex>, std::vector<uint32_t>> MeshFactory::CreateCube()
 	{
 		const std::vector<Vertex> vertexList =
 		{
@@ -74,10 +74,10 @@ namespace Epoch
 			20, 21, 23
 		};
 
-		AssetManager::CreateMemoryOnlyAssetWithName<Mesh>("Cube - Built-In", vertexList, indexList);
+		return { vertexList, indexList };
 	}
 
-	void MeshFactory::CreateSphere()
+	std::pair<std::vector<Vertex>, std::vector<uint32_t>> MeshFactory::CreateSphere()
 	{
 		std::vector<Vertex> vertexList;
 		std::vector<uint32_t> indexList;
@@ -146,18 +146,18 @@ namespace Epoch
 			}
 		}
 
-		AssetManager::CreateMemoryOnlyAssetWithName<Mesh>("Sphere - Built-In", vertexList, indexList);
+		return { vertexList, indexList };
 	}
 
-	void MeshFactory::CreateCapsule()
-	{
-	}
+	//void MeshFactory::CreateCapsule()
+	//{
+	//}
 
-	void MeshFactory::CreateCylinder()
-	{
-	}
+	//void MeshFactory::CreateCylinder()
+	//{
+	//}
 
-	void MeshFactory::CreateQuad()
+	std::pair<std::vector<Vertex>, std::vector<uint32_t>> MeshFactory::CreateQuad()
 	{
 		std::vector<Vertex> vertexList =
 		{
@@ -173,10 +173,10 @@ namespace Epoch
 			0, 3, 2
 		};
 
-		AssetManager::CreateMemoryOnlyAssetWithName<Mesh>("Quad - Built-In", vertexList, indexList);
+		return { vertexList, indexList };
 	}
 
-	void MeshFactory::CreatePlane()
+	std::pair<std::vector<Vertex>, std::vector<uint32_t>> MeshFactory::CreatePlane()
 	{
 		std::vector<Vertex> vertexList =
 		{
@@ -192,6 +192,6 @@ namespace Epoch
 			0, 3, 2
 		};
 
-		AssetManager::CreateMemoryOnlyAssetWithName<Mesh>("Plane - Built-In", vertexList, indexList);
+		return { vertexList, indexList };
 	}
 }
