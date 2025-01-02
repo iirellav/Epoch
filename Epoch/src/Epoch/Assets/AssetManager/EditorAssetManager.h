@@ -13,10 +13,11 @@ namespace Epoch
 	class EditorAssetManager : public AssetManagerBase
 	{
 	public:
-		EditorAssetManager();
-		~EditorAssetManager() override;
+		EditorAssetManager() = default;
+		~EditorAssetManager() override = default;
 
-		void LoadBuiltInAssets();
+		void Init() override;
+		void Shutdown() override;	
 
 		AssetType GetAssetType(AssetHandle aHandle) override;
 		std::shared_ptr<Asset> GetAsset(AssetHandle aHandle) override;
@@ -94,6 +95,8 @@ namespace Epoch
 	private:
 		void SerializeAssetRegistry();
 		void DeserializeAssetRegistry();
+
+		void LoadBuiltInAssets();
 
 		void ProcessDirectory(const std::filesystem::path& aDirectoryPath);
 		void ReloadAssets();

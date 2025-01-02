@@ -56,6 +56,7 @@ namespace Epoch
 	{
 		UUID prefabID = 0;
 		UUID entityID = 0;
+		bool parent = false;
 	};
 
 	struct TransformComponent

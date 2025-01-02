@@ -9,6 +9,7 @@ namespace Epoch
 
 		if (staticActiveProject)
 		{
+			staticAssetManager->Shutdown();
 			staticAssetManager = nullptr;
 		}
 
@@ -17,7 +18,7 @@ namespace Epoch
 		{
 			std::shared_ptr<EditorAssetManager> assetManager = std::make_shared<EditorAssetManager>();
 			staticAssetManager = assetManager;
-			assetManager->LoadBuiltInAssets();
+			assetManager->Init();
 		}
 	}
 
@@ -27,6 +28,7 @@ namespace Epoch
 
 		if (staticActiveProject)
 		{
+			staticAssetManager->Shutdown();
 			staticAssetManager = nullptr;
 		}
 
@@ -35,7 +37,7 @@ namespace Epoch
 		{
 			std::shared_ptr<EditorAssetManager> assetManager = std::make_shared<EditorAssetManager>();
 			staticAssetManager = assetManager;
-			assetManager->LoadBuiltInAssets();
+			assetManager->Init();
 		}
 	}
 }

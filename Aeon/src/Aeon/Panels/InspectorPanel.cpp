@@ -11,7 +11,7 @@ namespace Epoch
 	InspectorPanel::InspectorPanel()
 	{
 		myDrawFunctions[AssetType::Material] = [this](UUID aAssetID) { DrawMaterialInspector(aAssetID); };
-		myDrawFunctions[AssetType::Mesh] = [this](UUID aAssetID) { DrawMeshInspector(aAssetID); };
+		myDrawFunctions[AssetType::Model] = [this](UUID aAssetID) { DrawModelInspector(aAssetID); };
 		myDrawFunctions[AssetType::Prefab] = [this](UUID aAssetID) { DrawPrefabInspector(aAssetID); };
 		myDrawFunctions[AssetType::Texture] = [this](UUID aAssetID) { DrawTextureInspector(aAssetID); };
 	}
@@ -141,36 +141,36 @@ namespace Epoch
 		}
 	}
 
-	void InspectorPanel::DrawMeshInspector(UUID aAssetID)
+	void InspectorPanel::DrawModelInspector(UUID aAssetID)
 	{
-		std::shared_ptr<Mesh> mesh = AssetManager::GetAssetAsync<Mesh>(aAssetID);
+		std::shared_ptr<Model> model = AssetManager::GetAssetAsync<Model>(aAssetID);
 
-		if (!mesh)
+		if (!model)
 		{
 			return;
 		}
 
 		WriteHeader(aAssetID);
 
-		ImGui::Text(("Vertices: " + CU::NumberFormat(mesh->GetVertexCount())).c_str());
-		ImGui::Text(("Indices: " + CU::NumberFormat(mesh->GetIndexCount())).c_str());
-		ImGui::Text(("Triangles: " + CU::NumberFormat(mesh->GetTriangleCount())).c_str());
-
-		UI::Spacing();
-
-		ImGui::Text("Sub meshes: %u", mesh->GetSubmeshes().size());
-		
-		UI::Spacing();
-
-		if (mesh->HasSkeleton())
-		{
-			ImGui::Text("Bones: %u", mesh->GetSkeleton()->GetNumBones());
-		}
-
-		if (mesh->GetAnimationCount())
-		{
-			ImGui::Text("Animation Count: %u", mesh->GetAnimationCount());
-		}
+		//ImGui::Text(("Vertices: " + CU::NumberFormat(mesh->GetVertexCount())).c_str());
+		//ImGui::Text(("Indices: " + CU::NumberFormat(mesh->GetIndexCount())).c_str());
+		//ImGui::Text(("Triangles: " + CU::NumberFormat(mesh->GetTriangleCount())).c_str());
+		//
+		//UI::Spacing();
+		//
+		//ImGui::Text("Sub meshes: %u", mesh->GetSubmeshes().size());
+		//
+		//UI::Spacing();
+		//
+		//if (mesh->HasSkeleton())
+		//{
+		//	ImGui::Text("Bones: %u", mesh->GetSkeleton()->GetNumBones());
+		//}
+		//
+		//if (mesh->GetAnimationCount())
+		//{
+		//	ImGui::Text("Animation Count: %u", mesh->GetAnimationCount());
+		//}
 	}
 	
 	void InspectorPanel::DrawPrefabInspector(UUID aAssetID)

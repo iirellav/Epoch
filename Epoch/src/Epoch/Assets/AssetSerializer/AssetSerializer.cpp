@@ -8,7 +8,7 @@
 #include "Epoch/Rendering/Material.h"
 #include "Epoch/Script/ScriptAsset.h"
 #include "Epoch/Project/Project.h"
-#include "Epoch/Assets/AssimpMeshImporter.h"
+#include "Epoch/Assets/AssimpModelImporter.h"
 #include "Epoch/Scene/SceneSerializer.h"
 
 namespace Epoch
@@ -144,16 +144,16 @@ namespace Epoch
 		return true;
 	}
 	
-	bool MeshSerializer::TryLoadData(const AssetMetadata& aMetadata, std::shared_ptr<Asset>& aAsset) const
+	bool ModelSerializer::TryLoadData(const AssetMetadata& aMetadata, std::shared_ptr<Asset>& aAsset) const
 	{
 		EPOCH_PROFILE_FUNC();
 
-		AssimpMeshImporter importer(Project::GetEditorAssetManager()->GetFileSystemPath(aMetadata).string());
-		aAsset = importer.ImportMesh();
+		AssimpModelImporter importer(Project::GetEditorAssetManager()->GetFileSystemPath(aMetadata).string());
+		aAsset = importer.ImportModel(aMetadata.handle);
 		aAsset->myHandle = aMetadata.handle;
 		
-		auto mesh = std::static_pointer_cast<Mesh>(aAsset);
-		const bool result = mesh->GetVertexBuffer() && mesh->GetIndexBuffer();
+		auto model = std::static_pointer_cast<Model>(aAsset);
+		const bool result = model->GetNodes().size() > 0;
 		if (!result)
 		{
 			aAsset->SetFlag(AssetFlag::Invalid);

@@ -12,8 +12,8 @@
 #include "Epoch/Editor/EditorCamera.h"
 #include "Epoch/Physics/PhysicsSystem.h"
 
+#include "Epoch/Rendering/Model.h" //TODO: Fix
 #include "Epoch/Rendering/Mesh.h" //TODO: Fix
-#include "Epoch/Animation/Skeleton.h" //TODO: Fix
 
 namespace Epoch
 {
@@ -58,7 +58,7 @@ namespace Epoch
 		Entity Instantiate(std::shared_ptr<Prefab> aPrefab, const CU::Vector3f* aTranslation = nullptr, const CU::Vector3f* aRotation = nullptr, const CU::Vector3f* aScale = nullptr);
 		Entity InstantiateChild(std::shared_ptr<Prefab> aPrefab, Entity aParent, const CU::Vector3f* aTranslation = nullptr, const CU::Vector3f* aRotation = nullptr, const CU::Vector3f* aScale = nullptr);
 		Entity CreatePrefabEntity(Entity aEntity, Entity aParent);
-		Entity InstantiateMesh(std::shared_ptr<Mesh> aMesh);
+		Entity InstantiateModel(std::shared_ptr<Model> aModel);
 
 		void UpdateScriptInstanceEntityReferences(const std::unordered_map<UUID, UUID>& aEntityIDMap);
 
@@ -190,12 +190,7 @@ namespace Epoch
 			return false;
 		}
 
-		void BuildMeshEntityHierarchy(Entity aParent, std::shared_ptr<Mesh> aMesh, const MeshNode& aNode);
-		void FindBoneEntityIds(Entity aRoot);
-		std::vector<UUID> FindBoneEntityIds(Entity aRoot, std::shared_ptr<Mesh> aMesh);
-
-		std::vector<CU::Matrix4x4f> GetModelSpaceBoneTransforms(Entity aEntity, std::shared_ptr<Mesh> aMesh);
-		void GetModelSpaceBoneTransform(const std::vector<UUID>& aBoneEntityIds, std::vector<CU::Matrix4x4f>& outBoneTransforms, uint32_t aBoneIndex, const CU::Matrix4x4f& aParentTransform, std::shared_ptr<Skeleton> aSkeleton);
+		void BuildMeshEntityHierarchy(Entity aParent, std::shared_ptr<Model> aModel, const Model::Node& aNode);
 
 		void RenderScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aRenderCamera, const SceneRendererCamera& aCullingCamera, bool aIsRuntime);
 		Frustum CreateFrustum(const SceneRendererCamera& aCamera);

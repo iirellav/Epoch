@@ -634,15 +634,15 @@ namespace Epoch
 					continue;
 				}
 
-				if (asset->GetAssetType() == AssetType::Mesh)
+				if (asset->GetAssetType() == AssetType::Model)
 				{
-					std::shared_ptr<Mesh> mesh = std::static_pointer_cast<Mesh>(asset);
-					Entity meshEntity = myActiveScene->InstantiateMesh(mesh);
+					std::shared_ptr<Model> model = std::static_pointer_cast<Model>(asset);
+					Entity modelEntity = myActiveScene->InstantiateModel(model);
 
-					OnEntityCreated(meshEntity);
+					OnEntityCreated(modelEntity);
 
 					SelectionManager::DeselectAll(SelectionContext::Entity);
-					SelectionManager::Select(SelectionContext::Entity, meshEntity.GetUUID());
+					SelectionManager::Select(SelectionContext::Entity, modelEntity.GetUUID());
 
 					grabFocus = true;
 				}
@@ -2326,30 +2326,30 @@ namespace Epoch
 
 	void EditorLayer::OnResetBoneTransforms(Entity aEntity)
 	{
-		if (aEntity.HasComponent<SkinnedMeshRendererComponent>())
-		{
-			auto& smrc = aEntity.GetComponent<SkinnedMeshRendererComponent>();
-			auto meshAssset = AssetManager::GetAsset<Mesh>(smrc.mesh);
-
-			if (!meshAssset->HasSkeleton())
-			{
-				return;
-			}
-
-			auto skeleton = meshAssset->GetSkeleton();
-
-			for (uint32_t i = 0; i < skeleton->GetNumBones(); i++)
-			{
-				const Skeleton::Bone& bone = skeleton->GetBone(i);
-				EPOCH_ASSERT(i < smrc.boneEntityIds.size(), "Missing bone!");
-				auto boneEntity = myActiveScene->GetEntityWithUUID(smrc.boneEntityIds[i]);
-
-				auto& tc = boneEntity.GetComponent<TransformComponent>();
-				tc.transform.SetTranslation(bone.position);
-				tc.transform.SetRotation(bone.orientation.GetEulerAngles());
-				tc.transform.SetScale(bone.scale);
-			}
-		}
+		//if (aEntity.HasComponent<SkinnedMeshRendererComponent>())
+		//{
+		//	auto& smrc = aEntity.GetComponent<SkinnedMeshRendererComponent>();
+		//	auto meshAssset = AssetManager::GetAsset<Mesh>(smrc.mesh);
+		//
+		//	if (!meshAssset->HasSkeleton())
+		//	{
+		//		return;
+		//	}
+		//
+		//	auto skeleton = meshAssset->GetSkeleton();
+		//
+		//	for (uint32_t i = 0; i < skeleton->GetNumBones(); i++)
+		//	{
+		//		const Skeleton::Bone& bone = skeleton->GetBone(i);
+		//		EPOCH_ASSERT(i < smrc.boneEntityIds.size(), "Missing bone!");
+		//		auto boneEntity = myActiveScene->GetEntityWithUUID(smrc.boneEntityIds[i]);
+		//
+		//		auto& tc = boneEntity.GetComponent<TransformComponent>();
+		//		tc.transform.SetTranslation(bone.position);
+		//		tc.transform.SetRotation(bone.orientation.GetEulerAngles());
+		//		tc.transform.SetScale(bone.scale);
+		//	}
+		//}
 	}
 
 	void EditorLayer::OnCurrentSceneRenamed(const AssetMetadata& aMetadata)

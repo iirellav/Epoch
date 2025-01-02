@@ -53,7 +53,7 @@ namespace Epoch
 		bool TryLoadData(const AssetMetadata& aMetadata, std::shared_ptr<Asset>& aAsset) const override;
 	};
 
-	class MeshSerializer : public AssetSerializer
+	class ModelSerializer : public AssetSerializer
 	{
 	public:
 		void Serialize(const AssetMetadata& aMetadata, const std::shared_ptr<Asset>& aAsset) const override {}

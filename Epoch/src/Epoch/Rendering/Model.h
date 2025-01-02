@@ -13,7 +13,7 @@ namespace Epoch
 		{
 			uint32_t parent = 0xffffffff;
 			std::vector<uint32_t> children;
-			std::vector<AssetHandle> submeshes;
+			std::vector<AssetHandle> meshes;
 
 			std::string name;
 			CU::Matrix4x4f localTransform;
@@ -28,9 +28,14 @@ namespace Epoch
 		static AssetType GetStaticType() { return AssetType::Model; }
 		AssetType GetAssetType() const override { return GetStaticType(); }
 
+		const Node& GetRootNode() const { return myNodes[0]; }
+		const std::vector<Node>& GetNodes() const { return myNodes; }
+
 	private:
-		std::string name;
+		std::string myName;
 
 		std::vector<Node> myNodes;
+
+		friend class AssimpModelImporter;
 	};
 }

@@ -13,7 +13,7 @@ namespace Epoch
 		staticSerializers[AssetType::Texture]		= std::make_unique<TextureSerializer>();
 		staticSerializers[AssetType::Font]			= std::make_unique<FontSerializer>();
 		staticSerializers[AssetType::EnvTexture]	= std::make_unique<EnvironmentSerializer>();
-		staticSerializers[AssetType::Mesh]			= std::make_unique<MeshSerializer>();
+		staticSerializers[AssetType::Model]			= std::make_unique<ModelSerializer>();
 		staticSerializers[AssetType::Material]		= std::make_unique<MaterialSerializer>();
 		staticSerializers[AssetType::ScriptFile]	= std::make_unique<ScriptFileSerializer>();
 	}

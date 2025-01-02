@@ -14,17 +14,30 @@ namespace Epoch
 {
 	static AssetMetadata staticNullMetadata;
 
-	EditorAssetManager::EditorAssetManager()
+	void EditorAssetManager::Init()
 	{
 		EPOCH_PROFILE_FUNC();
 
 		AssetImporter::Init();
 
 		DeserializeAssetRegistry();
-		ReloadAssets();
+		//ReloadAssets();
+
+		LoadBuiltInAssets();
+
+		for (const auto& [handle, metadata] : myAssetRegistry)
+		{
+			if (metadata.type == AssetType::Model)
+			{
+				GetAssetAsync(handle);
+			}
+		}
+		
+		JobSystem& js = Application::Get().GetJobSystem();
+		js.WaitUntilDone();
 	}
 
-	EditorAssetManager::~EditorAssetManager()
+	void EditorAssetManager::Shutdown()
 	{
 		SerializeAssetRegistry();
 
@@ -34,48 +47,12 @@ namespace Epoch
 			EPOCH_ASSERT(asset.use_count() <= 2, "Loaded asset will not be destroyed - something is still holding refs!");
 			EPOCH_ASSERT(asset.use_count() > 0, "Loaded asset had zero refs!");
 		}
-		
+
 		for (auto [handle, asset] : myMemoryAssets)
 		{
 			EPOCH_ASSERT(asset, "Memory asset were nullptr!");
 			EPOCH_ASSERT(asset.use_count() <= 2, "Memory asset will not be destroyed - something is still holding refs!");
 			EPOCH_ASSERT(asset.use_count() > 0, "Memory asset had zero refs!");
-		}
-	}
-
-	void EditorAssetManager::LoadBuiltInAssets()
-	{
-		JobSystem& js = Application::Get().GetJobSystem();
-
-		//js.AddAJob(MeshFactory::CreateCube);
-		//js.AddAJob(MeshFactory::CreateSphere);
-		//js.AddAJob(MeshFactory::CreateQuad);
-		//js.AddAJob(MeshFactory::CreatePlane);
-		////js.AddAJob(MeshFactory::CreateCapsule);
-		////js.AddAJob(MeshFactory::CreateCylinder);
-
-		{
-			auto [verts, inds] = MeshFactory::CreateCube();
-			AssetManager::CreateMemoryOnlyAssetWithName<Mesh>("Cube - Built-In", verts, inds);
-		}
-
-		{
-			auto [verts, inds] = MeshFactory::CreateSphere();
-			AssetManager::CreateMemoryOnlyAssetWithName<Mesh>("Sphere - Built-In", verts, inds);
-		}
-
-		{
-			auto [verts, inds] = MeshFactory::CreateQuad();
-			AssetManager::CreateMemoryOnlyAssetWithName<Mesh>("Quad - Built-In", verts, inds);
-		}
-
-		{
-			auto [verts, inds] = MeshFactory::CreatePlane();
-			AssetManager::CreateMemoryOnlyAssetWithName<Mesh>("Plane - Built-In", verts, inds);
-		}
-
-		{
-			AssetManager::CreateMemoryOnlyAssetWithName<Material>("Default-Material");
 		}
 	}
 
@@ -542,6 +519,42 @@ namespace Epoch
 		}
 
 		LOG_INFO_TAG("AssetManager", "Imported {} assets", myAssetRegistry.Count());
+	}
+
+	void EditorAssetManager::LoadBuiltInAssets()
+	{
+		JobSystem& js = Application::Get().GetJobSystem();
+
+		//js.AddAJob(MeshFactory::CreateCube);
+		//js.AddAJob(MeshFactory::CreateSphere);
+		//js.AddAJob(MeshFactory::CreateQuad);
+		//js.AddAJob(MeshFactory::CreatePlane);
+		////js.AddAJob(MeshFactory::CreateCapsule);
+		////js.AddAJob(MeshFactory::CreateCylinder);
+
+		{
+			auto [verts, inds] = MeshFactory::CreateCube();
+			AssetManager::CreateMemoryOnlyAssetWithName<Mesh>("Cube - Built-In", verts, inds);
+		}
+
+		{
+			auto [verts, inds] = MeshFactory::CreateSphere();
+			AssetManager::CreateMemoryOnlyAssetWithName<Mesh>("Sphere - Built-In", verts, inds);
+		}
+
+		{
+			auto [verts, inds] = MeshFactory::CreateQuad();
+			AssetManager::CreateMemoryOnlyAssetWithName<Mesh>("Quad - Built-In", verts, inds);
+		}
+
+		{
+			auto [verts, inds] = MeshFactory::CreatePlane();
+			AssetManager::CreateMemoryOnlyAssetWithName<Mesh>("Plane - Built-In", verts, inds);
+		}
+
+		{
+			AssetManager::CreateMemoryOnlyAssetWithName<Material>("Default-Material");
+		}
 	}
 
 	void EditorAssetManager::ProcessDirectory(const std::filesystem::path& aDirectoryPath)

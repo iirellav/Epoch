@@ -321,13 +321,12 @@ namespace Epoch
 		//Instanced
 		for (auto [k, dc] : myDrawList)
 		{
-			const auto& submesh = dc.mesh->GetSubmeshes()[dc.submeshIndex];
 			myStats.instances += dc.instanceCount;
 			myStats.drawCalls += CU::Math::CeilToUInt((float)dc.instanceCount / MaxInstanceCount);
-			myStats.vertices += submesh.vertexCount * dc.instanceCount;
-			myStats.indices += submesh.indexCount * dc.instanceCount;
-			myStats.triangles += (uint32_t)dc.mesh->GetTriangleCache(dc.submeshIndex).size() * dc.instanceCount;
-
+			myStats.vertices += dc.mesh->GetVertexCount() * dc.instanceCount;
+			myStats.indices += dc.mesh->GetIndexCount() * dc.instanceCount;
+			myStats.triangles += (uint32_t)dc.mesh->GetTriangleCount() * dc.instanceCount;
+			
 			meshes.insert(dc.mesh->GetHandle());
 			submeshes.insert({ dc.mesh->GetHandle(), dc.submeshIndex });
 		}
@@ -733,15 +732,10 @@ namespace Epoch
 
 	void SceneRenderer::SubmitMesh(std::shared_ptr<Mesh> aMesh, std::shared_ptr<MaterialTable> aMaterialTable, const CU::Matrix4x4f& aTransform, uint32_t aEntityID)
 	{
-		const auto& submeshData = aMesh->GetSubmeshes();
+		const CU::Matrix4x4f meshTransform = aTransform;
+		uint32_t materialIndex = aMesh->GetMaterialIndex();
 
-		for (uint32_t submeshIndex = 0; submeshIndex < (uint32_t)submeshData.size(); submeshIndex++)
-		{
-			const Submesh& submesh = submeshData[submeshIndex];
-			const CU::Matrix4x4f submeshTransform = aTransform * submesh.transform;
-			uint32_t materialIndex = submesh.materialIndex;
-
-			//for (size_t i = submesh.baseVertex; i < submesh.baseVertex + submesh.vertexCount; i++)
+		//for (size_t i = submesh.baseVertex; i < submesh.baseVertex + submesh.vertexCount; i++)
 			//{
 			//	const auto& v = aMesh->myVertices[i];
 			//	const auto pos = CU::Vector3f(submeshTransform * CU::Vector4f(v.position, 1.0f));
@@ -749,35 +743,33 @@ namespace Epoch
 			//	myDebugRenderer->DrawLine(pos, pos + dir * 15.0f, CU::Color::Magenta);
 			//}
 
-			AssetHandle materialHandle = aMaterialTable->GetMaterial(materialIndex);
-			std::shared_ptr<Material> material;
-			if (materialHandle != 0)
-			{
-				material = AssetManager::GetAsset<Material>(materialHandle);
-			}
-
-			if (materialHandle == 0 || !material)
-			{
-				materialHandle = Hash::GenerateFNVHash("Default-Material");
-				material = AssetManager::GetAsset<Material>(materialHandle);
-			}
-
-			EPOCH_ASSERT(material, "No material found for rendering!");
-
-			MeshKey meshKey = { aMesh->GetHandle(), materialHandle, submeshIndex, false };
-
-			auto& transformStorage = myMeshTransformMap[meshKey].emplace_back();
-			transformStorage.row[0] = { submeshTransform(1, 1), submeshTransform(1, 2), submeshTransform(1, 3), submeshTransform(4, 1) };
-			transformStorage.row[1] = { submeshTransform(2, 1), submeshTransform(2, 2), submeshTransform(2, 3), submeshTransform(4, 2) };
-			transformStorage.row[2] = { submeshTransform(3, 1), submeshTransform(3, 2), submeshTransform(3, 3), submeshTransform(4, 3) };
-			transformStorage.id = aEntityID;
-
-			auto& drawCall = myDrawList[meshKey];
-			drawCall.mesh = aMesh;
-			drawCall.submeshIndex = submeshIndex;
-			drawCall.material = material;
-			drawCall.instanceCount++;
+		AssetHandle materialHandle = aMaterialTable->GetMaterial(materialIndex);
+		std::shared_ptr<Material> material;
+		if (materialHandle != 0)
+		{
+			material = AssetManager::GetAsset<Material>(materialHandle);
 		}
+
+		if (materialHandle == 0 || !material)
+		{
+			materialHandle = Hash::GenerateFNVHash("Default-Material");
+			material = AssetManager::GetAsset<Material>(materialHandle);
+		}
+
+		EPOCH_ASSERT(material, "No material found for rendering!");
+
+		MeshKey meshKey = { aMesh->GetHandle(), materialHandle };
+
+		auto& transformStorage = myMeshTransformMap[meshKey].emplace_back();
+		transformStorage.row[0] = { meshTransform(1, 1), meshTransform(1, 2), meshTransform(1, 3), meshTransform(4, 1) };
+		transformStorage.row[1] = { meshTransform(2, 1), meshTransform(2, 2), meshTransform(2, 3), meshTransform(4, 2) };
+		transformStorage.row[2] = { meshTransform(3, 1), meshTransform(3, 2), meshTransform(3, 3), meshTransform(4, 3) };
+		transformStorage.id = aEntityID;
+
+		auto& drawCall = myDrawList[meshKey];
+		drawCall.mesh = aMesh;
+		drawCall.material = material;
+		drawCall.instanceCount++;
 	}
 
 	void SceneRenderer::SubmitAnimatedMesh(std::shared_ptr<Mesh> aMesh, const CU::Matrix4x4f& aTransform, const std::vector<CU::Matrix4x4f>& aBoneTransforms)

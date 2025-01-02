@@ -2442,10 +2442,10 @@ namespace Epoch
 
 				Entity newEntity;
 
-				if (asset->GetAssetType() == AssetType::Mesh)
+				if (asset->GetAssetType() == AssetType::Model)
 				{
-					std::shared_ptr<Mesh> mesh = std::static_pointer_cast<Mesh>(asset);
-					newEntity = myContext->InstantiateMesh(mesh);
+					std::shared_ptr<Model> model = std::static_pointer_cast<Model>(asset);
+					newEntity = myContext->InstantiateModel(model);
 
 					if (aParent)
 					{

@@ -11,6 +11,9 @@ namespace Epoch
 		AssetManagerBase() = default;
 		virtual ~AssetManagerBase() = default;
 
+		virtual void Init() = 0;
+		virtual void Shutdown() = 0;
+
 		virtual AssetType GetAssetType(AssetHandle aHandle) = 0;
 		virtual std::shared_ptr<Asset> GetAsset(AssetHandle aHandle) = 0;
 		virtual std::shared_ptr<Asset> GetAssetAsync(AssetHandle aHandle) = 0;

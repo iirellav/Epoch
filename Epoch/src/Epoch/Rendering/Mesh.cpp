@@ -13,19 +13,18 @@ namespace Epoch
 		myIndices = aIndices;
 		myIndexBuffer = IndexBuffer::Create(myIndices.data(), (uint32_t)myIndices.size());
 
-		auto& submesh = mySubmeshes.emplace_back();
-		submesh.vertexCount = (uint32_t)myVertices.size();
-		submesh.indexCount = (uint32_t)myIndices.size();
+		myVertexCount = (uint32_t)myVertices.size();
+		myIndexCount = (uint32_t)myIndices.size();
 
-		for (size_t i = 0; i < myIndices.size(); i += 3)
-		{
-			myTriangleCache[0].emplace_back
-			(
-				myVertices[myIndices[i + 0]],
-				myVertices[myIndices[i + 1]],
-				myVertices[myIndices[i + 2]]
-			);
-		}
+		//for (size_t i = 0; i < myIndices.size(); i += 3)
+		//{
+		//	myTriangleCache[0].emplace_back
+		//	(
+		//		myVertices[myIndices[i + 0]],
+		//		myVertices[myIndices[i + 1]],
+		//		myVertices[myIndices[i + 2]]
+		//	);
+		//}
 
 		myBoundingBox.min = { FLT_MAX, FLT_MAX, FLT_MAX };
 		myBoundingBox.max = { -FLT_MAX, -FLT_MAX, -FLT_MAX };

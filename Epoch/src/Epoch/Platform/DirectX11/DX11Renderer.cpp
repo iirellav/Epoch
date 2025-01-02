@@ -251,9 +251,6 @@ namespace Epoch
 		const auto& transformVertexBuffer = std::dynamic_pointer_cast<DX11VertexBuffer>(aTransformBuffer);
 		const auto& meshIndexBuffer = std::dynamic_pointer_cast<DX11IndexBuffer>(aMesh->GetIndexBuffer());
 
-		const auto& submeshes = aMesh->GetSubmeshes();
-		const auto& submesh = submeshes[aSubmeshIndex];
-
 		std::vector<ID3D11Buffer*> buffers;
 		buffers.push_back(meshVertexBuffer->GetDXBuffer().Get());
 		buffers.push_back(transformVertexBuffer->GetDXBuffer().Get());
@@ -263,25 +260,25 @@ namespace Epoch
 		RHI::GetContext()->IASetVertexBuffers(0, 2, buffers.data(), vxStrides.data(), vxOffsets.data());
 		RHI::GetContext()->IASetIndexBuffer(meshIndexBuffer->GetDXBuffer().Get(), DXGI_FORMAT_R32_UINT, 0);
 
-		RHI::GetContext()->DrawIndexedInstanced(submesh.indexCount, aInstanceCount, submesh.baseIndex, submesh.baseVertex, 0);
+		RHI::GetContext()->DrawIndexedInstanced(aMesh->GetIndexCount(), aInstanceCount, 0, 0, 0);
 	}
 
 	void DX11Renderer::RenderAnimatedMesh(std::shared_ptr<Mesh> aMesh)
 	{
-		const auto& meshVertexBuffer = std::dynamic_pointer_cast<DX11VertexBuffer>(aMesh->GetVertexBuffer());
-		const auto& boneInfluenceBuffer = std::dynamic_pointer_cast<DX11VertexBuffer>(aMesh->GetBoneInfluenceBuffer());
-		const auto& meshIndexBuffer = std::dynamic_pointer_cast<DX11IndexBuffer>(aMesh->GetIndexBuffer());
-
-		std::vector<ID3D11Buffer*> buffers;
-		buffers.push_back(meshVertexBuffer->GetDXBuffer().Get());
-		buffers.push_back(boneInfluenceBuffer->GetDXBuffer().Get());
-		std::vector<unsigned> vxOffsets = { 0, 0 };
-		std::vector<unsigned> vxStrides = { meshVertexBuffer->GetStride(), boneInfluenceBuffer->GetStride() };
-
-		RHI::GetContext()->IASetVertexBuffers(0, 2, buffers.data(), vxStrides.data(), vxOffsets.data());
-		RHI::GetContext()->IASetIndexBuffer(meshIndexBuffer->GetDXBuffer().Get(), DXGI_FORMAT_R32_UINT, 0);
-
-		RHI::GetContext()->DrawIndexed(meshIndexBuffer->GetCount(), 0, 0);
+		//const auto& meshVertexBuffer = std::dynamic_pointer_cast<DX11VertexBuffer>(aMesh->GetVertexBuffer());
+		//const auto& boneInfluenceBuffer = std::dynamic_pointer_cast<DX11VertexBuffer>(aMesh->GetBoneInfluenceBuffer());
+		//const auto& meshIndexBuffer = std::dynamic_pointer_cast<DX11IndexBuffer>(aMesh->GetIndexBuffer());
+		//
+		//std::vector<ID3D11Buffer*> buffers;
+		//buffers.push_back(meshVertexBuffer->GetDXBuffer().Get());
+		//buffers.push_back(boneInfluenceBuffer->GetDXBuffer().Get());
+		//std::vector<unsigned> vxOffsets = { 0, 0 };
+		//std::vector<unsigned> vxStrides = { meshVertexBuffer->GetStride(), boneInfluenceBuffer->GetStride() };
+		//
+		//RHI::GetContext()->IASetVertexBuffers(0, 2, buffers.data(), vxStrides.data(), vxOffsets.data());
+		//RHI::GetContext()->IASetIndexBuffer(meshIndexBuffer->GetDXBuffer().Get(), DXGI_FORMAT_R32_UINT, 0);
+		//
+		//RHI::GetContext()->DrawIndexed(meshIndexBuffer->GetCount(), 0, 0);
 	}
 
 	void DX11Renderer::RenderQuad()

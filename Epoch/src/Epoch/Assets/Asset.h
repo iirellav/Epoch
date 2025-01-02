@@ -56,12 +56,13 @@ namespace Epoch
 		friend class Scene;
 		friend class AssetManager;
 		friend class EditorAssetManager;
+		friend class AssimpModelImporter;
 		friend class SceneAssetSerializer;
 		friend class TextureSerializer;
 		friend class FontSerializer;
 		friend class EnvironmentSerializer;
 		friend class PrefabSerializer;
-		friend class MeshSerializer;
+		friend class ModelSerializer;
 		friend class MaterialSerializer;
 		friend class ScriptFileSerializer;
 	};

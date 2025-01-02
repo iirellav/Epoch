@@ -110,20 +110,7 @@ namespace Epoch
 		CU::Matrix4x4f transform; // World transform
 		CU::Matrix4x4f localTransform;
 
-		std::string nodeName = "";
-		std::string meshName = "";
-	};
-
-	struct MeshNode
-	{
-		uint32_t parent = 0xffffffff;
-		std::vector<uint32_t> children;
-		std::vector<uint32_t> submeshes;
-
-		std::string name;
-		CU::Matrix4x4f localTransform;
-
-		inline bool IsRoot() const { return parent == 0xffffffff; }
+		std::string submeshName = "";
 	};
 
 	class Mesh : public Asset
@@ -136,9 +123,6 @@ namespace Epoch
 		static AssetType GetStaticType() { return AssetType::Mesh; }
 		AssetType GetAssetType() const override { return GetStaticType(); }
 
-		std::vector<Submesh>& GetSubmeshes() { return mySubmeshes; }
-		const std::vector<Submesh>& GetSubmeshes() const { return mySubmeshes; }
-
 		std::shared_ptr<VertexBuffer> GetVertexBuffer() { return myVertexBuffer; }
 		std::shared_ptr<IndexBuffer> GetIndexBuffer() { return myIndexBuffer; }
 		//std::shared_ptr<VertexBuffer> GetBoneInfluenceBuffer() { return myBoneInfluenceBuffer; }
@@ -150,11 +134,11 @@ namespace Epoch
 
 		const AABB& GetBoundingBox() const { return myBoundingBox; }
 
+		uint32_t GetMaterialIndex() const { return myMaterialIndex; }
 		//uint32_t GetMaterialCount() { return myMaterialCount; }
 		//const std::vector<std::string>& GetMaterialNames() { return myMaterialNames; }
 
-		const MeshNode& GetRootNode() const { return myNodes[0]; }
-		const std::vector<MeshNode>& GetNodes() const { return myNodes; }
+		const CU::Matrix4x4f& GetTransform() const { return myLocalTransform; }
 
 	private:
 		std::shared_ptr<VertexBuffer> myVertexBuffer;
@@ -164,16 +148,23 @@ namespace Epoch
 		std::vector<Vertex> myVertices;
 		std::vector<Index> myIndices;
 
+		uint32_t myVertexCount;
+		uint32_t myIndexCount;
+
 		//std::unordered_map<uint32_t, std::vector<Triangle>> myTriangleCache;
 
 		AABB myBoundingBox;
 
+		uint32_t myMaterialIndex = 0;
+
+		CU::Matrix4x4f myTransform; // World transform
+		CU::Matrix4x4f myLocalTransform;
+
+		std::string myName = "";
+
 		//uint32_t myMaterialCount = 0;
 		//std::vector<std::string> myMaterialNames;
 
-		std::vector<MeshNode> myNodes;
-
-		friend class AssimpMeshImporter;
-		friend class SceneRenderer;// TEMP
+		friend class AssimpModelImporter;
 	};
 }

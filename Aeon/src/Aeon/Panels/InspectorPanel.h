@@ -16,7 +16,7 @@ namespace Epoch
 
 	private:
 		void DrawMaterialInspector(UUID aAssetID);
-		void DrawMeshInspector(UUID aAssetID);
+		void DrawModelInspector(UUID aAssetID);
 		void DrawPrefabInspector(UUID aAssetID);
 		void DrawTextureInspector(UUID aAssetID);
 		

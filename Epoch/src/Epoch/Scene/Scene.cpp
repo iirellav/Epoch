@@ -177,8 +177,6 @@ namespace Epoch
 			parent.Children().push_back(newEntity.GetUUID());
 		}
 
-		FindBoneEntityIds(newEntity);
-
 		if (newEntity.HasComponent<ScriptComponent>())
 		{
 			ScriptEngine::DuplicateScriptInstance(aEntity, newEntity);
@@ -273,21 +271,25 @@ namespace Epoch
 		return newEntity;
 	}
 
-	Entity Scene::InstantiateMesh(std::shared_ptr<Mesh> aMesh)
+	Entity Scene::InstantiateModel(std::shared_ptr<Model> aModel)
 	{
-		auto& assetData = Project::GetEditorAssetManager()->GetMetadata(aMesh->GetHandle());
+		auto assetManage = Project::GetEditorAssetManager();
+		EPOCH_ASSERT(assetManage, "InstantiateModel can only be used in the editor!");
+
+		auto& assetData = assetManage->GetMetadata(aModel->GetHandle());
 		Entity rootEntity = CreateEntity(assetData.filePath.stem().string());
 
-		if (aMesh->HasSkeleton())
-		{
-			auto& smrc = rootEntity.AddComponent<SkinnedMeshRendererComponent>(aMesh->GetHandle());
-			BuildMeshEntityHierarchy(rootEntity, aMesh, aMesh->GetRootNode());
-			smrc.boneEntityIds = FindBoneEntityIds(rootEntity, aMesh);
-		}
-		else
-		{
-			auto& mrc = rootEntity.AddComponent<MeshRendererComponent>(aMesh->GetHandle());
-		}
+		BuildMeshEntityHierarchy(rootEntity, aModel, aModel->GetRootNode());
+		//if (aMesh->HasSkeleton())
+		//{
+		//	auto& smrc = rootEntity.AddComponent<SkinnedMeshRendererComponent>(aMesh->GetHandle());
+		//	BuildMeshEntityHierarchy(rootEntity, aMesh, aMesh->GetRootNode());
+		//	smrc.boneEntityIds = FindBoneEntityIds(rootEntity, aMesh);
+		//}
+		//else
+		//{
+		//	auto& mrc = rootEntity.AddComponent<MeshRendererComponent>(aMesh->GetHandle());
+		//}
 
 		return rootEntity;
 	}
@@ -852,113 +854,48 @@ namespace Epoch
 		aEntity.SetParentUUID(0);
 	}
 
-	void Scene::BuildMeshEntityHierarchy(Entity aParent, std::shared_ptr<Mesh> aMesh, const MeshNode& aNode)
+	void Scene::BuildMeshEntityHierarchy(Entity aParent, std::shared_ptr<Model> aModel, const Model::Node& aNode)
 	{
-		const auto& nodes = aMesh->GetNodes();
+		const auto& nodes = aModel->GetNodes();
 
 		// Skip empty root node
-		if (aNode.IsRoot() && aNode.submeshes.size() == 0)
+		if (aNode.IsRoot() && aNode.meshes.size() == 0)
 		{
 			for (uint32_t child : aNode.children)
 			{
-				BuildMeshEntityHierarchy(aParent, aMesh, nodes[child]);
+				BuildMeshEntityHierarchy(aParent, aModel, nodes[child]);
 			}
 
 			return;
 		}
 
-		if (aNode.submeshes.size() == 0)
-		{
-			Entity nodeEntity = CreateChildEntity(aParent, aNode.name);
-			nodeEntity.Transform().SetTransform(aNode.localTransform);
+		Entity nodeEntity = CreateChildEntity(aParent, aNode.name);
+		nodeEntity.Transform().SetTransform(aNode.localTransform);
 
-			for (uint32_t child : aNode.children)
+		if (aNode.meshes.size() == 1)
+		{
+			// Node == Mesh in this case
+			AssetHandle meshHandle = aNode.meshes[0];
+			auto& mc = nodeEntity.AddComponent<MeshRendererComponent>(meshHandle);
+		}
+		else if (aNode.meshes.size() > 1)
+		{
+			// Create one entity per child mesh, parented under node
+			for (uint32_t i = 0; i < aNode.meshes.size(); i++)
 			{
-				BuildMeshEntityHierarchy(nodeEntity, aMesh, nodes[child]);
-			}
-		}
-	}
+				AssetHandle meshHandle = aNode.meshes[i];
 
-	void Scene::FindBoneEntityIds(Entity aRoot)
-	{
-		if (!aRoot.HasComponent<SkinnedMeshRendererComponent>())
-		{
-			return;
-		}
+				Entity childEntity = CreateChildEntity(nodeEntity, aNode.name);
+				childEntity.Transform().SetTranslation(CU::Vector3f::Zero);
 
-		auto& smrc = aRoot.GetComponent<SkinnedMeshRendererComponent>();
-		auto mesh = AssetManager::GetAssetAsync<Mesh>(smrc.mesh);
-		if (mesh)
-		{
-			smrc.boneEntityIds = FindBoneEntityIds(aRoot, mesh);
-		}
-	}
-
-	std::vector<UUID> Scene::FindBoneEntityIds(Entity aRoot, std::shared_ptr<Mesh> aMesh)
-	{
-		EPOCH_PROFILE_FUNC();
-
-		std::vector<UUID> boneEntityIds;
-
-		const auto& bones = aMesh->GetSkeleton()->GetBones();
-
-		for (const auto& bone : bones)
-		{
-			Entity boneEntity = TryGetDescendantEntityWithName(aRoot, bone.name);
-			if (boneEntity)
-			{
-				boneEntityIds.emplace_back(boneEntity.GetUUID());
+				childEntity.AddComponent<MeshRendererComponent>(meshHandle);
 			}
 		}
 
-		return boneEntityIds;
-	}
-
-	std::vector<CU::Matrix4x4f> Scene::GetModelSpaceBoneTransforms(Entity aEntity, std::shared_ptr<Mesh> aMesh)
-	{
-		EPOCH_PROFILE_FUNC();
-
-		std::vector<CU::Matrix4x4f> boneTransforms;
-
-		if (aMesh->HasSkeleton())
+		for (uint32_t child : aNode.children)
 		{
-			auto skeleton = aMesh->GetSkeleton();
-
-			auto& smrc = aEntity.GetComponent<SkinnedMeshRendererComponent>();
-
-			if (smrc.boneEntityIds.empty())
-			{
-				smrc.boneEntityIds = FindBoneEntityIds(aEntity, aMesh);
-			}
-
-			if (smrc.boneEntityIds.size() != skeleton->GetNumBones())
-			{
-				boneTransforms.resize(skeleton->GetNumBones());
-				return boneTransforms;
-			}
-
-			boneTransforms.resize(smrc.boneEntityIds.size());
-			GetModelSpaceBoneTransform(smrc.boneEntityIds, boneTransforms, 0, CU::Matrix4x4f::Identity, skeleton);
+			BuildMeshEntityHierarchy(nodeEntity, aModel, nodes[child]);
 		}
-
-		return boneTransforms;
-	}
-
-	void Scene::GetModelSpaceBoneTransform(const std::vector<UUID>& aBoneEntityIds, std::vector<CU::Matrix4x4f>& outBoneTransforms, uint32_t aBoneIndex, const CU::Matrix4x4f& aParentTransform, std::shared_ptr<Skeleton> aSkeleton)
-	{
-		const Skeleton::Bone& bone = aSkeleton->GetBone(aBoneIndex);
-
-		auto boneEntity = TryGetEntityWithUUID(aBoneEntityIds[aBoneIndex]);
-		const CU::Matrix4x4f localTransform = boneEntity ? boneEntity.GetComponent<TransformComponent>().GetMatrix() : CU::Matrix4x4f::Identity;
-
-		const CU::Matrix4x4f matrix = localTransform * aParentTransform;
-
-		for (size_t i = 0; i < bone.childrenIndices.size(); i++)
-		{
-			GetModelSpaceBoneTransform(aBoneEntityIds, outBoneTransforms, bone.childrenIndices[i], matrix, aSkeleton);
-		}
-
-		outBoneTransforms[aBoneIndex] = bone.invBindPose * matrix;
 	}
 
 	void Scene::RenderScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aRenderCamera, const SceneRendererCamera& aCullingCamera, bool aIsRuntime)
@@ -1166,34 +1103,34 @@ namespace Epoch
 				}
 			}
 
-			{
-				auto view = GetAllEntitiesWith<SkinnedMeshRendererComponent>();
-				for (auto id : view)
-				{
-					Entity entity = Entity(id, this);
-					if (!entity.IsActive()) continue;
-
-					const auto& smrc = view.get<SkinnedMeshRendererComponent>(id);
-					if (!smrc.isActive) continue;
-
-					std::shared_ptr<Mesh> mesh;
-					if (assetAccelerationMap.find(smrc.mesh) != assetAccelerationMap.end())
-					{
-						mesh = std::static_pointer_cast<Mesh>(assetAccelerationMap[smrc.mesh]);
-					}
-					else
-					{
-						mesh = AssetManager::GetAssetAsync<Mesh>(smrc.mesh);
-						assetAccelerationMap[smrc.mesh] = mesh;
-					}
-
-					if (mesh)
-					{
-						CU::Matrix4x4f transform = GetWorldSpaceTransformMatrix(entity);
-						aRenderer->SubmitAnimatedMesh(mesh, transform, GetModelSpaceBoneTransforms(entity, mesh));
-					}
-				}
-			}
+			//{
+			//	auto view = GetAllEntitiesWith<SkinnedMeshRendererComponent>();
+			//	for (auto id : view)
+			//	{
+			//		Entity entity = Entity(id, this);
+			//		if (!entity.IsActive()) continue;
+			//
+			//		const auto& smrc = view.get<SkinnedMeshRendererComponent>(id);
+			//		if (!smrc.isActive) continue;
+			//
+			//		std::shared_ptr<Mesh> mesh;
+			//		if (assetAccelerationMap.find(smrc.mesh) != assetAccelerationMap.end())
+			//		{
+			//			mesh = std::static_pointer_cast<Mesh>(assetAccelerationMap[smrc.mesh]);
+			//		}
+			//		else
+			//		{
+			//			mesh = AssetManager::GetAssetAsync<Mesh>(smrc.mesh);
+			//			assetAccelerationMap[smrc.mesh] = mesh;
+			//		}
+			//
+			//		if (mesh)
+			//		{
+			//			CU::Matrix4x4f transform = GetWorldSpaceTransformMatrix(entity);
+			//			aRenderer->SubmitAnimatedMesh(mesh, transform, GetModelSpaceBoneTransforms(entity, mesh));
+			//		}
+			//	}
+			//}
 		}
 
 		{
