@@ -2188,6 +2188,7 @@ namespace Epoch
 	bool EditorLayer::OnViewportClickSelection()
 	{
 		const bool ctrlDown = Input::IsKeyHeld(KeyCode::LeftControl);
+		const bool altDown = Input::IsKeyHeld(KeyCode::LeftAlt);
 
 		ImGui::ClearActiveID();
 
@@ -2200,6 +2201,18 @@ namespace Epoch
 		else
 		{
 			if (!myActiveScene->IsEntityValid(clickedEntity)) return false;
+
+			if (altDown)
+			{
+				while (clickedEntity.GetParent())
+				{
+					clickedEntity = clickedEntity.GetParent();
+					if (!clickedEntity.HasComponent<MeshRendererComponent>())
+					{
+						break;
+					}
+				}
+			}
 
 			if (!ctrlDown)
 			{

@@ -280,16 +280,6 @@ namespace Epoch
 		Entity rootEntity = CreateEntity(assetData.filePath.stem().string());
 
 		BuildMeshEntityHierarchy(rootEntity, aModel, aModel->GetRootNode());
-		//if (aMesh->HasSkeleton())
-		//{
-		//	auto& smrc = rootEntity.AddComponent<SkinnedMeshRendererComponent>(aMesh->GetHandle());
-		//	BuildMeshEntityHierarchy(rootEntity, aMesh, aMesh->GetRootNode());
-		//	smrc.boneEntityIds = FindBoneEntityIds(rootEntity, aMesh);
-		//}
-		//else
-		//{
-		//	auto& mrc = rootEntity.AddComponent<MeshRendererComponent>(aMesh->GetHandle());
-		//}
 
 		return rootEntity;
 	}
