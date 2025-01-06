@@ -2149,7 +2149,7 @@ namespace Epoch
 			}
 		}
 
-		if (aEvent.GetKeyCode() == KeyCode::P && Input::IsKeyHeld(KeyCode::LeftAlt) && myViewportFocused)
+		if (aEvent.GetKeyCode() == KeyCode::P && Input::IsKeyHeld(KeyCode::LeftAlt) && (mySceneState == SceneState::Play || myViewportFocused))
 		{
 			if (mySceneState == SceneState::Play)
 			{
