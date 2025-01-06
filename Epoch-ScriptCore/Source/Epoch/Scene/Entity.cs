@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Xml.Linq;
 
 namespace Epoch
 {
@@ -126,7 +127,7 @@ namespace Epoch
             return myComponentCache[componentType] as T;
         }
 
-        public bool TryGetComponent<T>(ref T aOut) where T : Component, new()
+        public bool TryGetComponent<T>(out T aOut) where T : Component, new()
         {
             var component = GetComponent<T>();
             if (component == null)
@@ -166,6 +167,17 @@ namespace Epoch
         public void Destroy(Entity aOther) => Scene.DestroyEntity(aOther);
         public void DestroyAllChildren() => Scene.DestroyAllChildren(this);
 
+
+        public Entity Parent
+        {
+            get
+            {
+                ulong parentID = InternalCalls.Entity_GetParent(id);
+                return parentID == 0 ? null : new Entity(parentID);
+            }
+
+            set => InternalCalls.Entity_SetParent(id, value.id);
+        }
 
         public Entity[] Children => InternalCalls.Entity_GetChildren(id);
 
