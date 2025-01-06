@@ -1444,6 +1444,8 @@ namespace Epoch
 					UI::Property_DragFloat("Line Spacing", aFirstComponent.lineSpacing, 0.02f);
 					UI::Property_DragFloat("Line Width", aFirstComponent.maxWidth, 0.05f);
 
+					UI::Property_Checkbox("Billboard", aFirstComponent.billboard);
+
 					UI::EndPropertyGrid();
 				}
 			}, EditorResources::TextRendererIcon);

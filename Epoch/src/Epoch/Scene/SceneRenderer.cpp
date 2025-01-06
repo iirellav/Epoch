@@ -1051,36 +1051,79 @@ namespace Epoch
 
 				if (character != ' ')
 				{
+					if (aSettings.billboard)
 					{
-						TextVertex& vertex = vertexList.emplace_back();
-						vertex.position = aTransform * CU::Vector4f((float)pl * 100.0f, (float)pb * 100.0f, 0.0f, 1.0f);
-						vertex.tint = aSettings.color.GetVector4();
-						vertex.uv = { (float)l, (float)b };
-						vertex.entityID = aEntityID;
-					}
+						const CU::Vector3f camRightWS = mySceneData.sceneCamera.transform.GetRight();
+						const CU::Vector3f camUpWS = mySceneData.sceneCamera.transform.GetUp();
 
-					{
-						TextVertex& vertex = vertexList.emplace_back();
-						vertex.position = aTransform * CU::Vector4f((float)pl * 100.0f, (float)pt * 100.0f, 0.0f, 1.0f);
-						vertex.tint = aSettings.color.GetVector4();
-						vertex.uv = { (float)l, (float)t };
-						vertex.entityID = aEntityID;
-					}
+						const CU::Vector3f position = aTransform.GetTranslation();
+						const CU::Vector3f scale = aTransform.GetScale();
 
-					{
-						TextVertex& vertex = vertexList.emplace_back();
-						vertex.position = aTransform * CU::Vector4f((float)pr * 100.0f, (float)pt * 100.0f, 0.0f, 1.0f);
-						vertex.tint = aSettings.color.GetVector4();
-						vertex.uv = { (float)r, (float)t };
-						vertex.entityID = aEntityID;
-					}
+						{
+							TextVertex& vertex = vertexList.emplace_back();
+							vertex.position = position + camRightWS * ((float)pl * 100.0f) * scale.x + camUpWS * ((float)pb * 100.0f) * scale.y;
+							vertex.tint = aSettings.color.GetVector4();
+							vertex.uv = { (float)l, (float)b };
+							vertex.entityID = aEntityID;
+						}
 
+						{
+							TextVertex& vertex = vertexList.emplace_back();
+							vertex.position = position + camRightWS * ((float)pl * 100.0f) * scale.x + camUpWS * ((float)pt * 100.0f) * scale.y;
+							vertex.tint = aSettings.color.GetVector4();
+							vertex.uv = { (float)l, (float)t };
+							vertex.entityID = aEntityID;
+						}
+
+						{
+							TextVertex& vertex = vertexList.emplace_back();
+							vertex.position = position + camRightWS * ((float)pr * 100.0f) * scale.x + camUpWS * ((float)pt * 100.0f) * scale.y;
+							vertex.tint = aSettings.color.GetVector4();
+							vertex.uv = { (float)r, (float)t };
+							vertex.entityID = aEntityID;
+						}
+
+						{
+							TextVertex& vertex = vertexList.emplace_back();
+							vertex.position = position + camRightWS * ((float)pr * 100.0f) * scale.x + camUpWS * ((float)pb * 100.0f) * scale.y;
+							vertex.tint = aSettings.color.GetVector4();
+							vertex.uv = { (float)r, (float)b };
+							vertex.entityID = aEntityID;
+						}
+					}
+					else
 					{
-						TextVertex& vertex = vertexList.emplace_back();
-						vertex.position = aTransform * CU::Vector4f((float)pr * 100.0f, (float)pb * 100.0f, 0.0f, 1.0f);
-						vertex.tint = aSettings.color.GetVector4();
-						vertex.uv = { (float)r, (float)b };
-						vertex.entityID = aEntityID;
+						{
+							TextVertex& vertex = vertexList.emplace_back();
+							vertex.position = aTransform * CU::Vector4f((float)pl * 100.0f, (float)pb * 100.0f, 0.0f, 1.0f);
+							vertex.tint = aSettings.color.GetVector4();
+							vertex.uv = { (float)l, (float)b };
+							vertex.entityID = aEntityID;
+						}
+
+						{
+							TextVertex& vertex = vertexList.emplace_back();
+							vertex.position = aTransform * CU::Vector4f((float)pl * 100.0f, (float)pt * 100.0f, 0.0f, 1.0f);
+							vertex.tint = aSettings.color.GetVector4();
+							vertex.uv = { (float)l, (float)t };
+							vertex.entityID = aEntityID;
+						}
+
+						{
+							TextVertex& vertex = vertexList.emplace_back();
+							vertex.position = aTransform * CU::Vector4f((float)pr * 100.0f, (float)pt * 100.0f, 0.0f, 1.0f);
+							vertex.tint = aSettings.color.GetVector4();
+							vertex.uv = { (float)r, (float)t };
+							vertex.entityID = aEntityID;
+						}
+
+						{
+							TextVertex& vertex = vertexList.emplace_back();
+							vertex.position = aTransform * CU::Vector4f((float)pr * 100.0f, (float)pb * 100.0f, 0.0f, 1.0f);
+							vertex.tint = aSettings.color.GetVector4();
+							vertex.uv = { (float)r, (float)b };
+							vertex.entityID = aEntityID;
+						}
 					}
 
 					++myTextQuadCount;

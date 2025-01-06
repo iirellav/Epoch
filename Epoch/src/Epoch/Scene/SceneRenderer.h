@@ -104,6 +104,7 @@ namespace Epoch
 			CU::Color color = CU::Color::White;
 			float lineHeightOffset = 0.0f;
 			float letterSpacing = 0.0f;
+			bool billboard = false;
 		};
 		void SubmitText(const std::string& aString, const std::shared_ptr<Font>& aFont, const CU::Matrix4x4f& aTransform, const TextSettings& aSettings, uint32_t aEntityID = 0);
 

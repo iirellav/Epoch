@@ -471,6 +471,7 @@ namespace Epoch
 				aOut << YAML::Key << "LetterSpacing" << YAML::Value << tr.letterSpacing;
 				aOut << YAML::Key << "LineSpacing" << YAML::Value << tr.lineSpacing;
 				aOut << YAML::Key << "LineWidth" << YAML::Value << tr.maxWidth;
+				aOut << YAML::Key << "Billboard" << YAML::Value << tr.billboard;
 
 				aOut << YAML::EndMap;
 			}
@@ -1177,6 +1178,7 @@ namespace Epoch
 				tr.letterSpacing = textRendererComponent["LetterSpacing"].as<float>();
 				tr.lineSpacing = textRendererComponent["LineSpacing"].as<float>();
 				tr.maxWidth = textRendererComponent["LineWidth"].as<float>(10.0f);
+				tr.billboard = textRendererComponent["Billboard"].as<bool>(false);
 			}
 
 			YAML::Node skyLightComponent = entity["SkyLightComponent"];

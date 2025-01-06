@@ -1257,6 +1257,7 @@ namespace Epoch
 				settings.color = trc.color;
 				settings.lineHeightOffset = trc.lineSpacing;
 				settings.letterSpacing = trc.letterSpacing;
+				settings.billboard = trc.billboard;
 				aRenderer->SubmitText(trc.text, font, transform, settings, (uint32_t)entity);
 			}
 		}
