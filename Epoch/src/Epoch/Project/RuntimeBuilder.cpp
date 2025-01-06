@@ -44,13 +44,14 @@ namespace Epoch
 			if (!FileSystem::Exists(epochDir / "bin/Dist-x86_64/Epoch-Runtime/Runtime.exe"))
 			{
 				LOG_ERROR("Failed to build!");
+				CONSOLE_LOG_ERROR("Failed to build!");
 				std::system(command.c_str());
 			}
-
+			
 			if (!FileSystem::Exists(epochDir / "bin/Dist-x86_64/Epoch-Runtime/Runtime.exe"))
 			{
 				LOG_ERROR("Failed to build!");
-				return false;
+				CONSOLE_LOG_ERROR("Failed to build!");
 			}
 		}
 		
@@ -61,8 +62,11 @@ namespace Epoch
 
 		//Copy the .exe & the script .dll:s to build location
 		{
-			FileSystem::CopyFile(epochDir / "bin/Dist-x86_64/Epoch-Runtime/Runtime.exe", buildLocation);
-			FileSystem::RenameFilename(buildLocation / "Runtime.exe", Project::GetProductName());
+			if (FileSystem::Exists(epochDir / "bin/Dist-x86_64/Epoch-Runtime/Runtime.exe"))
+			{
+				FileSystem::CopyFile(epochDir / "bin/Dist-x86_64/Epoch-Runtime/Runtime.exe", buildLocation);
+				FileSystem::RenameFilename(buildLocation / "Runtime.exe", Project::GetProductName());
+			}
 
 			FileSystem::CreateDirectory(buildLocation / "Scripts/Binaries");
 			FileSystem::CopyFile(projDir / "Scripts/Binaries/Epoch-ScriptCore.dll", buildLocation / "Scripts/Binaries");
