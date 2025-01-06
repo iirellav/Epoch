@@ -33,9 +33,9 @@ namespace Epoch
 
         public Color(float aR, float aG, float aB, float aA)
         {
-            r = aR;
-            g = aG;
-            b = aB;
+            r = (aR <= 1.0f) ? aR : aR / 255;
+            g = (aG <= 1.0f) ? aG : aG / 255;
+            b = (aB <= 1.0f) ? aB : aB / 255;
             a = aA;
         }
 
