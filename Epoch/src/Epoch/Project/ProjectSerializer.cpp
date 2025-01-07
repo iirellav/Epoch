@@ -28,6 +28,8 @@ namespace Epoch
 			out << YAML::Key << "EditorCameraPosition" << YAML::Value << config.editorCameraPosition;
 			out << YAML::Key << "EditorCameraRotation" << YAML::Value << config.editorCameraRotation;
 
+			out << YAML::Key << "RuntimeStartScene" << YAML::Value << config.runtimeStartScene;
+
 			out << YAML::Key << "AutosaveDirectory" << YAML::Value << config.autosaveDirectory.string();
 
 			out << YAML::Key << "AssetDirectory" << YAML::Value << config.assetDirectory.string();
@@ -72,44 +74,46 @@ namespace Epoch
 
 		YAML::Node rootNode = data["Project"];
 
-		auto& aConfig = myProject->myConfig;
+		auto& config = myProject->myConfig;
 		auto& physicsSettings = PhysicsSystem::GetSettings();
 
-		aConfig.name = rootNode["Name"].as<std::string>();
+		config.name = rootNode["Name"].as<std::string>();
 		LOG_DEBUG("Deserializing project '{}'", myProject->myConfig.name);
-		aConfig.productName = rootNode["ProductName"].as<std::string>(aConfig.name);
+		config.productName = rootNode["ProductName"].as<std::string>(config.name);
 
 		const std::filesystem::path& projectPath = aFilepath;
-		aConfig.projectFileName = projectPath.filename().string();
-		aConfig.projectDirectory = projectPath.parent_path().string();
+		config.projectFileName = projectPath.filename().string();
+		config.projectDirectory = projectPath.parent_path().string();
 		
-		aConfig.companyName = rootNode["CompanyName"].as<std::string>("");
-		aConfig.version = rootNode["Version"].as<std::string>(aConfig.version);
+		config.companyName = rootNode["CompanyName"].as<std::string>("");
+		config.version = rootNode["Version"].as<std::string>(config.version);
 
-		aConfig.startScene = rootNode["StartScene"].as<std::string>("");
-		aConfig.editorCameraPosition = rootNode["EditorCameraPosition"].as<CU::Vector3f>(CU::Vector3f::Zero);
-		aConfig.editorCameraRotation = rootNode["EditorCameraRotation"].as<CU::Vector3f>(CU::Vector3f::Zero);
+		config.startScene = rootNode["StartScene"].as<std::string>("");
+		config.editorCameraPosition = rootNode["EditorCameraPosition"].as<CU::Vector3f>(CU::Vector3f::Zero);
+		config.editorCameraRotation = rootNode["EditorCameraRotation"].as<CU::Vector3f>(CU::Vector3f::Zero);
 
-		aConfig.autosaveDirectory = rootNode["AutosaveDirectory"].as<std::string>("Autosaves");
-		if (!std::filesystem::exists(aConfig.projectDirectory / aConfig.autosaveDirectory))
+		config.runtimeStartScene = rootNode["RuntimeStartScene"].as<UUID>(UUID(0));
+
+		config.autosaveDirectory = rootNode["AutosaveDirectory"].as<std::string>("Autosaves");
+		if (!std::filesystem::exists(config.projectDirectory / config.autosaveDirectory))
 		{
 			LOG_WARNING("Autosave directory does not exist!");
 			LOG_INFO("Autosave directory created");
-			std::filesystem::create_directory(aConfig.projectDirectory / aConfig.autosaveDirectory);
+			std::filesystem::create_directory(config.projectDirectory / config.autosaveDirectory);
 		}
 
-		aConfig.assetDirectory = rootNode["AssetDirectory"].as<std::string>("Assets");
-		if (!std::filesystem::exists(aConfig.projectDirectory / aConfig.assetDirectory))
+		config.assetDirectory = rootNode["AssetDirectory"].as<std::string>("Assets");
+		if (!std::filesystem::exists(config.projectDirectory / config.assetDirectory))
 		{
 			LOG_WARNING("Asset directory does not exist!");
 			LOG_INFO("Asset directory created");
-			std::filesystem::create_directory(aConfig.projectDirectory / aConfig.assetDirectory);
+			std::filesystem::create_directory(config.projectDirectory / config.assetDirectory);
 		}
 
-		aConfig.assetRegistryPath = rootNode["AssetRegistryPath"].as<std::string>(aConfig.assetRegistryPath.string());
+		config.assetRegistryPath = rootNode["AssetRegistryPath"].as<std::string>(config.assetRegistryPath.string());
 		
-		aConfig.defaultScriptNamespace = rootNode["DefaultScriptNamespace"].as<std::string>(aConfig.projectFileName.stem().string());
-		aConfig.defaultScriptNamespace = CU::RemoveWhitespaces(aConfig.defaultScriptNamespace);
+		config.defaultScriptNamespace = rootNode["DefaultScriptNamespace"].as<std::string>(config.projectFileName.stem().string());
+		config.defaultScriptNamespace = CU::RemoveWhitespaces(config.defaultScriptNamespace);
 
 		physicsSettings.fixedTimestep = rootNode["FixedTimestep"].as<float>(1.0f/60.0f);
 		physicsSettings.gravity = rootNode["Gravity"].as<CU::Vector3f>(CU::Vector3f(0.0f, -982.0f, 0.0f));
@@ -134,8 +138,7 @@ namespace Epoch
 			out << YAML::Key << "CompanyName" << YAML::Value << config.companyName;
 			out << YAML::Key << "Version" << YAML::Value << config.version;
 
-			AssetHandle sceneHandle = Project::GetEditorAssetManager()->GetAssetHandleFromFilePath(config.startScene);
-			out << YAML::Key << "RuntimeStartScene" << YAML::Value << sceneHandle;
+			out << YAML::Key << "RuntimeStartScene" << YAML::Value << config.runtimeStartScene;
 			
 			out << YAML::Key << "FixedTimestep" << YAML::Value << physicsSettings.fixedTimestep;
 			out << YAML::Key << "Gravity" << YAML::Value << physicsSettings.gravity;

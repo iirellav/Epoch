@@ -16,9 +16,10 @@ namespace Epoch
 		std::string version = "1.0.0";
 
 		std::filesystem::path startScene;
-		AssetHandle runtimeStartScene;
 		CU::Vector3f editorCameraPosition;
 		CU::Vector3f editorCameraRotation;
+
+		AssetHandle runtimeStartScene;
 
 		std::filesystem::path autosaveDirectory = "Autosaves";
 
