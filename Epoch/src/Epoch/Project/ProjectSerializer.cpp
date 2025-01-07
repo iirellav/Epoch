@@ -121,7 +121,7 @@ namespace Epoch
 	{
 		EPOCH_PROFILE_FUNC();
 
-		auto& aConfig = myProject->myConfig;
+		auto& config = myProject->myConfig;
 		auto& physicsSettings = PhysicsSystem::GetSettings();
 
 		YAML::Emitter out;
@@ -129,10 +129,13 @@ namespace Epoch
 		out << YAML::Key << "Project" << YAML::Value;
 		{
 			out << YAML::BeginMap;
-			out << YAML::Key << "Name" << YAML::Value << aConfig.name;
-			out << YAML::Key << "ProductName" << YAML::Value << aConfig.productName;
-			out << YAML::Key << "CompanyName" << YAML::Value << aConfig.companyName;
-			out << YAML::Key << "Version" << YAML::Value << aConfig.version;
+			out << YAML::Key << "Name" << YAML::Value << config.name;
+			out << YAML::Key << "ProductName" << YAML::Value << config.productName;
+			out << YAML::Key << "CompanyName" << YAML::Value << config.companyName;
+			out << YAML::Key << "Version" << YAML::Value << config.version;
+
+			AssetHandle sceneHandle = Project::GetEditorAssetManager()->GetAssetHandleFromFilePath(config.startScene);
+			out << YAML::Key << "RuntimeStartScene" << YAML::Value << sceneHandle;
 			
 			out << YAML::Key << "FixedTimestep" << YAML::Value << physicsSettings.fixedTimestep;
 			out << YAML::Key << "Gravity" << YAML::Value << physicsSettings.gravity;
@@ -141,7 +144,7 @@ namespace Epoch
 		}
 		out << YAML::EndMap;
 
-		LOG_DEBUG("Serializing runtime project '{}'", aConfig.name);
+		LOG_DEBUG("Serializing runtime project '{}'", config.name);
 
 		std::ofstream fout(aFilepath);
 		fout << out.c_str();
@@ -171,20 +174,22 @@ namespace Epoch
 
 		YAML::Node rootNode = data["Project"];
 
-		auto& aConfig = myProject->myConfig;
+		auto& config = myProject->myConfig;
 		auto& physicsSettings = PhysicsSystem::GetSettings();
 
-		aConfig.name = rootNode["Name"].as<std::string>();
+		config.name = rootNode["Name"].as<std::string>();
 		LOG_DEBUG("Deserializing project '{}'", myProject->myConfig.name);
-		aConfig.productName = rootNode["ProductName"].as<std::string>(aConfig.name);
+		config.productName = rootNode["ProductName"].as<std::string>(config.name);
 
 		const std::filesystem::path& projectPath = aFilepath;
-		aConfig.projectFileName = projectPath.filename().string();
-		aConfig.projectDirectory = projectPath.parent_path().string();
+		config.projectFileName = projectPath.filename().string();
+		config.projectDirectory = projectPath.parent_path().string();
 		
-		aConfig.companyName = rootNode["CompanyName"].as<std::string>("");
-		aConfig.version = rootNode["Version"].as<std::string>(aConfig.version);
+		config.companyName = rootNode["CompanyName"].as<std::string>("");
+		config.version = rootNode["Version"].as<std::string>(config.version);
 
+		config.runtimeStartScene = rootNode["RuntimeStartScene"].as<UUID>(UUID(0));
+		
 		physicsSettings.fixedTimestep = rootNode["FixedTimestep"].as<float>(1.0f/60.0f);
 		physicsSettings.gravity = rootNode["Gravity"].as<CU::Vector3f>(CU::Vector3f(0.0f, -982.0f, 0.0f));
 

@@ -139,10 +139,9 @@ namespace Epoch
 			specs.clearColor = CU::Color::Zero;
 
 			specs.attachments = {
-			{ TextureFormat::RGBA,			"Albedo" },
+			{ TextureFormat::R11G11B10F,	"Albedo" },
 			{ TextureFormat::RGBA,			"Material" },
 			{ TextureFormat::RG16F,			"Normal" },
-			{ TextureFormat::R11G11B10F,	"Emission" },
 			{ TextureFormat::RGBA32F,		"WorldPosition" },
 			{ TextureFormat::R32UI,			"EntityID" },
 			{ TextureFormat::DEPTH32,		"Depth" } };
@@ -221,7 +220,7 @@ namespace Epoch
 
 			FramebufferSpecification specs;
 			specs.existingAttachments.push_back(myUberPipeline->GetSpecification().targetFramebuffer->GetTarget());
-			specs.existingAttachments.push_back(myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(5));
+			specs.existingAttachments.push_back(myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(4));
 			specs.existingDepthAttachment = myGBufferPipeline->GetSpecification().targetFramebuffer->GetDepthAttachment();
 			specs.clearColorOnLoad = false;
 			specs.clearDepthOnLoad = false;
@@ -247,7 +246,7 @@ namespace Epoch
 
 			FramebufferSpecification specs;
 			specs.existingAttachments.push_back(myUberPipeline->GetSpecification().targetFramebuffer->GetTarget());
-			specs.existingAttachments.push_back(myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(5));
+			specs.existingAttachments.push_back(myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(4));
 			specs.existingDepthAttachment = myGBufferPipeline->GetSpecification().targetFramebuffer->GetDepthAttachment();
 			specs.clearColorOnLoad = false;
 			specs.clearDepthOnLoad = false;
@@ -279,7 +278,7 @@ namespace Epoch
 		{
 			FramebufferSpecification specs;
 			specs.existingAttachments.push_back(myUberPipeline->GetSpecification().targetFramebuffer->GetTarget());
-			specs.existingAttachments.push_back(myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(5));
+			specs.existingAttachments.push_back(myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(4));
 			specs.existingDepthAttachment = myGBufferPipeline->GetSpecification().targetFramebuffer->GetDepthAttachment();
 			specs.clearColorOnLoad = false;
 			specs.clearDepthOnLoad = false;
@@ -597,7 +596,7 @@ namespace Epoch
 					auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
 					SRVs[0] = dxTexture->GetSRV().Get();
 					
-					texture = myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(4);
+					texture = myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(3);
 					dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
 					SRVs[1] = dxTexture->GetSRV().Get();
 
@@ -1152,7 +1151,7 @@ namespace Epoch
 	{
 		if (myDrawMode == DrawMode::Shaded)
 		{
-			return myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(5);
+			return myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(4);
 		}
 		else
 		{

@@ -149,8 +149,7 @@ namespace Epoch
 
 		ScriptEngine::LoadAppAssembly(); //TODO: Should load binary from asset pack (maybe)
 
-		auto sceneHandle = Project::GetEditorAssetManager()->GetAssetHandleFromFilePath(std::filesystem::absolute("Assets/Scene/Menu.epoch"));
-		LoadScene(sceneHandle);
+		LoadScene(Project::GetActive()->GetConfig().runtimeStartScene);
 	}
 
 	void RuntimeLayer::LoadScene(uint64_t aSceneHandle)
