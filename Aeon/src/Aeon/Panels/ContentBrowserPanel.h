@@ -1,23 +1,93 @@
 #pragma once
-#include <memory>
-#include <vector>
-#include <string>
-#include <filesystem>
 #include <functional>
-#include <unordered_map>
 #include <Epoch/Scene/Scene.h>
 #include <Epoch/Utils/FileSystem.h>
 #include <Epoch/Rendering/Texture.h>
 #include <Epoch/Assets/AssetMetadata.h>
 #include <Epoch/Editor/EditorPanel.h>
+#include <Epoch/Core/Events/MouseEvent.h>
+#include <Epoch/Core/Events/KeyEvent.h>
+#include <Epoch/Core/Events/EditorEvents.h>
+#include "ContentBrowser/SelectionStack.h"
+#include "ContentBrowser/ContentBrowserItem.h"
+
+#define MAX_INPUT_BUFFER_LENGTH 128
 
 namespace Epoch
 {
+	struct ContentBrowserItemList
+	{
+		static constexpr size_t InvalidItem = std::numeric_limits<size_t>::max();
+
+		std::vector<std::shared_ptr<ContentBrowserItem>> items;
+
+		std::vector<std::shared_ptr<ContentBrowserItem>>::iterator begin() { return items.begin(); }
+		std::vector<std::shared_ptr<ContentBrowserItem>>::iterator end() { return items.end(); }
+		std::vector<std::shared_ptr<ContentBrowserItem>>::const_iterator begin() const { return items.begin(); }
+		std::vector<std::shared_ptr<ContentBrowserItem>>::const_iterator end() const { return items.end(); }
+
+		std::shared_ptr<ContentBrowserItem>& operator[](size_t index) { return items[index]; }
+		const std::shared_ptr<ContentBrowserItem>& operator[](size_t index) const { return items[index]; }
+
+		ContentBrowserItemList() = default;
+
+		ContentBrowserItemList(const ContentBrowserItemList& aOther) : items(aOther.items) {}
+
+		ContentBrowserItemList& operator=(const ContentBrowserItemList& aOther)
+		{
+			items = aOther.items;
+			return *this;
+		}
+
+		void Clear()
+		{
+			std::scoped_lock<std::mutex> lock(myMutex);
+			items.clear();
+		}
+
+		void erase(AssetHandle aHandle)
+		{
+			size_t index = FindItem(aHandle);
+			if (index == InvalidItem)
+			{
+				return;
+			}
+
+			std::scoped_lock<std::mutex> lock(myMutex);
+			auto it = items.begin() + index;
+			items.erase(it);
+		}
+
+		size_t FindItem(AssetHandle aHandle)
+		{
+			if (items.empty())
+			{
+				return InvalidItem;
+			}
+
+			std::scoped_lock<std::mutex> lock(myMutex);
+			for (size_t i = 0; i < items.size(); i++)
+			{
+				if (items[i]->GetID() == aHandle)
+				{
+					return i;
+				}
+			}
+
+			return InvalidItem;
+		}
+
+	private:
+		std::mutex myMutex;
+	};
+
 	class ContentBrowserPanel : public EditorPanel
 	{
 	public:
 		ContentBrowserPanel() = default;
 		~ContentBrowserPanel() = default;
+
+		static ContentBrowserPanel& Get() { return *staticInstance; }
 
 		void Init();
 
@@ -28,31 +98,44 @@ namespace Epoch
 		void OnProjectChanged(const std::shared_ptr<Project>& aProject) override;
 		void OnSceneChanged(const std::shared_ptr<Scene>& aScene) override { mySceneContext = aScene; }
 
+		std::shared_ptr<DirectoryInfo> GetDirectory(const std::filesystem::path& aFilepath) const;
+
 		void RegisterItemActivateCallbackForType(AssetType aType, const std::function<void(const AssetMetadata&)>& aCallback) { myItemActivationCallbacks[aType] = aCallback; }
 		void RegisterNewAssetCreatedCallbackForType(AssetType aType, const std::function<void(const AssetMetadata&)>& aCallback) { myNewAssetCreatedCallbacks[aType] = aCallback; }
 		void RegisterAssetDeletedCallbackForType(AssetType aType, const std::function<void(const AssetMetadata&)>& aCallback) { myAssetDeletedCallbacks[aType] = aCallback; }
 		void RegistryCurrentSceneRenamedCallback(const std::function<void(const AssetMetadata&)>& aCallback) { myCurrentSceneRenamedCallback = aCallback; }
 
 	private:
-		void DeleteModal();
-		void DeleteSelected();
-		void DuplicateSelected();
-		void DuplicateSelected(const std::filesystem::path& aNewPath);
-		
+		void UpdateInput();
+
+		bool OnKeyPressedEvent(KeyPressedEvent& aEvent);
+		bool OnMouseButtonPressed(MouseButtonPressedEvent& aEvent);
+		bool OnFileDrop(EditorFileDroppedEvent& aEvent);
+
+		void Import(const std::vector<std::filesystem::path>& aPaths);
+
+		void Refresh();
+		AssetHandle ProcessDirectory(const std::filesystem::path& aDirectoryPath, const std::shared_ptr<DirectoryInfo>& aParent);
+
+		void ChangeDirectory(std::shared_ptr<DirectoryInfo>& aDirectory);
+		void OnBrowseBack();
+		void OnBrowseForward();
+
+		void RenderDirectoryHierarchy(std::shared_ptr<DirectoryInfo>& aDirectory);
+		void RenderTopBar(float aHeight);
+		void RenderItems();
+		void RenderBottomBar(float aHeight);
+
+		void ClearSelections();
+
+		void PasteCopiedAssets();
+
+		void RenderDeleteModal();
 		void RenderNewScriptDialogue();
 
-		void ClearSelection();
-		void Refresh();
+		void SortItemList();
 
-		void RenderDirectoryHierarchy(const std::filesystem::directory_entry& aEntry, bool aDefaultOpen = false);
-		void ContentView();
-		void ContentViewPopup();
-
-		bool ImportAssets(const std::vector<std::string>& aPaths);
-		void ImportAssets(const std::vector<std::filesystem::path>& aPaths);
-
-		std::string GetNewName(const std::string& aName) const;
-		std::string GetNameWithoutIndex(const std::string& aName) const;
+		ContentBrowserItemList Search(const std::string& aQuery, const std::shared_ptr<DirectoryInfo>& aDirectoryInfo);
 
 	private:
 		template<typename T, typename... Args>
@@ -84,33 +167,21 @@ namespace Epoch
 		}
 
 	private:
-		std::filesystem::path myBaseDirectory;
-		std::filesystem::path myCurrentDirectory;
+		static inline ContentBrowserPanel* staticInstance;
 
 		std::shared_ptr<Scene> mySceneContext;
 
-		bool myRefresh = false;
-		bool myDeleteSelected = false;
-		bool myAnEntryHovered = false;
-		bool myRenameTrigger = false;
-		bool myRenaming = false;
+		ContentBrowserItemList myCurrentItems;
 
-		float myPadding = 20.0f;
-		float myThumbnailMinSize = 64.0f;
-		float myThumbnailMaxSize = 256.0f;
+		std::shared_ptr<DirectoryInfo> myCurrentDirectory;
+		std::shared_ptr<DirectoryInfo> myBaseDirectory;
+		std::shared_ptr<DirectoryInfo> myNextDirectory, myPreviousDirectory;
 
-		int mySelectionCount = 0;
+		std::unordered_map<AssetHandle, std::shared_ptr<DirectoryInfo>> myDirectories;
 
-		std::filesystem::directory_entry myEntryToRename;
+		bool myIsAnyItemHovered = false;
 
-		struct DirectoryEntry
-		{
-			std::filesystem::directory_entry entry;
-			bool isSelected = false;
-
-			DirectoryEntry(const std::filesystem::directory_entry& aEntry) : entry(aEntry) {}
-		};
-		std::vector<DirectoryEntry> myDirectoryEntries;
+		SelectionStack myCopiedAssets;
 
 		std::unordered_map<std::string, std::shared_ptr<Texture2D>> myAssetIconMap;
 
@@ -118,5 +189,13 @@ namespace Epoch
 		std::unordered_map<AssetType, std::function<void(const AssetMetadata&)>> myNewAssetCreatedCallbacks;
 		std::unordered_map<AssetType, std::function<void(const AssetMetadata&)>> myAssetDeletedCallbacks;
 		std::function<void(const AssetMetadata&)> myCurrentSceneRenamedCallback;
+
+		char mySearchBuffer[MAX_INPUT_BUFFER_LENGTH];
+
+		std::vector<std::shared_ptr<DirectoryInfo>> myBreadCrumbData;
+		bool myUpdateNavigationPath = false;
+
+		bool myIsContentBrowserHovered = false;
+		bool myIsContentBrowserFocused = false;
 	};
 }

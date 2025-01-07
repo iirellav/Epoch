@@ -641,8 +641,8 @@ namespace Epoch
 
 					OnEntityCreated(meshEntity);
 
-					SelectionManager::DeselectAll(SelectionContext::Entity);
-					SelectionManager::Select(SelectionContext::Entity, meshEntity.GetUUID());
+					SelectionManager::DeselectAll(SelectionContext::Scene);
+					SelectionManager::Select(SelectionContext::Scene, meshEntity.GetUUID());
 
 					grabFocus = true;
 				}
@@ -653,8 +653,8 @@ namespace Epoch
 
 					OnEntityCreated(spriteEntity);
 
-					SelectionManager::DeselectAll(SelectionContext::Entity);
-					SelectionManager::Select(SelectionContext::Entity, spriteEntity.GetUUID());
+					SelectionManager::DeselectAll(SelectionContext::Scene);
+					SelectionManager::Select(SelectionContext::Scene, spriteEntity.GetUUID());
 
 					grabFocus = true;
 				}
@@ -674,8 +674,8 @@ namespace Epoch
 						tc.transform.SetTranslation(CU::Vector3f::Zero);
 					}
 
-					SelectionManager::DeselectAll(SelectionContext::Entity);
-					SelectionManager::Select(SelectionContext::Entity, prefabEntity.GetUUID());
+					SelectionManager::DeselectAll(SelectionContext::Scene);
+					SelectionManager::Select(SelectionContext::Scene, prefabEntity.GetUUID());
 
 					grabFocus = true;
 				}
@@ -805,9 +805,9 @@ namespace Epoch
 			myDebugRenderer->DrawGrid(CU::Vector3f::Zero, gridRotation, EditorSettings::Get().gridSize, EditorSettings::Get().gridOpacity);
 		}
 
-		if (SelectionManager::GetSelectionCount(SelectionContext::Entity) > 0)
+		if (SelectionManager::GetSelectionCount(SelectionContext::Scene) > 0)
 		{
-			for (UUID entityID : SelectionManager::GetSelections(SelectionContext::Entity))
+			for (UUID entityID : SelectionManager::GetSelections(SelectionContext::Scene))
 			{
 				Entity entity = myActiveScene->GetEntityWithUUID(entityID);
 
@@ -866,7 +866,7 @@ namespace Epoch
 
 				if (myShowCollidersMode == DebugLinesDrawMode::Selected)
 				{
-					if (!SelectionManager::IsSelected(SelectionContext::Entity, entity.GetUUID()))
+					if (!SelectionManager::IsSelected(SelectionContext::Scene, entity.GetUUID()))
 					{
 						continue;
 					}
@@ -901,7 +901,7 @@ namespace Epoch
 
 				if (myShowBoundingBoxesMode == DebugLinesDrawMode::Selected)
 				{
-					if (!SelectionManager::IsSelected(SelectionContext::Entity, entity.GetUUID()))
+					if (!SelectionManager::IsSelected(SelectionContext::Scene, entity.GetUUID()))
 					{
 						continue;
 					}
@@ -1068,7 +1068,7 @@ namespace Epoch
 
 		if (myGizmoOperation == GizmoOperation::None) return;
 
-		const auto& selections = SelectionManager::GetSelections(SelectionContext::Entity);
+		const auto& selections = SelectionManager::GetSelections(SelectionContext::Scene);
 		if (selections.empty()) return;
 
 		ImGuizmo::SetDrawlist();
@@ -1087,7 +1087,7 @@ namespace Epoch
 
 		if (selections.size() == 1)
 		{
-			Entity entity = myActiveScene->GetEntityWithUUID(SelectionManager::GetSelections(SelectionContext::Entity)[0]);
+			Entity entity = myActiveScene->GetEntityWithUUID(SelectionManager::GetSelections(SelectionContext::Scene)[0]);
 			CU::Transform& entityTransform = entity.Transform();
 			CU::Matrix4x4f transform = myActiveScene->GetWorldSpaceTransformMatrix(entity);
 
@@ -1503,7 +1503,7 @@ namespace Epoch
 			OnSceneStop();
 		}
 
-		SelectionManager::DeselectAll(SelectionContext::Entity);
+		SelectionManager::DeselectAll(SelectionContext::Scene);
 		ScriptEngine::SetSceneContext(nullptr, nullptr);
 
 		UpdateWindowTitle(aPath.stem().string());
@@ -1523,7 +1523,7 @@ namespace Epoch
 
 	void EditorLayer::NewScene(const std::string& aName)
 	{
-		SelectionManager::DeselectAll(SelectionContext::Entity);
+		SelectionManager::DeselectAll(SelectionContext::Scene);
 		ScriptEngine::SetSceneContext(nullptr, nullptr);
 
 		UpdateWindowTitle(aName);
@@ -1990,12 +1990,12 @@ namespace Epoch
 		mySceneState = SceneState::Edit;
 		myActiveScene = myEditorScene;
 
-		auto selection = SelectionManager::GetSelections(SelectionContext::Entity);
+		auto selection = SelectionManager::GetSelections(SelectionContext::Scene);
 		for (auto id : selection)
 		{
 			if (!myActiveScene->TryGetEntityWithUUID(id))
 			{
-				SelectionManager::Deselect(SelectionContext::Entity, id);
+				SelectionManager::Deselect(SelectionContext::Scene, id);
 			}
 		}
 
@@ -2045,7 +2045,7 @@ namespace Epoch
 
 	void EditorLayer::OnEntityDeleted(Entity aEntity)
 	{
-		SelectionManager::Deselect(SelectionContext::Entity, aEntity.GetUUID());
+		SelectionManager::Deselect(SelectionContext::Scene, aEntity.GetUUID());
 	}
 
 	bool EditorLayer::OnKeyPressedEvent(KeyPressedEvent& aEvent)
@@ -2095,9 +2095,9 @@ namespace Epoch
 					break;
 				case KeyCode::F:
 				{
-					if (SelectionManager::GetSelectionCount(SelectionContext::Entity) == 1)
+					if (SelectionManager::GetSelectionCount(SelectionContext::Scene) == 1)
 					{
-						Entity entity = myActiveScene->GetEntityWithUUID(SelectionManager::GetSelections(SelectionContext::Entity)[0]);
+						Entity entity = myActiveScene->GetEntityWithUUID(SelectionManager::GetSelections(SelectionContext::Scene)[0]);
 						myEditorCamera.Focus(entity.GetWorldSpaceTransform().GetTranslation());
 					}
 					break;
@@ -2118,7 +2118,7 @@ namespace Epoch
 			{
 			case KeyCode::Delete:
 			{
-				auto selection = SelectionManager::GetSelections(SelectionContext::Entity);
+				auto selection = SelectionManager::GetSelections(SelectionContext::Scene);
 
 				for (auto entityID : selection)
 				{
@@ -2133,14 +2133,14 @@ namespace Epoch
 			{
 				if (!Input::IsMouseButtonHeld(MouseButton::Right) && !Input::IsMouseButtonHeld(MouseButton::Middle) && ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
 				{
-					auto selection = SelectionManager::GetSelections(SelectionContext::Entity);
+					auto selection = SelectionManager::GetSelections(SelectionContext::Scene);
 					for (const auto& entityID : selection)
 					{
 						Entity entity = myActiveScene->GetEntityWithUUID(entityID);
 
 						Entity duplicate = myActiveScene->DuplicateEntity(entity);
-						SelectionManager::Deselect(SelectionContext::Entity, entity.GetUUID());
-						SelectionManager::Select(SelectionContext::Entity, duplicate.GetUUID());
+						SelectionManager::Deselect(SelectionContext::Scene, entity.GetUUID());
+						SelectionManager::Select(SelectionContext::Scene, duplicate.GetUUID());
 					}
 				}
 
@@ -2195,7 +2195,7 @@ namespace Epoch
 		
 		if (!clickedEntity)
 		{
-			SelectionManager::DeselectAll(SelectionContext::Entity);
+			SelectionManager::DeselectAll(SelectionContext::Scene);
 		}
 		else
 		{
@@ -2203,16 +2203,16 @@ namespace Epoch
 
 			if (!ctrlDown)
 			{
-				SelectionManager::DeselectAll(SelectionContext::Entity);
+				SelectionManager::DeselectAll(SelectionContext::Scene);
 			}
 
-			if (ctrlDown && SelectionManager::IsSelected(SelectionContext::Entity, clickedEntity.GetUUID()))
+			if (ctrlDown && SelectionManager::IsSelected(SelectionContext::Scene, clickedEntity.GetUUID()))
 			{
-				SelectionManager::Deselect(SelectionContext::Entity, clickedEntity.GetUUID());
+				SelectionManager::Deselect(SelectionContext::Scene, clickedEntity.GetUUID());
 			}
 			else
 			{
-				SelectionManager::Select(SelectionContext::Entity, clickedEntity.GetUUID());
+				SelectionManager::Select(SelectionContext::Scene, clickedEntity.GetUUID());
 			}
 		}
 
@@ -2279,7 +2279,7 @@ namespace Epoch
 		
 					if (!ctrlDown)
 					{
-						SelectionManager::DeselectAll(SelectionContext::Entity);
+						SelectionManager::DeselectAll(SelectionContext::Scene);
 					}
 		
 					for (uint32_t id : ids)
@@ -2287,13 +2287,13 @@ namespace Epoch
 						Entity clickedEntity = Entity((entt::entity)id, myActiveScene.get());
 						if (!clickedEntity || !myActiveScene->IsEntityValid(clickedEntity)) continue;
 		
-						if (ctrlDown && SelectionManager::IsSelected(SelectionContext::Entity, clickedEntity.GetUUID()))
+						if (ctrlDown && SelectionManager::IsSelected(SelectionContext::Scene, clickedEntity.GetUUID()))
 						{
-							SelectionManager::Deselect(SelectionContext::Entity, clickedEntity.GetUUID());
+							SelectionManager::Deselect(SelectionContext::Scene, clickedEntity.GetUUID());
 						}
 						else
 						{
-							SelectionManager::Select(SelectionContext::Entity, clickedEntity.GetUUID());
+							SelectionManager::Select(SelectionContext::Scene, clickedEntity.GetUUID());
 						}
 					}
 				}
