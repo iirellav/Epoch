@@ -1288,7 +1288,7 @@ namespace Epoch
 					continue;
 				}
 
-				ScriptEngine::CallMethod(sc.managedInstance, "OnFrustumExitInternal");
+				ScriptEngine::CallMethod(sc.managedInstance, "OnFrustumExit");
 			}
 		}
 
@@ -1316,7 +1316,7 @@ namespace Epoch
 					continue;
 				}
 
-				ScriptEngine::CallMethod(sc.managedInstance, "OnFrustumEnterInternal");
+				ScriptEngine::CallMethod(sc.managedInstance, "OnFrustumEnter");
 			}
 		}
 	}

@@ -205,26 +205,26 @@ namespace Epoch
 			{
 				case PhysicsEventType::CollisionEnter:
 				{
-					CallScriptPhysicsCallback("OnCollisionEnterInternal", entityA, entityB);
-					CallScriptPhysicsCallback("OnCollisionEnterInternal", entityB, entityA);
+					CallScriptPhysicsCallback("OnCollisionEnter", entityA, entityB);
+					CallScriptPhysicsCallback("OnCollisionEnter", entityB, entityA);
 					break;
 				}
 				case PhysicsEventType::CollisionExit:
 				{
-					CallScriptPhysicsCallback("OnCollisionExitInternal", entityA, entityB);
-					CallScriptPhysicsCallback("OnCollisionExitInternal", entityB, entityA);
+					CallScriptPhysicsCallback("OnCollisionExit", entityA, entityB);
+					CallScriptPhysicsCallback("OnCollisionExit", entityB, entityA);
 					break;
 				}
 				case PhysicsEventType::TriggerEnter:
 				{
-					CallScriptPhysicsCallback("OnTriggerEnterInternal", entityA, entityB);
-					CallScriptPhysicsCallback("OnTriggerEnterInternal", entityB, entityA);
+					CallScriptPhysicsCallback("OnTriggerEnter", entityA, entityB);
+					CallScriptPhysicsCallback("OnTriggerEnter", entityB, entityA);
 					break;
 				}
 				case PhysicsEventType::TriggerExit:
 				{
-					CallScriptPhysicsCallback("OnTriggerExitInternal", entityA, entityB);
-					CallScriptPhysicsCallback("OnTriggerExitInternal", entityB, entityA);
+					CallScriptPhysicsCallback("OnTriggerExit", entityA, entityB);
+					CallScriptPhysicsCallback("OnTriggerExit", entityB, entityA);
 					break;
 				}
 			}
