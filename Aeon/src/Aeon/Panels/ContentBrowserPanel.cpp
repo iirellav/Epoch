@@ -52,7 +52,88 @@ namespace Epoch
 	{
 		EPOCH_PROFILE_FUNC();
 
-		
+		ImGui::Begin(CONTENT_BROWSER_PANEL_ID, 0, ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar);
+		{
+			myIsContentBrowserHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
+			myIsContentBrowserFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
+
+			UI::ScopedStyle spacing(ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 8.0f));
+			UI::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 4.0f));
+
+			UI::ScopedStyle cellPadding(ImGuiStyleVar_CellPadding, ImVec2(10.0f, 2.0f));
+
+			ImGuiTableFlags tableFlags =
+				ImGuiTableFlags_Resizable |
+				ImGuiTableFlags_SizingFixedFit |
+				ImGuiTableFlags_BordersInnerV;
+
+			UI::PushID();
+			if (ImGui::BeginTable("ContentBrowser_Table", 2, tableFlags, ImVec2(0.0f, 0.0f)))
+			{
+				ImGui::TableSetupColumn("Outliner", 0, 300.0f);
+				ImGui::TableSetupColumn("Directory", ImGuiTableColumnFlags_WidthStretch);
+
+				ImGui::TableNextRow();
+				ImGui::TableSetColumnIndex(0);
+
+				ImGui::BeginChild("##outliner");
+				{
+					UI::ScopedStyle spacing(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
+					UI::ScopedColorStack itemBg(ImGuiCol_Header, IM_COL32_DISABLE,
+						ImGuiCol_HeaderActive, IM_COL32_DISABLE);
+
+					if (myBaseDirectory)
+					{
+						// TODO: can we not sort this every frame?
+						std::vector<std::shared_ptr<DirectoryInfo>> directories;
+						directories.reserve(myBaseDirectory->subDirectories.size());
+						for (auto& [handle, directory] : myBaseDirectory->subDirectories)
+						{
+							directories.emplace_back(directory);
+						}
+
+						std::sort(directories.begin(), directories.end(), [](const auto& a, const auto& b)
+							{
+								return a->filePath.stem().string() < b->filePath.stem().string();
+							});
+
+						RenderDirectoryHierarchy(myBaseDirectory, true);
+					}
+				}
+				ImGui::EndChild();
+
+				ImGui::TableSetColumnIndex(1);
+
+				const float topBarHeight = 26.0f;
+				const float bottomBarHeight = 32.0f;
+				ImGui::BeginChild("##directory", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetWindowHeight() - topBarHeight - bottomBarHeight));
+				{
+					ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+					RenderTopBar(topBarHeight);
+					ImGui::PopStyleVar();
+
+					//ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+					ImGui::BeginChild("Scrolling");
+					{
+
+					}
+					ImGui::EndChild();
+					//ImGui::PopStyleColor();
+				}
+				ImGui::EndChild();
+
+				if (ImGui::BeginDragDropTarget())
+				{
+					ImGui::EndDragDropTarget();
+				}
+
+				RenderBottomBar(bottomBarHeight);
+
+				ImGui::EndTable();
+			}
+			UI::PopID();
+		}
+		ImGui::End();
 	}
 
 	void ContentBrowserPanel::OnEvent(Event& aEvent)
@@ -114,7 +195,7 @@ namespace Epoch
 
 		if (aDirectoryPath == Project::GetAssetDirectory())
 		{
-			directoryInfo->filePath = "";
+			directoryInfo->filePath = Project::GetActive()->GetConfig().assetDirectory;
 		}
 		else
 		{
@@ -219,12 +300,241 @@ namespace Epoch
 		ChangeDirectory(myNextDirectory);
 	}
 
-	void ContentBrowserPanel::RenderDirectoryHierarchy(std::shared_ptr<DirectoryInfo>& aDirectory)
+	void ContentBrowserPanel::RenderDirectoryHierarchy(std::shared_ptr<DirectoryInfo>& aDirectory, bool aDefaultOpen)
 	{
+		std::string name = aDirectory->filePath.filename().string();
+		std::string id = name + "_TreeNode";
+		bool previousState = ImGui::TreeNodeBehaviorIsOpen(ImGui::GetID(id.c_str()));
+
+		// ImGui item height hack
+		auto* window = ImGui::GetCurrentWindow();
+		window->DC.CurrLineSize.y = 20.0f;
+		window->DC.CurrLineTextBaseOffset = 3.0f;
+
+
+		const ImRect itemRect = { window->WorkRect.Min.x, window->DC.CursorPos.y, window->WorkRect.Max.x, window->DC.CursorPos.y + window->DC.CurrLineSize.y };
+
+		const bool isItemClicked = [&itemRect, &id]
+			{
+				if (ImGui::ItemHoverable(itemRect, ImGui::GetID(id.c_str()), ImGuiItemFlags_None))
+				{
+					return ImGui::IsMouseDown(ImGuiMouseButton_Left) || ImGui::IsMouseReleased(ImGuiMouseButton_Left);
+				}
+				return false;
+			}();
+
+		const bool isWindowFocused = ImGui::IsWindowFocused();
+
+		auto fillWithColour = [&](const ImColor& colour)
+			{
+				const ImU32 bgColour = ImGui::ColorConvertFloat4ToU32(colour);
+				ImGui::GetWindowDrawList()->AddRectFilled(itemRect.Min, itemRect.Max, bgColour);
+			};
+
+		// Fill with light selection colour if any of the child entities selected
+		//auto checkIfAnyDescendantSelected = [&](std::shared_ptr<DirectoryInfo>& aDirectory, auto aIsAnyDescendantSelected) -> bool
+		//	{
+		//		if (aDirectory->handle == myCurrentDirectory->handle)
+		//			return true;
+		//
+		//		if (!aDirectory->subDirectories.empty())
+		//		{
+		//			for (auto& [childHandle, childDir] : aDirectory->subDirectories)
+		//			{
+		//				if (aIsAnyDescendantSelected(childDir, aIsAnyDescendantSelected))
+		//				{
+		//					return true;
+		//				}
+		//			}
+		//		}
+		//
+		//		return false;
+		//	};
+
+		//const bool isAnyDescendantSelected = checkIfAnyDescendantSelected(aDirectory, checkIfAnyDescendantSelected);
+		const bool isActiveDirectory = aDirectory->handle == myCurrentDirectory->handle;
+
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_OpenOnArrow;
+		if (isActiveDirectory)
+		{
+			flags |= ImGuiTreeNodeFlags_Selected;
+		}
+		if (aDirectory->subDirectories.size() == 0)
+		{
+			flags |= ImGuiTreeNodeFlags_Leaf;
+		}
+		if (aDefaultOpen)
+		{
+			flags |= ImGuiTreeNodeFlags_DefaultOpen;
+		}
+
+		// Fill background
+		//if (isActiveDirectory || isItemClicked)
+		//{
+		//	if (isWindowFocused)
+		//	{
+		//		fillWithColour(IM_COL32(237, 192, 119, 255));//TEMP
+		//	}
+		//	else
+		//	{
+		//		fillWithColour(IM_COL32(237, 192, 119, 255));//TEMP
+		//	}
+		//
+		//	ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(26, 26, 26, 255));
+		//}
+		//else if (isAnyDescendantSelected)
+		//{
+		//	fillWithColour(IM_COL32(237, 192, 119, 255));//TEMP
+		//}
+
+		// Tree Node
+		//bool open = UI::TreeNode(id, name, flags, EditorResources::FolderIcon);
+		bool open = ImGui::TreeNodeEx(id.c_str(), flags, name.c_str());
+		bool clicked = ImGui::IsItemClicked();
+		bool currentState = (flags &= ImGuiTreeNodeFlags_Leaf) ? false : open;
+
+		//if (isActiveDirectory || isItemClicked)
+		//{
+		//	ImGui::PopStyleColor();
+		//}
+
+		// Fixing slight overlap
+		UI::ShiftCursorY(3.0f);
+
+		// Draw children
+		if (open)
+		{
+			std::vector<std::shared_ptr<DirectoryInfo>> directories;
+			directories.reserve(myBaseDirectory->subDirectories.size());
+			for (auto& [handle, directory] : aDirectory->subDirectories)
+			{
+				directories.emplace_back(directory);
+			}
+
+			std::sort(directories.begin(), directories.end(), [](const auto& a, const auto& b)
+				{
+					return a->filePath.stem().string() < b->filePath.stem().string();
+				});
+
+			for (auto& child : directories)
+			{
+				RenderDirectoryHierarchy(child);
+			}
+		}
+
+		if (!isActiveDirectory && currentState == previousState && clicked)
+		{
+			ChangeDirectory(aDirectory);
+		}
+
+		if (open)
+		{
+			ImGui::TreePop();
+		}
 	}
 
 	void ContentBrowserPanel::RenderTopBar(float aHeight)
 	{
+		ImGui::BeginChild("##top_bar", ImVec2(0, aHeight));
+		//ImGui::BeginHorizontal("##top_bar", ImGui::GetWindowSize());
+		{
+			// Navigation buttons
+			{
+				UI::ScopedStyle spacing(ImGuiStyleVar_ItemSpacing, ImVec2(2.0f, 0.0f));
+
+				ImGui::SameLine();
+				if (ImGui::Button("<", { aHeight, aHeight }))
+				{
+					OnBrowseBack();
+				}
+				UI::SetTooltip("Previous directory");
+
+				ImGui::SameLine();
+				if (ImGui::Button(">", { aHeight, aHeight }))
+				{
+					OnBrowseForward();
+				}
+				UI::SetTooltip("Next directory");
+			}
+
+			// Search
+			{
+				const float searchBarWidth = 400;
+				ImGui::SameLine();
+
+				//UI::ShiftCursorY(2.0f);
+				ImGui::SetNextItemWidth(searchBarWidth);
+
+				if (staticActivateSearchWidget)
+				{
+					ImGui::SetKeyboardFocusHere();
+					staticActivateSearchWidget = false;
+				}
+
+				if (ImGui::InputTextWithHint("##AssetSearch", "Search...", mySearchBuffer, MAX_INPUT_BUFFER_LENGTH))
+				{
+					if (strlen(mySearchBuffer) == 0)
+					{
+						ChangeDirectory(myCurrentDirectory);
+					}
+					else
+					{
+						myCurrentItems = Search(mySearchBuffer, myCurrentDirectory);
+						SortItemList();
+					}
+				}
+				//UI::ShiftCursorY(-2.0f);
+			}
+
+			if (myUpdateNavigationPath)
+			{
+				myBreadCrumbData.clear();
+
+				std::shared_ptr<DirectoryInfo> current = myCurrentDirectory;
+				while (current && current->parent != nullptr)
+				{
+					myBreadCrumbData.push_back(current);
+					current = current->parent;
+				}
+
+				std::reverse(myBreadCrumbData.begin(), myBreadCrumbData.end());
+				myUpdateNavigationPath = false;
+			}
+
+			// Breadcrumbs
+			{
+				ImGui::SameLine();
+
+				UI::ScopedFont boldFont("Bold");
+				UI::ScopedStyle itemSpacing(ImGuiStyleVar_ItemSpacing, ImVec2(4.0f, 0.0f));
+
+				const std::string& assetsDirectoryName = Project::GetActive()->GetConfig().assetDirectory.string();
+				ImVec2 textSize = ImGui::CalcTextSize(assetsDirectoryName.c_str());
+				const float textPadding = ImGui::GetStyle().FramePadding.y;
+				if (ImGui::Selectable(assetsDirectoryName.c_str(), false, 0, ImVec2(textSize.x, textSize.y + textPadding)))
+				{
+					SelectionManager::DeselectAll(SelectionContext::ContentBrowser);
+					ChangeDirectory(myBaseDirectory);
+				}
+
+				for (auto& directory : myBreadCrumbData)
+				{
+					ImGui::SameLine();
+					ImGui::Text("/");
+					ImGui::SameLine();
+
+					std::string directoryName = directory->filePath.filename().string();
+					ImVec2 textSize = ImGui::CalcTextSize(directoryName.c_str());
+					if (ImGui::Selectable(directoryName.c_str(), false, 0, ImVec2(textSize.x, textSize.y + textPadding)))
+					{
+						SelectionManager::DeselectAll(SelectionContext::ContentBrowser);
+						ChangeDirectory(directory);
+					}
+				}
+			}
+		}
+		//ImGui::EndHorizontal();
+		ImGui::EndChild();
 	}
 
 	void ContentBrowserPanel::RenderItems()
@@ -233,6 +543,42 @@ namespace Epoch
 
 	void ContentBrowserPanel::RenderBottomBar(float aHeight)
 	{
+		UI::ScopedStyle childBorderSize(ImGuiStyleVar_ChildBorderSize, 0.0f);
+		UI::ScopedStyle frameBorderSize(ImGuiStyleVar_FrameBorderSize, 0.0f);
+		UI::ScopedStyle itemSpacing(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
+		UI::ScopedStyle framePadding(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
+		
+		ImGui::BeginChild("##bottom_bar", ImVec2(0, aHeight));
+		//ImGui::BeginHorizontal("##bottom_bar");
+		{
+			size_t selectionCount = SelectionManager::GetSelectionCount(SelectionContext::ContentBrowser);
+			if (selectionCount == 1)
+			{
+				AssetHandle firstSelection = SelectionManager::GetSelections(SelectionContext::ContentBrowser)[0];
+				const auto& assetMetadata = Project::GetEditorAssetManager()->GetMetadata(firstSelection);
+
+				std::string assetDirectory = Project::GetActive()->GetConfig().assetDirectory.string();
+
+				std::string filepath = "";
+				if (assetMetadata.IsValid())
+				{
+					filepath = assetDirectory + "/" + assetMetadata.filePath.string();
+				}
+				else if (myDirectories.find(firstSelection) != myDirectories.end())
+				{
+					filepath = assetDirectory + "/" + myDirectories[firstSelection]->filePath.string();
+				}
+
+				std::replace(filepath.begin(), filepath.end(), '\\', '/');
+				ImGui::TextUnformatted(filepath.c_str());
+			}
+			else if (selectionCount > 1)
+			{
+				ImGui::Text("%d items selected", selectionCount);
+			}
+		}
+		//ImGui::EndHorizontal();
+		ImGui::EndChild();
 	}
 
 	void ContentBrowserPanel::UpdateInput()
@@ -401,7 +747,7 @@ namespace Epoch
 		bool imported = false;
 		for (const std::filesystem::path& path : aPaths)
 		{
-			imported /= FileSystem::CopyFile(path, Project::GetAssetDirectory() / myCurrentDirectory->filePath);
+			imported |= FileSystem::CopyFile(path, Project::GetAssetDirectory() / myCurrentDirectory->filePath);
 		}
 
 		if (imported)

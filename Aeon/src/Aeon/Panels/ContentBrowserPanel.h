@@ -121,7 +121,7 @@ namespace Epoch
 		void OnBrowseBack();
 		void OnBrowseForward();
 
-		void RenderDirectoryHierarchy(std::shared_ptr<DirectoryInfo>& aDirectory);
+		void RenderDirectoryHierarchy(std::shared_ptr<DirectoryInfo>& aDirectory, bool aDefaultOpen = false);
 		void RenderTopBar(float aHeight);
 		void RenderItems();
 		void RenderBottomBar(float aHeight);
@@ -145,11 +145,11 @@ namespace Epoch
 		}
 
 		template<typename T, typename... Args>
-		std::shared_ptr<T> CreateAssetInDirectory(const std::string& aFilename, const std::filesystem::path& aDirectory, Args&&... aArgs)
+		std::shared_ptr<T> CreateAssetInDirectory(const std::string& aFilename, std::shared_ptr<DirectoryInfo>& aDirectory, Args&&... aArgs)
 		{
-			auto filepath = FileSystem::GetUniqueFileName(Project::GetAssetDirectory() / aDirectory / aFilename);
+			auto filepath = FileSystem::GetUniqueFileName(Project::GetAssetDirectory() / aDirectory->filePath / aFilename);
 
-			std::shared_ptr<T> asset = Project::GetEditorAssetManager()->CreateNewAsset<T>(filepath.filename().string(), aDirectory.string(), std::forward<Args>(aArgs)...);
+			std::shared_ptr<T> asset = Project::GetEditorAssetManager()->CreateNewAsset<T>(filepath.filename().string(), aDirectory->filePath.string(), std::forward<Args>(aArgs)...);
 			if (!asset)
 			{
 				return nullptr;
