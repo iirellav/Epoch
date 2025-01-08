@@ -1064,53 +1064,24 @@ namespace Epoch
 
 						Entity firstEntity = myContext->GetEntityWithUUID(aEntities[0]);
 
-						bool inCollapsibleHeader = false;
-						bool collapsibleHeaderOpen = false;
-						std::string currentHeaderName = "";
 						for (size_t i = 0; i < aFirstComponent.fieldIDs.size(); i++)
 						{
 							FieldInfo* field = ScriptCache::GetFieldByID(aFirstComponent.fieldIDs[i]);
 							std::shared_ptr<FieldStorageBase> storage = ScriptEngine::GetFieldStorage(firstEntity, field->id);
 
-							bool addSpace = field->spacing > 0;
-
-							if (field->header != currentHeaderName)
-							{
-								UI::EndPropertyGrid();
-								if (addSpace)
-								{
-									UI::Spacing(field->spacing);
-								}
-
-								//if (inCollapsibleHeader && collapsibleHeaderOpen)
-								//{
-								//	ImGui::TreePop();
-								//}
-
-								if (field->header.empty())
-								{
-									inCollapsibleHeader = false;
-									currentHeaderName = "";
-								}
-								else
-								{
-									inCollapsibleHeader = true;
-									currentHeaderName = field->header;
-
-									if (i == 0)
-									{
-										UI::Spacing();
-									}
-
-									collapsibleHeaderOpen = UI::SubHeader(field->header.c_str(), true);
-								}
-
-								UI::BeginPropertyGrid();
-							}
-							else if (addSpace)
+							if (field->spacing > 0)
 							{
 								UI::EndPropertyGrid();
 								UI::Spacing(field->spacing);
+								UI::BeginPropertyGrid();
+							}
+							if (!field->header.empty())
+							{
+								UI::EndPropertyGrid();
+								UI::ShiftCursor(10.0f, 3.0f);
+								UI::Fonts::PushFont("Bold");
+								ImGui::TextUnformatted(field->header.c_str());
+								UI::Fonts::PopFont();
 								UI::BeginPropertyGrid();
 							}
 
@@ -1136,38 +1107,19 @@ namespace Epoch
 								fieldName[0] = toupper(fieldName[0]);
 							}
 
-							if ((inCollapsibleHeader && collapsibleHeaderOpen) || !inCollapsibleHeader)
+							if (field->IsArray())
 							{
-								if (field->IsArray())
-								{
-									UI::EndPropertyGrid();
+								UI::EndPropertyGrid();
 
-									auto arrayFieldStorage = std::dynamic_pointer_cast<ArrayFieldStorage>(storage);
-									UI::DrawFieldArray(myContext, fieldName, arrayFieldStorage, field->tooltip.c_str());
+								auto arrayFieldStorage = std::dynamic_pointer_cast<ArrayFieldStorage>(storage);
+								UI::DrawFieldArray(myContext, fieldName, arrayFieldStorage, field->tooltip.c_str());
 
-									UI::BeginPropertyGrid();
-								}
-								else
-								{
-									auto fieldStorage = std::dynamic_pointer_cast<FieldStorage>(storage);
-									UI::DrawFieldValue(myContext, fieldName, fieldStorage, field->tooltip.c_str());
-								}
+								UI::BeginPropertyGrid();
 							}
-
-							if (inCollapsibleHeader && i == aFirstComponent.fieldIDs.size() - 1)
+							else
 							{
-								inCollapsibleHeader = false;
-								currentHeaderName = "";
-
-								//if (collapsibleHeaderOpen)
-								//{
-								//	ImGui::TreePop();
-								//}
-								//else
-								if (!collapsibleHeaderOpen)
-								{
-									UI::Spacing();
-								}
+								auto fieldStorage = std::dynamic_pointer_cast<FieldStorage>(storage);
+								UI::DrawFieldValue(myContext, fieldName, fieldStorage, field->tooltip.c_str());
 							}
 						}
 
