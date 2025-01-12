@@ -5,14 +5,6 @@ namespace Epoch
 {
     public class Entity : IEquatable<Entity>
     {
-        public event Action<Entity> OnCollisionEnter;
-        public event Action<Entity> OnCollisionExit;
-        public event Action<Entity> OnTriggerEnter;
-        public event Action<Entity> OnTriggerExit;
-
-        public event Action OnFrustumEnter;
-        public event Action OnFrustumExit;
-
         protected Entity() { id = 0; }
 
         internal Entity(ulong aId)
@@ -63,14 +55,14 @@ namespace Epoch
             myComponentCache.Clear();
         }
 
-        private void OnCollisionEnterInternal(ulong aID) => OnCollisionEnter?.Invoke(new Entity(aID));
-        private void OnCollisionExitInternal(ulong aID) => OnCollisionExit?.Invoke(new Entity(aID));
+        protected virtual void OnCollisionEnter(ulong aID) { }
+        protected virtual void OnCollisionExit(ulong aID) { }
 
-        private void OnTriggerEnterInternal(ulong aID) => OnTriggerEnter?.Invoke(new Entity(aID));
-        private void OnTriggerExitInternal(ulong aID) => OnTriggerExit?.Invoke(new Entity(aID));
+        protected virtual void OnTriggerEnter(ulong aID) { }
+        protected virtual void OnTriggerExit(ulong aID) { }
 
-        private void OnFrustumEnterInternal() => OnFrustumEnter?.Invoke();
-        private void OnFrustumExitInternal() => OnFrustumExit?.Invoke();
+        protected virtual void OnFrustumEnter() { }
+        protected virtual void OnFrustumExit() { }
 
 
         public T AddComponent<T>() where T : Component, new()
@@ -126,7 +118,7 @@ namespace Epoch
             return myComponentCache[componentType] as T;
         }
 
-        public bool TryGetComponent<T>(ref T aOut) where T : Component, new()
+        public bool TryGetComponent<T>(out T aOut) where T : Component, new()
         {
             var component = GetComponent<T>();
             if (component == null)
@@ -166,6 +158,17 @@ namespace Epoch
         public void Destroy(Entity aOther) => Scene.DestroyEntity(aOther);
         public void DestroyAllChildren() => Scene.DestroyAllChildren(this);
 
+
+        public Entity Parent
+        {
+            get
+            {
+                ulong parentID = InternalCalls.Entity_GetParent(id);
+                return parentID == 0 ? null : new Entity(parentID);
+            }
+
+            set => InternalCalls.Entity_SetParent(id, value.id);
+        }
 
         public Entity[] Children => InternalCalls.Entity_GetChildren(id);
 

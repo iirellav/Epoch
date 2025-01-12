@@ -1187,6 +1187,7 @@ namespace Epoch
 				settings.color = trc.color;
 				settings.lineHeightOffset = trc.lineSpacing;
 				settings.letterSpacing = trc.letterSpacing;
+				settings.billboard = trc.billboard;
 				aRenderer->SubmitText(trc.text, font, transform, settings, (uint32_t)entity);
 			}
 		}
@@ -1217,7 +1218,7 @@ namespace Epoch
 					continue;
 				}
 
-				ScriptEngine::CallMethod(sc.managedInstance, "OnFrustumExitInternal");
+				ScriptEngine::CallMethod(sc.managedInstance, "OnFrustumExit");
 			}
 		}
 
@@ -1245,7 +1246,7 @@ namespace Epoch
 					continue;
 				}
 
-				ScriptEngine::CallMethod(sc.managedInstance, "OnFrustumEnterInternal");
+				ScriptEngine::CallMethod(sc.managedInstance, "OnFrustumEnter");
 			}
 		}
 	}

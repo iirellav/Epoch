@@ -6,7 +6,7 @@ namespace Epoch
 {
 	enum class SelectionContext
 	{
-		Entity, Asset
+		Scene, ContentBrowser
 	};
 
 	class SelectionManager

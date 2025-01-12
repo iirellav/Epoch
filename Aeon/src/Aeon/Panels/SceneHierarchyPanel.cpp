@@ -77,11 +77,11 @@ namespace Epoch
 				{
 					if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && !ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
 					{
-						SelectionManager::DeselectAll(SelectionContext::Entity);
+						SelectionManager::DeselectAll(SelectionContext::Scene);
 					}
 					else if (ImGui::IsMouseReleased(ImGuiMouseButton_Right) && !ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
 					{
-						SelectionManager::DeselectAll(SelectionContext::Entity);
+						SelectionManager::DeselectAll(SelectionContext::Scene);
 						staticOpenPopup = true;
 					}
 				}
@@ -128,7 +128,7 @@ namespace Epoch
 		
 		ImGui::Begin(std::format("{}  Properties", EP_ICON_SLIDERS).c_str());
 
-		DrawComponents(SelectionManager::GetSelections(SelectionContext::Entity));
+		DrawComponents(SelectionManager::GetSelections(SelectionContext::Scene));
 
 		ImGui::End();
 	}
@@ -165,7 +165,7 @@ namespace Epoch
 
 	bool SceneHierarchyPanel::IsAnyDescendantSelected(Entity aEntity, bool aFirst)
 	{
-		if (!aFirst && SelectionManager::IsSelected(SelectionContext::Entity, aEntity.GetUUID()))
+		if (!aFirst && SelectionManager::IsSelected(SelectionContext::Scene, aEntity.GetUUID()))
 		{
 			return true;
 		}
@@ -194,9 +194,9 @@ namespace Epoch
 		const bool childMatchesSearch = ChildMatchesSearchRecursively(aEntity, aSearchFilter);
 		if (!childMatchesSearch && !UI::IsMatchingSearch(entityName, aSearchFilter)) return;
 
-		bool isSelected = SelectionManager::IsSelected(SelectionContext::Entity, aEntity.GetUUID());
+		bool isSelected = SelectionManager::IsSelected(SelectionContext::Scene, aEntity.GetUUID());
 
-		ImGuiTreeNodeFlags flags = ((isSelected) ? ImGuiTreeNodeFlags_Selected : 0)/* | ImGuiTreeNodeFlags_SpanAvailWidth*/;
+		ImGuiTreeNodeFlags flags = ((isSelected) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_SpanAvailWidth;
 		aEntity.Children().empty() ? flags |= ImGuiTreeNodeFlags_Leaf : flags |= ImGuiTreeNodeFlags_OpenOnArrow;
 
 		const bool anyDescendantSelected = IsAnyDescendantSelected(aEntity, true);
@@ -286,11 +286,11 @@ namespace Epoch
 			ImGui::PopStyleColor();
 		}
 
-		if (staticRowIndex >= myFirstSelectedRow && staticRowIndex <= myLastSelectedRow && !SelectionManager::IsSelected(SelectionContext::Entity, aEntity.GetUUID()) && myShiftSelectionRunning)
+		if (staticRowIndex >= myFirstSelectedRow && staticRowIndex <= myLastSelectedRow && !SelectionManager::IsSelected(SelectionContext::Scene, aEntity.GetUUID()) && myShiftSelectionRunning)
 		{
-			SelectionManager::Select(SelectionContext::Entity, aEntity.GetUUID());
+			SelectionManager::Select(SelectionContext::Scene, aEntity.GetUUID());
 
-			if (SelectionManager::GetSelectionCount(SelectionContext::Entity) == (myLastSelectedRow - myFirstSelectedRow) + 1)
+			if (SelectionManager::GetSelectionCount(SelectionContext::Scene) == (myLastSelectedRow - myFirstSelectedRow) + 1)
 			{
 				myShiftSelectionRunning = false;
 			}
@@ -304,9 +304,9 @@ namespace Epoch
 			bool shiftDown = ImGui::IsKeyDown(ImGuiKey_LeftShift);
 			if (leftUp || rightUp)
 			{
-				if (shiftDown && SelectionManager::GetSelectionCount(SelectionContext::Entity) > 0)
+				if (shiftDown && SelectionManager::GetSelectionCount(SelectionContext::Scene) > 0)
 				{
-					SelectionManager::DeselectAll(SelectionContext::Entity);
+					SelectionManager::DeselectAll(SelectionContext::Scene);
 
 					if (staticRowIndex < myFirstSelectedRow)
 					{
@@ -322,8 +322,8 @@ namespace Epoch
 				}
 				else if (!ctrlDown || shiftDown)
 				{
-					SelectionManager::DeselectAll(SelectionContext::Entity);
-					SelectionManager::Select(SelectionContext::Entity, aEntity.GetUUID());
+					SelectionManager::DeselectAll(SelectionContext::Scene);
+					SelectionManager::Select(SelectionContext::Scene, aEntity.GetUUID());
 					myFirstSelectedRow = staticRowIndex;
 					myLastSelectedRow = -1;
 				}
@@ -331,11 +331,11 @@ namespace Epoch
 				{
 					if (isSelected)
 					{
-						SelectionManager::Deselect(SelectionContext::Entity, aEntity.GetUUID());
+						SelectionManager::Deselect(SelectionContext::Scene, aEntity.GetUUID());
 					}
 					else
 					{
-						SelectionManager::Select(SelectionContext::Entity, aEntity.GetUUID());
+						SelectionManager::Select(SelectionContext::Scene, aEntity.GetUUID());
 					}
 				}
 
@@ -348,10 +348,10 @@ namespace Epoch
 
 		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
 		{
-			const auto& selectedEntities = SelectionManager::GetSelections(SelectionContext::Entity);
+			const auto& selectedEntities = SelectionManager::GetSelections(SelectionContext::Scene);
 			UUID entityID = aEntity.GetUUID();
 
-			if (!SelectionManager::IsSelected(SelectionContext::Entity, entityID))
+			if (!SelectionManager::IsSelected(SelectionContext::Scene, entityID))
 			{
 				ImGui::Text(aEntity.GetName().c_str());
 				ImGui::SetDragDropPayload("scene_entity_hierarchy", &entityID, 1 * sizeof(UUID));
@@ -1062,53 +1062,24 @@ namespace Epoch
 
 						Entity firstEntity = myContext->GetEntityWithUUID(aEntities[0]);
 
-						bool inCollapsibleHeader = false;
-						bool collapsibleHeaderOpen = false;
-						std::string currentHeaderName = "";
 						for (size_t i = 0; i < aFirstComponent.fieldIDs.size(); i++)
 						{
 							FieldInfo* field = ScriptCache::GetFieldByID(aFirstComponent.fieldIDs[i]);
 							std::shared_ptr<FieldStorageBase> storage = ScriptEngine::GetFieldStorage(firstEntity, field->id);
 
-							bool addSpace = field->spacing > 0;
-
-							if (field->header != currentHeaderName)
-							{
-								UI::EndPropertyGrid();
-								if (addSpace)
-								{
-									UI::Spacing(field->spacing);
-								}
-
-								//if (inCollapsibleHeader && collapsibleHeaderOpen)
-								//{
-								//	ImGui::TreePop();
-								//}
-
-								if (field->header.empty())
-								{
-									inCollapsibleHeader = false;
-									currentHeaderName = "";
-								}
-								else
-								{
-									inCollapsibleHeader = true;
-									currentHeaderName = field->header;
-
-									if (i == 0)
-									{
-										UI::Spacing();
-									}
-
-									collapsibleHeaderOpen = UI::SubHeader(field->header.c_str(), true);
-								}
-
-								UI::BeginPropertyGrid();
-							}
-							else if (addSpace)
+							if (field->spacing > 0)
 							{
 								UI::EndPropertyGrid();
 								UI::Spacing(field->spacing);
+								UI::BeginPropertyGrid();
+							}
+							if (!field->header.empty())
+							{
+								UI::EndPropertyGrid();
+								UI::ShiftCursor(10.0f, 3.0f);
+								UI::Fonts::PushFont("Bold");
+								ImGui::TextUnformatted(field->header.c_str());
+								UI::Fonts::PopFont();
 								UI::BeginPropertyGrid();
 							}
 
@@ -1134,38 +1105,19 @@ namespace Epoch
 								fieldName[0] = toupper(fieldName[0]);
 							}
 
-							if ((inCollapsibleHeader && collapsibleHeaderOpen) || !inCollapsibleHeader)
+							if (field->IsArray())
 							{
-								if (field->IsArray())
-								{
-									UI::EndPropertyGrid();
+								UI::EndPropertyGrid();
 
-									auto arrayFieldStorage = std::dynamic_pointer_cast<ArrayFieldStorage>(storage);
-									UI::DrawFieldArray(myContext, fieldName, arrayFieldStorage, field->tooltip.c_str());
+								auto arrayFieldStorage = std::dynamic_pointer_cast<ArrayFieldStorage>(storage);
+								UI::DrawFieldArray(myContext, fieldName, arrayFieldStorage, field->tooltip.c_str());
 
-									UI::BeginPropertyGrid();
-								}
-								else
-								{
-									auto fieldStorage = std::dynamic_pointer_cast<FieldStorage>(storage);
-									UI::DrawFieldValue(myContext, fieldName, fieldStorage, field->tooltip.c_str());
-								}
+								UI::BeginPropertyGrid();
 							}
-
-							if (inCollapsibleHeader && i == aFirstComponent.fieldIDs.size() - 1)
+							else
 							{
-								inCollapsibleHeader = false;
-								currentHeaderName = "";
-
-								//if (collapsibleHeaderOpen)
-								//{
-								//	ImGui::TreePop();
-								//}
-								//else
-								if (!collapsibleHeaderOpen)
-								{
-									UI::Spacing();
-								}
+								auto fieldStorage = std::dynamic_pointer_cast<FieldStorage>(storage);
+								UI::DrawFieldValue(myContext, fieldName, fieldStorage, field->tooltip.c_str());
 							}
 						}
 
@@ -1441,6 +1393,8 @@ namespace Epoch
 					UI::Property_DragFloat("Letter Spacing", aFirstComponent.letterSpacing, 0.02f);
 					UI::Property_DragFloat("Line Spacing", aFirstComponent.lineSpacing, 0.02f);
 					UI::Property_DragFloat("Line Width", aFirstComponent.maxWidth, 0.05f);
+
+					UI::Property_Checkbox("Billboard", aFirstComponent.billboard);
 
 					UI::EndPropertyGrid();
 				}
@@ -2153,7 +2107,7 @@ namespace Epoch
 
 		bool canAddComponent = false;
 
-		for (const auto& entityID : SelectionManager::GetSelections(SelectionContext::Entity))
+		for (const auto& entityID : SelectionManager::GetSelections(SelectionContext::Scene))
 		{
 			Entity entity = myContext->GetEntityWithUUID(entityID);
 			if (!entity.HasComponent<T>())
@@ -2165,7 +2119,7 @@ namespace Epoch
 
 		if (ImGui::MenuItem(aEntryName.c_str(), 0, false, canAddComponent))
 		{
-			for (const auto& entityID : SelectionManager::GetSelections(SelectionContext::Entity))
+			for (const auto& entityID : SelectionManager::GetSelections(SelectionContext::Scene))
 			{
 				Entity entity = myContext->GetEntityWithUUID(entityID);
 				if (!entity.HasComponent<T>())
@@ -2192,7 +2146,7 @@ namespace Epoch
 	void SceneHierarchyPanel::DisplayAddScriptComponentEntry(const std::string& aSearchFilter)
 	{
 		bool canAddComponent = false;
-		for (const auto& entityID : SelectionManager::GetSelections(SelectionContext::Entity))
+		for (const auto& entityID : SelectionManager::GetSelections(SelectionContext::Scene))
 		{
 			Entity entity = myContext->GetEntityWithUUID(entityID);
 			if (!entity.HasComponent<ScriptComponent>())
@@ -2214,7 +2168,7 @@ namespace Epoch
 
 			if (ImGui::MenuItem(scriptName.c_str(), 0, false, canAddComponent))
 			{
-				for (const auto& entityID : SelectionManager::GetSelections(SelectionContext::Entity))
+				for (const auto& entityID : SelectionManager::GetSelections(SelectionContext::Scene))
 				{
 					Entity entity = myContext->GetEntityWithUUID(entityID);
 					if (!entity.HasComponent<ScriptComponent>())
@@ -2239,8 +2193,8 @@ namespace Epoch
 
 		staticPopupHovered = ImGui::IsWindowHovered();
 
-		bool entitySelected = SelectionManager::GetSelectionCount(SelectionContext::Entity) == 1;
-		Entity selection = entitySelected ? myContext->GetEntityWithUUID(SelectionManager::GetSelections(SelectionContext::Entity)[0]) : Entity();
+		bool entitySelected = SelectionManager::GetSelectionCount(SelectionContext::Scene) == 1;
+		Entity selection = entitySelected ? myContext->GetEntityWithUUID(SelectionManager::GetSelections(SelectionContext::Scene)[0]) : Entity();
 
 		bool entityChilded = entitySelected ? selection.GetParent() : false;
 		bool entityIsPrefab = entitySelected ? selection.HasComponent<PrefabComponent>() : false;
@@ -2252,8 +2206,8 @@ namespace Epoch
 		if (ImGui::MenuItem("Duplicate", 0, false, entitySelected))
 		{
 			Entity duplicate = myContext->DuplicateEntity(selection);
-			SelectionManager::DeselectAll(SelectionContext::Entity);
-			SelectionManager::Select(SelectionContext::Entity, duplicate.GetUUID());
+			SelectionManager::DeselectAll(SelectionContext::Scene);
+			SelectionManager::Select(SelectionContext::Scene, duplicate.GetUUID());
 		}
 
 		if (ImGui::MenuItem("Delete", 0, false, entitySelected))
@@ -2414,8 +2368,8 @@ namespace Epoch
 				createdEntity.Transform().SetTranslation(CU::Vector3f::Zero);
 			}
 
-			SelectionManager::DeselectAll(SelectionContext::Entity);
-			SelectionManager::Select(SelectionContext::Entity, createdEntity.GetUUID());
+			SelectionManager::DeselectAll(SelectionContext::Scene);
+			SelectionManager::Select(SelectionContext::Scene, createdEntity.GetUUID());
 		}
 
 		ImGui::EndMenu();
@@ -2478,8 +2432,8 @@ namespace Epoch
 
 				if (newEntity)
 				{
-					SelectionManager::DeselectAll(SelectionContext::Entity);
-					SelectionManager::Select(SelectionContext::Entity, newEntity.GetUUID());
+					SelectionManager::DeselectAll(SelectionContext::Scene);
+					SelectionManager::Select(SelectionContext::Scene, newEntity.GetUUID());
 				}
 			}
 		}

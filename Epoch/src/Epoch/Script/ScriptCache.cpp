@@ -388,7 +388,7 @@ namespace Epoch
 			method = GetSpecificManagedMethod(&staticCache->classes.at(aManagedClass->parentID), aName, aParameterCount);
 		}
 
-		if (method == nullptr)
+		if (method == nullptr && !aIgnoreParent)
 		{
 			LOG_WARNING_TAG("ScriptEngine", "Failed to find method with name: {} and parameter count: {} in class {}", aName, aParameterCount, aManagedClass->fullName);
 		}

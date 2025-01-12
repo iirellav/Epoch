@@ -22,7 +22,7 @@ namespace Epoch
 
 		ImGui::Begin(INSPECTOR_PANEL_ID, &aIsOpen);
 		
-		size_t selectionCount = SelectionManager::GetSelectionCount(SelectionContext::Asset);
+		size_t selectionCount = SelectionManager::GetSelectionCount(SelectionContext::ContentBrowser);
 		if (selectionCount > 1)
 		{
 			ImGui::Text(std::format("Inspecting multiple assets at once isn't supported.").c_str());
@@ -33,7 +33,7 @@ namespace Epoch
 		}
 		else if (selectionCount == 1)
 		{
-			const UUID id = SelectionManager::GetSelections(SelectionContext::Asset)[0];
+			const UUID id = SelectionManager::GetSelections(SelectionContext::ContentBrowser)[0];
 			const AssetType type = Project::GetEditorAssetManager()->GetAssetType(id);
 			if (myDrawFunctions.find(type) != myDrawFunctions.end())
 			{

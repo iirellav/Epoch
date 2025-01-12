@@ -19,6 +19,8 @@ namespace Epoch
 		CU::Vector3f editorCameraPosition;
 		CU::Vector3f editorCameraRotation;
 
+		AssetHandle runtimeStartScene;
+
 		std::filesystem::path autosaveDirectory = "Autosaves";
 
 		std::filesystem::path assetDirectory = "Assets";

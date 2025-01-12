@@ -139,10 +139,9 @@ namespace Epoch
 			specs.clearColor = CU::Color::Zero;
 
 			specs.attachments = {
-			{ TextureFormat::RGBA,			"Albedo" },
+			{ TextureFormat::R11G11B10F,	"Albedo" },
 			{ TextureFormat::RGBA,			"Material" },
 			{ TextureFormat::RG16F,			"Normal" },
-			{ TextureFormat::R11G11B10F,	"Emission" },
 			{ TextureFormat::RGBA32F,		"WorldPosition" },
 			{ TextureFormat::R32UI,			"EntityID" },
 			{ TextureFormat::DEPTH32,		"Depth" } };
@@ -221,7 +220,7 @@ namespace Epoch
 
 			FramebufferSpecification specs;
 			specs.existingAttachments.push_back(myUberPipeline->GetSpecification().targetFramebuffer->GetTarget());
-			specs.existingAttachments.push_back(myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(5));
+			specs.existingAttachments.push_back(myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(4));
 			specs.existingDepthAttachment = myGBufferPipeline->GetSpecification().targetFramebuffer->GetDepthAttachment();
 			specs.clearColorOnLoad = false;
 			specs.clearDepthOnLoad = false;
@@ -247,7 +246,7 @@ namespace Epoch
 
 			FramebufferSpecification specs;
 			specs.existingAttachments.push_back(myUberPipeline->GetSpecification().targetFramebuffer->GetTarget());
-			specs.existingAttachments.push_back(myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(5));
+			specs.existingAttachments.push_back(myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(4));
 			specs.existingDepthAttachment = myGBufferPipeline->GetSpecification().targetFramebuffer->GetDepthAttachment();
 			specs.clearColorOnLoad = false;
 			specs.clearDepthOnLoad = false;
@@ -279,7 +278,7 @@ namespace Epoch
 		{
 			FramebufferSpecification specs;
 			specs.existingAttachments.push_back(myUberPipeline->GetSpecification().targetFramebuffer->GetTarget());
-			specs.existingAttachments.push_back(myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(5));
+			specs.existingAttachments.push_back(myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(4));
 			specs.existingDepthAttachment = myGBufferPipeline->GetSpecification().targetFramebuffer->GetDepthAttachment();
 			specs.clearColorOnLoad = false;
 			specs.clearDepthOnLoad = false;
@@ -596,7 +595,7 @@ namespace Epoch
 					auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
 					SRVs[0] = dxTexture->GetSRV().Get();
 					
-					texture = myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(4);
+					texture = myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(3);
 					dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
 					SRVs[1] = dxTexture->GetSRV().Get();
 
@@ -1043,36 +1042,79 @@ namespace Epoch
 
 				if (character != ' ')
 				{
+					if (aSettings.billboard)
 					{
-						TextVertex& vertex = vertexList.emplace_back();
-						vertex.position = aTransform * CU::Vector4f((float)pl * 100.0f, (float)pb * 100.0f, 0.0f, 1.0f);
-						vertex.tint = aSettings.color.GetVector4();
-						vertex.uv = { (float)l, (float)b };
-						vertex.entityID = aEntityID;
-					}
+						const CU::Vector3f camRightWS = mySceneData.sceneCamera.transform.GetRight();
+						const CU::Vector3f camUpWS = mySceneData.sceneCamera.transform.GetUp();
 
-					{
-						TextVertex& vertex = vertexList.emplace_back();
-						vertex.position = aTransform * CU::Vector4f((float)pl * 100.0f, (float)pt * 100.0f, 0.0f, 1.0f);
-						vertex.tint = aSettings.color.GetVector4();
-						vertex.uv = { (float)l, (float)t };
-						vertex.entityID = aEntityID;
-					}
+						const CU::Vector3f position = aTransform.GetTranslation();
+						const CU::Vector3f scale = aTransform.GetScale();
 
-					{
-						TextVertex& vertex = vertexList.emplace_back();
-						vertex.position = aTransform * CU::Vector4f((float)pr * 100.0f, (float)pt * 100.0f, 0.0f, 1.0f);
-						vertex.tint = aSettings.color.GetVector4();
-						vertex.uv = { (float)r, (float)t };
-						vertex.entityID = aEntityID;
-					}
+						{
+							TextVertex& vertex = vertexList.emplace_back();
+							vertex.position = position + camRightWS * ((float)pl * 100.0f) * scale.x + camUpWS * ((float)pb * 100.0f) * scale.y;
+							vertex.tint = aSettings.color.GetVector4();
+							vertex.uv = { (float)l, (float)b };
+							vertex.entityID = aEntityID;
+						}
 
+						{
+							TextVertex& vertex = vertexList.emplace_back();
+							vertex.position = position + camRightWS * ((float)pl * 100.0f) * scale.x + camUpWS * ((float)pt * 100.0f) * scale.y;
+							vertex.tint = aSettings.color.GetVector4();
+							vertex.uv = { (float)l, (float)t };
+							vertex.entityID = aEntityID;
+						}
+
+						{
+							TextVertex& vertex = vertexList.emplace_back();
+							vertex.position = position + camRightWS * ((float)pr * 100.0f) * scale.x + camUpWS * ((float)pt * 100.0f) * scale.y;
+							vertex.tint = aSettings.color.GetVector4();
+							vertex.uv = { (float)r, (float)t };
+							vertex.entityID = aEntityID;
+						}
+
+						{
+							TextVertex& vertex = vertexList.emplace_back();
+							vertex.position = position + camRightWS * ((float)pr * 100.0f) * scale.x + camUpWS * ((float)pb * 100.0f) * scale.y;
+							vertex.tint = aSettings.color.GetVector4();
+							vertex.uv = { (float)r, (float)b };
+							vertex.entityID = aEntityID;
+						}
+					}
+					else
 					{
-						TextVertex& vertex = vertexList.emplace_back();
-						vertex.position = aTransform * CU::Vector4f((float)pr * 100.0f, (float)pb * 100.0f, 0.0f, 1.0f);
-						vertex.tint = aSettings.color.GetVector4();
-						vertex.uv = { (float)r, (float)b };
-						vertex.entityID = aEntityID;
+						{
+							TextVertex& vertex = vertexList.emplace_back();
+							vertex.position = aTransform * CU::Vector4f((float)pl * 100.0f, (float)pb * 100.0f, 0.0f, 1.0f);
+							vertex.tint = aSettings.color.GetVector4();
+							vertex.uv = { (float)l, (float)b };
+							vertex.entityID = aEntityID;
+						}
+
+						{
+							TextVertex& vertex = vertexList.emplace_back();
+							vertex.position = aTransform * CU::Vector4f((float)pl * 100.0f, (float)pt * 100.0f, 0.0f, 1.0f);
+							vertex.tint = aSettings.color.GetVector4();
+							vertex.uv = { (float)l, (float)t };
+							vertex.entityID = aEntityID;
+						}
+
+						{
+							TextVertex& vertex = vertexList.emplace_back();
+							vertex.position = aTransform * CU::Vector4f((float)pr * 100.0f, (float)pt * 100.0f, 0.0f, 1.0f);
+							vertex.tint = aSettings.color.GetVector4();
+							vertex.uv = { (float)r, (float)t };
+							vertex.entityID = aEntityID;
+						}
+
+						{
+							TextVertex& vertex = vertexList.emplace_back();
+							vertex.position = aTransform * CU::Vector4f((float)pr * 100.0f, (float)pb * 100.0f, 0.0f, 1.0f);
+							vertex.tint = aSettings.color.GetVector4();
+							vertex.uv = { (float)r, (float)b };
+							vertex.entityID = aEntityID;
+						}
 					}
 
 					++myTextQuadCount;
@@ -1101,7 +1143,7 @@ namespace Epoch
 	{
 		if (myDrawMode == DrawMode::Shaded)
 		{
-			return myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(5);
+			return myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(4);
 		}
 		else
 		{

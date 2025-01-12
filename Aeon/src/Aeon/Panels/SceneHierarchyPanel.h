@@ -52,7 +52,7 @@ namespace Epoch
 		{
 			uint32_t axes = 0;
 
-			const auto& entities = SelectionManager::GetSelections(SelectionContext::Entity);
+			const auto& entities = SelectionManager::GetSelections(SelectionContext::Scene);
 
 			if (entities.size() < 2) return 0;
 
@@ -131,7 +131,7 @@ namespace Epoch
 		template<typename TPrimitive, typename TComponent, typename GetOtherFunc>
 		bool IsInconsistentPrimitive(GetOtherFunc aFunc)
 		{
-			const auto& entities = SelectionManager::GetSelections(SelectionContext::Entity);
+			const auto& entities = SelectionManager::GetSelections(SelectionContext::Scene);
 
 			if (entities.size() < 2) return false;
 
@@ -157,7 +157,7 @@ namespace Epoch
 			std::string name = aName;
 
 			bool shouldDraw = true;
-			auto& entities = SelectionManager::GetSelections(SelectionContext::Entity);
+			auto& entities = SelectionManager::GetSelections(SelectionContext::Scene);
 			for (const auto& entityID : entities)
 			{
 				Entity entity = myContext->GetEntityWithUUID(entityID);
@@ -230,7 +230,7 @@ namespace Epoch
 			{
 				ImGui::OpenPopup("ComponentSettings");
 			}
-			UI::Draw::DrawImage(EditorResources::VerticalEllipsisIcon,
+			UI::Draw::Image(EditorResources::VerticalEllipsisIcon,
 				IM_COL32(255, 255, 255, 200), IM_COL32(255, 255, 255, 255), IM_COL32(255, 255, 255, 150),
 				UI::RectExpanded(UI::GetItemRect(), -5.0f, -5.0f));
 
@@ -245,7 +245,7 @@ namespace Epoch
 
 				if (ImGui::MenuItem("Paste"))
 				{
-					for (auto entityID : SelectionManager::GetSelections(SelectionContext::Entity))
+					for (auto entityID : SelectionManager::GetSelections(SelectionContext::Scene))
 					{
 						Entity selectedEntity = myContext->GetEntityWithUUID(entityID);
 						Scene::CopyComponentFromScene<TComponent>(myComponentCopyScene, myComponentCopyEntity, myContext, selectedEntity);
@@ -276,7 +276,7 @@ namespace Epoch
 
 			if (resetComponent)
 			{
-				for (auto entityID : SelectionManager::GetSelections(SelectionContext::Entity))
+				for (auto entityID : SelectionManager::GetSelections(SelectionContext::Scene))
 				{
 					Entity entity = myContext->GetEntityWithUUID(entityID);
 					if (entity.HasComponent<TComponent>())
@@ -289,7 +289,7 @@ namespace Epoch
 
 			if (removeComponent)
 			{
-				for (auto entityID : SelectionManager::GetSelections(SelectionContext::Entity))
+				for (auto entityID : SelectionManager::GetSelections(SelectionContext::Scene))
 				{
 					Entity entity = myContext->GetEntityWithUUID(entityID);
 					if (entity.HasComponent<TComponent>())

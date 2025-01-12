@@ -1,67 +1,28 @@
-﻿namespace Epoch
+﻿using System;
+
+namespace Epoch
 {
     public static class Random
     {
         private static ulong[] staticState;
+        private static System.Random staticRand;
 
         private const double INCR_DOUBLE = 1.0 / (1UL << 53);
         private const float INCR_FLOAT = 1f / (1U << 24);
 
         static Random()
         {
-            ulong seed = 123456UL;
-            staticState = XOrShift256_init(seed);
+            staticRand = new System.Random();
         }
 
-        private static ulong SplitMix64(ulong state)
+        public static int UInt32()
         {
-            state += 0x9E3779B97f4A7C15;
-            state = (state ^ (state >> 30)) * 0xBF58476D1CE4E5B9;
-            state = (state ^ (state >> 27)) * 0x94D049BB133111EB;
-            return state ^ (state >> 31);
-        }
-
-        private static ulong[] XOrShift256_init(ulong seed)
-        {
-            ulong[] result = new ulong[4];
-            result[0] = SplitMix64(seed);
-            result[1] = SplitMix64(result[0]);
-            result[2] = SplitMix64(result[2]);
-            result[3] = SplitMix64(result[3]);
-            return result;
-        }
-
-        private static ulong Rol64(ulong x, int k)
-        {
-            return (x << k) | (x >> (64 - k));
-        }
-
-        private static ulong Xoshiro256p()
-        {
-            ulong[] state = staticState;
-
-            ulong result = Rol64(state[1] * 5, 7) * 9;
-            ulong t = state[1] << 17;
-
-            state[2] ^= state[0];
-            state[3] ^= state[1];
-            state[1] ^= state[2];
-            state[0] ^= state[3];
-
-            state[2] ^= t;
-            state[3] = Rol64(state[3], 45);
-
-            return result;
-        }
-
-        public static ulong UInt64()
-        {
-            return Xoshiro256p();
+            return staticRand.Next();
         }
 
         public static float Float()
         {
-            return (UInt64() >> 40) * INCR_FLOAT;
+            return (UInt32() >> 40) * INCR_FLOAT;
         }
 
         public static Vector3 Vec3()
@@ -71,12 +32,12 @@
 
         public static double Double()
         {
-            return (UInt64() >> 11) * INCR_DOUBLE;
+            return (UInt32() >> 11) * INCR_DOUBLE;
         }
 
         public static float SignF()
         {
-            return UInt64() % 2 == 0 ? 1.0f : -1.0f;
+            return UInt32() % 2 == 0 ? 1.0f : -1.0f;
         }
 
         public static float Range(float minValue, float maxValue)
@@ -86,7 +47,7 @@
 
         public static int Range(int minValue, int maxValue)
         {
-            return ((int)(UInt64()>>33) % (maxValue - minValue)) + minValue;
+            return ((int)(UInt32()>>33) % (maxValue - minValue)) + minValue;
         }
     }
 }

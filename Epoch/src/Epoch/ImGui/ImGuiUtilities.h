@@ -136,6 +136,17 @@ namespace Epoch::UI
 	}
 
 
+	inline void SetTooltip(std::string_view aText, bool aAllowWhenDisabled = true, ImVec2 aPadding = ImVec2(5, 5))
+	{
+		if (ImGui::IsItemHovered(aAllowWhenDisabled ? ImGuiHoveredFlags_AllowWhenDisabled : 0))
+		{
+			UI::ScopedStyle tooltipPadding(ImGuiStyleVar_WindowPadding, aPadding);
+			//UI::ScopedColor textCol(ImGuiCol_Text, Colors::Theme::textBrighter);
+			ImGui::SetTooltip(aText.data());
+		}
+	}
+
+	
 	namespace Draw
 	{
 		inline void Underline(bool aFullWidth = true, float aOffsetX = 0.0f, float aOffsetY = -1.0f)
@@ -174,7 +185,12 @@ namespace Epoch::UI
 			}
 		}
 
-		inline void DrawImage(const std::shared_ptr<Texture2D>& aImage,
+		inline void Image(const std::shared_ptr<Texture2D>& aImage, const ImVec2& aSize)
+		{
+			ImGui::Image((ImTextureID)aImage->GetView(), aSize);
+		}
+
+		inline void Image(const std::shared_ptr<Texture2D>& aImage,
 			ImU32 aTintNormal, ImU32 aTintHovered, ImU32 aTintPressed,
 			ImRect aRect)
 		{

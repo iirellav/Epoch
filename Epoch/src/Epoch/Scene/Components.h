@@ -221,6 +221,8 @@ namespace Epoch
 		float lineSpacing = 0.0f;
 		float maxWidth = 10.0f;
 
+		bool billboard = false;
+
 		TextRendererComponent() = default;
 		TextRendererComponent(const TextRendererComponent&) = default;
 	};

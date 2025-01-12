@@ -93,10 +93,10 @@ namespace Epoch
 				return;
 			}
 			
-			ManagedMethod* method = ScriptCache::GetSpecificManagedMethod(managedClass, aMethodName, argsCount);
+			ManagedMethod* method = ScriptCache::GetSpecificManagedMethod(managedClass, aMethodName, argsCount, true);
 			if (method == nullptr)
 			{
-				LOG_ERROR_TAG("ScriptEngine", "Failed to find a C# method called {} with {} parameters", aMethodName, argsCount);
+				//LOG_ERROR_TAG("ScriptEngine", "Failed to find a C# method called {} with {} parameters", aMethodName, argsCount);
 				return;
 			}
 			
