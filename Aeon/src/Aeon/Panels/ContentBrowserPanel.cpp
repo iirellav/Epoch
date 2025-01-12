@@ -80,7 +80,7 @@ namespace Epoch
 			UI::PushID();
 			if (ImGui::BeginTable("ContentBrowser_Table", 2, tableFlags, ImVec2(0.0f, 0.0f)))
 			{
-				ImGui::TableSetupColumn("Outliner", 0, 300.0f);
+				ImGui::TableSetupColumn("Outliner", 0, 200.0f);
 				ImGui::TableSetupColumn("Directory", ImGuiTableColumnFlags_WidthStretch);
 
 				ImGui::TableNextRow();
