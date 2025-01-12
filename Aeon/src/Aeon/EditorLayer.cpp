@@ -57,6 +57,9 @@ namespace Epoch
 		EditorSettingsSerializer::Init();
 		EditorResources::Init();
 
+		JobSystem& js = Application::Get().GetJobSystem();
+		js.WaitUntilDone();
+
 		//Set double clicked highlight callbacks
 		//UI::OnAssetReferenceDoubleClickedCallback = [](AssetHandle aAssetHandle)
 		//	{
@@ -151,9 +154,6 @@ namespace Epoch
 
 		GradientEditor::Get().Init();
 
-		JobSystem& js = Application::Get().GetJobSystem();
-		js.WaitUntilDone();
-
 		// All icons needs to be loaded as the scene renderer needs to be able to create frame buffers (without stalling)
 		mySceneRenderer = std::make_shared<SceneRenderer>();
 		myDebugRenderer = std::make_shared<DebugRenderer>();
@@ -162,9 +162,6 @@ namespace Epoch
 
 		statisticsPanel->SetSceneRenderer(mySceneRenderer);
 		statisticsPanel->SetDebugRenderer(myDebugRenderer);
-
-		// All icons needs to be loaded so that the content browser can map file extensions to one of them
-		contentBrowserPanel->Init();
 	}
 
 	void EditorLayer::OnDetach()

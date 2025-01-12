@@ -24,7 +24,8 @@ namespace Epoch
 		inline static std::shared_ptr<Texture2D> StepButton = nullptr;
 
 		// Content browser
-		inline static std::shared_ptr<Texture2D> DirectoryIcon = nullptr;
+		inline static std::shared_ptr<Texture2D> ClosedFolderIcon = nullptr;
+		inline static std::shared_ptr<Texture2D> OpenFolderIcon = nullptr;
 		inline static std::shared_ptr<Texture2D> ModelIcon = nullptr;
 		inline static std::shared_ptr<Texture2D> TextureIcon = nullptr;
 		inline static std::shared_ptr<Texture2D> VideoIcon = nullptr;
@@ -72,7 +73,8 @@ namespace Epoch
 			js.AddAJob(NewLoadTexture, &StepButton,					"Toolbar/StepButton.png");
 
 			// Content browser
-			js.AddAJob(NewLoadTexture, &DirectoryIcon,				"ContentBrowser/DirectoryIcon.png");
+			js.AddAJob(NewLoadTexture, &ClosedFolderIcon,			"ContentBrowser/DirectoryIcon.png");
+			js.AddAJob(NewLoadTexture, &OpenFolderIcon,				"ContentBrowser/DirectoryIcon.png");
 			js.AddAJob(NewLoadTexture, &ModelIcon,					"ContentBrowser/ModelIcon.png");
 			js.AddAJob(NewLoadTexture, &TextureIcon,				"ContentBrowser/TextureIcon.png");
 			js.AddAJob(NewLoadTexture, &VideoIcon,					"ContentBrowser/VideoIcon.png");

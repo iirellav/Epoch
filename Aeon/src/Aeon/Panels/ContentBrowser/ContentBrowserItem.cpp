@@ -1,9 +1,11 @@
 #include "ContentBrowserItem.h"
 #include <CommonUtilities/StringUtils.h>
 #include <Epoch/ImGui/ImGui.h>
+#include <Epoch/Core/Input.h>
 #include <Epoch/Editor/EditorSettings.h>
 #include <Epoch/Editor/SelectionManager.h>
 #include "Aeon/EditorResources.h"
+#include "Aeon/Panels/ContentBrowserPanel.h"
 
 namespace Epoch
 {
@@ -26,10 +28,188 @@ namespace Epoch
 		ImGui::BeginGroup();
 	}
 
-	//TODO: Implement
 	CBItemActionResult ContentBrowserItem::OnRender()
 	{
-		return CBItemActionResult();
+		CBItemActionResult result;
+
+		const float thumbnailSize = EditorSettings::Get().contentBrowserThumbnailSize;
+
+		SetDisplayNameFromFileName();
+
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
+
+		const float edgeOffset = 4.0f;
+
+		const float textLineHeight = ImGui::GetTextLineHeightWithSpacing() * 2.0f + edgeOffset * 2.0f;
+		const float infoPanelHeight = textLineHeight;
+
+		const ImVec2 topLeft = ImGui::GetCursorScreenPos();
+		const ImVec2 thumbBottomRight = { topLeft.x + thumbnailSize, topLeft.y + thumbnailSize };
+		const ImVec2 infoTopLeft =		{ topLeft.x,				 topLeft.y + thumbnailSize };
+		const ImVec2 bottomRight =		{ topLeft.x + thumbnailSize, topLeft.y + thumbnailSize + infoPanelHeight };
+
+		const bool isFocused = ImGui::IsWindowFocused();
+
+		const bool isSelected = SelectionManager::IsSelected(SelectionContext::ContentBrowser, myID);
+
+		// Thumbnail
+		auto icon = myIcon ? myIcon : EditorResources::OtherIcon;
+		ImGui::InvisibleButton("##thumbnailButton", ImVec2{ thumbnailSize, thumbnailSize });
+		UI::Draw::Image(icon,
+			IM_COL32(255, 255, 255, 225),
+			IM_COL32(255, 255, 255, 255),
+			IM_COL32(255, 255, 255, 255),
+			UI::RectExpanded(UI::GetItemRect(), -6.0f, -6.0f));
+
+		auto renamingWidget = [&]()
+			{
+				ImGui::SetKeyboardFocusHere();
+				ImGui::InputText("##rename", s_RenameBuffer, MAX_INPUT_BUFFER_LENGTH);
+
+				if (ImGui::IsItemDeactivatedAfterEdit() || Input::IsKeyPressed(KeyCode::Enter))
+				{
+					Rename(s_RenameBuffer);
+					myIsRenaming = false;
+					SetDisplayNameFromFileName();
+					result.Set(ContentBrowserAction::Renamed, true);
+				}
+				else if (Input::IsKeyPressed(KeyCode::Escape))
+				{
+					myIsRenaming = false;
+				}
+			};
+
+		const float textWidth = std::min(ImGui::CalcTextSize(myDisplayName.c_str()).x, thumbnailSize);
+		{
+			if (myIsRenaming)
+			{
+				//UI::ShiftCursorX(thumbnailSize * 0.5f - textWidth * 0.5f);
+				ImGui::SetNextItemWidth(thumbnailSize);
+				renamingWidget();
+			}
+			else
+			{
+				const bool isSelected = SelectionManager::IsSelected(SelectionContext::ContentBrowser, myID);
+				UI::ShiftCursorX(thumbnailSize * 0.5f - textWidth * 0.5f);
+				ImGui::SetNextItemWidth(textWidth);
+
+				if (isSelected) ImGui::PushStyleColor(ImGuiCol_Text, Colors::Theme::blue);
+				ImGui::Text(myDisplayName.c_str());
+				if (isSelected) ImGui::PopStyleColor();
+
+				if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+				{
+					result.Set(ContentBrowserAction::Hovered, true);
+					result.Set(ContentBrowserAction::ClearSelections, true);
+					result.Set(ContentBrowserAction::Selected, true);
+					result.Set(ContentBrowserAction::StartRenaming, true);
+				}
+			}
+		}
+
+		if (!myIsRenaming)
+		{
+			if (Input::IsKeyPressed(KeyCode::F2) && isSelected && isFocused)
+			{
+				result.Set(ContentBrowserAction::Hovered, true);
+				result.Set(ContentBrowserAction::ClearSelections, true);
+				result.Set(ContentBrowserAction::Selected, true);
+				result.Set(ContentBrowserAction::StartRenaming, true);
+			}
+		}
+
+		ImGui::PopStyleVar(); // ItemSpacing
+
+		// End of the Item Group
+		ImGui::EndGroup();
+
+		UpdateDrop(result);
+
+		bool dragging = false;
+		if (dragging = ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID | ImGuiDragDropFlags_AcceptNoDrawDefaultRect))
+		{
+			myIsDragging = true;
+
+			const auto& selectionStack = SelectionManager::GetSelections(SelectionContext::ContentBrowser);
+			if (!SelectionManager::IsSelected(SelectionContext::ContentBrowser, myID))
+			{
+				result.Set(ContentBrowserAction::ClearSelections, true);
+			}
+
+			auto& currentItems = ContentBrowserPanel::Get().GetCurrentItems();
+
+			if (!selectionStack.empty())
+			{
+				ImGui::SetDragDropPayload("asset_payload", selectionStack.data(), sizeof(AssetHandle) * selectionStack.size());
+			}
+
+			result.Set(ContentBrowserAction::Selected, true);
+			ImGui::EndDragDropSource();
+		}
+
+		if (ImGui::IsItemHovered())
+		{
+			result.Set(ContentBrowserAction::Hovered, true);
+
+			if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && !myIsRenaming)
+			{
+				result.Set(ContentBrowserAction::Activated, true);
+			}
+			else
+			{
+				bool action = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+				const bool isSelected = SelectionManager::IsSelected(SelectionContext::ContentBrowser, myID);
+				bool skipBecauseDragging = myIsDragging && isSelected;
+				if (action && !skipBecauseDragging)
+				{
+					if (myJustSelected)
+					{
+						myJustSelected = false;
+					}
+
+					if (isSelected && Input::IsKeyHeld(KeyCode::LeftControl) && !myJustSelected)
+					{
+						result.Set(ContentBrowserAction::Deselected, true);
+					}
+
+					if (!isSelected)
+					{
+						result.Set(ContentBrowserAction::Selected, true);
+						myJustSelected = true;
+					}
+
+					if (!Input::IsKeyHeld(KeyCode::LeftControl) && !Input::IsKeyHeld(KeyCode::LeftShift) && myJustSelected)
+					{
+						result.Set(ContentBrowserAction::ClearSelections, true);
+					}
+
+					if (Input::IsKeyHeld(KeyCode::LeftShift))
+					{
+						result.Set(ContentBrowserAction::SelectToHere, true);
+					}
+				}
+			}
+		}
+
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.0f, 4.0f));
+		if (ImGui::BeginPopupContextItem("CBItemContextMenu"))
+		{
+			result.Set(ContentBrowserAction::Selected, true);
+
+			OnContextMenuOpen(result);
+
+			if (result.IsSet(ContentBrowserAction::StartRenaming))
+			{
+				result.Set(ContentBrowserAction::ClearSelections, true);
+			}
+
+			ImGui::EndPopup();
+		}
+		ImGui::PopStyleVar();
+
+		myIsDragging = dragging;
+
+		return result;
 	}
 
 	void ContentBrowserItem::OnRenderEnd()
@@ -64,14 +244,13 @@ namespace Epoch
 
 	void ContentBrowserItem::SetDisplayNameFromFileName()
 	{
-		const auto& editorSettings = EditorSettings::Get();
-		const float thumbnailSize = editorSettings.contentBrowserThumbnailSize;
+		const float thumbnailSize = EditorSettings::Get().contentBrowserThumbnailSize;
 
 		int maxCharacters = (int)(0.00152587f * (thumbnailSize * thumbnailSize)); // 0.00152587f is a magic number that is gained from graphing this equation in desmos and setting the y=25 at x=128
 
 		if (myFileName.size() > maxCharacters)
 		{
-			myDisplayName = myFileName.substr(0, maxCharacters) + " ...";
+			myDisplayName = myFileName.substr(0, maxCharacters - 3) + "...";
 		}
 		else
 		{
@@ -82,32 +261,46 @@ namespace Epoch
 	void ContentBrowserItem::OnContextMenuOpen(CBItemActionResult& aActionResult)
 	{
 		if (ImGui::MenuItem("Reload"))
+		{
 			aActionResult.Set(ContentBrowserAction::Reload, true);
+		}
 
-		if (ImGui::MenuItem("Rename"), 0, false, SelectionManager::GetSelectionCount(SelectionContext::ContentBrowser) == 1)
+		if (ImGui::MenuItem("Rename", 0, false, SelectionManager::GetSelectionCount(SelectionContext::ContentBrowser) == 1))
+		{
 			aActionResult.Set(ContentBrowserAction::StartRenaming, true);
+		}
 
 		if (ImGui::MenuItem("Copy", "Ctrl+C"))
+		{
 			aActionResult.Set(ContentBrowserAction::Copy, true);
+		}
 
 		if (ImGui::MenuItem("Duplicate"))
+		{
 			aActionResult.Set(ContentBrowserAction::Duplicate, true);
+		}
 
 		if (ImGui::MenuItem("Delete", "Ctrl+D"))
+		{
 			aActionResult.Set(ContentBrowserAction::OpenDeleteDialogue, true);
+		}
 
 		ImGui::Separator();
 
 		if (ImGui::MenuItem("Show In Explorer"))
+		{
 			aActionResult.Set(ContentBrowserAction::ShowInExplorer, true);
+		}
 
 		if (ImGui::MenuItem("Open Externally"))
+		{
 			aActionResult.Set(ContentBrowserAction::OpenExternal, true);
+		}
 	}
 
 	//ContentBrowserDirectory
 	ContentBrowserDirectory::ContentBrowserDirectory(const std::shared_ptr<DirectoryInfo>& aDirectoryInfo) :
-		ContentBrowserItem(ContentBrowserItem::ItemType::Directory, aDirectoryInfo->handle, aDirectoryInfo->filePath.filename().string(), EditorResources::DirectoryIcon), myDirectoryInfo(aDirectoryInfo) {}
+		ContentBrowserItem(ContentBrowserItem::ItemType::Directory, aDirectoryInfo->handle, aDirectoryInfo->filePath.filename().string(), EditorResources::ClosedFolderIcon), myDirectoryInfo(aDirectoryInfo) {}
 
 	void ContentBrowserDirectory::Delete()
 	{
@@ -153,61 +346,59 @@ namespace Epoch
 		}
 	}
 
-	//TODO: Implement
 	void ContentBrowserDirectory::UpdateDrop(CBItemActionResult& aActionResult)
 	{
-		//if (SelectionManager::IsSelected(SelectionContext::Asset, m_ID))
-		//{
-		//	return;
-		//}
-		//
-		//if (ImGui::BeginDragDropTarget())
-		//{
-		//	const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("asset_payload");
-		//
-		//	if (payload)
-		//	{
-		//		auto& currentItems = ContentBrowserPanel::Get().GetCurrentItems();
-		//		uint32_t count = payload->DataSize / sizeof(AssetHandle);
-		//
-		//		for (uint32_t i = 0; i < count; i++)
-		//		{
-		//			AssetHandle assetHandle = *(((AssetHandle*)payload->Data) + i);
-		//			size_t index = currentItems.FindItem(assetHandle);
-		//			if (index != ContentBrowserItemList::InvalidItem)
-		//			{
-		//				if (currentItems[index]->Move(m_DirectoryInfo->FilePath))
-		//				{
-		//					aActionResult.Set(ContentBrowserAction::Refresh, true);
-		//					currentItems.erase(assetHandle);
-		//				}
-		//			}
-		//		}
-		//	}
-		//
-		//	ImGui::EndDragDropTarget();
-		//}
+		if (SelectionManager::IsSelected(SelectionContext::ContentBrowser, myID))
+		{
+			return;
+		}
+		
+		if (ImGui::BeginDragDropTarget())
+		{
+			const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("asset_payload");
+		
+			if (payload)
+			{
+				auto& currentItems = ContentBrowserPanel::Get().GetCurrentItems();
+				uint32_t count = payload->DataSize / sizeof(AssetHandle);
+		
+				for (uint32_t i = 0; i < count; i++)
+				{
+					AssetHandle assetHandle = *(((AssetHandle*)payload->Data) + i);
+					size_t index = currentItems.FindItem(assetHandle);
+					if (index != ContentBrowserItemList::InvalidItem)
+					{
+						if (currentItems[index]->Move(myDirectoryInfo->filePath))
+						{
+							aActionResult.Set(ContentBrowserAction::Refresh, true);
+							currentItems.Erase(assetHandle);
+						}
+					}
+				}
+			}
+		
+			ImGui::EndDragDropTarget();
+		}
 	}
 
 	//ContentBrowserAsset
 	ContentBrowserAsset::ContentBrowserAsset(const AssetMetadata& aAssetInfo, const std::shared_ptr<Texture2D>& aIcon) :
 		ContentBrowserItem(ContentBrowserItem::ItemType::Asset, aAssetInfo.handle, aAssetInfo.filePath.stem().string(), aIcon), myAssetInfo(aAssetInfo) {}
 
-	//TODO: Implement
 	void ContentBrowserAsset::Delete()
 	{
-		//auto filepath = Project::GetEditorAssetManager()->GetFileSystemPath(m_AssetInfo);
-		//bool deleted = FileSystem::DeleteFile(filepath);
-		//if (!deleted)
-		//{
-		//	LOG_ERROR("Couldn't delete {}", m_AssetInfo.filePath);
-		//	return;
-		//}
-		//
-		//auto currentDirectory = ContentBrowserPanel::Get().GetDirectory(m_AssetInfo.filePath.parent_path());
-		//currentDirectory->Assets.erase(std::remove(currentDirectory->Assets.begin(), currentDirectory->Assets.end(), m_AssetInfo.handle), currentDirectory->Assets.end());
-		//
-		//Project::GetEditorAssetManager()->OnAssetDeleted(m_AssetInfo.handle);
+		auto filepath = Project::GetEditorAssetManager()->GetFileSystemPath(myAssetInfo);
+		bool deleted = FileSystem::DeleteFile(filepath);
+		if (!deleted)
+		{
+			LOG_ERROR("Couldn't delete {}", myAssetInfo.filePath);
+			return;
+		}
+		
+		auto currentDirectory = ContentBrowserPanel::Get().GetDirectory(myAssetInfo.filePath.parent_path());
+		currentDirectory->assets.erase(std::remove(currentDirectory->assets.begin(), currentDirectory->assets.end(), myAssetInfo.handle), currentDirectory->assets.end());
+		
+		Project::GetEditorAssetManager()->OnAssetDeleted(myAssetInfo.handle);
 	}
 
 	bool ContentBrowserAsset::Move(const std::filesystem::path& aDestination)

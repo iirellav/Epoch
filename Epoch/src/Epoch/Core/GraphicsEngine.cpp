@@ -4,7 +4,7 @@
 
 namespace Epoch
 {
-#ifdef _DIST
+#ifndef _DEBUG
 	constexpr bool dxDebug = false;
 #else
 	constexpr bool dxDebug = true;

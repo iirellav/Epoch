@@ -185,7 +185,7 @@ namespace Epoch::UI
 			}
 		}
 
-		inline void DrawImage(const std::shared_ptr<Texture2D>& aImage,
+		inline void Image(const std::shared_ptr<Texture2D>& aImage,
 			ImU32 aTintNormal, ImU32 aTintHovered, ImU32 aTintPressed,
 			ImRect aRect)
 		{

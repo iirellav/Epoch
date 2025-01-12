@@ -45,7 +45,7 @@ namespace Epoch
 			items.clear();
 		}
 
-		void erase(AssetHandle aHandle)
+		void Erase(AssetHandle aHandle)
 		{
 			size_t index = FindItem(aHandle);
 			if (index == InvalidItem)
@@ -84,12 +84,10 @@ namespace Epoch
 	class ContentBrowserPanel : public EditorPanel
 	{
 	public:
-		ContentBrowserPanel() = default;
+		ContentBrowserPanel();
 		~ContentBrowserPanel() = default;
 
 		static ContentBrowserPanel& Get() { return *staticInstance; }
-
-		void Init();
 
 		void OnImGuiRender(bool& aIsOpen) override;
 
@@ -99,6 +97,7 @@ namespace Epoch
 		void OnSceneChanged(const std::shared_ptr<Scene>& aScene) override { mySceneContext = aScene; }
 
 		std::shared_ptr<DirectoryInfo> GetDirectory(const std::filesystem::path& aFilepath) const;
+		ContentBrowserItemList& GetCurrentItems() { return myCurrentItems; }
 
 		void RegisterItemActivateCallbackForType(AssetType aType, const std::function<void(const AssetMetadata&)>& aCallback) { myItemActivationCallbacks[aType] = aCallback; }
 		void RegisterNewAssetCreatedCallbackForType(AssetType aType, const std::function<void(const AssetMetadata&)>& aCallback) { myNewAssetCreatedCallbacks[aType] = aCallback; }
@@ -130,8 +129,12 @@ namespace Epoch
 
 		void PasteCopiedAssets();
 
-		void RenderDeleteModal();
+		void RenderDeleteDialogue();
 		void RenderNewScriptDialogue();
+
+		void DeleteDirectory(std::shared_ptr<DirectoryInfo>& aDirectory, bool aRemoveFromParent = true);
+
+		void UpdateDropArea(const std::shared_ptr<DirectoryInfo>& aTarget);
 
 		void SortItemList();
 
@@ -147,13 +150,15 @@ namespace Epoch
 		template<typename T, typename... Args>
 		std::shared_ptr<T> CreateAssetInDirectory(const std::string& aFilename, std::shared_ptr<DirectoryInfo>& aDirectory, Args&&... aArgs)
 		{
-			auto filepath = FileSystem::GetUniqueFileName(Project::GetAssetDirectory() / aDirectory->filePath / aFilename);
+			std::filesystem::path filepath = FileSystem::GetUniqueFileName(Project::GetAssetDirectory() / aDirectory->filePath / aFilename);
 
 			std::shared_ptr<T> asset = Project::GetEditorAssetManager()->CreateNewAsset<T>(filepath.filename().string(), aDirectory->filePath.string(), std::forward<Args>(aArgs)...);
 			if (!asset)
 			{
 				return nullptr;
 			}
+
+			aDirectory->assets.push_back(asset->GetHandle());
 
 			if (myNewAssetCreatedCallbacks.find(T::GetStaticType()) != myNewAssetCreatedCallbacks.end())
 			{
@@ -180,6 +185,7 @@ namespace Epoch
 		std::unordered_map<AssetHandle, std::shared_ptr<DirectoryInfo>> myDirectories;
 
 		bool myIsAnyItemHovered = false;
+		bool myShouldRefresh = false;
 
 		SelectionStack myCopiedAssets;
 

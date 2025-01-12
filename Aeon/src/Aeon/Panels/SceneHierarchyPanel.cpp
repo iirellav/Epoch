@@ -196,7 +196,7 @@ namespace Epoch
 
 		bool isSelected = SelectionManager::IsSelected(SelectionContext::Scene, aEntity.GetUUID());
 
-		ImGuiTreeNodeFlags flags = ((isSelected) ? ImGuiTreeNodeFlags_Selected : 0)/* | ImGuiTreeNodeFlags_SpanAvailWidth*/;
+		ImGuiTreeNodeFlags flags = ((isSelected) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_SpanAvailWidth;
 		aEntity.Children().empty() ? flags |= ImGuiTreeNodeFlags_Leaf : flags |= ImGuiTreeNodeFlags_OpenOnArrow;
 
 		const bool anyDescendantSelected = IsAnyDescendantSelected(aEntity, true);
