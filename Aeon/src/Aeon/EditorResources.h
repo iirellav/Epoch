@@ -73,8 +73,8 @@ namespace Epoch
 			js.AddAJob(NewLoadTexture, &StepButton,					"Toolbar/StepButton.png");
 
 			// Content browser
-			js.AddAJob(NewLoadTexture, &ClosedFolderIcon,			"ContentBrowser/DirectoryIcon.png");
-			js.AddAJob(NewLoadTexture, &OpenFolderIcon,				"ContentBrowser/DirectoryIcon.png");
+			js.AddAJob(NewLoadTexture, &ClosedFolderIcon,			"ContentBrowser/DirectoryIconClosed.png");
+			js.AddAJob(NewLoadTexture, &OpenFolderIcon,				"ContentBrowser/DirectoryIconOpen.png");
 			js.AddAJob(NewLoadTexture, &ModelIcon,					"ContentBrowser/ModelIcon.png");
 			js.AddAJob(NewLoadTexture, &TextureIcon,				"ContentBrowser/TextureIcon.png");
 			js.AddAJob(NewLoadTexture, &VideoIcon,					"ContentBrowser/VideoIcon.png");
