@@ -140,6 +140,21 @@ namespace Epoch
 
 			if (!selectionStack.empty())
 			{
+				for (const auto& selectedItemHandles : selectionStack)
+				{
+					size_t index = currentItems.FindItem(selectedItemHandles);
+					if (index == ContentBrowserItemList::InvalidItem)
+					{
+						continue;
+					}
+
+					const auto& item = currentItems[index];
+					UI::Draw::Image(item->GetIcon(), ImVec2(18, 18));
+					ImGui::SameLine();
+					const auto& name = item->GetName();
+					ImGui::TextUnformatted(name.c_str());
+				}
+
 				ImGui::SetDragDropPayload("asset_payload", selectionStack.data(), sizeof(AssetHandle) * selectionStack.size());
 			}
 

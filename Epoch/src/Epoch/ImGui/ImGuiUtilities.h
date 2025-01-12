@@ -185,6 +185,11 @@ namespace Epoch::UI
 			}
 		}
 
+		inline void Image(const std::shared_ptr<Texture2D>& aImage, const ImVec2& aSize)
+		{
+			ImGui::Image((ImTextureID)aImage->GetView(), aSize);
+		}
+
 		inline void Image(const std::shared_ptr<Texture2D>& aImage,
 			ImU32 aTintNormal, ImU32 aTintHovered, ImU32 aTintPressed,
 			ImRect aRect)

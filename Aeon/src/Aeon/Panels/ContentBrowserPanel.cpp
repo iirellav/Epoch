@@ -233,15 +233,14 @@ namespace Epoch
 						ImGui::PopStyleVar();
 
 						{
-							const float paddingForOutline = 2.0f;
 							const float scrollBarrOffset = 20.0f + ImGui::GetStyle().ScrollbarSize;
 							float panelWidth = ImGui::GetContentRegionAvail().x - scrollBarrOffset;
-							float cellSize = EditorSettings::Get().contentBrowserThumbnailSize + staticPadding + paddingForOutline;
+							float cellSize = EditorSettings::Get().contentBrowserThumbnailSize + staticPadding;
 							int columnCount = (int)(panelWidth / cellSize);
 							if (columnCount < 1) columnCount = 1;
 
 							const float rowSpacing = 12.0f;
-							UI::ScopedStyle spacing(ImGuiStyleVar_ItemSpacing, ImVec2(paddingForOutline, rowSpacing));
+							UI::ScopedStyle spacing(ImGuiStyleVar_ItemSpacing, ImVec2(staticPadding, rowSpacing));
 							ImGui::Columns(columnCount, 0, false);
 
 							UI::ScopedStyle border(ImGuiStyleVar_FrameBorderSize, 0.0f);
@@ -780,6 +779,14 @@ namespace Epoch
 				SelectionManager::DeselectAll(SelectionContext::ContentBrowser);
 				Refresh();
 				SortItemList();
+
+				if (item->GetID() == mySceneContext->GetHandle() && myCurrentSceneRenamedCallback)
+				{
+					auto assetItem = std::static_pointer_cast<ContentBrowserAsset>(item);
+					const auto& assetMetadata = assetItem->GetAssetInfo();
+					myCurrentSceneRenamedCallback(assetMetadata);
+				}
+
 				break;
 			}
 
@@ -1133,8 +1140,8 @@ namespace Epoch
 			}
 
 			float width = ImGui::GetContentRegionAvail().x;
-			ImGui::BeginChild("Files to delete", ImVec2(width, 70.0f));
 			auto selectedItems = SelectionManager::GetSelections(SelectionContext::ContentBrowser);
+			ImGui::BeginChild("Files to delete", ImVec2(width, 100.0f));
 			for (AssetHandle handle : selectedItems)
 			{
 				size_t index = myCurrentItems.FindItem(handle);
@@ -1142,12 +1149,13 @@ namespace Epoch
 				{
 					continue;
 				}
-				auto& cbItem = myCurrentItems[index];
-				ImGui::Text(cbItem->GetName().c_str());
+				auto& item = myCurrentItems[index];
+				UI::Draw::Image(item->GetIcon(), ImVec2(18, 18));
+				ImGui::SameLine();
+				ImGui::Text(item->GetName().c_str());
 			}
 			ImGui::EndChild();
 		
-			UI::Spacing();
 			ImGui::Separator();
 			UI::Fonts::PushFont("Bold");
 			ImGui::Text(" You cannot undo this action.");
@@ -1157,7 +1165,7 @@ namespace Epoch
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6196f, 0.1373f, 0.1373f, 1));
 			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.7196f, 0.2373f, 0.2373f, 1));
 			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.5196f, 0.0373f, 0.0373f, 1));
-			if (ImGui::Button("Delete", ImVec2(120, 0)))
+			if (ImGui::Button("Delete", ImVec2(120.0f, 0.0f)))
 			{
 				std::vector<AssetMetadata> deletedAssetMetadata;
 
@@ -1206,7 +1214,7 @@ namespace Epoch
 			ImGui::SetItemDefaultFocus();
 			ImGui::SameLine();
 		
-			if (ImGui::Button("Cancel", ImVec2(120, 0)))
+			if (ImGui::Button("Cancel", ImVec2(120.0f, 0.0f)))
 			{
 				ImGui::CloseCurrentPopup();
 			}
@@ -1239,17 +1247,19 @@ namespace Epoch
 			UI::Fonts::PushFont("Bold");
 			const std::string fullProjectPath =  namespaceString + "." + newScriptNameBuffer;
 			ImGui::Text(fullProjectPath.c_str());
-			ImGui::Spacing();
 			ImGui::Separator();
-			ImGui::Spacing();
 			UI::Fonts::PopFont();
 
+			ImGui::SetNextItemWidth(248.0f);
 			ImGui::InputTextWithHint("##new_script_namespace", "Namespace...", newScriptNamespaceBuffer, 256);
+			ImGui::SetNextItemWidth(248.0f);
 			ImGui::InputTextWithHint("##new_script_name", "Script Name...", newScriptNameBuffer, 256);
+
+			ImGui::Separator();
 
 			const bool fileAlreadyExists = FileSystem::Exists(Project::GetAssetDirectory() / myCurrentDirectory->filePath / (std::string(newScriptNameBuffer) + ".cs"));
 			ImGui::BeginDisabled(strlen(newScriptNameBuffer) == 0 || fileAlreadyExists);
-			if (ImGui::Button("Create", ImVec2(75, 0)))
+			if (ImGui::Button("Create", ImVec2(120.0f, 0.0f)))
 			{
 				CreateAsset<ScriptFileAsset>(std::string(newScriptNameBuffer) + ".cs", namespaceString.c_str(), newScriptNameBuffer);
 
@@ -1261,7 +1271,7 @@ namespace Epoch
 
 			ImGui::SameLine();
 
-			if (ImGui::Button("Cancel", ImVec2(75, 0)))
+			if (ImGui::Button("Cancel", ImVec2(120.0f, 0.0f)))
 			{
 				memset(newScriptNameBuffer, 0, 255);
 				ImGui::CloseCurrentPopup();

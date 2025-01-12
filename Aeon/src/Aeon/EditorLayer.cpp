@@ -2352,7 +2352,7 @@ namespace Epoch
 	void EditorLayer::OnCurrentSceneRenamed(const AssetMetadata& aMetadata)
 	{
 		myEditorScenePath = Project::GetEditorAssetManager()->GetFileSystemPath(aMetadata);
-		myActiveScene->SetName(aMetadata.filePath.stem().string());
+		myEditorScene->SetName(aMetadata.filePath.stem().string());
 		UpdateWindowTitle(aMetadata.filePath.stem().string());
 	}
 }
