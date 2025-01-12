@@ -1366,10 +1366,10 @@ namespace Epoch
 		// Near clipping plane
 		frustum.nearPlane =
 		{
-			viewProj(1, 4) + viewProj(1, 3),
-			viewProj(2, 4) + viewProj(2, 3),
-			viewProj(3, 4) + viewProj(3, 3),
-			viewProj(4, 4) + viewProj(4, 3)
+			viewProj(1, 3),
+			viewProj(2, 3),
+			viewProj(3, 3),
+			viewProj(4, 3)
 		};
 
 		// Far clipping plane
