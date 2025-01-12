@@ -14,6 +14,8 @@ namespace Epoch
 {
 	void StatisticsPanel::OnImGuiRender(bool& aIsOpen)
 	{
+		EPOCH_PROFILE_FUNC();
+
 		ImGui::Begin(STATISTICS_PANEL_ID, &aIsOpen);
 
 		//Profiler
