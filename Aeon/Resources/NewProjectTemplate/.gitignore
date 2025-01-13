@@ -8,5 +8,8 @@ Scripts/Intermediates/
 **.csproj
 **.user
 
+# Folder
+Config/
+
 # Files
 **.auto
