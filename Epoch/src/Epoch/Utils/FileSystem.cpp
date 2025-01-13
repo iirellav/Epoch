@@ -70,11 +70,11 @@ namespace Epoch
 		return true;
 	}
 
-	bool FileSystem::Copy(const std::filesystem::path& aOldFilepath, const std::filesystem::path& aNewFilepath)
+	bool FileSystem::Copy(const std::filesystem::path& aOldFilepath, const std::filesystem::path& aNewFilepath, std::filesystem::copy_options aCopyOptions)
 	{
 		if (FileSystem::Exists(aNewFilepath)) return false;
 
-		std::filesystem::copy(aOldFilepath, aNewFilepath, std::filesystem::copy_options::overwrite_existing);
+		std::filesystem::copy(aOldFilepath, aNewFilepath, aCopyOptions);
 		return true;
 	}
 

@@ -29,30 +29,30 @@ namespace Epoch
 
 		//Build runtime proj
 		{
-			EPOCH_PROFILE_SCOPE("RuntimeBuilder::Build::MSBuild()");
+			//EPOCH_PROFILE_SCOPE("RuntimeBuilder::Build::MSBuild()");
+			//
+			//TCHAR programFilesFilePath[MAX_PATH];
+			//SHGetSpecialFolderPath(0, programFilesFilePath, CSIDL_PROGRAM_FILES, FALSE);
+			//std::filesystem::path msBuildPath = std::filesystem::path(programFilesFilePath) / "Microsoft Visual Studio" / "2022" / "Community" / "Msbuild" / "Current" / /"Bin" / /"MSBuild.exe";
+			//
+			//const std::filesystem::path projFileDir = epochDir / "Epoch-Runtime";
+			//const std::string projFile = (projFileDir / "Epoch-Runtime.vcxproj").string();
+			//std::string command = fmt::format("cd \"{}\" && \"{}\" \"{}\" -property:Configuration=Dist -property:Platform=x64", projFileDir, msBuildPath.string(), projFile);
+			////std::system(command.c_str());
+			//WinExec(command.c_str(), SW_HIDE);
 
-			TCHAR programFilesFilePath[MAX_PATH];
-			SHGetSpecialFolderPath(0, programFilesFilePath, CSIDL_PROGRAM_FILES, FALSE);
-			std::filesystem::path msBuildPath = std::filesystem::path(programFilesFilePath) / "Microsoft Visual Studio" / "2022" / "Community" / "Msbuild" / "Current" / "Bin" / "MSBuild.exe";
-
-			const std::filesystem::path projFileDir = epochDir / "Epoch-Runtime";
-			const std::string projFile = (projFileDir / "Epoch-Runtime.vcxproj").string();
-			std::string command = fmt::format("cd \"{}\" && \"{}\" \"{}\" -property:Configuration=Dist -property:Platform=x64", projFileDir, msBuildPath.string(), projFile);
-			//std::system(command.c_str());
-			WinExec(command.c_str(), SW_HIDE);
-
-			if (!FileSystem::Exists(epochDir / "bin/Dist-x86_64/Epoch-Runtime/Runtime.exe"))
-			{
-				LOG_ERROR("Failed to build!");
-				CONSOLE_LOG_ERROR("Failed to build!");
-				std::system(command.c_str());
-			}
+			//if (!FileSystem::Exists(epochDir / "bin/Dist-x86_64/Epoch-Runtime/Runtime.exe"))
+			//{
+			//	LOG_ERROR("Failed to build!");
+			//	CONSOLE_LOG_ERROR("Failed to build!");
+			//	std::system(command.c_str());
+			//}
 			
-			if (!FileSystem::Exists(epochDir / "bin/Dist-x86_64/Epoch-Runtime/Runtime.exe"))
-			{
-				LOG_ERROR("Failed to build!");
-				CONSOLE_LOG_ERROR("Failed to build!");
-			}
+			//if (!FileSystem::Exists(epochDir / "bin/Dist-x86_64/Epoch-Runtime/Runtime.exe"))
+			//{
+			//	LOG_ERROR("Failed to build!");
+			//	CONSOLE_LOG_ERROR("Failed to build!");
+			//}
 		}
 		
 		FileSystem::CopyContent(epochDir / "Aeon/Resources/Runtime", buildLocation);
@@ -62,11 +62,11 @@ namespace Epoch
 
 		//Copy the .exe & the script .dll:s to build location
 		{
-			if (FileSystem::Exists(epochDir / "bin/Dist-x86_64/Epoch-Runtime/Runtime.exe"))
-			{
-				FileSystem::CopyFile(epochDir / "bin/Dist-x86_64/Epoch-Runtime/Runtime.exe", buildLocation);
-				FileSystem::RenameFilename(buildLocation / "Runtime.exe", Project::GetProductName());
-			}
+			//if (FileSystem::Exists(epochDir / "bin/Dist-x86_64/Epoch-Runtime/Runtime.exe"))
+			//{
+			//	FileSystem::CopyFile(epochDir / "bin/Dist-x86_64/Epoch-Runtime/Runtime.exe", buildLocation);
+			//	FileSystem::RenameFilename(buildLocation / "Runtime.exe", Project::GetProductName());
+			//}
 
 			FileSystem::CreateDirectory(buildLocation / "Scripts/Binaries");
 			FileSystem::CopyFile(projDir / "Scripts/Binaries/Epoch-ScriptCore.dll", buildLocation / "Scripts/Binaries");
