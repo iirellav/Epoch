@@ -55,7 +55,7 @@ namespace Epoch
 		// Thumbnail
 		auto icon = myIcon ? myIcon : EditorResources::OtherIcon;
 		ImGui::InvisibleButton("##thumbnailButton", ImVec2{ thumbnailSize, thumbnailSize });
-		UI::Draw::Image(icon,
+		UI::Draw::DrawButtonImage(icon,
 			IM_COL32(255, 255, 255, 225),
 			IM_COL32(255, 255, 255, 255),
 			IM_COL32(255, 255, 255, 255),
@@ -172,10 +172,13 @@ namespace Epoch
 			}
 			else
 			{
-				bool action = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+				bool leftClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+				bool rightClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Right);
+
 				const bool isSelected = SelectionManager::IsSelected(SelectionContext::ContentBrowser, myID);
 				bool skipBecauseDragging = myIsDragging && isSelected;
-				if (action && !skipBecauseDragging)
+
+				if ((leftClicked || rightClicked) && !skipBecauseDragging)
 				{
 					if (myJustSelected)
 					{
@@ -212,11 +215,6 @@ namespace Epoch
 			result.Set(ContentBrowserAction::Selected, true);
 
 			OnContextMenuOpen(result);
-
-			if (result.IsSet(ContentBrowserAction::StartRenaming))
-			{
-				result.Set(ContentBrowserAction::ClearSelections, true);
-			}
 
 			ImGui::EndPopup();
 		}

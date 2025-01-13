@@ -1,5 +1,6 @@
 #include "epch.h"
 #include "ImGui.h"
+#include "CustomTreeNode.h"
 
 namespace Epoch::UI
 {
@@ -24,5 +25,16 @@ namespace Epoch::UI
 		}
 
 		return item.find(searchString) != std::string::npos;
+	}
+
+	bool TreeNode(const std::string& aId, const std::string& aLabel, ImGuiTreeNodeFlags aFlags, const std::shared_ptr<Texture2D>& aIcon)
+	{
+		ImGuiWindow* window = ImGui::GetCurrentWindow();
+		if (window->SkipItems)
+		{
+			return false;
+		}
+
+		return ImGui::TreeNodeWithIcon(aIcon, window->GetID(aId.c_str()), aFlags, aLabel.c_str(), NULL);
 	}
 }
