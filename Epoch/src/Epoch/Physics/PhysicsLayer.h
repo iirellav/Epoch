@@ -4,6 +4,11 @@
 
 namespace Epoch
 {
+	struct LayerMask
+	{
+		int32_t bitValue = 0;
+	};
+
 	struct PhysicsLayer
 	{
 		uint32_t layerID = 0;

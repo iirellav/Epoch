@@ -190,7 +190,15 @@ namespace Epoch
 	bool PhysXScene::Raycast(CU::Vector3f aOrigin, CU::Vector3f aDirection, float aMaxDistance, HitInfo* outHit)
 	{
 		physx::PxRaycastBuffer hitInfo;
-		bool hit = myScene->raycast(PhysXUtils::ToPhysXVector(aOrigin), PhysXUtils::ToPhysXVector(aDirection), aMaxDistance, hitInfo);
+
+		physx::PxQueryFilterData filterData;
+		filterData.flags |= physx::PxQueryFlag::Enum::ePREFILTER;
+		filterData.flags |= physx::PxQueryFlag::Enum::eDYNAMIC;
+		filterData.flags |= physx::PxQueryFlag::Enum::eSTATIC;
+		filterData.data.word0 = BIT(0);
+
+		bool hit = myScene->raycast(PhysXUtils::ToPhysXVector(aOrigin), PhysXUtils::ToPhysXVector(aDirection), aMaxDistance, hitInfo, physx::PxHitFlag::ePOSITION | physx::PxHitFlag::eNORMAL, filterData);
+
 		if (hit && outHit)
 		{
 			outHit->entity = *(uint64_t*)hitInfo.block.actor->userData;

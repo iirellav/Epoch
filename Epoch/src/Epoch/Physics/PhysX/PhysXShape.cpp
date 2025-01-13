@@ -9,10 +9,9 @@ namespace Epoch
 	PhysXBoxShape::PhysXBoxShape(Entity aEntity, float aMass, bool aIsCompoundShape)
 	{
 		PhysXAPI* api = (PhysXAPI*)PhysicsSystem::GetAPI();
-
 		physx::PxFilterData filterData;
-		filterData.word0 = 1; // word0 = own ID
-		filterData.word1 = 1;  // word1 = ID mask to filter pairs that trigger a contact callback;
+		filterData.word0 = BIT(0); // word0 = own ID
+		filterData.word1 = BIT(0);  // word1 = ID mask to filter pairs that trigger a contact callback;
 
 		CU::Vector3f offset;
 		CU::Quatf rotationalOffset;
@@ -35,7 +34,9 @@ namespace Epoch
 
 		myShape = api->GetPhysicsSystem()->createShape(physx::PxBoxGeometry(myExtents), *api->GetDefaultMaterial());
 		myShape->setLocalPose({ PhysXUtils::ToPhysXVector(offset), PhysXUtils::ToPhysXQuat(rotationalOffset) });
+
 		myShape->setSimulationFilterData(filterData);
+		myShape->setQueryFilterData(filterData);
 
 		if (colliderComp.isTrigger)
 		{
@@ -55,8 +56,8 @@ namespace Epoch
 		PhysXAPI* api = (PhysXAPI*)PhysicsSystem::GetAPI();
 
 		physx::PxFilterData filterData;
-		filterData.word0 = 1; // word0 = own ID
-		filterData.word1 = 1;  // word1 = ID mask to filter pairs that trigger a contact callback;
+		filterData.word0 = BIT(0); // word0 = own ID
+		filterData.word1 = BIT(0);  // word1 = ID mask to filter pairs that trigger a contact callback;
 
 		CU::Vector3f offset;
 		CU::Quatf rotationalOffset;
@@ -80,7 +81,9 @@ namespace Epoch
 
 		myShape = api->GetPhysicsSystem()->createShape(physx::PxSphereGeometry(myRadius), *api->GetDefaultMaterial());
 		myShape->setLocalPose({ PhysXUtils::ToPhysXVector(offset), PhysXUtils::ToPhysXQuat(rotationalOffset) });
+
 		myShape->setSimulationFilterData(filterData);
+		myShape->setQueryFilterData(filterData);
 
 		if (colliderComp.isTrigger)
 		{
@@ -100,8 +103,8 @@ namespace Epoch
 		PhysXAPI* api = (PhysXAPI*)PhysicsSystem::GetAPI();
 
 		physx::PxFilterData filterData;
-		filterData.word0 = 1; // word0 = own ID
-		filterData.word1 = 1;  // word1 = ID mask to filter pairs that trigger a contact callback;
+		filterData.word0 = BIT(0); // word0 = own ID
+		filterData.word1 = BIT(0);  // word1 = ID mask to filter pairs that trigger a contact callback;
 
 		CU::Vector3f offset;
 		CU::Quatf rotationalOffset;
@@ -128,7 +131,9 @@ namespace Epoch
 
 		myShape = api->GetPhysicsSystem()->createShape(physx::PxCapsuleGeometry(myRadius, myHeight * 0.5f), *api->GetDefaultMaterial());
 		myShape->setLocalPose({ PhysXUtils::ToPhysXVector(offset), PhysXUtils::ToPhysXQuat(rotationalOffset) });
+
 		myShape->setSimulationFilterData(filterData);
+		myShape->setQueryFilterData(filterData);
 
 		if (colliderComp.isTrigger)
 		{
