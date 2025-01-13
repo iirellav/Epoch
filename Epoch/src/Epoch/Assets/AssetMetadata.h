@@ -13,6 +13,8 @@ namespace Epoch
 		bool isDataLoaded = false;
 		bool isMemoryAsset = false;
 
-		bool IsValid() const { return type != AssetType::None && !isMemoryAsset; }
+		bool isValid = true;
+
+		bool IsValid() const { return type != AssetType::None && handle != 0; }
 	};
 }

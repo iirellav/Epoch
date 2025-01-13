@@ -352,16 +352,16 @@ namespace Epoch
 			}
 
 			auto metadata = Project::GetEditorAssetManager()->GetMetadata(std::filesystem::relative(entry.path(), Project::GetAssetDirectory()));
-			if (!metadata.IsValid())
-			{
-				AssetType type = Project::GetEditorAssetManager()->GetAssetTypeFromPath(entry.path());
-				if (type == AssetType::None)
-				{
-					continue;
-				}
-
-				metadata.handle = Project::GetEditorAssetManager()->ImportAsset(entry.path());
-			}
+			//if (!metadata.IsValid())
+			//{
+			//	AssetType type = Project::GetEditorAssetManager()->GetAssetTypeFromPath(entry.path());
+			//	if (type == AssetType::None)
+			//	{
+			//		continue;
+			//	}
+			//
+			//	metadata.handle = Project::GetEditorAssetManager()->ImportAsset(entry.path());
+			//}
 
 			// Failed to import
 			if (!metadata.IsValid())

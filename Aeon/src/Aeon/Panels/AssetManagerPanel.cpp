@@ -12,11 +12,8 @@ namespace Epoch
 	static std::unordered_map<std::string, SearchType> staticSearchTypeMap =
 	{
 		{ "path",		SearchType::Path },
-		{ "Path",		SearchType::Path },
 		{ "type",		SearchType::Type },
-		{ "Type",		SearchType::Type },
 		{ "id",			SearchType::Id },
-		{ "Id",			SearchType::Id }
 	};
 
 	void AssetManagerPanel::OnImGuiRender(bool& aIsOpen)
@@ -65,7 +62,7 @@ namespace Epoch
 			const std::size_t found = searchString.find_first_of(":");
 			if (found <= 5)
 			{
-				auto it = staticSearchTypeMap.find(searchString.substr(0, found));
+				auto it = staticSearchTypeMap.find(CU::ToLower(searchString.substr(0, found)));
 				if (it != staticSearchTypeMap.end())
 				{
 					searchType = it->second;
@@ -154,7 +151,8 @@ namespace Epoch
 				ImGui::SetClipboardText(AssetTypeToString(metadata.type));
 			}
 
-			//UI::Property_ClickableText("Loaded", metadata.isDataLoaded ? "True" : "False");
+			UI::Property_ClickableText("Loaded", metadata.isDataLoaded ? "True" : "False");
+			UI::Property_ClickableText("Valid", metadata.isValid ? "True" : "False");
 
 			ImGui::Separator();
 

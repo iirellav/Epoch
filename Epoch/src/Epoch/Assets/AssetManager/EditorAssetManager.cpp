@@ -553,9 +553,17 @@ namespace Epoch
 				if (!metadata.isDataLoaded)
 				{
 					metadata.isDataLoaded = AssetImporter::TryLoadData(metadata, asset);
-					if (metadata.isDataLoaded)
+					//if (metadata.isDataLoaded)
 					{
 						myLoadedAssets[aAssetHandle] = asset;
+					}
+
+					if (!(metadata.isDataLoaded))
+					{
+						metadata.isValid = false;
+
+						LOG_ERROR("Invalid {} asset: {}", AssetTypeToString(metadata.type), metadata.filePath);
+						CONSOLE_LOG_ERROR("Invalid {} asset: {}", AssetTypeToString(metadata.type), metadata.filePath);
 					}
 				}
 				else

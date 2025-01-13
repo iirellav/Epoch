@@ -202,8 +202,8 @@ namespace Epoch
 		}
 		catch (YAML::ParserException e)
 		{
-			aAsset->SetFlag(AssetFlag::Invalid);
 			LOG_ERROR("Failed to deserialize material '{}': {}", aMetadata.filePath.string(), e.what());
+			aAsset->SetFlag(AssetFlag::Invalid);
 			return false;
 		}
 		
