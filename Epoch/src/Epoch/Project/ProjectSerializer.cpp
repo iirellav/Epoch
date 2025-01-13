@@ -130,7 +130,7 @@ namespace Epoch
 			config.companyName = rootNode["CompanyName"].as<std::string>("");
 			config.version = rootNode["Version"].as<std::string>(config.version);
 
-			config.startScene = rootNode["RuntimeStartScene"].as<UUID>(UUID(0));
+			config.startScene = rootNode["StartScene"].as<UUID>(UUID(0));
 
 			config.autosaveDirectory = rootNode["AutosaveDirectory"].as<std::string>("Autosaves");
 			if (!std::filesystem::exists(config.projectDirectory / config.autosaveDirectory))
