@@ -15,11 +15,7 @@ namespace Epoch
 		std::string companyName = "";
 		std::string version = "1.0.0";
 
-		std::filesystem::path startScene;
-		CU::Vector3f editorCameraPosition;
-		CU::Vector3f editorCameraRotation;
-
-		AssetHandle runtimeStartScene;
+		AssetHandle startScene;
 
 		std::filesystem::path autosaveDirectory = "Autosaves";
 
@@ -34,6 +30,23 @@ namespace Epoch
 		std::filesystem::path projectDirectory;
 	};
 
+	struct RecentScene
+	{
+		std::string name = "";
+		std::string filePath = "";
+		time_t lastOpened = 0;
+	};
+
+	struct ProjectUserConfig
+	{
+		std::filesystem::path startScene;
+
+		CU::Vector3f editorCameraPosition;
+		CU::Vector3f editorCameraRotation;
+
+		std::map<time_t, RecentScene, std::greater<time_t>> recentScenes;
+	};
+
 	class Project
 	{
 	public:
@@ -41,6 +54,7 @@ namespace Epoch
 		~Project() = default;
 
 		ProjectConfig& GetConfig() { return myConfig; }
+		ProjectUserConfig& GetUserConfig() { return myUserConfig; }
 		static std::shared_ptr<Project> GetActive() { return staticActiveProject; }
 
 		static void SetActive(std::shared_ptr<Project> aProject);
@@ -111,6 +125,7 @@ namespace Epoch
 
 	private:
 		ProjectConfig myConfig;
+		ProjectUserConfig myUserConfig;
 
 		inline static std::shared_ptr<AssetManagerBase> staticAssetManager;
 		inline static std::shared_ptr<Project> staticActiveProject;

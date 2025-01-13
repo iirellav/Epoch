@@ -413,6 +413,27 @@ namespace Epoch
 						OpenScene();
 					}
 
+					const auto& projectUserConf = Project::GetActive()->GetUserConfig();
+					if (ImGui::BeginMenu("Open Recent Scene...", projectUserConf.recentScenes.size() > 1))
+					{
+						size_t i = 0;
+						for (auto it = projectUserConf.recentScenes.begin(); it != projectUserConf.recentScenes.end(); it++)
+						{
+							if (i > 10) break;
+							if (it->second.filePath == myEditorScenePath) continue;
+
+							if (ImGui::MenuItem(it->second.name.c_str()))
+							{
+								OpenScene(it->second.filePath);
+
+								break;
+							}
+
+							i++;
+						}
+						ImGui::EndMenu();
+					}
+
 					if (ImGui::MenuItem("New Scene", "Ctrl+N", false, projectOpen))
 					{
 						NewScene();
@@ -436,7 +457,7 @@ namespace Epoch
 					OpenProject();
 				}
 
-				if (ImGui::BeginMenu("Open Recent...", EditorSettings::Get().recentProjects.size() > 1))
+				if (ImGui::BeginMenu("Open Recent Project...", EditorSettings::Get().recentProjects.size() > 1))
 				{
 					size_t i = 0;
 					for (auto it = EditorSettings::Get().recentProjects.begin(); it != EditorSettings::Get().recentProjects.end(); it++)
@@ -1330,17 +1351,19 @@ namespace Epoch
 
 		auto project = Project::GetActive();
 
-		project->GetConfig().startScene = "";
+		auto& userConf = project->GetUserConfig();
+
+		userConf.startScene = "";
 		if (!myEditorScenePath.empty())
 		{
-			project->GetConfig().startScene = std::filesystem::relative(myEditorScenePath, Project::GetAssetDirectory());
+			project->GetUserConfig().startScene = std::filesystem::relative(myEditorScenePath, Project::GetAssetDirectory());
 		}
 
-		project->GetConfig().editorCameraPosition = myEditorCamera.GetTransform().GetTranslation();
-		project->GetConfig().editorCameraRotation = myEditorCamera.GetTransform().GetRotation();
+		userConf.editorCameraPosition = myEditorCamera.GetTransform().GetTranslation();
+		userConf.editorCameraRotation = myEditorCamera.GetTransform().GetRotation();
 
 		ProjectSerializer serializer(project);
-		serializer.Serialize(project->GetProjectPath());
+		serializer.Serialize(Project::GetProjectPath());
 	}
 
 	void EditorLayer::CloseProject()
@@ -1408,18 +1431,24 @@ namespace Epoch
 
 		myPanelManager->OnProjectChanged(project);
 
-		bool hasStartScene = !project->GetConfig().startScene.empty();
-		if (hasStartScene && FileSystem::Exists(assetDirectory / project->GetConfig().startScene))
+		const auto& userConf = project->GetUserConfig();
+
+		bool hasStartScene = !userConf.startScene.empty();
+		const auto& startScenePath = assetDirectory / userConf.startScene;
+		if (hasStartScene && FileSystem::Exists(startScenePath))
 		{
-			hasStartScene = OpenScene((assetDirectory / project->GetConfig().startScene).string());
+			if (!OpenScene(startScenePath.string()))
+			{
+				NewScene();
+			}
 		}
 		else
 		{
 			NewScene();
 		}
 
-		myEditorCamera.GetTransform().SetTranslation(project->GetConfig().editorCameraPosition);
-		myEditorCamera.GetTransform().SetRotation(project->GetConfig().editorCameraRotation);
+		myEditorCamera.GetTransform().SetTranslation(userConf.editorCameraPosition);
+		myEditorCamera.GetTransform().SetRotation(userConf.editorCameraRotation);
 
 		RecentProject projectEntry;
 		projectEntry.name = aPath.stem().string();
@@ -1514,6 +1543,29 @@ namespace Epoch
 		ScriptEngine::SetSceneContext(myActiveScene, mySceneRenderer);
 
 		myTimeSinceLastSave = 0.0f;
+
+		auto& userConf = Project::GetActive()->GetUserConfig();
+
+		if (!myEditorScenePath.empty())
+		{
+			userConf.startScene = std::filesystem::relative(myEditorScenePath, Project::GetAssetDirectory());
+		}
+
+		RecentScene sceneEntry;
+		sceneEntry.name = aPath.stem().string();
+		sceneEntry.filePath = aPath.string();
+		sceneEntry.lastOpened = time(NULL);
+
+		for (auto it = userConf.recentScenes.begin(); it != userConf.recentScenes.end(); it++)
+		{
+			if (it->second.filePath == sceneEntry.filePath)
+			{
+				userConf.recentScenes.erase(it);
+				break;
+			}
+		}
+
+		userConf.recentScenes[sceneEntry.lastOpened] = sceneEntry;
 
 		return true;
 	}

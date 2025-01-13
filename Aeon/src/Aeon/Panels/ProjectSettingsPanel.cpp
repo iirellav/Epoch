@@ -26,7 +26,7 @@ namespace Epoch
 		modified |= UI::Property_InputText("Company Name", config.companyName);
 		modified |= UI::Property_InputText("Version", config.version);
 
-		modified |= UI::Property_AssetReference<Scene>("Runtime Start Scene", config.runtimeStartScene);
+		modified |= UI::Property_AssetReference<Scene>("Runtime Start Scene", config.startScene);
 
 		UI::Spacing();
 
