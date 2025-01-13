@@ -217,18 +217,26 @@ namespace Epoch::UI
 		}
 		else if (AssetManager::IsAssetHandleValid(outHandle))
 		{
-			const std::filesystem::path& assetPath = Project::GetEditorAssetManager()->GetMetadata(outHandle).filePath;
-			buttonText = aSettings.showFullFilePath ? assetPath.string() : assetPath.stem().string();
-
-			auto object = AssetManager::GetAsset<T>(outHandle);
-			if (object)
+			if (AssetManager::IsAssetMissing(outHandle))
 			{
+				buttonText = "Missing";
+			}
+			else if (!AssetManager::IsAssetValid(outHandle))
+			{
+				buttonText = "Invalid";
+			}
+			else
+			{
+				const std::filesystem::path& assetPath = Project::GetEditorAssetManager()->GetMetadata(outHandle).filePath;
+				buttonText = aSettings.showFullFilePath ? assetPath.string() : assetPath.stem().string();
+
+				if (buttonText == "")
+				{
+					buttonText = "Unnamed";
+				}
+
 				valid = true;
 			}
-		}
-		else
-		{
-			buttonText = "Missing";
 		}
 
 		if ((GImGui->CurrentItemFlags & ImGuiItemFlags_MixedValue) != 0)
