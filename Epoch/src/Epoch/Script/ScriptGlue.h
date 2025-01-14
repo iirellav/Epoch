@@ -5,6 +5,7 @@
 #include "Epoch/Core/KeyCodes.h"
 #include "Epoch/Physics/SceneQueries.h"
 #include "Epoch/Physics/PhysicsTypes.h"
+#include "Epoch/Physics/PhysicsLayer.h"
 
 extern "C"
 {
@@ -288,6 +289,7 @@ namespace Epoch
 #pragma region Physics
 
 		bool Physics_Raycast(CU::Vector3f* aOrigin, CU::Vector3f* aDirection, float aMaxDistance, HitInfo* outHitInfo);
+		bool Physics_RaycastFiltered(CU::Vector3f* aOrigin, CU::Vector3f* aDirection, float aMaxDistance, HitInfo* outHitInfo, LayerMask* aLayerMask);
 
 		bool Physics_SphereCast(CU::Vector3f* aOrigin, CU::Vector3f* aDirection, float aRadius, float aMaxDistance, HitInfo* outHitInfo);
 		MonoArray* Physics_OverlapSphere(CU::Vector3f* aOrigin, float aRadius);

@@ -40,6 +40,12 @@ namespace Epoch
         }
 
         [StructLayout(LayoutKind.Sequential)]
+        public struct LayerMask
+        {
+            public UInt32 bitValue;
+        };
+
+        [StructLayout(LayoutKind.Sequential)]
         public struct HitInfo
         {
             public ulong entityID { get; internal set; }
@@ -50,7 +56,15 @@ namespace Epoch
             public Entity Entity => Scene.GetEntityByID(entityID);
         };
 
-        public static bool Raycast(Vector3 aOrigin, Vector3 aDirection, float aMaxDistance, out HitInfo aHitInfo) => InternalCalls.Physics_Raycast(ref aOrigin, ref aDirection, aMaxDistance, out aHitInfo);
+
+        public static bool Raycast(Vector3 aOrigin, Vector3 aDirection, float aMaxDistance = Mathf.Infinity) => InternalCalls.Physics_Raycast(ref aOrigin, ref aDirection, aMaxDistance, out _);
+
+        public static bool Raycast(Vector3 aOrigin, Vector3 aDirection, LayerMask aLayerMask, float aMaxDistance = Mathf.Infinity) => InternalCalls.Physics_RaycastFiltered(ref aOrigin, ref aDirection, aMaxDistance, out _, ref aLayerMask);
+
+        public static bool Raycast(Vector3 aOrigin, Vector3 aDirection, out HitInfo outHitInfo, float aMaxDistance = Mathf.Infinity) => InternalCalls.Physics_Raycast(ref aOrigin, ref aDirection, aMaxDistance, out outHitInfo);
+
+        public static bool Raycast(Vector3 aOrigin, Vector3 aDirection, out HitInfo outHitInfo, LayerMask aLayerMask, float aMaxDistance = Mathf.Infinity) => InternalCalls.Physics_RaycastFiltered(ref aOrigin, ref aDirection, aMaxDistance, out outHitInfo, ref aLayerMask);
+
 
         public static bool SphereCast(Vector3 aOrigin, Vector3 aDirection, float aRadius, float aMaxDistance, out HitInfo aHitInfo) => InternalCalls.Physics_SphereCast(ref aOrigin, ref aDirection, aRadius, aMaxDistance, out aHitInfo);
 

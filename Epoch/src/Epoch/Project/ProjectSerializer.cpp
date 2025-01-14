@@ -7,6 +7,65 @@
 
 namespace Epoch
 {
+	static void SerializePhysicsLayers(YAML::Emitter& aOut)
+	{
+		aOut << YAML::Key << "Layers";
+		aOut << YAML::Value << YAML::BeginSeq;
+		for (const auto& layer : PhysicsLayerManager::GetLayers())
+		{
+			if (layer.reserved || layer.name == "")
+			{
+				continue;
+			}
+
+			aOut << YAML::BeginMap;
+			aOut << YAML::Key << "Name" << YAML::Value << layer.name;
+			aOut << YAML::Key << "ID" << YAML::Value << layer.layerID;
+			aOut << YAML::Key << "CollidesWith" << YAML::Value;
+			aOut << YAML::BeginSeq;
+			for (const auto& collidingLayer : PhysicsLayerManager::GetLayerCollisions(layer.layerID))
+			{
+				if (collidingLayer.name == "")
+				{
+					continue;
+				}
+
+				aOut << YAML::BeginMap;
+				aOut << YAML::Key << "Name" << YAML::Value << collidingLayer.name;
+				aOut << YAML::EndMap;
+			}
+			aOut << YAML::EndSeq;
+			aOut << YAML::EndMap;
+		}
+		aOut << YAML::EndSeq;
+	}
+
+	static void DeserializePhysicsLayers(YAML::Node& aNode)
+	{
+		auto physicsLayers = aNode["Layers"];
+		if (physicsLayers)
+		{
+			for (auto layer : physicsLayers)
+			{
+				PhysicsLayerManager::UpdateLayerName(layer["ID"].as<uint32_t>(1), layer["Name"].as<std::string>(""));
+			}
+
+			for (auto layer : physicsLayers)
+			{
+				auto collidesWith = layer["CollidesWith"];
+				if (collidesWith)
+				{
+					for (auto collisionLayer : collidesWith)
+					{
+						const auto& firstLayer = PhysicsLayerManager::GetLayer(layer["Name"].as<std::string>(""));
+						const auto& otherLayer = PhysicsLayerManager::GetLayer(collisionLayer["Name"].as<std::string>(""));
+						PhysicsLayerManager::SetLayerCollision(firstLayer.layerID, otherLayer.layerID, true);
+					}
+				}
+			}
+		}
+	}
+
 	void ProjectSerializer::Serialize(const std::filesystem::path& aFilepath)
 	{
 		EPOCH_PROFILE_FUNC();
@@ -39,6 +98,8 @@ namespace Epoch
 
 				out << YAML::Key << "FixedTimestep" << YAML::Value << physicsSettings.fixedTimestep;
 				out << YAML::Key << "Gravity" << YAML::Value << physicsSettings.gravity;
+
+				SerializePhysicsLayers(out);
 
 				out << YAML::EndMap;
 			}
@@ -155,6 +216,8 @@ namespace Epoch
 
 			physicsSettings.fixedTimestep = rootNode["FixedTimestep"].as<float>(1.0f / 60.0f);
 			physicsSettings.gravity = rootNode["Gravity"].as<CU::Vector3f>(CU::Vector3f(0.0f, -982.0f, 0.0f));
+
+			DeserializePhysicsLayers(rootNode);
 		}
 
 		//User config
@@ -227,6 +290,8 @@ namespace Epoch
 			out << YAML::Key << "FixedTimestep" << YAML::Value << physicsSettings.fixedTimestep;
 			out << YAML::Key << "Gravity" << YAML::Value << physicsSettings.gravity;
 
+			SerializePhysicsLayers(out);
+
 			out << YAML::EndMap;
 		}
 		out << YAML::EndMap;
@@ -279,6 +344,8 @@ namespace Epoch
 		
 		physicsSettings.fixedTimestep = rootNode["FixedTimestep"].as<float>(1.0f/60.0f);
 		physicsSettings.gravity = rootNode["Gravity"].as<CU::Vector3f>(CU::Vector3f(0.0f, -982.0f, 0.0f));
+
+		DeserializePhysicsLayers(rootNode);
 
 		return true;
 	}

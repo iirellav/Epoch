@@ -73,7 +73,7 @@ namespace Epoch
 		modified |= UI::Property_Checkbox("Create Entities at Origin", settings.createEntitiesAtOrigin);
 
 		const char* multiTransformTargetStrings[] = { "Median Point", "Individual Origins" };
-		int currentTarget = (int)settings.multiTransformTarget;
+		uint32_t currentTarget = (int)settings.multiTransformTarget;
 		if (UI::Property_Dropdown("Multi Transform Target", multiTransformTargetStrings, 2, currentTarget))
 		{
 			modified = true;
@@ -179,7 +179,7 @@ namespace Epoch
 		if (settings.automaticallyReloadScriptAssembly)
 		{
 			const char* optionsStrings[] = { "Stop Playing", "Reload After Finished Playing" };
-			int currentOptions = (int)settings.reloadScriptAssemblyWhilePlaying;
+			uint32_t currentOptions = (int)settings.reloadScriptAssemblyWhilePlaying;
 			if (UI::Property_Dropdown("Reload Script Assembly While Playing", optionsStrings, 2, currentOptions, "How should reloading the script assembly be handled when game is running"))
 			{
 				modified = true;

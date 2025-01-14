@@ -291,6 +291,8 @@ namespace Epoch
 		CU::Vector3f halfSize = CU::Vector3f::One * 50.0f;
 		CU::Vector3f offset;
 
+		uint32_t layerID = 0;
+
 		bool isTrigger = false;
 
 		BoxColliderComponent() = default;
@@ -301,6 +303,8 @@ namespace Epoch
 	{
 		float radius = 50.0f;
 		CU::Vector3f offset;
+
+		uint32_t layerID = 0;
 
 		bool isTrigger = false;
 
@@ -313,6 +317,8 @@ namespace Epoch
 		float radius = 50.0f;
 		float height = 200.0f;
 		CU::Vector3f offset;
+
+		uint32_t layerID = 0;
 
 		bool isTrigger = false;
 

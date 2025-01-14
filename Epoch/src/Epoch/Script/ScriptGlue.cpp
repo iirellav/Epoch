@@ -250,6 +250,7 @@ namespace Epoch
 
 
 		EPOCH_ADD_INTERNAL_CALL(Physics_Raycast);
+		EPOCH_ADD_INTERNAL_CALL(Physics_RaycastFiltered);
 
 		EPOCH_ADD_INTERNAL_CALL(Physics_SphereCast);
 		EPOCH_ADD_INTERNAL_CALL(Physics_OverlapSphere);
@@ -1613,6 +1614,15 @@ namespace Epoch
 			std::shared_ptr<Scene> scene = ScriptEngine::GetSceneContext();
 			
 			bool hit = scene->GetPhysicsScene()->Raycast(*aOrigin, *aDirection, aMaxDistance, outHitInfo);
+
+			return hit;
+		}
+
+		bool Physics_RaycastFiltered(CU::Vector3f* aOrigin, CU::Vector3f* aDirection, float aMaxDistance, HitInfo* outHitInfo, LayerMask* aLayerMask)
+		{
+			std::shared_ptr<Scene> scene = ScriptEngine::GetSceneContext();
+
+			bool hit = scene->GetPhysicsScene()->Raycast(*aOrigin, *aDirection, aMaxDistance, outHitInfo, aLayerMask);
 
 			return hit;
 		}

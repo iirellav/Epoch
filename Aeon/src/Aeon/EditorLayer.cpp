@@ -1652,7 +1652,7 @@ namespace Epoch
 			//}
 
 			const char* drawModeStrings[] = { "Shaded", "Albedo", "Normals", "Ambient Occlusion", "Roughness", "Metalness", "World Position" };
-			int currentDrawMode = (int)mySceneRenderer->GetDrawMode();
+			uint32_t currentDrawMode = (int)mySceneRenderer->GetDrawMode();
 			if (UI::Property_Dropdown("Draw Mode", drawModeStrings, 7, currentDrawMode))
 			{
 				mySceneRenderer->SetDrawMode((DrawMode)currentDrawMode);
@@ -1686,13 +1686,13 @@ namespace Epoch
 
 			const char* debugLinesDrawModeStrings[] = { "Off", "All", "Selected" };
 
-			int currentShowBoundingBoxesMode = (int)myShowBoundingBoxesMode;
+			uint32_t currentShowBoundingBoxesMode = (int)myShowBoundingBoxesMode;
 			if (UI::Property_Dropdown("Show Bounding Box(es)", debugLinesDrawModeStrings, 3, currentShowBoundingBoxesMode))
 			{
 				myShowBoundingBoxesMode = (DebugLinesDrawMode)currentShowBoundingBoxesMode;
 			}
 
-			int currentShowCollidersMode = (int)myShowCollidersMode;
+			uint32_t currentShowCollidersMode = (int)myShowCollidersMode;
 			if (UI::Property_Dropdown("Show Collider(s)", debugLinesDrawModeStrings, 3, currentShowCollidersMode))
 			{
 				myShowCollidersMode = (DebugLinesDrawMode)currentShowCollidersMode;

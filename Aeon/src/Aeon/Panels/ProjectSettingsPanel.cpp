@@ -3,6 +3,7 @@
 #include <Epoch/Project/Project.h>
 #include <Epoch/Project/ProjectSerializer.h>
 #include <Epoch/Physics/PhysicsSystem.h>
+#include <Epoch/Physics/PhysicsLayer.h>
 #include <Epoch/Editor/PanelIDs.h>
 
 namespace Epoch
@@ -71,6 +72,33 @@ namespace Epoch
 		}
 
 		UI::EndPropertyGrid();
+
+		UI::Spacing();
+
+		if (ImGui::TreeNodeEx("Layers", ImGuiTreeNodeFlags_SpanAvailWidth))
+		{
+			UI::BeginPropertyGrid();
+
+			const auto& layers = PhysicsLayerManager::GetLayers();
+			for (size_t i = 0; i < layers.size(); i++)
+			{
+				if (layers[i].reserved)
+				{
+					UI::Property_Text(("Builtin Layer " + std::to_string(i)).c_str(), layers[i].name);
+				}
+				else
+				{
+					std::string layerName = layers[i].name;
+					if (UI::Property_InputText(("User Layer " + std::to_string(i)).c_str(), layerName))
+					{
+						PhysicsLayerManager::UpdateLayerName((uint32_t)i, layerName);
+					}
+				}
+			}
+
+			UI::EndPropertyGrid();
+			ImGui::TreePop();
+		}
 
 		if (modified)
 		{

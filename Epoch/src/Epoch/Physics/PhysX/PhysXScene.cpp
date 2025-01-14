@@ -187,17 +187,21 @@ namespace Epoch
 		myScene->setGravity(PhysXUtils::ToPhysXVector(aGravity));
 	}
 
-	bool PhysXScene::Raycast(CU::Vector3f aOrigin, CU::Vector3f aDirection, float aMaxDistance, HitInfo* outHit)
+	bool PhysXScene::Raycast(CU::Vector3f aOrigin, CU::Vector3f aDirection, float aMaxDistance, HitInfo* outHit, LayerMask* aLayerMask)
 	{
 		physx::PxRaycastBuffer hitInfo;
 
 		physx::PxQueryFilterData filterData;
-		filterData.flags |= physx::PxQueryFlag::Enum::ePREFILTER;
-		filterData.flags |= physx::PxQueryFlag::Enum::eDYNAMIC;
-		filterData.flags |= physx::PxQueryFlag::Enum::eSTATIC;
-		filterData.data.word0 = BIT(0);
+		if (aLayerMask != nullptr)
+		{
+			filterData.flags |= physx::PxQueryFlag::Enum::ePREFILTER;
+			filterData.flags |= physx::PxQueryFlag::Enum::eDYNAMIC;
+			filterData.flags |= physx::PxQueryFlag::Enum::eSTATIC;
+			filterData.data.word0 = aLayerMask->bitValue;
+		}
 
 		bool hit = myScene->raycast(PhysXUtils::ToPhysXVector(aOrigin), PhysXUtils::ToPhysXVector(aDirection), aMaxDistance, hitInfo, physx::PxHitFlag::ePOSITION | physx::PxHitFlag::eNORMAL, filterData);
+		
 
 		if (hit && outHit)
 		{

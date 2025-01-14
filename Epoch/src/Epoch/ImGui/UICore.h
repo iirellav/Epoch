@@ -166,9 +166,9 @@ namespace Epoch::UI
 
 	bool Property_DragFloat4(const char* aLabel, CU::Vector4f& outValue, float aDelta = 0.1f, float aMin = 0.0f, float aMax = 0.0f, const char* aFormat = "%.3f", ImGuiSliderFlags aFlags = 0, const char* aTooltip = "");
 
-	bool Property_Dropdown(const char* aLabel, const char** aOptions, int aOptionCount, int& outSelected, const char* aTooltip = "");
+	bool Property_Dropdown(const char* aLabel, const char** aOptions, uint32_t aOptionCount, uint32_t& outSelected, const char* aTooltip = "");
 
-	bool Property_Dropdown(const char* aLabel, const char** aOptions, int aOptionCount, int& outSelected, const bool* aInconsistent, const char* aTooltip = "");
+	bool Property_Dropdown(const char* aLabel, const std::vector<std::string>& aOptions, uint32_t aOptionCount, uint32_t& outSelected, const char* aTooltip = "");
 
 	bool Property_Gradient(const char* aLabel, CU::Gradient& outGradient, const char* aTooltip = "");
 
