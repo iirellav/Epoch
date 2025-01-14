@@ -832,6 +832,30 @@ namespace Epoch::UI
 			const auto& layers = PhysicsLayerManager::GetLayers();
 
 			ImGui::PushItemFlag(ImGuiItemFlags_SelectableDontClosePopup, true);
+
+			if (ImGui::MenuItem("All..."))
+			{
+				outValue = 0;
+				for (size_t i = 0; i < layers.size(); i++)
+				{
+					const auto& layer = layers[i];
+					if (layer.name == "")
+					{
+						continue;
+					}
+
+					outValue |= layer.bitValue;
+				}
+				modified = true;
+			}
+			if (ImGui::MenuItem("None..."))
+			{
+				outValue = 0;
+				modified = true;
+			}
+
+			ImGui::Separator();
+
 			for (size_t i = 0; i < layers.size(); i++)
 			{
 				const auto& layer = layers[i];

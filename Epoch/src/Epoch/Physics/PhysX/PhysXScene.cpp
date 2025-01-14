@@ -257,6 +257,45 @@ namespace Epoch
 		return hit;
 	}
 
+	bool PhysXScene::CheckShape(const ShapeOverlapInfo* aShapeOverlapInfo, LayerMask* aLayerMask)
+	{
+		physx::PxTransform shapePose = physx::PxTransform(PhysXUtils::ToPhysXVector(aShapeOverlapInfo->origin));
+
+		physx::PxQueryFilterData filterData;
+		if (aLayerMask != nullptr)
+		{
+			filterData.flags |= physx::PxQueryFlag::Enum::ePREFILTER;
+			filterData.flags |= physx::PxQueryFlag::Enum::eDYNAMIC;
+			filterData.flags |= physx::PxQueryFlag::Enum::eSTATIC;
+			filterData.data.word0 = aLayerMask->bitValue;
+		}
+
+		bool hit = false;
+		physx::PxOverlapHit hitInfo;
+		switch (aShapeOverlapInfo->GetShapeType())
+		{
+		case Physics::ShapeType::Box:
+		{
+			const auto* boxOverlapInfo = reinterpret_cast<const BoxOverlapInfo*>(aShapeOverlapInfo);
+			physx::PxBoxGeometry shape = physx::PxBoxGeometry(boxOverlapInfo->halfExtent);
+			hit = physx::PxSceneQueryExt::overlapAny(*myScene, shape, shapePose, hitInfo, filterData);
+			break;
+		}
+		case Physics::ShapeType::Sphere:
+		{
+			const auto* sphereOverlapInfo = reinterpret_cast<const SphereOverlapInfo*>(aShapeOverlapInfo);
+			physx::PxSphereGeometry shape = physx::PxSphereGeometry(sphereOverlapInfo->radius);
+			hit = physx::PxSceneQueryExt::overlapAny(*myScene, shape, shapePose, hitInfo, filterData);
+			break;
+		}
+		default:
+			EPOCH_ASSERT(false, "Cannot cast mesh shapes!");
+			break;
+		}
+
+		return hit;
+	}
+
 	std::vector<UUID> PhysXScene::OverlapShape(const ShapeOverlapInfo* aShapeOverlapInfo)
 	{
 		physx::PxTransform shapePose = physx::PxTransform(PhysXUtils::ToPhysXVector(aShapeOverlapInfo->origin));

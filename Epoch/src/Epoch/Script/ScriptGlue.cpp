@@ -252,6 +252,9 @@ namespace Epoch
 		EPOCH_ADD_INTERNAL_CALL(Physics_Raycast);
 		EPOCH_ADD_INTERNAL_CALL(Physics_RaycastFiltered);
 
+		EPOCH_ADD_INTERNAL_CALL(Physics_CheckSphere);
+		EPOCH_ADD_INTERNAL_CALL(Physics_CheckSphereFiltered);
+
 		EPOCH_ADD_INTERNAL_CALL(Physics_SphereCast);
 		EPOCH_ADD_INTERNAL_CALL(Physics_OverlapSphere);
 
@@ -1611,11 +1614,7 @@ namespace Epoch
 
 		bool Physics_Raycast(CU::Vector3f* aOrigin, CU::Vector3f* aDirection, float aMaxDistance, HitInfo* outHitInfo)
 		{
-			std::shared_ptr<Scene> scene = ScriptEngine::GetSceneContext();
-			
-			bool hit = scene->GetPhysicsScene()->Raycast(*aOrigin, *aDirection, aMaxDistance, outHitInfo);
-
-			return hit;
+			return Physics_RaycastFiltered(aOrigin, aDirection, aMaxDistance, outHitInfo, nullptr);
 		}
 
 		bool Physics_RaycastFiltered(CU::Vector3f* aOrigin, CU::Vector3f* aDirection, float aMaxDistance, HitInfo* outHitInfo, LayerMask* aLayerMask)
@@ -1623,6 +1622,24 @@ namespace Epoch
 			std::shared_ptr<Scene> scene = ScriptEngine::GetSceneContext();
 
 			bool hit = scene->GetPhysicsScene()->Raycast(*aOrigin, *aDirection, aMaxDistance, outHitInfo, aLayerMask);
+
+			return hit;
+		}
+
+		bool Physics_CheckSphere(CU::Vector3f* aOrigin, float aRadius)
+		{
+			return Physics_CheckSphereFiltered(aOrigin, aRadius, nullptr);
+		}
+
+		bool Physics_CheckSphereFiltered(CU::Vector3f* aOrigin, float aRadius, LayerMask* aLayerMask)
+		{
+			std::shared_ptr<Scene> scene = ScriptEngine::GetSceneContext();
+
+			SphereOverlapInfo sphereOverlapInfo;
+			sphereOverlapInfo.origin = *aOrigin;
+			sphereOverlapInfo.radius = aRadius;
+
+			bool hit = scene->GetPhysicsScene()->CheckShape(&sphereOverlapInfo, aLayerMask);
 
 			return hit;
 		}

@@ -37,6 +37,7 @@ namespace Epoch
 
 		virtual bool Raycast(CU::Vector3f aOrigin, CU::Vector3f aDirection, float aMaxDistance = FLT_MAX, HitInfo* outHit = nullptr, LayerMask* aLayerMask = nullptr) = 0;
 		virtual bool ShapeCast(const ShapeCastInfo* aShapeCastInfo, HitInfo* outHit) = 0;
+		virtual bool CheckShape(const ShapeOverlapInfo* aShapeOverlapInfo, LayerMask* aLayerMask = nullptr) = 0;
 		virtual std::vector<UUID> OverlapShape(const ShapeOverlapInfo* aShapeOverlapInfo) = 0;
 
 		void AddRadialImpulse(CU::Vector3f aOrigin, float aRadius, float aStrength);

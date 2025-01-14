@@ -70,9 +70,14 @@ namespace Epoch
         public static bool Raycast(Vector3 aOrigin, Vector3 aDirection, out HitInfo outHitInfo, LayerMask aLayerMask, float aMaxDistance = Mathf.Infinity) => InternalCalls.Physics_RaycastFiltered(ref aOrigin, ref aDirection, aMaxDistance, out outHitInfo, ref aLayerMask);
 
 
+        public static bool CheckSphere(Vector3 aOrigin, float aRadius) => InternalCalls.Physics_CheckSphere(ref aOrigin, aRadius);
+        public static bool CheckSphere(Vector3 aOrigin, float aRadius, LayerMask aLayerMask) => InternalCalls.Physics_CheckSphereFiltered(ref aOrigin, aRadius, ref aLayerMask);
+
+
         public static bool SphereCast(Vector3 aOrigin, Vector3 aDirection, float aRadius, float aMaxDistance, out HitInfo aHitInfo) => InternalCalls.Physics_SphereCast(ref aOrigin, ref aDirection, aRadius, aMaxDistance, out aHitInfo);
 
         public static Entity[] OverlapSphere(Vector3 aOrigin, float aRadius) => InternalCalls.Physics_OverlapSphere(ref aOrigin, aRadius);
+
 
         public static void AddRadialImpulse(Vector3 aOrigin, float aRadius, float aStrength) => InternalCalls.Physics_AddRadialImpulse(ref aOrigin, aRadius, aStrength);
     }
