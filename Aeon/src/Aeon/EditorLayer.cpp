@@ -1961,7 +1961,7 @@ namespace Epoch
 				if (!entity.IsActive()) continue;
 
 				const auto& vc = entities.get<VolumeComponent>(entityID);
-				if (!vc.isActive) continue;
+				if (!vc.isActive || !vc.colorGrading.enabled) continue;
 
 				lutHandle = vc.colorGrading.lut;
 
