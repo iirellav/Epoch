@@ -25,5 +25,3 @@ Before you build you should know about the configurations. `Debug` runs really s
 Before we can build and run, we need to manually build the Epoch-ScriptCore. To do so, right-click on `Solution Explorer -> Core -> Epoch-ScriptCore` and press `Build`.
 
 You can now build and run the engine/editor.
-
-I suggest reading [`Create your project`](https://github.com/isak-morand/Epoch/wiki/Create-your-first-game:-A-guide-to-make-a-flappy-bird-ripoff#create-your-project) to get started.
