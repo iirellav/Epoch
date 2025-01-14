@@ -74,6 +74,8 @@ namespace Epoch
 		UI::EndPropertyGrid();
 
 		UI::Spacing();
+		ImGui::Separator();
+		UI::Spacing();
 
 		if (ImGui::TreeNodeEx("Layers", ImGuiTreeNodeFlags_SpanAvailWidth))
 		{
@@ -97,6 +99,50 @@ namespace Epoch
 			}
 
 			UI::EndPropertyGrid();
+			ImGui::TreePop();
+		}
+
+		if (ImGui::TreeNodeEx("Layer Collisions", ImGuiTreeNodeFlags_SpanAvailWidth))
+		{
+			const auto& layers = PhysicsLayerManager::GetLayers();
+
+			for (size_t i = 0; i < layers.size(); i++)
+			{
+				const auto& layer0 = layers[i];
+
+				if (layer0.name == "")
+				{
+					continue;
+				}
+
+				ImGui::PushID(layer0.name.c_str());
+				if (ImGui::TreeNodeEx(layer0.name.c_str(), ImGuiTreeNodeFlags_SpanAvailWidth))
+				{
+					UI::BeginPropertyGrid();
+
+					for (size_t j = 0; j < layers.size(); j++)
+					{
+						const auto& layer1 = layers[j];
+
+						if (layer1.name == "")
+						{
+							continue;
+						}
+
+						bool shouldCollide = PhysicsLayerManager::ShouldCollide(layer0.layerID, layer1.layerID);
+						if (UI::Property_Checkbox(layer1.name.c_str(), shouldCollide))
+						{
+							PhysicsLayerManager::SetLayerCollision(layer0.layerID, layer1.layerID, shouldCollide);
+						}
+					}
+
+					UI::EndPropertyGrid();
+
+					ImGui::TreePop();
+				}
+				ImGui::PopID();
+			}
+
 			ImGui::TreePop();
 		}
 

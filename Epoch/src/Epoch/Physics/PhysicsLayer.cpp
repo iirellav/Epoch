@@ -22,11 +22,14 @@ namespace Epoch
 
 	void PhysicsLayerManager::UpdateLayerName(uint32_t aLayerId, const std::string& aNewName)
 	{
-		for (const auto& layerName : staticLayerNames)
+		if (aNewName != "")
 		{
-			if (layerName == aNewName)
+			for (const auto& layerName : staticLayerNames)
 			{
-				return;
+				if (layerName == aNewName)
+				{
+					return;
+				}
 			}
 		}
 
