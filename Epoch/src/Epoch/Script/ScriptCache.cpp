@@ -75,6 +75,7 @@ namespace Epoch
 		CACHE_EPOCH_CORE_CLASS("HeaderAttribute");
 
 		CACHE_EPOCH_CORE_CLASS("AssetHandle");
+		CACHE_EPOCH_CORE_CLASS("LayerMask");
 		CACHE_EPOCH_CORE_CLASS("Vector2");
 		CACHE_EPOCH_CORE_CLASS("Vector3");
 		CACHE_EPOCH_CORE_CLASS("Color");
@@ -313,6 +314,7 @@ namespace Epoch
 			case FieldType::Double:			return EPOCH_CACHED_CLASS("System.Double")->monoClass;
 			case FieldType::String:			return EPOCH_CACHED_CLASS("System.String")->monoClass;
 			case FieldType::AssetHandle:	return EPOCH_CACHED_CLASS("Epoch.AssetHandle")->monoClass;
+			case FieldType::LayerMask:		return EPOCH_CACHED_CLASS("Epoch.LayerMask")->monoClass;
 			case FieldType::Scene:			return EPOCH_CACHED_CLASS("Epoch.Scene")->monoClass;
 			case FieldType::Vector2:		return EPOCH_CACHED_CLASS("Epoch.Vector2")->monoClass;
 			case FieldType::Vector3:		return EPOCH_CACHED_CLASS("Epoch.Vector3")->monoClass;

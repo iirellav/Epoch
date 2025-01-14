@@ -166,6 +166,8 @@ namespace Epoch::UI
 
 	bool Property_DragFloat4(const char* aLabel, CU::Vector4f& outValue, float aDelta = 0.1f, float aMin = 0.0f, float aMax = 0.0f, const char* aFormat = "%.3f", ImGuiSliderFlags aFlags = 0, const char* aTooltip = "");
 
+	bool Property_LayerMask(const char* aLabel, uint32_t& outValue, const char* aTooltip = "");
+
 	bool Property_Dropdown(const char* aLabel, const char** aOptions, uint32_t aOptionCount, uint32_t& outSelected, const char* aTooltip = "");
 
 	bool Property_Dropdown(const char* aLabel, const std::vector<std::string>& aOptions, uint32_t aOptionCount, uint32_t& outSelected, const char* aTooltip = "");
@@ -524,6 +526,16 @@ namespace Epoch::UI
 		{
 			float value = aStorage->GetValue<float>();
 			if (Property_DragFloat(aFieldName.c_str(), value, 0.1f, 0.0f, 0.0f, "%.3f", 0, aTooltip))
+			{
+				aStorage->SetValue(value);
+				result = true;
+			}
+			break;
+		}
+		case FieldType::LayerMask:
+		{
+			uint32_t value = aStorage->GetValue<uint32_t>();
+			if (Property_LayerMask(aFieldName.c_str(), value, aTooltip))
 			{
 				aStorage->SetValue(value);
 				result = true;

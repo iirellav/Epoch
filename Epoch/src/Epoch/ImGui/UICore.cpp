@@ -809,6 +809,63 @@ namespace Epoch::UI
 		return modified;
 	}
 
+	bool Property_LayerMask(const char* aLabel, uint32_t& outValue, const char* aTooltip)
+	{
+		bool modified = false;
+
+		//ShiftCursor(10.0f, 9.0f);
+		ShiftCursor(10.0f, 3.0f);
+		ImGui::Text(aLabel);
+
+		if (std::strlen(aTooltip) != 0)
+		{
+			ImGui::SameLine();
+			HelpMarker(aTooltip);
+		}
+
+		ImGui::NextColumn();
+		//ShiftCursorY(4.0f);
+		ImGui::PushItemWidth(-1);
+
+		if (ImGui::BeginMenu("Layer Mask..."))
+		{
+			const auto& layers = PhysicsLayerManager::GetLayers();
+
+			ImGui::PushItemFlag(ImGuiItemFlags_SelectableDontClosePopup, true);
+			for (size_t i = 0; i < layers.size(); i++)
+			{
+				const auto& layer = layers[i];
+				if (layer.name == "")
+				{
+					continue;
+				}
+
+				bool selected = outValue & layer.bitValue;
+				if (ImGui::MenuItem(layer.name.c_str(), nullptr, &selected))
+				{
+					if (selected)
+					{
+						outValue |= layer.bitValue;
+					}
+					else
+					{
+						outValue &= ~layer.bitValue;
+					}
+
+					modified = true;
+				}
+			}
+			ImGui::PopItemFlag();
+
+			ImGui::EndMenu();
+		}
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		return modified;
+	}
+
 	bool Property_Dropdown(const char* aLabel, const char** aOptions, uint32_t aOptionCount, uint32_t& outSelected, const char* aTooltip)
 	{
 		bool modified = false;

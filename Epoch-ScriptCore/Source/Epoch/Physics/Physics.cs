@@ -3,6 +3,16 @@ using System.Runtime.InteropServices;
 
 namespace Epoch
 {
+    [StructLayout(LayoutKind.Sequential)]
+    public struct LayerMask
+    {
+        public UInt32 bitValue;
+        public LayerMask(UInt32 aValue = 1u) { bitValue = aValue; }
+
+        public override string ToString() => bitValue.ToString();
+        public override int GetHashCode() => bitValue.GetHashCode();
+    };
+
     public static class Physics
     {
         public enum ForceMode
@@ -38,12 +48,6 @@ namespace Epoch
 
             set => InternalCalls.Physics_SetGravity(ref value);
         }
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct LayerMask
-        {
-            public UInt32 bitValue;
-        };
 
         [StructLayout(LayoutKind.Sequential)]
         public struct HitInfo

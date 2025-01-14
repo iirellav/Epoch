@@ -429,7 +429,7 @@ namespace Epoch
         internal static extern bool Physics_Raycast(ref Vector3 aOrigin, ref Vector3 aDirection, float aMaxDistance, out Physics.HitInfo outHitInfo);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern bool Physics_RaycastFiltered(ref Vector3 aOrigin, ref Vector3 aDirection, float aMaxDistance, out Physics.HitInfo outHitInfo, ref Physics.LayerMask aLayerMask);
+        internal static extern bool Physics_RaycastFiltered(ref Vector3 aOrigin, ref Vector3 aDirection, float aMaxDistance, out Physics.HitInfo outHitInfo, ref LayerMask aLayerMask);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern bool Physics_SphereCast(ref Vector3 aOrigin, ref Vector3 aDirection, float aRadius, float aMaxDistance, out Physics.HitInfo aHitInfo);

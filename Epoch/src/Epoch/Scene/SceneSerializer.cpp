@@ -326,6 +326,7 @@ namespace Epoch
 								aOut << fieldStorage->GetValue<uint16_t>();
 								break;
 							}
+							case FieldType::LayerMask:
 							case FieldType::UInt32:
 							{
 								aOut << fieldStorage->GetValue<uint32_t>();
@@ -1050,6 +1051,7 @@ namespace Epoch
 											fieldStorage->SetValue(dataNode.as<uint16_t>());
 											break;
 										}
+										case FieldType::LayerMask:
 										case FieldType::UInt32:
 										{
 											fieldStorage->SetValue(dataNode.as<uint32_t>());
