@@ -198,8 +198,9 @@ namespace Epoch
 		void GetModelSpaceBoneTransform(const std::vector<UUID>& aBoneEntityIds, std::vector<CU::Matrix4x4f>& outBoneTransforms, uint32_t aBoneIndex, const CU::Matrix4x4f& aParentTransform, std::shared_ptr<Skeleton> aSkeleton);
 
 		void RenderScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aRenderCamera, const SceneRendererCamera& aCullingCamera, bool aIsRuntime);
+		//Frustum CreateFrustum(const SceneRendererCamera& aCamera);
 		Frustum CreateFrustum(const SceneRendererCamera& aCamera);
-		bool FrustumIntersection(const Frustum& aFrustum, const AABB aAABB);
+		bool FrustumIntersection(const Frustum& aFrustum, const AABB aAABB, std::shared_ptr<SceneRenderer> aRenderer);
 		
 		void SetName(const std::string& aName) { myName = aName; }
 		void SetAssetHandle(AssetHandle aHandle) { myHandle = aHandle; }

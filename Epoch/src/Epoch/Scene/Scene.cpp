@@ -8,6 +8,8 @@
 #include "Epoch/Script/ScriptEngine.h"
 #include "Epoch/Rendering/DebugRenderer.h"
 
+#include "Epoch/Core/Input.h"
+
 namespace Epoch
 {
 	void Scene::CopyTo(std::shared_ptr<Scene> aCopy)
@@ -965,7 +967,7 @@ namespace Epoch
 	{
 		EPOCH_PROFILE_FUNC();
 
-		const Frustum frustum = CreateFrustum(aCullingCamera);
+		Frustum frustum = CreateFrustum(aCullingCamera);
 		std::set<UUID> lastFramesFrustumCulledEntities = myFrustumCulledEntities;
 		myFrustumCulledEntities.clear();
 
@@ -1146,7 +1148,7 @@ namespace Epoch
 					{
 						const CU::Matrix4x4f transform = GetWorldSpaceTransformMatrix(entity);
 
-						if (!FrustumIntersection(frustum, mesh->GetBoundingBox().GetGlobal(transform)))
+						if (!FrustumIntersection(frustum, mesh->GetBoundingBox().GetGlobal(transform), aRenderer))
 						{
 							myFrustumCulledEntities.insert(entity.GetUUID());
 						}
@@ -1321,67 +1323,67 @@ namespace Epoch
 		}
 	}
 
-	Frustum Scene::CreateFrustum(const SceneRendererCamera& aCamera)
-	{
-		Frustum frustum;
-
-		const CU::Matrix4x4f viewProj = aCamera.viewMatrix * aCamera.camera.GetProjectionMatrix();
-
-		// Left clipping plane
-		frustum.leftPlane =
-		{
-			viewProj(1, 4) + viewProj(1, 1),
-			viewProj(2, 4) + viewProj(2, 1),
-			viewProj(3, 4) + viewProj(3, 1),
-			viewProj(4, 4) + viewProj(4, 1)
-		};
-
-		// Right clipping plane
-		frustum.rightPlane =
-		{
-			viewProj(1, 4) - viewProj(1, 1),
-			viewProj(2, 4) - viewProj(2, 1),
-			viewProj(3, 4) - viewProj(3, 1),
-			viewProj(4, 4) - viewProj(4, 1)
-		};
-
-		// Top clipping plane
-		frustum.topPlane =
-		{
-			viewProj(1, 4) - viewProj(1, 2),
-			viewProj(2, 4) - viewProj(2, 2),
-			viewProj(3, 4) - viewProj(3, 2),
-			viewProj(4, 4) - viewProj(4, 2)
-		};
-
-		// Bottom clipping plane
-		frustum.bottomPlane =
-		{
-			viewProj(1, 4) + viewProj(1, 2),
-			viewProj(2, 4) + viewProj(2, 2),
-			viewProj(3, 4) + viewProj(3, 2),
-			viewProj(4, 4) + viewProj(4, 2)
-		};
-
-		// Near clipping plane
-		frustum.nearPlane =
-		{
-			viewProj(1, 3),
-			viewProj(2, 3),
-			viewProj(3, 3),
-			viewProj(4, 3)
-		};
-
-		// Far clipping plane
-		frustum.farPlane =
-		{
-			viewProj(1, 4) - viewProj(1, 3),
-			viewProj(2, 4) - viewProj(2, 3),
-			viewProj(3, 4) - viewProj(3, 3),
-			viewProj(4, 4) - viewProj(4, 3)
-		};
-
-		//float verticalFov = 2.0f * std::atanf(std::tanf(aCamera.fov / 2.0f) * aCamera.aspect);
+	//Frustum Scene::CreateFrustum(const SceneRendererCamera& aCamera)
+	//{
+	//	Frustum frustum;
+	//
+	//	const CU::Matrix4x4f viewProj = aCamera.viewMatrix * aCamera.camera.GetProjectionMatrix();
+	//
+	//	// Left clipping plane
+	//	frustum.leftPlane =
+	//	{
+	//		viewProj(1, 4) + viewProj(1, 1),
+	//		viewProj(2, 4) + viewProj(2, 1),
+	//		viewProj(3, 4) + viewProj(3, 1),
+	//		viewProj(4, 4) + viewProj(4, 1)
+	//	};
+	//
+	//	// Right clipping plane
+	//	frustum.rightPlane =
+	//	{
+	//		viewProj(1, 4) - viewProj(1, 1),
+	//		viewProj(2, 4) - viewProj(2, 1),
+	//		viewProj(3, 4) - viewProj(3, 1),
+	//		viewProj(4, 4) - viewProj(4, 1)
+	//	};
+	//
+	//	// Top clipping plane
+	//	frustum.topPlane =
+	//	{
+	//		viewProj(1, 4) - viewProj(1, 2),
+	//		viewProj(2, 4) - viewProj(2, 2),
+	//		viewProj(3, 4) - viewProj(3, 2),
+	//		viewProj(4, 4) - viewProj(4, 2)
+	//	};
+	//
+	//	// Bottom clipping plane
+	//	frustum.bottomPlane =
+	//	{
+	//		viewProj(1, 4) + viewProj(1, 2),
+	//		viewProj(2, 4) + viewProj(2, 2),
+	//		viewProj(3, 4) + viewProj(3, 2),
+	//		viewProj(4, 4) + viewProj(4, 2)
+	//	};
+	//
+	//	// Near clipping plane
+	//	frustum.nearPlane =
+	//	{
+	//		viewProj(1, 3),
+	//		viewProj(2, 3),
+	//		viewProj(3, 3),
+	//		viewProj(4, 3)
+	//	};
+	//
+	//	// Far clipping plane
+	//	frustum.farPlane =
+	//	{
+	//		viewProj(1, 4) - viewProj(1, 3),
+	//		viewProj(2, 4) - viewProj(2, 3),
+	//		viewProj(3, 4) - viewProj(3, 3),
+	//		viewProj(4, 4) - viewProj(4, 3)
+	//	};
+	//
+	//	//float verticalFov = 2.0f * std::atanf(std::tanf(aCamera.fov / 2.0f) * aCamera.aspect);
 		//const float halfVSide = aCamera.farPlane * std::tanf(verticalFov * 0.5f);
 		//const float halfHSide = halfVSide * aCamera.aspect;
 		//const CU::Vector3f frontMultFar = aCamera.farPlane * aCamera.viewMatrix.GetForward();
@@ -1392,30 +1394,123 @@ namespace Epoch
 		//frustum.leftPlane = { aCamera.position, CU::Vector3f(aCamera.transform.GetUp()).Cross(frontMultFar + CU::Vector3f(aCamera.transform.GetRight()) * halfHSide) };
 		//frustum.topPlane = { aCamera.position, CU::Vector3f(aCamera.transform.GetRight()).Cross(frontMultFar - CU::Vector3f(aCamera.transform.GetUp()) * halfVSide) };
 		//frustum.bottomPlane = { aCamera.position, CU::Vector3f(frontMultFar + CU::Vector3f(aCamera.transform.GetUp()) * halfVSide).Cross(aCamera.transform.GetRight()) };
+	//
+	//	for (Frustum::Plane& plane : frustum.planes)
+	//	{
+	//		const float mag = std::sqrt(plane.normal.x * plane.normal.x + plane.normal.y * plane.normal.y + plane.normal.z * plane.normal.z);
+	//		plane.normal.x /= mag;
+	//		plane.normal.y /= mag;
+	//		plane.normal.z /= mag;
+	//		plane.distance /= mag;
+	//	}
+	//
+	//	return frustum;
+	//}
 
-		for (Frustum::Plane& plane : frustum.planes)
-		{
-			const float mag = std::sqrt(plane.normal.x * plane.normal.x + plane.normal.y * plane.normal.y + plane.normal.z * plane.normal.z);
-			plane.normal.x /= mag;
-			plane.normal.y /= mag;
-			plane.normal.z /= mag;
-			plane.distance /= mag;
-		}
+	Frustum Scene::CreateFrustum(const SceneRendererCamera& aCamera)
+	{
+		CU::Vector3f nearCenter = aCamera.transform.GetTranslation() + aCamera.transform.GetForward() * aCamera.nearPlane;
+		CU::Vector3f farCenter = aCamera.transform.GetTranslation() + aCamera.transform.GetForward() * aCamera.farPlane;
+
+		float nearHeight = 2.0f * std::tanf(aCamera.fov / 2.0f) * aCamera.nearPlane;
+		float farHeight = 2.0f * std::tanf(aCamera.fov / 2.0f) * aCamera.farPlane;
+		float nearWidth = nearHeight * aCamera.aspect;
+		float farWidth = farHeight * aCamera.aspect;
+
+		CU::Vector3f up = aCamera.transform.GetUp();
+		CU::Vector3f right = aCamera.transform.GetRight();
+
+		CU::Vector3f farTopLeft			= farCenter + up * (farHeight * 0.5f) - right * (farWidth * 0.5f);
+		CU::Vector3f farTopRight		= farCenter + up * (farHeight * 0.5f) + right * (farWidth * 0.5f);
+		CU::Vector3f farBottomLeft		= farCenter - up * (farHeight * 0.5f) - right * (farWidth * 0.5f);
+		CU::Vector3f farBottomRight		= farCenter - up * (farHeight * 0.5f) + right * (farWidth * 0.5f);
+
+		CU::Vector3f nearTopLeft		= nearCenter + up * (nearHeight * 0.5f) - right * (nearWidth * 0.5f);
+		CU::Vector3f nearTopRight		= nearCenter + up * (nearHeight * 0.5f) + right * (nearWidth * 0.5f);
+		CU::Vector3f nearBottomLeft		= nearCenter - up * (nearHeight * 0.5f) - right * (nearWidth * 0.5f);
+		CU::Vector3f nearBottomRight	= nearCenter - up * (nearHeight * 0.5f) + right * (nearWidth * 0.5f);
+
+		Frustum frustum;
+		frustum.nearPlane = { nearBottomRight, (nearBottomRight - nearBottomLeft).Cross(nearTopLeft - nearBottomLeft) };
+		frustum.rightPlane = { farBottomRight, (farBottomRight - nearBottomRight).Cross(nearTopRight - nearBottomRight)};
+		frustum.leftPlane = { nearBottomLeft, (nearBottomLeft - farBottomLeft).Cross(farTopLeft - farBottomLeft)};
+		frustum.topPlane = { nearTopRight, (nearTopRight - nearTopLeft).Cross(farTopLeft - nearTopLeft)};
+		frustum.bottomPlane = { nearBottomRight, (nearBottomRight - nearBottomLeft).Cross(farBottomLeft - nearBottomLeft)};
+		frustum.farPlane = { farBottomLeft, (farBottomLeft - farBottomRight).Cross(farTopRight - farBottomRight)};
 
 		return frustum;
 	}
 
-	bool Scene::FrustumIntersection(const Frustum& aFrustum, const AABB aAABB)
+	bool Scene::FrustumIntersection(const Frustum& aFrustum, const AABB aAABB, std::shared_ptr<SceneRenderer> aRenderer)
 	{
 		for (const Frustum::Plane& plane : aFrustum.planes)
 		{
-			float dist = aAABB.GetCenter().Dot(plane.normal) + plane.distance + aAABB.GetExtents().Length();
-			if (dist < 0)
+			aRenderer->GetDebugRenderer()->DrawLine(plane.point, plane.point + plane.normal * 250.0f, CU::Color::Magenta);
+
+			//Early out using sphere
 			{
-				return false;
+				const float dist = aAABB.GetCenter().Dot(plane.normal - plane.point) + aAABB.GetExtents().Length();
+				if (dist < 0)
+				{
+					return false;
+				}
 			}
+			
+			////Box intersection
+			//{
+			//	CU::Vector3f corners[8];
+			//	corners[0] = aAABB.min;
+			//	corners[1] = { aAABB.max.x, aAABB.min.y, aAABB.min.z };
+			//	corners[2] = { aAABB.min.x, aAABB.max.y, aAABB.min.z };
+			//	corners[3] = { aAABB.max.x, aAABB.max.y, aAABB.min.z };
+			//	corners[4] = { aAABB.min.x, aAABB.min.y, aAABB.max.z };
+			//	corners[5] = { aAABB.max.x, aAABB.min.y, aAABB.max.z };
+			//	corners[6] = { aAABB.min.x, aAABB.max.y, aAABB.max.z };
+			//	corners[7] = { aAABB.max.x, aAABB.max.y, aAABB.max.z };
+			//
+			//	for (const CU::Vector3f& corner : corners)
+			//	{
+			//		float distance =
+			//			corner.x * plane.normal.x +
+			//			corner.y * plane.normal.y +
+			//			corner.z * plane.normal.z +
+			//			plane.distance;
+			//
+			//		if (distance >= 0)
+			//		{
+			//			aRenderer->GetDebugRenderer()->DrawWireSphere(corner, CU::Vector3f::Zero, 25, CU::Color::Magenta);
+			//			return true;
+			//		}
+			//	}
+			//
+			//	//const float a = plane.normal.x;
+			//	//const float b = plane.normal.y;
+			//	//const float c = plane.normal.z;
+			//	//const float d = plane.distance;
+			//	//
+			//	//CU::Vector3f positiveVertex
+			//	//(
+			//	//	a >= 0 ? aAABB.max.x : aAABB.min.x,
+			//	//	b >= 0 ? aAABB.max.y : aAABB.min.y,
+			//	//	c >= 0 ? aAABB.max.z : aAABB.min.z
+			//	//);
+			//	//
+			//	//CU::Vector3f negativeVertex
+			//	//(
+			//	//	a >= 0 ? aAABB.min.x : aAABB.max.x,
+			//	//	b >= 0 ? aAABB.min.y : aAABB.max.y,
+			//	//	c >= 0 ? aAABB.min.z : aAABB.max.z
+			//	//);
+			//	//
+			//	//const float negativeDistance = a * negativeVertex.x + b * negativeVertex.y + c * negativeVertex.z + d;
+			//	//if (negativeDistance >= 0)
+			//	//{
+			//	//	CONSOLE_LOG_DEBUG("Corner in frustum");
+			//	//	return true;
+			//	//}
+			//}
 		}
 
-		return true;
+		return false;
 	}
 }

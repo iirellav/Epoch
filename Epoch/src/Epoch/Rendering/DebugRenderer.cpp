@@ -680,7 +680,7 @@ namespace Epoch
 	void DebugRenderer::DrawWireAABB(const AABB& aAABB, const CU::Matrix4x4f& aTransform, const CU::Color aColor)
 	{
 		const AABB aabb = aAABB.GetGlobal(aTransform);
-		//DrawWireBox(aabb.GetCenter(), CU::Vector3f::Zero, aabb.GetExtents(), aColor);
+		DrawWireBox(aabb.GetCenter(), CU::Vector3f::Zero, aabb.GetExtents(), aColor);
 		DrawWireSphere(aabb.GetCenter(), CU::Vector3f::Zero, aabb.GetExtents().Length(), aColor);
 	}
 
