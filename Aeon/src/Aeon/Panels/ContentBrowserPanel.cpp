@@ -360,7 +360,8 @@ namespace Epoch
 					continue;
 				}
 
-				metadata.handle = Project::GetEditorAssetManager()->ImportAsset(entry.path());
+				Project::GetEditorAssetManager()->ImportAsset(entry.path());
+				metadata = Project::GetEditorAssetManager()->GetMetadata(std::filesystem::relative(entry.path(), Project::GetAssetDirectory()));
 			}
 
 			// Failed to import
@@ -385,6 +386,7 @@ namespace Epoch
 
 		myUpdateNavigationPath = true;
 
+		ClearSelections();
 		myCurrentItems.items.clear();
 
 		if (strlen(mySearchBuffer) == 0)
@@ -424,8 +426,6 @@ namespace Epoch
 
 		myPreviousDirectory = aDirectory;
 		myCurrentDirectory = aDirectory;
-
-		ClearSelections();
 	}
 
 	void ContentBrowserPanel::OnBrowseBack()
