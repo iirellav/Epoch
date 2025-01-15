@@ -716,7 +716,8 @@ namespace Epoch
 
 			if (result.IsSet(ContentBrowserAction::Copy))
 			{
-				myCopiedAssets.Select(item->GetID());
+				myCopiedAssets.CopyFrom(SelectionManager::GetSelections(SelectionContext::ContentBrowser));
+				//myCopiedAssets.Select(item->GetID());
 			}
 
 			if (result.IsSet(ContentBrowserAction::Reload))
@@ -760,7 +761,8 @@ namespace Epoch
 
 			if (result.IsSet(ContentBrowserAction::Duplicate))
 			{
-				myCopiedAssets.Select(item->GetID());
+				myCopiedAssets.CopyFrom(SelectionManager::GetSelections(SelectionContext::ContentBrowser));
+				//myCopiedAssets.Select(item->GetID());
 				PasteCopiedAssets();
 				break;
 			}
