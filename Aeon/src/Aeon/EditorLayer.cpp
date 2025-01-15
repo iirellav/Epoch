@@ -836,7 +836,7 @@ namespace Epoch
 				break;
 			}
 
-			myDebugRenderer->DrawGrid(CU::Vector3f::Zero, gridRotation, EditorSettings::Get().gridSize, EditorSettings::Get().gridOpacity);
+			myDebugRenderer->DrawGrid(EditorSettings::Get().gridOffset, gridRotation, EditorSettings::Get().gridSize, EditorSettings::Get().gridOpacity);
 		}
 
 		if (SelectionManager::GetSelectionCount(SelectionContext::Scene) > 0)

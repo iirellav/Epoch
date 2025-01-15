@@ -76,8 +76,8 @@ namespace Epoch
 		//---------- Grid ------------
 		settings.gridEnabled = rootNode["GridEnabled"].as<bool>(true);
 		settings.gridOpacity = rootNode["GridOpacity"].as<float>(0.5f);
-		settings.gridSize.x = rootNode["GridSizeX"].as<int>(20);
-		settings.gridSize.y = rootNode["GridSizeY"].as<int>(20);
+		settings.gridOffset = rootNode["GridOffset"].as<CU::Vector3f>(CU::Vector3f::Zero);
+		settings.gridSize = rootNode["GridSize"].as<CU::Vector2f>(CU::Vector2f(20.0f, 20.0f));
 		settings.gridPlane = (GridPlane)rootNode["GridPlane"].as<int>((int)GridPlane::Y);
 
 		//---------- Content Browser ------------
@@ -137,8 +137,8 @@ namespace Epoch
 		//---------- Grid ------------
 		out << YAML::Key << "GridEnabled" << YAML::Value << settings.gridEnabled;
 		out << YAML::Key << "GridOpacity" << YAML::Value << settings.gridOpacity;
-		out << YAML::Key << "GridSizeX" << YAML::Value << settings.gridSize.x;
-		out << YAML::Key << "GridSizeY" << YAML::Value << settings.gridSize.y;
+		out << YAML::Key << "GridOffset" << YAML::Value << settings.gridOffset;
+		out << YAML::Key << "GridSize" << YAML::Value << settings.gridSize;
 		out << YAML::Key << "GridPlane" << YAML::Value << (int)settings.gridPlane;
 
 		//---------- Content Browser ------------

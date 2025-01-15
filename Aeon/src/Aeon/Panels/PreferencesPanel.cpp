@@ -111,7 +111,14 @@ namespace Epoch
 
 			modified |= UI::Property_Checkbox("Show Grid", settings.gridEnabled);
 			modified |= UI::Property_SliderFloat("Opacity", settings.gridOpacity, 0.0f, 1.0f, NULL, ImGuiSliderFlags_NoInput | ImGuiSliderFlags_AlwaysClamp);
-			modified |= UI::Property_DragInt2("Size", settings.gridSize, 1, 0, 64);
+
+			CU::Vector3f gridOffset = settings.gridOffset * 0.01f;
+			modified |= UI::Property_DragFloat3("Offset", gridOffset, 0.2f);
+			settings.gridOffset = gridOffset * 100.0f;
+
+			CU::Vector2i gridSize = settings.gridSize;
+			modified |= UI::Property_DragInt2("Size", gridSize, 1, 0, 64);
+			settings.gridSize = gridSize;
 
 			bool gridPlaneX = settings.gridPlane == GridPlane::X;
 			bool gridPlaneY = settings.gridPlane == GridPlane::Y;
