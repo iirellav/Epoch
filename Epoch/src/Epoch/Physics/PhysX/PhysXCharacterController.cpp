@@ -4,6 +4,7 @@
 #include "PhysXUtils.h"
 #include "Epoch/Physics/PhysicsSystem.h"
 #include <PxPhysicsAPI.h>
+#include <PxShape.h>
 
 namespace Epoch
 {
@@ -13,6 +14,9 @@ namespace Epoch
 
 		const CU::Transform worldTransform = aEntity.GetWorldSpaceTransform();
 		const auto& ccComponent = aEntity.GetComponent<CharacterControllerComponent>();
+		const auto& layer = PhysicsLayerManager::GetLayer(ccComponent.layerID);
+		myLayerValue = layer.bitValue;
+		myCollisionValue = layer.collidesWith;
 
 		physx::PxCapsuleControllerDesc desc;
 		desc.height = ccComponent.height - ccComponent.radius * 2.0f;
@@ -34,7 +38,19 @@ namespace Epoch
 		EPOCH_ASSERT(myCharacterController, "Failed to create character controller!");
 		if (myCharacterController)
 		{
-			myCharacterController->getActor()->userData = new UUID(aEntity.GetUUID());
+			auto* actor = myCharacterController->getActor();
+			physx::PxShape* shapes;
+			actor->userData = new UUID(aEntity.GetUUID());
+			actor->getShapes(&shapes, 1);
+			if (shapes)
+			{
+				physx::PxFilterData filterData;
+				filterData.word0 = myLayerValue;		// word0 = own ID
+				filterData.word1 = myCollisionValue;	// word1 = ID mask to filter pairs that trigger a contact callback;
+
+				shapes->setSimulationFilterData(filterData);
+				shapes->setQueryFilterData(filterData);
+			}
 		}
 	}
 
@@ -75,8 +91,15 @@ namespace Epoch
 
 	void PhysXCharacterController::Simulate(float aTimeStep)
 	{
-		physx::PxControllerFilters pxControllerFilters;
-		myCharacterController->move(PhysXUtils::ToPhysXVector(myDisplacement), 0.1f, aTimeStep, pxControllerFilters);
+		physx::PxFilterData filterData;
+		filterData.word0 = myLayerValue;		// word0 = own ID
+		filterData.word1 = myCollisionValue;	// word1 = ID mask to filter pairs that trigger a contact callback;
+
+		physx::PxControllerFilters ccFilterData;
+		ccFilterData.mFilterFlags = physx::PxQueryFlag::Enum::eDYNAMIC | physx::PxQueryFlag::Enum::eSTATIC | physx::PxQueryFlag::Enum::ePREFILTER;
+		ccFilterData.mFilterData = &filterData;
+
+		myCharacterController->move(PhysXUtils::ToPhysXVector(myDisplacement), 0.1f, aTimeStep, ccFilterData);
 		myDisplacement = CU::Vector3f::Zero;
 	}
 }

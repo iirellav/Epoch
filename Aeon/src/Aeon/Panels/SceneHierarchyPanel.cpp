@@ -2004,7 +2004,6 @@ namespace Epoch
 						aFirstComponent.offset = offset * 100.0f;
 					}
 
-
 					float stepOffset = aFirstComponent.stepOffset * 0.01f;
 					if (UI::Property_DragFloat("Step Offset", stepOffset, 0.05f, 0.0f, aFirstComponent.height * 0.01f))
 					{
@@ -2012,6 +2011,22 @@ namespace Epoch
 					}
 
 					UI::Property_DragFloat("Slope Limit", aFirstComponent.slopeLimit, 0.1f, 0.0f, 90.0f);
+
+					const auto& layerNames = PhysicsLayerManager::GetLayerNames();
+					std::vector<std::string> layerNamesVector(layerNames.size());
+					for (size_t i = 0; i < layerNames.size(); i++)
+					{
+						layerNamesVector[i] = layerNames[i];
+					}
+					if (UI::Property_Dropdown("Layer", layerNamesVector, (uint32_t)layerNamesVector.size(), aFirstComponent.layerID))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& cc = entity.GetComponent<CharacterControllerComponent>();
+							cc.layerID = aFirstComponent.layerID;
+						}
+					}
 
 					UI::EndPropertyGrid();
 				}

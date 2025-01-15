@@ -334,6 +334,8 @@ namespace Epoch
 		float height = 200.0f;
 		CU::Vector3f offset;
 
+		uint32_t layerID = 0;
+
 		CharacterControllerComponent() = default;
 		CharacterControllerComponent(const CharacterControllerComponent&) = default;
 	};
