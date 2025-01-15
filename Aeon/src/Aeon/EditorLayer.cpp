@@ -76,12 +76,12 @@ namespace Epoch
 		myPanelManager = std::make_unique<PanelManager>();
 		myPanelManager->SetEntityDestroyedCallback([this](Entity aEntity) { OnEntityDeleted(aEntity); });
 
-		std::shared_ptr<SceneHierarchyPanel> sceneHierarchyPanel = myPanelManager->AddPanel<SceneHierarchyPanel>(PanelCategory::View, "Scene Hierarchy", true);
+		std::shared_ptr<SceneHierarchyPanel> sceneHierarchyPanel = myPanelManager->AddPanel<SceneHierarchyPanel>(PanelCategory::View, "Panel/Scene Hierarchy", true);
 		sceneHierarchyPanel->SetEntityCreationCallback([this](Entity aEntity) { return OnEntityCreated(aEntity); });
 		sceneHierarchyPanel->AddEntityPopupPlugin("Set Transform to Editor Camera Transform", [this](Entity aEntity) { OnSetToEditorCameraTransform(aEntity); });
 		sceneHierarchyPanel->AddEntityPopupPlugin("Reset Bone Transforms", [this](Entity aEntity) { OnResetBoneTransforms(aEntity); });
 
-		std::shared_ptr<ContentBrowserPanel> contentBrowserPanel = myPanelManager->AddPanel<ContentBrowserPanel>(PanelCategory::View, "Content Browser", true);
+		std::shared_ptr<ContentBrowserPanel> contentBrowserPanel = myPanelManager->AddPanel<ContentBrowserPanel>(PanelCategory::View, "Panel/Content Browser", true);
 
 		contentBrowserPanel->RegisterItemActivateCallbackForType(AssetType::Scene, [this](const AssetMetadata& aMetadata)
 			{
@@ -111,12 +111,12 @@ namespace Epoch
 		myPanelManager->AddPanel<ProjectSettingsPanel>(PanelCategory::Edit, "Project Settings", false);
 		myPanelManager->AddPanel<PreferencesPanel>(PanelCategory::Edit, "Preferences", false);
 
-		myPanelManager->AddPanel<InspectorPanel>(PanelCategory::View, "Inspector", true);
-		myPanelManager->AddPanel<EditorConsolePanel>(PanelCategory::View, "Console", true);
-		myPanelManager->AddPanel<AssetManagerPanel>(PanelCategory::View, "Asset Manager", false);
-		myPanelManager->AddPanel<ShaderLibraryPanel>(PanelCategory::View, "Shader Library", false);
-		myPanelManager->AddPanel<ScriptEngineDebugPanel>(PanelCategory::View, "Script Engine", false);
-		std::shared_ptr<StatisticsPanel> statisticsPanel = myPanelManager->AddPanel<StatisticsPanel>(PanelCategory::View, "Statistics", false);
+		myPanelManager->AddPanel<InspectorPanel>(PanelCategory::View, "Panel/Inspector", true);
+		myPanelManager->AddPanel<EditorConsolePanel>(PanelCategory::View, "Panel/Console", true);
+		myPanelManager->AddPanel<AssetManagerPanel>(PanelCategory::View, "Debug/Asset Manager", false);
+		myPanelManager->AddPanel<ShaderLibraryPanel>(PanelCategory::View, "Panel/Shader Library", false);
+		myPanelManager->AddPanel<ScriptEngineDebugPanel>(PanelCategory::View, "Debug/Script Engine", false);
+		std::shared_ptr<StatisticsPanel> statisticsPanel = myPanelManager->AddPanel<StatisticsPanel>(PanelCategory::View, "Debug/Statistics", false);
 
 		myPanelManager->Deserialize();
 
@@ -299,9 +299,9 @@ namespace Epoch
 			}
 		}
 
-		BeginDockspace();
-
 		OnRenderMenuBar();
+
+		BeginDockspace();
 
 		if (staticCreateNewProj)
 		{
@@ -401,7 +401,7 @@ namespace Epoch
 
 	void EditorLayer::OnRenderMenuBar()
 	{
-		if (ImGui::BeginMenuBar())
+		if (ImGui::BeginMainMenuBar())
 		{
 			if (ImGui::BeginMenu("File"))
 			{
@@ -411,6 +411,27 @@ namespace Epoch
 					if (ImGui::MenuItem("Open Scene...", "Ctrl+O", false, projectOpen))
 					{
 						OpenScene();
+					}
+
+					const auto& projectUserConf = Project::GetActive()->GetUserConfig();
+					if (ImGui::BeginMenu("Open Recent Scene...", projectUserConf.recentScenes.size() > 1))
+					{
+						size_t i = 0;
+						for (auto it = projectUserConf.recentScenes.begin(); it != projectUserConf.recentScenes.end(); it++)
+						{
+							if (i > 10) break;
+							if (it->second.filePath == myEditorScenePath) continue;
+
+							if (ImGui::MenuItem(it->second.name.c_str()))
+							{
+								OpenScene(it->second.filePath);
+
+								break;
+							}
+
+							i++;
+						}
+						ImGui::EndMenu();
 					}
 
 					if (ImGui::MenuItem("New Scene", "Ctrl+N", false, projectOpen))
@@ -436,7 +457,7 @@ namespace Epoch
 					OpenProject();
 				}
 
-				if (ImGui::BeginMenu("Open Recent...", EditorSettings::Get().recentProjects.size() > 1))
+				if (ImGui::BeginMenu("Open Recent Project...", EditorSettings::Get().recentProjects.size() > 1))
 				{
 					size_t i = 0;
 					for (auto it = EditorSettings::Get().recentProjects.begin(); it != EditorSettings::Get().recentProjects.end(); it++)
@@ -528,10 +549,26 @@ namespace Epoch
 					RecursivePanelMenuItem(nameParts, 0, panelData.isOpen);
 				}
 
+				ImGui::Separator();
+
+				if (ImGui::BeginMenu("Layout"))
+				{
+					std::filesystem::path layoutDir = "Resources/Layouts";
+					for (auto const& dirEntry : std::filesystem::directory_iterator(layoutDir))
+					{
+						if (ImGui::MenuItem(dirEntry.path().stem().string().c_str()))
+						{
+							ImGui::LoadIniSettingsFromDisk(dirEntry.path().string().c_str());
+						}
+					}
+
+					ImGui::EndMenu();
+				}
+
 				ImGui::EndMenu();
 			}
 
-			ImGui::EndMenuBar();
+			ImGui::EndMainMenuBar();
 		}
 	}
 
@@ -1330,17 +1367,19 @@ namespace Epoch
 
 		auto project = Project::GetActive();
 
-		project->GetConfig().startScene = "";
+		auto& userConf = project->GetUserConfig();
+
+		userConf.startScene = "";
 		if (!myEditorScenePath.empty())
 		{
-			project->GetConfig().startScene = std::filesystem::relative(myEditorScenePath, Project::GetAssetDirectory());
+			project->GetUserConfig().startScene = std::filesystem::relative(myEditorScenePath, Project::GetAssetDirectory());
 		}
 
-		project->GetConfig().editorCameraPosition = myEditorCamera.GetTransform().GetTranslation();
-		project->GetConfig().editorCameraRotation = myEditorCamera.GetTransform().GetRotation();
+		userConf.editorCameraPosition = myEditorCamera.GetTransform().GetTranslation();
+		userConf.editorCameraRotation = myEditorCamera.GetTransform().GetRotation();
 
 		ProjectSerializer serializer(project);
-		serializer.Serialize(project->GetProjectPath());
+		serializer.Serialize(Project::GetProjectPath());
 	}
 
 	void EditorLayer::CloseProject()
@@ -1408,18 +1447,24 @@ namespace Epoch
 
 		myPanelManager->OnProjectChanged(project);
 
-		bool hasStartScene = !project->GetConfig().startScene.empty();
-		if (hasStartScene && FileSystem::Exists(assetDirectory / project->GetConfig().startScene))
+		const auto& userConf = project->GetUserConfig();
+
+		bool hasStartScene = !userConf.startScene.empty();
+		const auto& startScenePath = assetDirectory / userConf.startScene;
+		if (hasStartScene && FileSystem::Exists(startScenePath))
 		{
-			hasStartScene = OpenScene((assetDirectory / project->GetConfig().startScene).string());
+			if (!OpenScene(startScenePath.string()))
+			{
+				NewScene();
+			}
 		}
 		else
 		{
 			NewScene();
 		}
 
-		myEditorCamera.GetTransform().SetTranslation(project->GetConfig().editorCameraPosition);
-		myEditorCamera.GetTransform().SetRotation(project->GetConfig().editorCameraRotation);
+		myEditorCamera.GetTransform().SetTranslation(userConf.editorCameraPosition);
+		myEditorCamera.GetTransform().SetRotation(userConf.editorCameraRotation);
 
 		RecentProject projectEntry;
 		projectEntry.name = aPath.stem().string();
@@ -1515,6 +1560,29 @@ namespace Epoch
 
 		myTimeSinceLastSave = 0.0f;
 
+		auto& userConf = Project::GetActive()->GetUserConfig();
+
+		if (!myEditorScenePath.empty())
+		{
+			userConf.startScene = std::filesystem::relative(myEditorScenePath, Project::GetAssetDirectory());
+		}
+
+		RecentScene sceneEntry;
+		sceneEntry.name = aPath.stem().string();
+		sceneEntry.filePath = aPath.string();
+		sceneEntry.lastOpened = time(NULL);
+
+		for (auto it = userConf.recentScenes.begin(); it != userConf.recentScenes.end(); it++)
+		{
+			if (it->second.filePath == sceneEntry.filePath)
+			{
+				userConf.recentScenes.erase(it);
+				break;
+			}
+		}
+
+		userConf.recentScenes[sceneEntry.lastOpened] = sceneEntry;
+
 		return true;
 	}
 
@@ -1600,7 +1668,7 @@ namespace Epoch
 			//}
 
 			const char* drawModeStrings[] = { "Shaded", "Albedo", "Normals", "Ambient Occlusion", "Roughness", "Metalness", "World Position" };
-			int currentDrawMode = (int)mySceneRenderer->GetDrawMode();
+			uint32_t currentDrawMode = (int)mySceneRenderer->GetDrawMode();
 			if (UI::Property_Dropdown("Draw Mode", drawModeStrings, 7, currentDrawMode))
 			{
 				mySceneRenderer->SetDrawMode((DrawMode)currentDrawMode);
@@ -1634,13 +1702,13 @@ namespace Epoch
 
 			const char* debugLinesDrawModeStrings[] = { "Off", "All", "Selected" };
 
-			int currentShowBoundingBoxesMode = (int)myShowBoundingBoxesMode;
+			uint32_t currentShowBoundingBoxesMode = (int)myShowBoundingBoxesMode;
 			if (UI::Property_Dropdown("Show Bounding Box(es)", debugLinesDrawModeStrings, 3, currentShowBoundingBoxesMode))
 			{
 				myShowBoundingBoxesMode = (DebugLinesDrawMode)currentShowBoundingBoxesMode;
 			}
 
-			int currentShowCollidersMode = (int)myShowCollidersMode;
+			uint32_t currentShowCollidersMode = (int)myShowCollidersMode;
 			if (UI::Property_Dropdown("Show Collider(s)", debugLinesDrawModeStrings, 3, currentShowCollidersMode))
 			{
 				myShowCollidersMode = (DebugLinesDrawMode)currentShowCollidersMode;
@@ -1909,7 +1977,7 @@ namespace Epoch
 				if (!entity.IsActive()) continue;
 
 				const auto& vc = entities.get<VolumeComponent>(entityID);
-				if (!vc.isActive) continue;
+				if (!vc.isActive || !vc.colorGrading.enabled) continue;
 
 				lutHandle = vc.colorGrading.lut;
 
@@ -1947,7 +2015,7 @@ namespace Epoch
 		myActiveScene->SetSceneTransitionCallback([this](AssetHandle scene) { QueueSceneTransition(scene); });
 		ScriptEngine::SetSceneContext(myActiveScene, mySceneRenderer);
 
-		auto console = myPanelManager->GetPanel<EditorConsolePanel>("Console");
+		auto console = myPanelManager->GetPanel<EditorConsolePanel>("Panel/Console");
 		console->OnScenePlay();
 
 		myPanelManager->OnSceneChanged(myActiveScene);

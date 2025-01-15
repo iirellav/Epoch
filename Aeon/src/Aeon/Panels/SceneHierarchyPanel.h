@@ -230,7 +230,7 @@ namespace Epoch
 			{
 				ImGui::OpenPopup("ComponentSettings");
 			}
-			UI::Draw::Image(EditorResources::VerticalEllipsisIcon,
+			UI::Draw::DrawButtonImage(EditorResources::VerticalEllipsisIcon,
 				IM_COL32(255, 255, 255, 200), IM_COL32(255, 255, 255, 255), IM_COL32(255, 255, 255, 150),
 				UI::RectExpanded(UI::GetItemRect(), -5.0f, -5.0f));
 

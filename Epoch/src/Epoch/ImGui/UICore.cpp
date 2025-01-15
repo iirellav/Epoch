@@ -809,7 +809,7 @@ namespace Epoch::UI
 		return modified;
 	}
 
-	bool Property_Dropdown(const char* aLabel, const char** aOptions, int aOptionCount, int& outSelected, const char* aTooltip)
+	bool Property_LayerMask(const char* aLabel, uint32_t& outValue, const char* aTooltip)
 	{
 		bool modified = false;
 
@@ -827,12 +827,94 @@ namespace Epoch::UI
 		//ShiftCursorY(4.0f);
 		ImGui::PushItemWidth(-1);
 
-		const char* current = aOptions[outSelected];
+		if (ImGui::BeginMenu("Layer Mask..."))
+		{
+			const auto& layers = PhysicsLayerManager::GetLayers();
+
+			ImGui::PushItemFlag(ImGuiItemFlags_SelectableDontClosePopup, true);
+
+			if (ImGui::MenuItem("All..."))
+			{
+				outValue = 0;
+				for (size_t i = 0; i < layers.size(); i++)
+				{
+					const auto& layer = layers[i];
+					if (layer.name == "")
+					{
+						continue;
+					}
+
+					outValue |= layer.bitValue;
+				}
+				modified = true;
+			}
+			if (ImGui::MenuItem("None..."))
+			{
+				outValue = 0;
+				modified = true;
+			}
+
+			ImGui::Separator();
+
+			for (size_t i = 0; i < layers.size(); i++)
+			{
+				const auto& layer = layers[i];
+				if (layer.name == "")
+				{
+					continue;
+				}
+
+				bool selected = outValue & layer.bitValue;
+				if (ImGui::MenuItem(layer.name.c_str(), nullptr, &selected))
+				{
+					if (selected)
+					{
+						outValue |= layer.bitValue;
+					}
+					else
+					{
+						outValue &= ~layer.bitValue;
+					}
+
+					modified = true;
+				}
+			}
+			ImGui::PopItemFlag();
+
+			ImGui::EndMenu();
+		}
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		return modified;
+	}
+
+	bool Property_Dropdown(const char* aLabel, const char** aOptions, uint32_t aOptionCount, uint32_t& outSelected, const char* aTooltip)
+	{
+		bool modified = false;
+
+		//ShiftCursor(10.0f, 9.0f);
+		ShiftCursor(10.0f, 3.0f);
+		ImGui::Text(aLabel);
+
+		if (std::strlen(aTooltip) != 0)
+		{
+			ImGui::SameLine();
+			HelpMarker(aTooltip);
+		}
+
+		ImGui::NextColumn();
+		//ShiftCursorY(4.0f);
+		ImGui::PushItemWidth(-1);
+
+		const char* current = ((GImGui->CurrentItemFlags & ImGuiItemFlags_MixedValue) != 0) ? "---" : aOptions[outSelected];
+
 		if (ImGui::BeginCombo(std::format("##{0}", aLabel).c_str(), current))
 		{
-			for (int i = 0; i < aOptionCount; i++)
+			for (uint32_t i = 0; i < aOptionCount; i++)
 			{
-				const bool is_selected = (current == aOptions[i]);
+				const bool is_selected = (aOptions[outSelected] == aOptions[i]);
 				if (ImGui::Selectable(aOptions[i], is_selected))
 				{
 					current = aOptions[i];
@@ -853,7 +935,7 @@ namespace Epoch::UI
 		return modified;
 	}
 
-	bool Property_Dropdown(const char* aLabel, const char** aOptions, int aOptionCount, int& outSelected, const bool* aInconsistent, const char* aTooltip)
+	bool Property_Dropdown(const char* aLabel, const std::vector<std::string>& aOptions, uint32_t aOptionCount, uint32_t& outSelected, const char* aTooltip)
 	{
 		bool modified = false;
 
@@ -871,15 +953,22 @@ namespace Epoch::UI
 		//ShiftCursorY(4.0f);
 		ImGui::PushItemWidth(-1);
 
-		const char* current = (aInconsistent && *aInconsistent == true) ? "---" : aOptions[outSelected];
+		const char* current = ((GImGui->CurrentItemFlags & ImGuiItemFlags_MixedValue) != 0) ? "---" : aOptions[outSelected].c_str();
+
+		const std::string id = "##" + std::string(aLabel);
 		if (ImGui::BeginCombo(std::format("##{0}", aLabel).c_str(), current))
 		{
-			for (int i = 0; i < aOptionCount; i++)
+			for (uint32_t i = 0; i < aOptionCount; i++)
 			{
-				const bool is_selected = (current == aOptions[i]);
-				if (ImGui::Selectable(aOptions[i], is_selected))
+				if (aOptions[i] == "")
 				{
-					current = aOptions[i];
+					continue;
+				}
+
+				const bool is_selected = (aOptions[outSelected].c_str() == aOptions[i]);
+				if (ImGui::Selectable(aOptions[i].c_str(), is_selected))
+				{
+					current = aOptions[i].c_str();
 					outSelected = i;
 					modified = true;
 				}

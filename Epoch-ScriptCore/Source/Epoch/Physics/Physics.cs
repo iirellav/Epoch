@@ -3,6 +3,16 @@ using System.Runtime.InteropServices;
 
 namespace Epoch
 {
+    [StructLayout(LayoutKind.Sequential)]
+    public struct LayerMask
+    {
+        public UInt32 bitValue;
+        public LayerMask(UInt32 aValue = 1u) { bitValue = aValue; }
+
+        public override string ToString() => bitValue.ToString();
+        public override int GetHashCode() => bitValue.GetHashCode();
+    };
+
     public static class Physics
     {
         public enum ForceMode
@@ -50,11 +60,24 @@ namespace Epoch
             public Entity Entity => Scene.GetEntityByID(entityID);
         };
 
-        public static bool Raycast(Vector3 aOrigin, Vector3 aDirection, float aMaxDistance, out HitInfo aHitInfo) => InternalCalls.Physics_Raycast(ref aOrigin, ref aDirection, aMaxDistance, out aHitInfo);
+
+        public static bool Raycast(Vector3 aOrigin, Vector3 aDirection, float aMaxDistance = Mathf.Infinity) => InternalCalls.Physics_Raycast(ref aOrigin, ref aDirection, aMaxDistance, out _);
+
+        public static bool Raycast(Vector3 aOrigin, Vector3 aDirection, LayerMask aLayerMask, float aMaxDistance = Mathf.Infinity) => InternalCalls.Physics_RaycastFiltered(ref aOrigin, ref aDirection, aMaxDistance, out _, ref aLayerMask);
+
+        public static bool Raycast(Vector3 aOrigin, Vector3 aDirection, out HitInfo outHitInfo, float aMaxDistance = Mathf.Infinity) => InternalCalls.Physics_Raycast(ref aOrigin, ref aDirection, aMaxDistance, out outHitInfo);
+
+        public static bool Raycast(Vector3 aOrigin, Vector3 aDirection, out HitInfo outHitInfo, LayerMask aLayerMask, float aMaxDistance = Mathf.Infinity) => InternalCalls.Physics_RaycastFiltered(ref aOrigin, ref aDirection, aMaxDistance, out outHitInfo, ref aLayerMask);
+
+
+        public static bool CheckSphere(Vector3 aOrigin, float aRadius) => InternalCalls.Physics_CheckSphere(ref aOrigin, aRadius);
+        public static bool CheckSphere(Vector3 aOrigin, float aRadius, LayerMask aLayerMask) => InternalCalls.Physics_CheckSphereFiltered(ref aOrigin, aRadius, ref aLayerMask);
+
 
         public static bool SphereCast(Vector3 aOrigin, Vector3 aDirection, float aRadius, float aMaxDistance, out HitInfo aHitInfo) => InternalCalls.Physics_SphereCast(ref aOrigin, ref aDirection, aRadius, aMaxDistance, out aHitInfo);
 
         public static Entity[] OverlapSphere(Vector3 aOrigin, float aRadius) => InternalCalls.Physics_OverlapSphere(ref aOrigin, aRadius);
+
 
         public static void AddRadialImpulse(Vector3 aOrigin, float aRadius, float aStrength) => InternalCalls.Physics_AddRadialImpulse(ref aOrigin, aRadius, aStrength);
     }

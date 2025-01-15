@@ -201,6 +201,7 @@ namespace Epoch
 				result.Write(&value, sizeof(uint16_t));
 				break;
 			}
+			case FieldType::LayerMask:
 			case FieldType::UInt32:
 			{
 				uint32_t value = Unbox<uint32_t>(aObj);
@@ -335,6 +336,11 @@ namespace Epoch
 				if (EPOCH_CORE_CLASS(AssetHandle) && typeClass == EPOCH_CORE_CLASS(AssetHandle)->monoClass)
 				{
 					return FieldType::AssetHandle;
+				}
+
+				if (EPOCH_CORE_CLASS(LayerMask) && typeClass == EPOCH_CORE_CLASS(LayerMask)->monoClass)
+				{
+					return FieldType::LayerMask;
 				}
 
 				if (EPOCH_CORE_CLASS(Vector2) && typeClass == EPOCH_CORE_CLASS(Vector2)->monoClass)

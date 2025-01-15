@@ -25,8 +25,9 @@ namespace Epoch
 		CU::Vector3f GetGravity() const override;
 		void SetGravity(const CU::Vector3f& aGravity) override;
 
-		bool Raycast(CU::Vector3f aOrigin, CU::Vector3f aDirection, float aMaxDistance = FLT_MAX, HitInfo* outHit = nullptr) override;
+		bool Raycast(CU::Vector3f aOrigin, CU::Vector3f aDirection, float aMaxDistance = FLT_MAX, HitInfo* outHit = nullptr, LayerMask* aLayerMask = nullptr) override;
 		bool ShapeCast(const ShapeCastInfo* aShapeCastInfo, HitInfo* outHit) override;
+		bool CheckShape(const ShapeOverlapInfo* aShapeOverlapInfo, LayerMask* aLayerMask = nullptr) override;
 		std::vector<UUID> OverlapShape(const ShapeOverlapInfo* aShapeOverlapInfo) override;
 
 		void Teleport(Entity aEntity, const CU::Vector3f& aTargetPosition, const CU::Quatf& aTargetRotation) override;

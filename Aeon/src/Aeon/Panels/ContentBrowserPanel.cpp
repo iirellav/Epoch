@@ -80,7 +80,7 @@ namespace Epoch
 			UI::PushID();
 			if (ImGui::BeginTable("ContentBrowser_Table", 2, tableFlags, ImVec2(0.0f, 0.0f)))
 			{
-				ImGui::TableSetupColumn("Outliner", 0, 300.0f);
+				ImGui::TableSetupColumn("Outliner", 0, 200.0f);
 				ImGui::TableSetupColumn("Directory", ImGuiTableColumnFlags_WidthStretch);
 
 				ImGui::TableNextRow();
@@ -106,7 +106,7 @@ namespace Epoch
 								return a->filePath.stem().string() < b->filePath.stem().string();
 							});
 
-						RenderDirectoryHierarchy(myBaseDirectory, true);
+						RenderDirectoryHierarchy(myBaseDirectory/*, true*/);
 					}
 				}
 				ImGui::EndChild();
@@ -475,27 +475,6 @@ namespace Epoch
 				ImGui::GetWindowDrawList()->AddRectFilled(itemRect.Min, itemRect.Max, bgColour);
 			};
 
-		// Fill with light selection colour if any of the child entities selected
-		//auto checkIfAnyDescendantSelected = [&](std::shared_ptr<DirectoryInfo>& aDirectory, auto aIsAnyDescendantSelected) -> bool
-		//	{
-		//		if (aDirectory->handle == myCurrentDirectory->handle)
-		//			return true;
-		//
-		//		if (!aDirectory->subDirectories.empty())
-		//		{
-		//			for (auto& [childHandle, childDir] : aDirectory->subDirectories)
-		//			{
-		//				if (aIsAnyDescendantSelected(childDir, aIsAnyDescendantSelected))
-		//				{
-		//					return true;
-		//				}
-		//			}
-		//		}
-		//
-		//		return false;
-		//	};
-
-		//const bool isAnyDescendantSelected = checkIfAnyDescendantSelected(aDirectory, checkIfAnyDescendantSelected);
 		const bool isActiveDirectory = aDirectory->handle == myCurrentDirectory->handle;
 
 		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_OpenOnArrow;
@@ -513,16 +492,11 @@ namespace Epoch
 		}
 
 		// Tree Node
-		//auto folderIcon = ((flags &= ImGuiTreeNodeFlags_Leaf) || previousState == false) ? EditorResources::ClosedFolderIcon : EditorResources::OpenFolderIcon;
-		//bool open = UI::TreeNode(id, name, flags, folderIcon);
-		bool open = ImGui::TreeNodeEx(id.c_str(), flags, name.c_str());
+		auto folderIcon = (aDirectory->subDirectories.size() == 0 || previousState == false) ? EditorResources::ClosedFolderIcon : EditorResources::OpenFolderIcon;
+		bool open = UI::TreeNode(id, name, flags, folderIcon);
 		bool clicked = ImGui::IsItemClicked();
 		bool currentState = (flags &= ImGuiTreeNodeFlags_Leaf) ? false : open;
 		bool active = ImGui::IsItemActive();
-		//if (isActiveDirectory || isItemClicked)
-		//{
-		//	ImGui::PopStyleColor();
-		//}
 
 		// Fixing slight overlap
 		UI::ShiftCursorY(3.0f);
@@ -571,22 +545,39 @@ namespace Epoch
 			{
 				UI::ScopedStyle spacing(ImGuiStyleVar_ItemSpacing, ImVec2(2.0f, 0.0f));
 
+				auto contenBrowserButton = [aHeight](const char* labelId, const std::shared_ptr<Texture2D>& icon)
+					{
+						UI::ScopedColorStack buttonColors(
+							ImGuiCol_Button, IM_COL32(255, 255, 255, 0),
+							ImGuiCol_ButtonHovered, IM_COL32(255, 255, 255, 0),
+							ImGuiCol_ButtonActive, IM_COL32(255, 255, 255, 0));
+
+						const float iconSize = CU::Math::Min(24.0f, aHeight);
+						const float iconPadding = 3.0f;
+						const bool clicked = ImGui::Button(labelId, ImVec2(iconSize, iconSize));
+						UI::Draw::DrawButtonImage(icon,
+							IM_COL32(255, 255, 255, 200), IM_COL32(255, 255, 255, 255), IM_COL32(255, 255, 255, 150),
+							UI::RectExpanded(UI::GetItemRect(), -iconPadding, -iconPadding));
+
+						return clicked;
+					};
+
 				ImGui::SameLine();
-				if (ImGui::Button("<", { aHeight, aHeight }))
+				if (contenBrowserButton("##back", EditorResources::BackIcon))
 				{
 					OnBrowseBack();
 				}
 				UI::SetTooltip("Previous directory");
 
 				ImGui::SameLine();
-				if (ImGui::Button(">", { aHeight, aHeight }))
+				if (contenBrowserButton("##forward", EditorResources::ForwardIcon))
 				{
 					OnBrowseForward();
 				}
 				UI::SetTooltip("Next directory");
 
 				ImGui::SameLine();
-				if (ImGui::Button("O", { aHeight, aHeight }))
+				if (contenBrowserButton("##refresh", EditorResources::RefreshIcon))
 				{
 					Refresh();
 				}
@@ -877,7 +868,7 @@ namespace Epoch
 			return;
 		}
 
-		if ((!myIsAnyItemHovered && (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) || Input::IsKeyPressed(KeyCode::Escape)))
+		if ((!myIsAnyItemHovered && (ImGui::IsMouseClicked(ImGuiMouseButton_Left) || ImGui::IsMouseClicked(ImGuiMouseButton_Right)) || Input::IsKeyPressed(KeyCode::Escape)))
 		{
 			ClearSelections();
 		}

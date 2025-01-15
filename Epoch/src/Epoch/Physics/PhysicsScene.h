@@ -4,6 +4,7 @@
 #include "PhysicsBody.h"
 #include "CharacterController.h"
 #include "SceneQueries.h"
+#include "PhysicsLayer.h"
 
 namespace Epoch
 {
@@ -34,8 +35,9 @@ namespace Epoch
 		virtual CU::Vector3f GetGravity() const = 0;
 		virtual void SetGravity(const CU::Vector3f& aGravity) = 0;
 
-		virtual bool Raycast(CU::Vector3f aOrigin, CU::Vector3f aDirection, float aMaxDistance = FLT_MAX, HitInfo* outHit = nullptr) = 0;
+		virtual bool Raycast(CU::Vector3f aOrigin, CU::Vector3f aDirection, float aMaxDistance = FLT_MAX, HitInfo* outHit = nullptr, LayerMask* aLayerMask = nullptr) = 0;
 		virtual bool ShapeCast(const ShapeCastInfo* aShapeCastInfo, HitInfo* outHit) = 0;
+		virtual bool CheckShape(const ShapeOverlapInfo* aShapeOverlapInfo, LayerMask* aLayerMask = nullptr) = 0;
 		virtual std::vector<UUID> OverlapShape(const ShapeOverlapInfo* aShapeOverlapInfo) = 0;
 
 		void AddRadialImpulse(CU::Vector3f aOrigin, float aRadius, float aStrength);

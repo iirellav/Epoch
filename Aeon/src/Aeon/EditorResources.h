@@ -15,6 +15,9 @@ namespace Epoch
 		inline static std::shared_ptr<Texture2D> GearIcon = nullptr;
 		inline static std::shared_ptr<Texture2D> VerticalEllipsisIcon = nullptr;
 		inline static std::shared_ptr<Texture2D> QuestionMarkIcon = nullptr;
+		inline static std::shared_ptr<Texture2D> ForwardIcon = nullptr;
+		inline static std::shared_ptr<Texture2D> BackIcon = nullptr;
+		inline static std::shared_ptr<Texture2D> RefreshIcon = nullptr;
 
 		// Toolbar
 		inline static std::shared_ptr<Texture2D> PlayButton = nullptr;
@@ -64,6 +67,9 @@ namespace Epoch
 			js.AddAJob(NewLoadTexture, &GearIcon,					"Generic/GearIcon.png");
 			js.AddAJob(NewLoadTexture, &VerticalEllipsisIcon,		"Generic/VerticalEllipsisIcon.png");
 			js.AddAJob(NewLoadTexture, &QuestionMarkIcon,			"Generic/QuestionMarkIcon.png");
+			js.AddAJob(NewLoadTexture, &ForwardIcon,				"Generic/ForwardIcon.png");
+			js.AddAJob(NewLoadTexture, &BackIcon,					"Generic/BackIcon.png");
+			js.AddAJob(NewLoadTexture, &RefreshIcon,				"Generic/RefreshIcon.png");
 
 			// Toolbar
 			js.AddAJob(NewLoadTexture, &PlayButton,					"Toolbar/PlayButton.png");
@@ -73,8 +79,8 @@ namespace Epoch
 			js.AddAJob(NewLoadTexture, &StepButton,					"Toolbar/StepButton.png");
 
 			// Content browser
-			js.AddAJob(NewLoadTexture, &ClosedFolderIcon,			"ContentBrowser/DirectoryIcon.png");
-			js.AddAJob(NewLoadTexture, &OpenFolderIcon,				"ContentBrowser/DirectoryIcon.png");
+			js.AddAJob(NewLoadTexture, &ClosedFolderIcon,			"ContentBrowser/DirectoryIconClosed.png");
+			js.AddAJob(NewLoadTexture, &OpenFolderIcon,				"ContentBrowser/DirectoryIconOpen.png");
 			js.AddAJob(NewLoadTexture, &ModelIcon,					"ContentBrowser/ModelIcon.png");
 			js.AddAJob(NewLoadTexture, &TextureIcon,				"ContentBrowser/TextureIcon.png");
 			js.AddAJob(NewLoadTexture, &VideoIcon,					"ContentBrowser/VideoIcon.png");

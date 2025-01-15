@@ -149,7 +149,7 @@ namespace Epoch
 
 		ScriptEngine::LoadAppAssembly(); //TODO: Should load binary from asset pack (maybe)
 
-		LoadScene(Project::GetActive()->GetConfig().runtimeStartScene);
+		LoadScene(Project::GetActive()->GetConfig().startScene);
 	}
 
 	void RuntimeLayer::LoadScene(uint64_t aSceneHandle)

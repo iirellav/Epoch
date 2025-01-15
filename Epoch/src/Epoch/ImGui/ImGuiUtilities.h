@@ -146,7 +146,7 @@ namespace Epoch::UI
 		}
 	}
 
-	
+
 	namespace Draw
 	{
 		inline void Underline(bool aFullWidth = true, float aOffsetX = 0.0f, float aOffsetY = -1.0f)
@@ -162,7 +162,7 @@ namespace Epoch::UI
 					ImGui::TablePushBackgroundChannel();
 				}
 			}
-			
+
 			const float width = aFullWidth ? ImGui::GetWindowWidth() : ImGui::GetContentRegionAvail().x;
 			const ImVec2 cursor = ImGui::GetCursorScreenPos();
 			ImGui::GetWindowDrawList()->AddLine
@@ -171,7 +171,7 @@ namespace Epoch::UI
 				ImVec2(cursor.x + width, cursor.y + aOffsetY),
 				IM_COL32(50, 50, 50, 255), 1.0f
 			);
-			
+
 			if (aFullWidth)
 			{
 				if (ImGui::GetCurrentWindow()->DC.CurrentColumns != nullptr)
@@ -190,7 +190,7 @@ namespace Epoch::UI
 			ImGui::Image((ImTextureID)aImage->GetView(), aSize);
 		}
 
-		inline void Image(const std::shared_ptr<Texture2D>& aImage,
+		inline void DrawButtonImage(const std::shared_ptr<Texture2D>& aImage,
 			ImU32 aTintNormal, ImU32 aTintHovered, ImU32 aTintPressed,
 			ImRect aRect)
 		{
@@ -209,6 +209,7 @@ namespace Epoch::UI
 			}
 		};
 	}
+
 
 	//=========================================================================================
 	/// Custom IMGui controls

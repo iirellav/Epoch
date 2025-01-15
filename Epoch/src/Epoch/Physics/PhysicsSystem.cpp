@@ -1,6 +1,7 @@
 #include "epch.h"
 #include "PhysicsSystem.h"
 #include "PhysX/PhysXAPI.h"
+#include "PhysicsLayer.h"
 
 namespace Epoch
 {
@@ -21,6 +22,8 @@ namespace Epoch
 
 		staticPhysicsAPI = InitPhysicsAPI();
 		staticPhysicsAPI->Init();
+
+		PhysicsLayerManager::Init();
 	}
 
 	void PhysicsSystem::Shutdown()

@@ -30,6 +30,7 @@ namespace Epoch
 		Vector2, Vector3,
 		Color,
 		AssetHandle,
+		LayerMask,
 		Scene,
 		Prefab,
 		Entity,
@@ -86,6 +87,7 @@ namespace Epoch
 			if (aTypeString == "Vector3")		return FieldType::Vector3;
 			if (aTypeString == "Color")			return FieldType::Color;
 			if (aTypeString == "AssetHandle")	return FieldType::AssetHandle;
+			if (aTypeString == "LayerMask")		return FieldType::LayerMask;
 			if (aTypeString == "Scene")			return FieldType::Scene;
 			if (aTypeString == "Prefab")		return FieldType::Prefab;
 			if (aTypeString == "Entity")		return FieldType::Entity;
@@ -118,6 +120,7 @@ namespace Epoch
 				case FieldType::Vector3:		return "Vector3";
 				case FieldType::Color:			return "Color";
 				case FieldType::AssetHandle:	return "AssetHandle";
+				case FieldType::LayerMask:		return "LayerMask";
 				case FieldType::Scene:			return "Scene";
 				case FieldType::Prefab:			return "Prefab";
 				case FieldType::Entity:			return "Entity";
@@ -149,6 +152,7 @@ namespace Epoch
 				case FieldType::Vector2:	return sizeof(CU::Vector2f);
 				case FieldType::Vector3:	return sizeof(CU::Vector3f);
 				case FieldType::Color:		return sizeof(CU::Color);
+				case FieldType::LayerMask:	return sizeof(uint32_t);
 				case FieldType::AssetHandle:
 				case FieldType::Scene:
 				case FieldType::Entity:

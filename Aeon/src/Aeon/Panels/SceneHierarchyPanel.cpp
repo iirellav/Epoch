@@ -5,6 +5,7 @@
 #include <Epoch/Scene/Components.h>
 #include <Epoch/Scene/Prefab.h>
 #include <Epoch/Physics/PhysicsTypes.h>
+#include <Epoch/Physics/PhysicsLayer.h>
 #include <Epoch/Rendering/Mesh.h>
 #include <Epoch/Rendering/Font.h>
 #include <Epoch/Rendering/Environment.h>
@@ -672,10 +673,10 @@ namespace Epoch
 					}
 
 					const char* optionsStrings[] = { "None", "Unreal", "Lottes", "ACES" };
-					int currentOption = (int)aFirstComponent.tonemapping.tonemap;
+					uint32_t currentOption = (uint32_t)aFirstComponent.tonemapping.tonemap;
 					const bool inconsistentOption = IsInconsistentPrimitive<int, VolumeComponent>([](const VolumeComponent& aOther) { return (int)aOther.tonemapping.tonemap; });
 					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && inconsistentOption);
-					if (UI::Property_Dropdown("Tonemap", optionsStrings, 4, currentOption, &inconsistentOption))
+					if (UI::Property_Dropdown("Tonemap", optionsStrings, 4, currentOption))
 					{
 						for (auto& entityID : aEntities)
 						{
@@ -906,10 +907,10 @@ namespace Epoch
 					ImGui::PopItemFlag();
 
 					const char* projTypeStrings[] = { "Perspective", "Orthographic" };
-					int currentProj = (int)camera.GetProjectionType();
+					uint32_t currentProj = (int)camera.GetProjectionType();
 					const bool inconsistentProjType = IsInconsistentPrimitive<int, CameraComponent>([](const CameraComponent& aOther) { return (int)aOther.camera.GetProjectionType(); });
 					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && inconsistentProjType);
-					if (UI::Property_Dropdown("Projection", projTypeStrings, 2, currentProj, &inconsistentProjType))
+					if (UI::Property_Dropdown("Projection", projTypeStrings, 2, currentProj))
 					{
 						for (auto& entityID : aEntities)
 						{
@@ -1160,7 +1161,7 @@ namespace Epoch
 						UI::BeginPropertyGrid();
 
 						const char* shapeStrings[] = { "Sphere", "Box", "Cone" };
-						int currentShape = (int)aFirstComponent.shape.shape;
+						uint32_t currentShape = (int)aFirstComponent.shape.shape;
 						if (UI::Property_Dropdown("Shape", shapeStrings, 3, currentShape))
 						{
 							aFirstComponent.shape.shape = (ParticleSystem::EmitterShape)currentShape;
@@ -1862,6 +1863,24 @@ namespace Epoch
 					}
 					ImGui::PopItemFlag();
 
+					const auto& layerNames = PhysicsLayerManager::GetLayerNames();
+					std::vector<std::string> layerNamesVector(layerNames.size());
+					for (size_t i = 0; i < layerNames.size(); i++)
+					{
+						layerNamesVector[i] = layerNames[i];
+					}
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit&& IsInconsistentPrimitive<uint32_t, BoxColliderComponent>([](const BoxColliderComponent& aOther) { return aOther.layerID; }));
+					if (UI::Property_Dropdown("Layer", layerNamesVector, (uint32_t)layerNamesVector.size(), aFirstComponent.layerID))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& bc = entity.GetComponent<BoxColliderComponent>();
+							bc.layerID = aFirstComponent.layerID;
+						}
+					}
+					ImGui::PopItemFlag();
+
 					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<bool, BoxColliderComponent>([](const BoxColliderComponent& aOther) { return aOther.isTrigger; }));
 					if (UI::Property_Checkbox("Is Triger ", aFirstComponent.isTrigger))
 					{
@@ -1895,6 +1914,22 @@ namespace Epoch
 						aFirstComponent.offset = offset * 100.0f;
 					}
 
+					const auto& layerNames = PhysicsLayerManager::GetLayerNames();
+					std::vector<std::string> layerNamesVector(layerNames.size());
+					for (size_t i = 0; i < layerNames.size(); i++)
+					{
+						layerNamesVector[i] = layerNames[i];
+					}
+					if (UI::Property_Dropdown("Layer", layerNamesVector, (uint32_t)layerNamesVector.size(), aFirstComponent.layerID))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& sc = entity.GetComponent<SphereColliderComponent>();
+							sc.layerID = aFirstComponent.layerID;
+						}
+					}
+
 					UI::Property_Checkbox("Is Triger ", aFirstComponent.isTrigger);
 
 					UI::EndPropertyGrid();
@@ -1922,6 +1957,22 @@ namespace Epoch
 					if (UI::Property_DragFloat3("Offset", offset))
 					{
 						aFirstComponent.offset = offset * 100.0f;
+					}
+
+					const auto& layerNames = PhysicsLayerManager::GetLayerNames();
+					std::vector<std::string> layerNamesVector(layerNames.size());
+					for (size_t i = 0; i < layerNames.size(); i++)
+					{
+						layerNamesVector[i] = layerNames[i];
+					}
+					if (UI::Property_Dropdown("Layer", layerNamesVector, (uint32_t)layerNamesVector.size(), aFirstComponent.layerID))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& cc = entity.GetComponent<CapsuleColliderComponent>();
+							cc.layerID = aFirstComponent.layerID;
+						}
 					}
 
 					UI::Property_Checkbox("Is Triger ", aFirstComponent.isTrigger);
@@ -1953,7 +2004,6 @@ namespace Epoch
 						aFirstComponent.offset = offset * 100.0f;
 					}
 
-
 					float stepOffset = aFirstComponent.stepOffset * 0.01f;
 					if (UI::Property_DragFloat("Step Offset", stepOffset, 0.05f, 0.0f, aFirstComponent.height * 0.01f))
 					{
@@ -1961,6 +2011,22 @@ namespace Epoch
 					}
 
 					UI::Property_DragFloat("Slope Limit", aFirstComponent.slopeLimit, 0.1f, 0.0f, 90.0f);
+
+					const auto& layerNames = PhysicsLayerManager::GetLayerNames();
+					std::vector<std::string> layerNamesVector(layerNames.size());
+					for (size_t i = 0; i < layerNames.size(); i++)
+					{
+						layerNamesVector[i] = layerNames[i];
+					}
+					if (UI::Property_Dropdown("Layer", layerNamesVector, (uint32_t)layerNamesVector.size(), aFirstComponent.layerID))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& cc = entity.GetComponent<CharacterControllerComponent>();
+							cc.layerID = aFirstComponent.layerID;
+						}
+					}
 
 					UI::EndPropertyGrid();
 				}

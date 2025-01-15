@@ -187,10 +187,22 @@ namespace Epoch
 		myScene->setGravity(PhysXUtils::ToPhysXVector(aGravity));
 	}
 
-	bool PhysXScene::Raycast(CU::Vector3f aOrigin, CU::Vector3f aDirection, float aMaxDistance, HitInfo* outHit)
+	bool PhysXScene::Raycast(CU::Vector3f aOrigin, CU::Vector3f aDirection, float aMaxDistance, HitInfo* outHit, LayerMask* aLayerMask)
 	{
 		physx::PxRaycastBuffer hitInfo;
-		bool hit = myScene->raycast(PhysXUtils::ToPhysXVector(aOrigin), PhysXUtils::ToPhysXVector(aDirection), aMaxDistance, hitInfo);
+
+		physx::PxQueryFilterData filterData;
+		if (aLayerMask != nullptr)
+		{
+			filterData.flags |= physx::PxQueryFlag::Enum::ePREFILTER;
+			filterData.flags |= physx::PxQueryFlag::Enum::eDYNAMIC;
+			filterData.flags |= physx::PxQueryFlag::Enum::eSTATIC;
+			filterData.data.word0 = aLayerMask->bitValue;
+		}
+
+		bool hit = myScene->raycast(PhysXUtils::ToPhysXVector(aOrigin), PhysXUtils::ToPhysXVector(aDirection), aMaxDistance, hitInfo, physx::PxHitFlag::ePOSITION | physx::PxHitFlag::eNORMAL, filterData);
+		
+
 		if (hit && outHit)
 		{
 			outHit->entity = *(uint64_t*)hitInfo.block.actor->userData;
@@ -240,6 +252,45 @@ namespace Epoch
 			outHit->position = PhysXUtils::FromPhysXVector(hitInfo.position);
 			outHit->normal = PhysXUtils::FromPhysXVector(hitInfo.normal);
 			outHit->distance = hitInfo.distance;
+		}
+
+		return hit;
+	}
+
+	bool PhysXScene::CheckShape(const ShapeOverlapInfo* aShapeOverlapInfo, LayerMask* aLayerMask)
+	{
+		physx::PxTransform shapePose = physx::PxTransform(PhysXUtils::ToPhysXVector(aShapeOverlapInfo->origin));
+
+		physx::PxQueryFilterData filterData;
+		if (aLayerMask != nullptr)
+		{
+			filterData.flags |= physx::PxQueryFlag::Enum::ePREFILTER;
+			filterData.flags |= physx::PxQueryFlag::Enum::eDYNAMIC;
+			filterData.flags |= physx::PxQueryFlag::Enum::eSTATIC;
+			filterData.data.word0 = aLayerMask->bitValue;
+		}
+
+		bool hit = false;
+		physx::PxOverlapHit hitInfo;
+		switch (aShapeOverlapInfo->GetShapeType())
+		{
+		case Physics::ShapeType::Box:
+		{
+			const auto* boxOverlapInfo = reinterpret_cast<const BoxOverlapInfo*>(aShapeOverlapInfo);
+			physx::PxBoxGeometry shape = physx::PxBoxGeometry(boxOverlapInfo->halfExtent);
+			hit = physx::PxSceneQueryExt::overlapAny(*myScene, shape, shapePose, hitInfo, filterData);
+			break;
+		}
+		case Physics::ShapeType::Sphere:
+		{
+			const auto* sphereOverlapInfo = reinterpret_cast<const SphereOverlapInfo*>(aShapeOverlapInfo);
+			physx::PxSphereGeometry shape = physx::PxSphereGeometry(sphereOverlapInfo->radius);
+			hit = physx::PxSceneQueryExt::overlapAny(*myScene, shape, shapePose, hitInfo, filterData);
+			break;
+		}
+		default:
+			EPOCH_ASSERT(false, "Cannot cast mesh shapes!");
+			break;
 		}
 
 		return hit;

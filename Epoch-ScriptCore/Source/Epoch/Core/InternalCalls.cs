@@ -426,19 +426,34 @@ namespace Epoch
         #region Physics
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern bool Physics_Raycast(ref Vector3 aOrigin, ref Vector3 aDirection, float aMaxDistance, out Physics.HitInfo aHitInfo);
+        internal static extern bool Physics_Raycast(ref Vector3 aOrigin, ref Vector3 aDirection, float aMaxDistance, out Physics.HitInfo outHitInfo);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool Physics_RaycastFiltered(ref Vector3 aOrigin, ref Vector3 aDirection, float aMaxDistance, out Physics.HitInfo outHitInfo, ref LayerMask aLayerMask);
+
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool Physics_CheckSphere(ref Vector3 aOrigin, float aRadius);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool Physics_CheckSphereFiltered(ref Vector3 aOrigin, float aRadius, ref LayerMask aLayerMask);
+
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern bool Physics_SphereCast(ref Vector3 aOrigin, ref Vector3 aDirection, float aRadius, float aMaxDistance, out Physics.HitInfo aHitInfo);
 
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern Entity[] Physics_OverlapSphere(ref Vector3 aOrigin, float aRadius);
+
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void Physics_GetGravity(out Vector3 outGravity);
 
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void Physics_SetGravity(ref Vector3 aGravity);
+
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void Physics_AddRadialImpulse(ref Vector3 aOrigin, float aRadius, float aStrength);

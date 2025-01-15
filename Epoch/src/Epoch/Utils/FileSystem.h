@@ -29,7 +29,7 @@ namespace Epoch
 		static bool IsNewer(const std::filesystem::path& aFileA, const std::filesystem::path& aFileB);
 
 		static bool Move(const std::filesystem::path& aOldFilepath, const std::filesystem::path& aNewFilepath);
-		static bool Copy(const std::filesystem::path& aOldFilepath, const std::filesystem::path& aNewFilepath);
+		static bool Copy(const std::filesystem::path& aOldFilepath, const std::filesystem::path& aNewFilepath, std::filesystem::copy_options aCopyOptions = std::filesystem::copy_options::none);
 		static bool CopyContent(const std::filesystem::path& aOldFilepath, const std::filesystem::path& aNewFilepath);
 		static bool Rename(const std::filesystem::path& aOldFilepath, const std::filesystem::path& aNewFilepath);
 		static bool RenameFilename(const std::filesystem::path& aOldFilepath, const std::string& aNewName);
