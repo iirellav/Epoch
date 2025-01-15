@@ -76,12 +76,12 @@ namespace Epoch
 		myPanelManager = std::make_unique<PanelManager>();
 		myPanelManager->SetEntityDestroyedCallback([this](Entity aEntity) { OnEntityDeleted(aEntity); });
 
-		std::shared_ptr<SceneHierarchyPanel> sceneHierarchyPanel = myPanelManager->AddPanel<SceneHierarchyPanel>(PanelCategory::View, "Scene Hierarchy", true);
+		std::shared_ptr<SceneHierarchyPanel> sceneHierarchyPanel = myPanelManager->AddPanel<SceneHierarchyPanel>(PanelCategory::View, "Panel/Scene Hierarchy", true);
 		sceneHierarchyPanel->SetEntityCreationCallback([this](Entity aEntity) { return OnEntityCreated(aEntity); });
 		sceneHierarchyPanel->AddEntityPopupPlugin("Set Transform to Editor Camera Transform", [this](Entity aEntity) { OnSetToEditorCameraTransform(aEntity); });
 		sceneHierarchyPanel->AddEntityPopupPlugin("Reset Bone Transforms", [this](Entity aEntity) { OnResetBoneTransforms(aEntity); });
 
-		std::shared_ptr<ContentBrowserPanel> contentBrowserPanel = myPanelManager->AddPanel<ContentBrowserPanel>(PanelCategory::View, "Content Browser", true);
+		std::shared_ptr<ContentBrowserPanel> contentBrowserPanel = myPanelManager->AddPanel<ContentBrowserPanel>(PanelCategory::View, "Panel/Content Browser", true);
 
 		contentBrowserPanel->RegisterItemActivateCallbackForType(AssetType::Scene, [this](const AssetMetadata& aMetadata)
 			{
@@ -111,12 +111,12 @@ namespace Epoch
 		myPanelManager->AddPanel<ProjectSettingsPanel>(PanelCategory::Edit, "Project Settings", false);
 		myPanelManager->AddPanel<PreferencesPanel>(PanelCategory::Edit, "Preferences", false);
 
-		myPanelManager->AddPanel<InspectorPanel>(PanelCategory::View, "Inspector", true);
-		myPanelManager->AddPanel<EditorConsolePanel>(PanelCategory::View, "Console", true);
-		myPanelManager->AddPanel<AssetManagerPanel>(PanelCategory::View, "Asset Manager", false);
-		myPanelManager->AddPanel<ShaderLibraryPanel>(PanelCategory::View, "Shader Library", false);
-		myPanelManager->AddPanel<ScriptEngineDebugPanel>(PanelCategory::View, "Script Engine", false);
-		std::shared_ptr<StatisticsPanel> statisticsPanel = myPanelManager->AddPanel<StatisticsPanel>(PanelCategory::View, "Statistics", false);
+		myPanelManager->AddPanel<InspectorPanel>(PanelCategory::View, "Panel/Inspector", true);
+		myPanelManager->AddPanel<EditorConsolePanel>(PanelCategory::View, "Panel/Console", true);
+		myPanelManager->AddPanel<AssetManagerPanel>(PanelCategory::View, "Debug/Asset Manager", false);
+		myPanelManager->AddPanel<ShaderLibraryPanel>(PanelCategory::View, "Panel/Shader Library", false);
+		myPanelManager->AddPanel<ScriptEngineDebugPanel>(PanelCategory::View, "Debug/Script Engine", false);
+		std::shared_ptr<StatisticsPanel> statisticsPanel = myPanelManager->AddPanel<StatisticsPanel>(PanelCategory::View, "Debug/Statistics", false);
 
 		myPanelManager->Deserialize();
 
@@ -299,9 +299,9 @@ namespace Epoch
 			}
 		}
 
-		BeginDockspace();
-
 		OnRenderMenuBar();
+
+		BeginDockspace();
 
 		if (staticCreateNewProj)
 		{
@@ -401,7 +401,7 @@ namespace Epoch
 
 	void EditorLayer::OnRenderMenuBar()
 	{
-		if (ImGui::BeginMenuBar())
+		if (ImGui::BeginMainMenuBar())
 		{
 			if (ImGui::BeginMenu("File"))
 			{
@@ -549,10 +549,26 @@ namespace Epoch
 					RecursivePanelMenuItem(nameParts, 0, panelData.isOpen);
 				}
 
+				ImGui::Separator();
+
+				if (ImGui::BeginMenu("Layout"))
+				{
+					std::filesystem::path layoutDir = "Resources/Layouts";
+					for (auto const& dirEntry : std::filesystem::directory_iterator(layoutDir))
+					{
+						if (ImGui::MenuItem(dirEntry.path().stem().string().c_str()))
+						{
+							ImGui::LoadIniSettingsFromDisk(dirEntry.path().string().c_str());
+						}
+					}
+
+					ImGui::EndMenu();
+				}
+
 				ImGui::EndMenu();
 			}
 
-			ImGui::EndMenuBar();
+			ImGui::EndMainMenuBar();
 		}
 	}
 
@@ -1999,7 +2015,7 @@ namespace Epoch
 		myActiveScene->SetSceneTransitionCallback([this](AssetHandle scene) { QueueSceneTransition(scene); });
 		ScriptEngine::SetSceneContext(myActiveScene, mySceneRenderer);
 
-		auto console = myPanelManager->GetPanel<EditorConsolePanel>("Console");
+		auto console = myPanelManager->GetPanel<EditorConsolePanel>("Panel/Console");
 		console->OnScenePlay();
 
 		myPanelManager->OnSceneChanged(myActiveScene);
