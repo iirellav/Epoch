@@ -116,9 +116,9 @@ namespace Epoch
 			modified |= UI::Property_DragFloat3("Offset", gridOffset, 0.2f);
 			settings.gridOffset = gridOffset * 100.0f;
 
-			CU::Vector2i gridSize = settings.gridSize;
+			CU::Vector2i gridSize = CU::Vector2i((int)settings.gridSize.x, (int)settings.gridSize.y);
 			modified |= UI::Property_DragInt2("Size", gridSize, 1, 0, 64);
-			settings.gridSize = gridSize;
+			settings.gridSize = CU::Vector2f((float)gridSize.x, (float)gridSize.y);
 
 			bool gridPlaneX = settings.gridPlane == GridPlane::X;
 			bool gridPlaneY = settings.gridPlane == GridPlane::Y;
