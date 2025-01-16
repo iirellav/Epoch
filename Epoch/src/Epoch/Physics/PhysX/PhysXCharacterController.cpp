@@ -92,8 +92,9 @@ namespace Epoch
 	void PhysXCharacterController::Simulate(float aTimeStep)
 	{
 		physx::PxFilterData filterData;
-		filterData.word0 = myLayerValue;		// word0 = own ID
-		filterData.word1 = myCollisionValue;	// word1 = ID mask to filter pairs that trigger a contact callback;
+		//Why does this need to be reversed for it to work
+		filterData.word1 = myLayerValue;		// word0 = own ID
+		filterData.word0 = myCollisionValue;	// word1 = ID mask to filter pairs that trigger a contact callback;
 
 		physx::PxControllerFilters ccFilterData;
 		ccFilterData.mFilterFlags = physx::PxQueryFlag::Enum::eDYNAMIC | physx::PxQueryFlag::Enum::eSTATIC | physx::PxQueryFlag::Enum::ePREFILTER;

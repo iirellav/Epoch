@@ -796,6 +796,7 @@ namespace Epoch
 				aOut << YAML::Key << "Radius" << YAML::Value << cc.radius;
 				aOut << YAML::Key << "Height" << YAML::Value << cc.height;
 				aOut << YAML::Key << "Offset" << YAML::Value << cc.offset;
+				aOut << YAML::Key << "Layer" << YAML::Value << cc.layerID;
 
 				aOut << YAML::EndMap;
 			}
@@ -1432,6 +1433,7 @@ namespace Epoch
 				cc.radius = characterControllerComponent["Radius"].as<float>(50.0f);
 				cc.height = characterControllerComponent["Height"].as<float>(200.0f);
 				cc.offset = characterControllerComponent["Offset"].as<CU::Vector3f>(CU::Vector3f::Zero);
+				cc.layerID = characterControllerComponent["Layer"].as<uint32_t>(0);
 			}
 		}
 	}
