@@ -17,14 +17,14 @@ namespace Epoch
 		{
 			uint64_t packedOffset = 0;
 			uint64_t packedSize = 0;
-			std::map<AssetHandle, AssetInfo> assets;
+			std::map<uint64_t, AssetInfo> assets;
 		};
 
 		struct IndexTable
 		{
 			uint64_t packedAppBinaryOffset = 0;
 			uint64_t packedAppBinarySize = 0;
-			std::map<AssetHandle, SceneInfo> scenes;
+			std::map<uint64_t, SceneInfo> scenes;
 		};
 
 		struct FileHeader

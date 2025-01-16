@@ -4,7 +4,7 @@
 
 namespace Epoch
 {
-	enum class AssetType
+	enum class AssetType : uint16_t
 	{
 		None,
 		Scene,

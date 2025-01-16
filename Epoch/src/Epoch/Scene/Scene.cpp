@@ -852,6 +852,246 @@ namespace Epoch
 		aEntity.SetParentUUID(0);
 	}
 
+	std::unordered_set<AssetHandle> Scene::GetAllSceneReferences()
+	{
+		std::unordered_set<AssetHandle> sceneList;
+
+		// ScriptComponent
+		{
+			auto view = myRegistry.view<ScriptComponent>();
+			for (auto entity : view)
+			{
+				const auto& sc = myRegistry.get<ScriptComponent>(entity);
+				for (auto fieldID : sc.fieldIDs)
+				{
+					FieldInfo* fieldInfo = ScriptCache::GetFieldByID(fieldID);
+					std::shared_ptr<FieldStorageBase> storage = ScriptEngine::GetFieldStorage(Entity{ entity, this }, fieldID);
+					if (!FieldUtils::IsAsset(fieldInfo->type))
+					{
+						continue;
+					}
+
+					if (!fieldInfo->IsArray())
+					{
+						std::shared_ptr<FieldStorage> fieldStorage = std::static_pointer_cast<FieldStorage>(storage);
+						AssetHandle handle = fieldStorage->GetValue<UUID>();
+						if (AssetManager::IsMemoryAsset(handle) || Project::GetEditorAssetManager()->GetAssetType(handle) != AssetType::Scene)
+						{
+							continue;
+						}
+
+						if (AssetManager::IsAssetHandleValid(handle))
+						{
+							sceneList.insert(handle);
+						}
+					}
+					else
+					{
+						std::shared_ptr<ArrayFieldStorage> arrayFieldStorage = std::static_pointer_cast<ArrayFieldStorage>(storage);
+
+						for (uint32_t i = 0; i < arrayFieldStorage->GetLength(); i++)
+						{
+							AssetHandle handle = arrayFieldStorage->GetValue<UUID>(i);
+
+							if (AssetManager::IsMemoryAsset(handle))
+							{
+								continue;
+							}
+
+							if (Project::GetEditorAssetManager()->GetAssetType(handle) != AssetType::Scene)
+							{
+								break;
+							}
+
+							if (AssetManager::IsAssetHandleValid(handle))
+							{
+								sceneList.insert(handle);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return sceneList;
+	}
+
+	std::unordered_set<AssetHandle> Scene::GetAllSceneAssets()
+	{
+		std::unordered_set<AssetHandle> assetList;
+
+		// MeshRendererComponent
+		{
+			auto view = myRegistry.view<MeshRendererComponent>();
+			for (auto entity : view)
+			{
+				auto& mrc = myRegistry.get<MeshRendererComponent>(entity);
+				if (mrc.mesh)
+				{
+					if (AssetManager::IsMemoryAsset(mrc.mesh) || !AssetManager::IsAssetHandleValid(mrc.mesh))
+					{
+						continue;
+					}
+
+					assetList.insert(mrc.mesh);
+				}
+
+				if (mrc.materialTable)
+				{
+					for (size_t i = 0; i < mrc.materialTable->GetMaterialCount(); i++)
+					{
+						auto materialAssetHandle = mrc.materialTable->GetMaterial((uint32_t)i);
+
+						if (!AssetManager::IsAssetHandleValid(materialAssetHandle))
+						{
+							continue;
+						}
+
+						assetList.insert(materialAssetHandle);
+
+						std::shared_ptr<Material> materialAsset = AssetManager::GetAsset<Material>(materialAssetHandle);
+
+						std::array<AssetHandle, 3> textures =
+						{
+							materialAsset->GetAlbedoTexture(),
+							materialAsset->GetNormalTexture(),
+							materialAsset->GetMaterialTexture()
+						};
+
+						// Textures
+						for (auto texture : textures)
+						{
+							if (AssetManager::IsAssetHandleValid(texture))
+							{
+								assetList.insert(texture);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// SpriteRendererComponent
+		{
+			auto view = myRegistry.view<SpriteRendererComponent>();
+			for (auto entity : view)
+			{
+				auto& src = myRegistry.get<SpriteRendererComponent>(entity);
+				if (src.texture)
+				{
+					if (AssetManager::IsMemoryAsset(src.texture) || !AssetManager::IsAssetHandleValid(src.texture))
+					{
+						continue;
+					}
+
+					assetList.insert(src.texture);
+				}
+			}
+		}
+
+		// TextRendererComponent
+		{
+			auto view = myRegistry.view<TextRendererComponent>();
+			for (auto entity : view)
+			{
+				auto& trc = myRegistry.get<TextRendererComponent>(entity);
+				if (trc.font)
+				{
+					if (AssetManager::IsMemoryAsset(trc.font) || !AssetManager::IsAssetHandleValid(trc.font))
+					{
+						continue;
+					}
+
+					assetList.insert(trc.font);
+				}
+			}
+		}
+
+		// ScriptComponent
+		{
+			auto view = myRegistry.view<ScriptComponent>();
+			for (auto entity : view)
+			{
+				const auto& sc = myRegistry.get<ScriptComponent>(entity);
+				for (auto fieldID : sc.fieldIDs)
+				{
+					FieldInfo* fieldInfo = ScriptCache::GetFieldByID(fieldID);
+					std::shared_ptr<FieldStorageBase> storage = ScriptEngine::GetFieldStorage(Entity{ entity, this }, fieldID);
+					if (!FieldUtils::IsAsset(fieldInfo->type))
+					{
+						continue;
+					}
+
+					if (!fieldInfo->IsArray())
+					{
+						std::shared_ptr<FieldStorage> fieldStorage = std::static_pointer_cast<FieldStorage>(storage);
+						AssetHandle handle = fieldStorage->GetValue<UUID>();
+						if (AssetManager::IsMemoryAsset(handle) || !AssetManager::IsAssetHandleValid(handle))
+						{
+							continue;
+						}
+
+						assetList.insert(handle);
+					}
+					else
+					{
+						std::shared_ptr<ArrayFieldStorage> arrayFieldStorage = std::static_pointer_cast<ArrayFieldStorage>(storage);
+
+						for (uint32_t i = 0; i < arrayFieldStorage->GetLength(); i++)
+						{
+							AssetHandle handle = arrayFieldStorage->GetValue<UUID>(i);
+
+							if (AssetManager::IsMemoryAsset(handle) || !AssetManager::IsAssetHandleValid(handle))
+							{
+								continue;
+							}
+
+							assetList.insert(handle);
+						}
+					}
+				}
+			}
+		}
+
+		// SkyLightComponent
+		{
+			auto view = myRegistry.view<SkyLightComponent>();
+			for (auto entity : view)
+			{
+				const auto& slc = myRegistry.get<SkyLightComponent>(entity);
+				if (slc.environment)
+				{
+					if (AssetManager::IsMemoryAsset(slc.environment) || !AssetManager::IsAssetHandleValid(slc.environment))
+					{
+						continue;
+					}
+
+					assetList.insert(slc.environment);
+				}
+			}
+		}
+
+		// SpotlightComponent
+		{
+			auto view = myRegistry.view<SpotlightComponent>();
+			for (auto entity : view)
+			{
+				const auto& sc = myRegistry.get<SpotlightComponent>(entity);
+				if (sc.cookieTexture)
+				{
+					if (AssetManager::IsMemoryAsset(sc.cookieTexture) || !AssetManager::IsAssetHandleValid(sc.cookieTexture))
+					{
+						continue;
+					}
+
+					assetList.insert(sc.cookieTexture);
+				}
+			}
+		}
+
+		return assetList;
+	}
+
 	void Scene::BuildMeshEntityHierarchy(Entity aParent, std::shared_ptr<Mesh> aMesh, const MeshNode& aNode)
 	{
 		const auto& nodes = aMesh->GetNodes();

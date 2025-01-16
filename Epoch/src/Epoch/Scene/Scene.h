@@ -2,6 +2,7 @@
 #include <string>
 #include <memory>
 #include <set>
+#include <unordered_set>
 #include <unordered_map>
 
 #include "Entity.h"
@@ -119,6 +120,9 @@ namespace Epoch
 		void SetTimeScale(float aTimeScale) { myTimeScale = aTimeScale; }
 
 		const std::string& GetName() { return myName; }
+
+		std::unordered_set<AssetHandle> GetAllSceneReferences();
+		std::unordered_set<AssetHandle> GetAllSceneAssets();
 
 		PerformanceTimers& GetPerformanceTimers() { return myPerformanceTimers; }
 		const PerformanceTimers& GetPerformanceTimers() const { return myPerformanceTimers; }

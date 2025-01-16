@@ -4,6 +4,7 @@
 #include "AssetPackSerializer.h"
 #include "Epoch/Core/Platform.h"
 #include "Epoch/Project/Project.h"
+#include "Epoch/Assets/AssetManager.h"
 #include "Epoch/Scene/SceneSerializer.h"
 
 namespace Epoch
@@ -11,6 +12,7 @@ namespace Epoch
     static void GetAllReferencedScenes(AssetHandle aCurrentScene, std::unordered_set<AssetHandle>& outReferencedScenes)
     {
         std::unordered_set<AssetHandle> referencedScenes;
+
         //Load current scene and store all referenced scenes in a set
         {
             const AssetRegistry& registry = Project::GetEditorAssetManager()->GetAssetRegistry();
@@ -18,14 +20,17 @@ namespace Epoch
             const auto& metadata = registry.Get(aCurrentScene);
             std::shared_ptr<Scene> scene = std::make_shared<Scene>(aCurrentScene);
             SceneSerializer serializer(scene);
-            LOG_DEBUG("Deserializing Scene: {}", metadata.filePath);
             if (serializer.Deserialize(Project::GetAssetDirectory() / metadata.filePath))
             {
                 //Only add the scene handle to 'referencedScenes' if it's not already in 'outReferencedScenes'
-            }
-            else
-            {
-                CONSOLE_LOG_ERROR("Failed to deserialize scene: {} ({})", metadata.filePath, aCurrentScene);
+                std::unordered_set<AssetHandle> sceneReferences = scene->GetAllSceneReferences();
+                for (AssetHandle sceneHandle : sceneReferences)
+                {
+                    if (outReferencedScenes.find(sceneHandle) == outReferencedScenes.end())
+                    {
+                        referencedScenes.insert(sceneHandle);
+                    }
+                }
             }
         }
 
@@ -50,7 +55,7 @@ namespace Epoch
 
         if (startSceneHandle == 0 || !registry.Contains(startSceneHandle))
         {
-            myLastBuildError == BuildError::NoStartScene;
+            myLastBuildError = BuildError::NoStartScene;
             return false;
         }
 
@@ -70,6 +75,30 @@ namespace Epoch
             LOG_DEBUG("Deserializing Scene: {}", metadata.filePath);
             if (serializer.Deserialize(Project::GetAssetDirectory() / metadata.filePath))
             {
+                std::unordered_set<AssetHandle> sceneAssetList = scene->GetAllSceneAssets();
+                LOG_INFO("  Scene has {} used assets", sceneAssetList.size());
+
+                std::unordered_set<AssetHandle> sceneAssetListWithoutPrefabs = sceneAssetList;
+                for (AssetHandle assetHandle : sceneAssetListWithoutPrefabs)
+                {
+                    const auto& metadata = Project::GetEditorAssetManager()->GetMetadata(assetHandle);
+                    if (metadata.type == AssetType::Prefab)
+                    {
+                        std::shared_ptr<Prefab> prefab = AssetManager::GetAsset<Prefab>(assetHandle);
+                        std::unordered_set<AssetHandle> prefabAssetList = prefab->GetAssetList();
+                        sceneAssetList.insert(prefabAssetList.begin(), prefabAssetList.end());
+                    }
+                }
+
+                AssetPackFile::SceneInfo& sceneInfo = assetPackFile.indexTable.scenes[sceneHandle];
+                for (AssetHandle assetHandle : sceneAssetList)
+                {
+                    AssetPackFile::AssetInfo& assetInfo = sceneInfo.assets[assetHandle];
+                    const auto& assetMetadata = Project::GetEditorAssetManager()->GetMetadata(assetHandle);
+                    assetInfo.type = (uint16_t)assetMetadata.type;
+                }
+
+                fullAssetList.insert(sceneAssetList.begin(), sceneAssetList.end());
             }
             else
             {
@@ -80,6 +109,8 @@ namespace Epoch
         }
 
         CONSOLE_LOG_INFO("Project contains {} used assets", fullAssetList.size());
+
+        return true;
 
         Buffer appBinary;
         if (std::filesystem::exists(Project::GetScriptModuleFilePath()))

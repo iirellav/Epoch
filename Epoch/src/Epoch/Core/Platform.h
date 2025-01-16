@@ -3,6 +3,6 @@
 
 namespace Epoch::Platform
 {
-	inline uint64_t GetCurrentDateTimeU64();
-	inline std::string GetCurrentDateTimeString();
+	uint64_t GetCurrentDateTimeU64();
+	std::string GetCurrentDateTimeString();
 }
