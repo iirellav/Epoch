@@ -15,7 +15,7 @@ namespace Epoch
 		std::string companyName = "";
 		std::string version = "1.0.0";
 
-		AssetHandle startScene;
+		AssetHandle startScene = 0;
 
 		std::filesystem::path autosaveDirectory = "Autosaves";
 

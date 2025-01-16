@@ -1,6 +1,7 @@
 #include "epch.h"
 #include "AssetImporter.h"
 #include "Epoch/Assets/AssetExtensions.h"
+#include "Epoch/Assets/AssetManager.h"
 #include "Epoch/Project/Project.h"
 
 namespace Epoch
@@ -44,5 +45,22 @@ namespace Epoch
 		}
 
 		return staticSerializers[aMetadata.type]->TryLoadData(aMetadata, aAsset);
+	}
+
+	bool AssetImporter::SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo)
+	{
+		if (!AssetManager::IsAssetHandleValid(aHandle))
+		{
+			return false;
+		}
+
+		const auto& metadata = Project::GetEditorAssetManager()->GetMetadata(aHandle);
+		if (staticSerializers.find(metadata.type) == staticSerializers.end())
+		{
+			LOG_WARNING("There's currently no importer for assets of type {}", AssetTypeToString(metadata.type));
+			return false;
+		}
+
+		return staticSerializers[metadata.type]->SerializeToAssetPack(aHandle, aStream, outInfo);
 	}
 }

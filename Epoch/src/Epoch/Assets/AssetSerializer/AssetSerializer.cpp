@@ -27,6 +27,12 @@ namespace Epoch
 		return true;
 	}
 
+	bool SceneAssetSerializer::SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo) const
+	{
+		return false;
+	}
+
+
 	void PrefabSerializer::Serialize(const AssetMetadata& aMetadata, const std::shared_ptr<Asset>& aAsset) const
 	{
 		std::shared_ptr<Prefab> prefab = std::static_pointer_cast<Prefab>(aAsset);
@@ -74,7 +80,12 @@ namespace Epoch
 		return true;
 	}
 
-	std::string PrefabSerializer::SerializeToYAML(std::shared_ptr<Prefab> prefab) const
+	bool PrefabSerializer::SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo) const
+	{
+		return false;
+	}
+
+	std::string PrefabSerializer::SerializeToYAML(std::shared_ptr<Prefab> aPrefab) const
 	{
 		YAML::Emitter out;
 
@@ -82,7 +93,7 @@ namespace Epoch
 		out << YAML::Key << "Prefab";
 		out << YAML::Value << YAML::BeginSeq;
 
-		SceneSerializer sceneSerializer(prefab->myScene);
+		SceneSerializer sceneSerializer(aPrefab->myScene);
 		sceneSerializer.SerializeEntities(out);
 
 		out << YAML::EndSeq;
@@ -105,6 +116,7 @@ namespace Epoch
 		return true;
 	}
 
+
 	bool TextureSerializer::TryLoadData(const AssetMetadata& aMetadata, std::shared_ptr<Asset>& aAsset) const
 	{
 		aAsset = Texture2D::Create(Project::GetEditorAssetManager()->GetFileSystemPath(aMetadata));
@@ -119,13 +131,25 @@ namespace Epoch
 
 		return result;
 	}
+
+	bool TextureSerializer::SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo) const
+	{
+		return false;
+	}
 	
+
 	bool FontSerializer::TryLoadData(const AssetMetadata& aMetadata, std::shared_ptr<Asset>& aAsset) const
 	{
 		aAsset = std::make_shared<Font>(Project::GetEditorAssetManager()->GetFileSystemPath(aMetadata.handle));
 		aAsset->myHandle = aMetadata.handle;
 		return true;
 	}
+
+	bool FontSerializer::SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo) const
+	{
+		return false;
+	}
+
 
 	bool EnvironmentSerializer::TryLoadData(const AssetMetadata& aMetadata, std::shared_ptr<Asset>& aAsset) const
 	{
@@ -143,7 +167,13 @@ namespace Epoch
 		aAsset->myHandle = aMetadata.handle;
 		return true;
 	}
+
+	bool EnvironmentSerializer::SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo) const
+	{
+		return false;
+	}
 	
+
 	bool MeshSerializer::TryLoadData(const AssetMetadata& aMetadata, std::shared_ptr<Asset>& aAsset) const
 	{
 		EPOCH_PROFILE_FUNC();
@@ -162,6 +192,12 @@ namespace Epoch
 
 		return true;
 	}
+
+	bool MeshSerializer::SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo) const
+	{
+		return false;
+	}
+
 
 	void MaterialSerializer::Serialize(const AssetMetadata& aMetadata, const std::shared_ptr<Asset>& aAsset) const
 	{
@@ -224,6 +260,12 @@ namespace Epoch
 		return true;
 	}
 
+	bool MaterialSerializer::SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo) const
+	{
+		return false;
+	}
+
+
 	void ScriptFileSerializer::Serialize(const AssetMetadata& aMetadata, const std::shared_ptr<Asset>& aAsset) const
 	{
 		std::ofstream stream(Project::GetEditorAssetManager()->GetFileSystemPath(aMetadata));
@@ -261,5 +303,10 @@ namespace Epoch
 		aAsset = std::make_shared<ScriptFileAsset>();
 		aAsset->myHandle = aMetadata.handle;
 		return true;
+	}
+
+	bool ScriptFileSerializer::SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo) const
+	{
+		return false;
 	}
 }

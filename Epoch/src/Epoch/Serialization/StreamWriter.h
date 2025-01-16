@@ -32,5 +32,35 @@ namespace Epoch
 		{
 			T::Serialize(this, aObject);
 		}
+
+		template<typename Key, typename Value>
+		void WriteMap(const std::map<Key, Value>& aMap, bool aWriteSize = true)
+		{
+			if (aWriteSize)
+			{
+				WriteRaw<uint32_t>((uint32_t)aMap.size());
+			}
+
+			for (const auto& [key, value] : aMap)
+			{
+				if constexpr (std::is_trivial<Key>())
+				{
+					WriteRaw<Key>(key);
+				}
+				else
+				{
+					WriteObject<Key>(key);
+				}
+
+				if constexpr (std::is_trivial<Value>())
+				{
+					WriteRaw<Value>(value);
+				}
+				else
+				{
+					WriteObject<Value>(value);
+				}
+			}
+		}
 	};
 }
