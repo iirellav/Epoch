@@ -661,6 +661,17 @@ namespace Epoch
 					UpdateDropArea(directory);
 				}
 			}
+
+			// Size slider
+			{
+				ImGui::SameLine();
+
+				const float sliderWidth = 200.0f;
+				UI::ShiftCursorX(ImGui::GetContentRegionAvail().x - sliderWidth);
+
+				ImGui::SetNextItemWidth(sliderWidth);
+				ImGui::SliderFloat("##CellSize", &EditorSettings::Get().contentBrowserThumbnailSize, 64.0f, 256.0f, "", ImGuiSliderFlags_AlwaysClamp);
+			}
 		}
 		//ImGui::EndHorizontal();
 		ImGui::EndChild();
