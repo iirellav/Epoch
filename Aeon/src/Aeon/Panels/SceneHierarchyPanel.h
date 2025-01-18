@@ -214,7 +214,22 @@ namespace Epoch
 				std::is_same_v<TComponent, VolumeComponent>
 				)
 			{
+				const bool isMultiEdit = entities.size() > 1;
+				bool oldState = component.isActive;
+				//ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, isMultiEdit && IsInconsistentPrimitive<bool, TComponent>([](const TComponent& aOther) { return aOther.isActive; }));
 				open = UI::PropertyGridHeaderWithIconAndCheckbox(name, aIcon, { 18.0f, 18.0f }, &component.isActive);
+				//ImGui::PopItemFlag();
+				if (oldState != component.isActive && isMultiEdit)
+				{
+					for (auto entityID : SelectionManager::GetSelections(SelectionContext::Scene))
+					{
+						Entity entity = myContext->GetEntityWithUUID(entityID);
+						if (entity.HasComponent<TComponent>())
+						{
+							entity.GetComponent<TComponent>().isActive = component.isActive;
+						}
+					}
+				}
 			}
 			else
 			{
