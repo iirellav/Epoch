@@ -155,16 +155,108 @@ namespace Epoch
 			}
 		}
 
+		{
+			LOG_INFO("-----------------------------------------------------");
+			LOG_INFO("AssetPack Dump {}", assetPack->myPath);
+			LOG_INFO("-----------------------------------------------------");
+			std::unordered_map<AssetType, uint32_t> typeCounts;
+			std::unordered_set<AssetHandle> duplicatePreventionSet;
+			for (const auto& [sceneHandle, sceneInfo] : index.scenes)
+			{
+				LOG_INFO("Scene {}:", sceneHandle);
+				for (const auto& [assetHandle, assetInfo] : sceneInfo.assets)
+				{
+					LOG_INFO("  {} - {}", AssetTypeToString((AssetType)assetInfo.type), assetHandle);
+
+					if (duplicatePreventionSet.find(assetHandle) == duplicatePreventionSet.end())
+					{
+						duplicatePreventionSet.insert(assetHandle);
+						typeCounts[(AssetType)assetInfo.type]++;
+					}
+				}
+			}
+			LOG_INFO("-----------------------------------------------------");
+			LOG_INFO("Summary:");
+			for (const auto& [type, count] : typeCounts)
+			{
+				LOG_INFO("  {} {}", count, AssetTypeToString(type));
+			}
+			LOG_INFO("-----------------------------------------------------");
+		}
+
 		return assetPack;
 	}
 
-	const char* AssetPack::GetLastErrorMessage()
+	std::shared_ptr<Scene> AssetPack::LoadScene(AssetHandle aSceneHandle)
 	{
-		switch (myLastBuildError)
+		auto it = myFile.indexTable.scenes.find(aSceneHandle);
+		if (it == myFile.indexTable.scenes.end())
 		{
-		case Epoch::AssetPack::BuildError::NoStartScene: return "Start scene not set or not found";
-		default: return "";
+			return nullptr;
 		}
+
+		const AssetPackFile::SceneInfo& sceneInfo = it->second;
+
+		FileStreamReader stream(myPath);
+		std::shared_ptr<Scene> scene = AssetImporter::DeserializeSceneFromAssetPack(stream, sceneInfo);
+		scene->myHandle = aSceneHandle;
+		return scene;
+	}
+
+	std::shared_ptr<Asset> AssetPack::LoadAsset(AssetHandle aSceneHandle, AssetHandle aAssetHandle)
+	{
+		const AssetPackFile::AssetInfo* assetInfo = nullptr;
+
+		bool foundAsset = false;
+		if (aSceneHandle)
+		{
+			// Fast(er) path
+			auto it = myFile.indexTable.scenes.find(aSceneHandle);
+			if (it != myFile.indexTable.scenes.end())
+			{
+				const AssetPackFile::SceneInfo& sceneInfo = it->second;
+				auto assetIt = sceneInfo.assets.find(aAssetHandle);
+				if (assetIt != sceneInfo.assets.end())
+				{
+					foundAsset = true;
+					assetInfo = &assetIt->second;
+				}
+			}
+		}
+
+		if (!foundAsset)
+		{
+			// Slow(er) path
+			for (const auto& [handle, sceneInfo] : myFile.indexTable.scenes)
+			{
+				auto assetIt = sceneInfo.assets.find(aAssetHandle);
+				if (assetIt != sceneInfo.assets.end())
+				{
+					assetInfo = &assetIt->second;
+					break;
+				}
+			}
+
+			if (!assetInfo)
+			{
+				return nullptr;
+			}
+		}
+
+		FileStreamReader stream(myPath);
+		std::shared_ptr<Asset> asset = AssetImporter::DeserializeFromAssetPack(stream, *assetInfo);
+		if (!asset)
+		{
+			return nullptr;
+		}
+
+		asset->myHandle = aAssetHandle;
+		return asset;
+	}
+
+	bool AssetPack::IsAssetHandleValid(AssetHandle assetHandle) const
+	{
+		return myAssetHandleIndex.find(assetHandle) != myAssetHandleIndex.end();
 	}
 
 	Buffer AssetPack::ReadAppBinary()
@@ -175,5 +267,14 @@ namespace Epoch
 		stream.ReadBuffer(buffer);
 		EPOCH_ASSERT(myFile.indexTable.packedAppBinarySize == (buffer.size + sizeof(uint32_t)));
 		return buffer;
+	}
+
+	const char* AssetPack::GetLastErrorMessage()
+	{
+		switch (myLastBuildError)
+		{
+		case Epoch::AssetPack::BuildError::NoStartScene: return "Start scene not set or not found";
+		default: return "";
+		}
 	}
 }

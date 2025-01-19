@@ -219,11 +219,11 @@ namespace Epoch::UI
 		}
 		else if (AssetManager::IsAssetHandleValid(outHandle))
 		{
-			if (AssetManager::IsAssetMissing(outHandle))
+			if (Project::GetEditorAssetManager()->IsAssetMissing(outHandle))
 			{
 				buttonText = "Missing";
 			}
-			else if (!AssetManager::IsAssetValid(outHandle))
+			else if (!Project::GetEditorAssetManager()->IsAssetValid(outHandle))
 			{
 				buttonText = "Invalid";
 			}

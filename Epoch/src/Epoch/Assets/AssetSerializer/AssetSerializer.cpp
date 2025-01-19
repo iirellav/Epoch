@@ -357,7 +357,7 @@ namespace Epoch
 		std::string yamlString;
 		aStream.ReadString(yamlString);
 
-		std::shared_ptr<Material> materialAsset;
+		std::shared_ptr<Material> materialAsset = std::make_shared<Material>();
 		bool result = DeserializeFromYAML(yamlString, materialAsset);
 		if (!result)
 		{

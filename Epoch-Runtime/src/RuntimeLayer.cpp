@@ -146,7 +146,7 @@ namespace Epoch
 		serializer.DeserializeRuntime(myProjectPath);
 
 		// Load asset pack
-		myAssetPack = AssetPack::Load(Project::GetProjectDirectory() / project->GetConfig().assetDirectory / "AssetPack.eap");
+		myAssetPack = AssetPack::Load(project->GetConfig().projectDirectory / project->GetConfig().assetDirectory / "AssetPack.eap");
 		Project::SetActiveRuntime(project, myAssetPack);
 
 		// Load app binary
@@ -159,9 +159,7 @@ namespace Epoch
 
 	void RuntimeLayer::LoadScene(uint64_t aSceneHandle)
 	{
-		std::shared_ptr<Scene> newScene = std::make_shared<Scene>(aSceneHandle);
-		SceneSerializer serializer(newScene);
-		serializer.Deserialize((Project::GetAssetDirectory() / Project::GetEditorAssetManager()->GetMetadata(aSceneHandle).filePath).string());
+		std::shared_ptr<Scene> newScene = Project::GetRuntimeAssetManager()->LoadScene(aSceneHandle);
 		myRuntimeScene = newScene;
 		myRuntimeScene->SetViewportSize(myViewportWidth, myViewportHeight);
 	}

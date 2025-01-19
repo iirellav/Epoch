@@ -5,11 +5,15 @@
 
 namespace Epoch
 {
+	using AssetMap = std::unordered_map<AssetHandle, std::shared_ptr<Asset>>;
+
 	class AssetManagerBase
 	{
 	public:
 		AssetManagerBase() = default;
 		virtual ~AssetManagerBase() = default;
+
+		virtual void LoadBuiltInAssets() = 0;
 
 		virtual AssetType GetAssetType(AssetHandle aHandle) = 0;
 		virtual std::shared_ptr<Asset> GetAsset(AssetHandle aHandle) = 0;
@@ -21,8 +25,6 @@ namespace Epoch
 		virtual bool IsMemoryAsset(AssetHandle handle) = 0;
 		virtual bool IsAssetHandleValid(AssetHandle aHandle) = 0;
 		virtual bool IsAssetLoaded(AssetHandle aHandle) = 0;
-		virtual bool IsAssetValid(AssetHandle handle) = 0;
-		virtual bool IsAssetMissing(AssetHandle handle) = 0;
 
 		virtual std::unordered_set<AssetHandle> GetAllAssetsWithType(AssetType aType) = 0;
 		virtual const std::unordered_map<AssetHandle, std::shared_ptr<Asset>>& GetLoadedAssets() = 0;

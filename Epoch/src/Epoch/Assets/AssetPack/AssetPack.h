@@ -5,6 +5,9 @@
 
 namespace Epoch
 {
+	class Scene;
+	class Asset;
+
 	class AssetPack
 	{
 	public:
@@ -18,9 +21,14 @@ namespace Epoch
 		static bool CreateFromActiveProject(std::atomic<float>& aProgress, std::filesystem::path aDestination = "");
 		static std::shared_ptr<AssetPack> Load(const std::filesystem::path& aPath);
 
-		static const char* GetLastErrorMessage();
+		std::shared_ptr<Scene> LoadScene(AssetHandle aSceneHandle);
+		std::shared_ptr<Asset> LoadAsset(AssetHandle aSceneHandle, AssetHandle aAssetHandle);
+
+		bool IsAssetHandleValid(AssetHandle assetHandle) const;
 
 		Buffer ReadAppBinary();
+
+		static const char* GetLastErrorMessage();
 
 	private:
 		std::filesystem::path myPath;

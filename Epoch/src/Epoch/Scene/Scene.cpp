@@ -928,12 +928,10 @@ namespace Epoch
 				auto& mrc = myRegistry.get<MeshRendererComponent>(entity);
 				if (mrc.mesh)
 				{
-					if (AssetManager::IsMemoryAsset(mrc.mesh) || !AssetManager::IsAssetHandleValid(mrc.mesh))
+					if (!AssetManager::IsMemoryAsset(mrc.mesh) && AssetManager::IsAssetHandleValid(mrc.mesh))
 					{
-						continue;
+						assetList.insert(mrc.mesh);
 					}
-
-					assetList.insert(mrc.mesh);
 				}
 
 				if (mrc.materialTable)

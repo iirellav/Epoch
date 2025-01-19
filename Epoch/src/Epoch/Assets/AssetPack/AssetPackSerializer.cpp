@@ -94,7 +94,7 @@ namespace Epoch
 			return false;
 
 		stream.ReadRaw<AssetPackFile::FileHeader>(aFile.header);
-		bool validHeader = memcmp(aFile.header.HEADER, "HZAP", 4) == 0;
+		bool validHeader = memcmp(aFile.header.HEADER, "EPAP", 4) == 0;
 		EPOCH_ASSERT(validHeader);
 		if (!validHeader)
 		{

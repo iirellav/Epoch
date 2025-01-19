@@ -15,8 +15,6 @@ namespace Epoch
 	{
 	public:
 		static bool IsAssetHandleValid(AssetHandle aAssetHandle) { return Project::GetAssetManager()->IsAssetHandleValid(aAssetHandle); }
-		static bool IsAssetValid(AssetHandle aAssetHandle) { return Project::GetAssetManager()->IsAssetValid(aAssetHandle); }
-		static bool IsAssetMissing(AssetHandle aAssetHandle) { return Project::GetAssetManager()->IsAssetMissing(aAssetHandle); }
 		static bool IsMemoryAsset(AssetHandle aAssetHandle) { return Project::GetAssetManager()->IsMemoryAsset(aAssetHandle); }
 
 		static bool ReloadData(AssetHandle aAssetHandle) { return Project::GetAssetManager()->ReloadData(aAssetHandle); }

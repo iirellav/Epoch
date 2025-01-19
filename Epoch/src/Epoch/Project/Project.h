@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <CommonUtilities/Math/Vector/Vector3.hpp>
 #include "Epoch/Assets/AssetManager/EditorAssetManager.h"
+#include "Epoch/Assets/AssetManager/RuntimeAssetManager.h"
 #include "Epoch/Assets/AssetPack/AssetPack.h"
 
 namespace Epoch
@@ -62,6 +63,7 @@ namespace Epoch
 
 		inline static std::shared_ptr<AssetManagerBase> GetAssetManager() { return staticAssetManager; }
 		inline static std::shared_ptr<EditorAssetManager> GetEditorAssetManager() { return std::static_pointer_cast<EditorAssetManager>(staticAssetManager); }
+		inline static std::shared_ptr<RuntimeAssetManager> GetRuntimeAssetManager() { return std::static_pointer_cast<RuntimeAssetManager>(staticAssetManager); }
 
 		static const std::string& GetProductName()
 		{

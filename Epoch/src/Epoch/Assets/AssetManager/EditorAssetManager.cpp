@@ -45,15 +45,6 @@ namespace Epoch
 
 	void EditorAssetManager::LoadBuiltInAssets()
 	{
-		JobSystem& js = Application::Get().GetJobSystem();
-
-		//js.AddAJob(MeshFactory::CreateCube);
-		//js.AddAJob(MeshFactory::CreateSphere);
-		//js.AddAJob(MeshFactory::CreateQuad);
-		//js.AddAJob(MeshFactory::CreatePlane);
-		////js.AddAJob(MeshFactory::CreateCapsule);
-		////js.AddAJob(MeshFactory::CreateCylinder);
-
 		MeshFactory::CreateCube();
 		MeshFactory::CreateSphere();
 		MeshFactory::CreateQuad();
@@ -204,9 +195,9 @@ namespace Epoch
 		}
 	}
 
-	bool EditorAssetManager::IsMemoryAsset(AssetHandle handle)
+	bool EditorAssetManager::IsMemoryAsset(AssetHandle aHandle)
 	{
-		return myMemoryAssets.find(handle) != myMemoryAssets.end();
+		return myMemoryAssets.find(aHandle) != myMemoryAssets.end();
 	}
 
 	bool EditorAssetManager::IsAssetHandleValid(AssetHandle aHandle)

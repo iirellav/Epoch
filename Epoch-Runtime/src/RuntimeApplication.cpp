@@ -19,11 +19,11 @@ namespace Epoch
 		ApplicationSpecification applicationSpecification;
 		applicationSpecification.isRuntime = true;
 		applicationSpecification.name = "Epoch-Runtime";
-		//applicationSpecification.startFullscreen = true;
+		applicationSpecification.startFullscreen = true;
 		applicationSpecification.enableImGui = false;
 		applicationSpecification.vSync = false;
 		applicationSpecification.cacheDirectory = "Resources/cache";
-		applicationSpecification.scriptEngineConfig.coreAssemblyPath = "Scripts/Binaries/Epoch-ScriptCore.dll";
+		applicationSpecification.scriptEngineConfig.coreAssemblyPath = "Epoch-ScriptCore.dll";
 		applicationSpecification.rendererConfig.shaderPackPath = "Assets/ShaderPack.esp";
 
 		std::string projectPath = "Project.eproj";

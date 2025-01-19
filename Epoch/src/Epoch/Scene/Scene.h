@@ -246,6 +246,7 @@ namespace Epoch
 		friend class PrefabSerializer;
 		friend class SceneRenderer;
 		friend class SceneHierarchyPanel;
+		friend class AssetPack;
 	};
 }
 
