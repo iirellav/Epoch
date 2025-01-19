@@ -18,7 +18,7 @@ namespace Epoch
 		};
 
 	public:
-		static bool CreateFromActiveProject(std::atomic<float>& aProgress, std::filesystem::path aDestination = "");
+		static bool CreateFromActiveProject(std::filesystem::path aDestination = "");
 		static std::shared_ptr<AssetPack> Load(const std::filesystem::path& aPath);
 
 		std::shared_ptr<Scene> LoadScene(AssetHandle aSceneHandle);

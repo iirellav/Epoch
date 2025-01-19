@@ -43,12 +43,10 @@ namespace Epoch
 		}
 	}
 
-	bool AssetPack::CreateFromActiveProject(std::atomic<float>& aProgress, std::filesystem::path aDestination)
+	bool AssetPack::CreateFromActiveProject(std::filesystem::path aDestination)
 	{
 		AssetPackFile assetPackFile;
 		assetPackFile.header.buildVersion = Platform::GetCurrentDateTimeU64();
-
-		aProgress = 0.0f;
 
 		AssetHandle startSceneHandle = Project::GetActive()->GetConfig().startScene;
 		const AssetRegistry& registry = Project::GetEditorAssetManager()->GetAssetRegistry();
@@ -62,9 +60,6 @@ namespace Epoch
 		std::unordered_set<AssetHandle> referencedScenes;
 		referencedScenes.insert(startSceneHandle);
 		GetAllReferencedScenes(startSceneHandle, referencedScenes);
-		aProgress += 0.1f;
-
-		float progressIncrement = 0.4f / (float)referencedScenes.size();
 
 		std::unordered_set<AssetHandle> fullAssetList;
 		for (AssetHandle sceneHandle : referencedScenes)
@@ -104,8 +99,6 @@ namespace Epoch
 			{
 				CONSOLE_LOG_ERROR("Failed to deserialize scene: {} ({})", metadata.filePath, sceneHandle);
 			}
-
-			aProgress += progressIncrement;
 		}
 
 		//CONSOLE_LOG_INFO("Project contains {} used assets", fullAssetList.size());
@@ -125,9 +118,8 @@ namespace Epoch
 		{
 			aDestination /= "AssetPack.eap";
 		}
-		assetPackSerializer.Serialize(aDestination, assetPackFile, appBinary, aProgress);
+		assetPackSerializer.Serialize(aDestination, assetPackFile, appBinary);
 
-		aProgress = 1.0f;
 		return true;
 	}
 

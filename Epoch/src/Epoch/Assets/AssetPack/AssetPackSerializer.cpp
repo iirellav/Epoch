@@ -5,7 +5,7 @@
 
 namespace Epoch
 {
-	void AssetPackSerializer::Serialize(const std::filesystem::path& aPath, AssetPackFile& aFile, Buffer aAppBinary, std::atomic<float>& aProgress)
+	void AssetPackSerializer::Serialize(const std::filesystem::path& aPath, AssetPackFile& aFile, Buffer aAppBinary)
 	{
 		LOG_INFO("Serializing AssetPack to {}", aPath.string());
 
@@ -21,8 +21,6 @@ namespace Epoch
 		serializer.WriteZero(indexTableSize);
 
 		std::unordered_map<AssetHandle, AssetSerializationInfo> serializedAssets;
-
-		float progressIncrement = 0.4f / (float)aFile.indexTable.scenes.size();
 
 		// Write app binary data
 		aFile.indexTable.packedAppBinaryOffset = serializer.GetStreamPosition();
@@ -63,8 +61,6 @@ namespace Epoch
 					serializedAssets[assetHandle] = serializationInfo;
 				}
 			}
-
-			aProgress += progressIncrement;
 		}
 
 		CONSOLE_LOG_INFO("Serialized {} assets into asset pack", serializedAssets.size());

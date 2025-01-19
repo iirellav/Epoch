@@ -7,21 +7,15 @@
 #include "Epoch/Assets/AssetPack/AssetPack.h"
 #include "Epoch/Rendering/ShaderPack.h"
 #include "Epoch/Rendering/Renderer.h"
+#include "Epoch/Debug/Timer.h"
 
 namespace Epoch
 {
-	bool RuntimeBuilder::Build(std::atomic<float>& aProgress)
+	bool RuntimeBuilder::Build(std::filesystem::path aBuildLocation)
 	{
-		const auto buildLocation = FileSystem::OpenFolderDialog();
-
-		if (buildLocation.empty())
-		{
-			return false;
-		}
-
 		EPOCH_PROFILE_FUNC();
 
-		CONSOLE_LOG_INFO("Building...");
+		Timer buildTimer;
 
 		const auto projDir = Project::GetProjectDirectory();
 		const auto projFilePath = Project::GetProjectPath();
@@ -30,21 +24,21 @@ namespace Epoch
 		
 		//Copy the runtime exe to build location & modify the resources (name, icon) & serialize the project settings
 		{
-			FileSystem::CopyContent(epochDir / "Resources/Runtime", buildLocation);
+			FileSystem::CopyContent(epochDir / "Resources/Runtime", aBuildLocation);
 
 			ProjectSerializer projectSerializer(Project::GetActive());
-			projectSerializer.SerializeRuntime(buildLocation / "Project.eproj");
+			projectSerializer.SerializeRuntime(aBuildLocation / "Project.eproj");
 		}
 
 		//Build assetpack & shaderpack & copy to build location
 		{
-			FileSystem::CreateDirectory(buildLocation / "Assets");
+			FileSystem::CreateDirectory(aBuildLocation / "Assets");
 
-			CONSOLE_LOG_INFO("Building asset pack");
-			AssetPack::CreateFromActiveProject(aProgress, buildLocation / "Assets");
-			CONSOLE_LOG_INFO("Building shader pack");
-			ShaderPack::CreateFromLibrary(Renderer::GetShaderLibrary(), buildLocation / "Assets/ShaderPack.esp");
+			AssetPack::CreateFromActiveProject(aBuildLocation / "Assets");
+			ShaderPack::CreateFromLibrary(Renderer::GetShaderLibrary(), aBuildLocation / "Assets/ShaderPack.esp");
 		}
+
+		CONSOLE_LOG_INFO("Build took {}s to complete", buildTimer.Elapsed());
 
 		return true;
 	}

@@ -489,9 +489,12 @@ namespace Epoch
 
 				if (ImGui::MenuItem("Build"))
 				{
-					std::atomic<float> progress = 0.0f;
-					RuntimeBuilder builder;
-					builder.Build(progress);
+					const auto buildLocation = FileSystem::OpenFolderDialog();
+
+					if (!buildLocation.empty())
+					{
+						RuntimeBuilder::Build(buildLocation);
+					}
 				}
 
 				ImGui::Separator();

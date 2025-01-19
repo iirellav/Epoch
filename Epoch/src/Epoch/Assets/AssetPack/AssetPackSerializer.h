@@ -8,7 +8,7 @@ namespace Epoch
 	class AssetPackSerializer
 	{
 	public:
-		void Serialize(const std::filesystem::path& aPath, AssetPackFile& aFile, Buffer aAppBinary, std::atomic<float>& aProgress);
+		void Serialize(const std::filesystem::path& aPath, AssetPackFile& aFile, Buffer aAppBinary);
 		bool DeserializeIndex(const std::filesystem::path& aPath, AssetPackFile& aFile);
 
 	private:

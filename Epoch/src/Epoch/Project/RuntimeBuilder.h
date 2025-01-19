@@ -6,8 +6,6 @@ namespace Epoch
 	class RuntimeBuilder
 	{
 	public:
-		RuntimeBuilder() = default;
-
-		bool Build(std::atomic<float>& aProgress);
+		static bool Build(std::filesystem::path aBuildLocation);
 	};
 }

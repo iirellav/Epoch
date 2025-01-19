@@ -29,13 +29,13 @@ project "Epoch-Runtime"
 		"Epoch"
 	}
 
-	filter "configurations:Debug"
+	filter "configurations:R-Debug"
 		--postbuildcommands { "xcopy \"$(EPOCH_DIR)Epoch\\vendor\\mono\\bin\\Debug\\mono-2.0-sgen.dll\" \"$(EPOCH_DIR)bin\\$(Configuration)-$(LlvmPlatformName)\\$(ProjectName)\" /e /y /i /r" }
 		--postbuildcommands { "xcopy \"$(EPOCH_DIR)Epoch\\vendor\\assimp\\bin\\Debug\\assimp-vc143-mtd.dll\" \"$(EPOCH_DIR)bin\\$(Configuration)-$(LlvmPlatformName)\\$(ProjectName)\" /e /y /i /r" }
 
-	filter "configurations:Release or configurations:Dist"
+	filter "configurations:R-Release or configurations:R-Dist"
 		--postbuildcommands { "xcopy \"$(EPOCH_DIR)Epoch\\vendor\\mono\\bin\\Release\\mono-2.0-sgen.dll\" \"$(EPOCH_DIR)bin\\$(Configuration)-$(LlvmPlatformName)\\$(ProjectName)\" /e /y /i /r" }
 		--postbuildcommands { "xcopy \"$(EPOCH_DIR)Epoch\\vendor\\assimp\\bin\\Release\\assimp-vc143-mt.dll\" \"$(EPOCH_DIR)bin\\$(Configuration)-$(LlvmPlatformName)\\$(ProjectName)\" /e /y /i /r" }
 
-	filter "configurations:Dist"
+	filter "configurations:R-Dist"
 		kind "WindowedApp"

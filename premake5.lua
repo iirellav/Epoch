@@ -6,7 +6,7 @@ workspace "Epoch"
 	cppdialect "C++20"
 	staticruntime "Off"
 
-	configurations { "Debug", "Release", "Dist" }
+	configurations { "Debug", "Release", "Dist", "R-Debug", "R-Release", "R-Dist" }
 
 	outputdir = "%{cfg.buildcfg}-%{cfg.architecture}"
 
@@ -29,17 +29,17 @@ workspace "Epoch"
 		buildoptions { "/EHsc", "/Zc:preprocessor", "/Zc:__cplusplus" }
 		defines { "PLATFORM_WINDOWS" }
 	
-	filter "configurations:Debug"
+	filter "configurations:Debug or configurations:R-Debug"
 		defines { "_DEBUG" }
 		optimize "off"
 		symbols "on"
 		
-	filter "configurations:Release"
+	filter "configurations:Release or configurations:Runtime-Release"
 		defines { "_RELEASE", "NDEBUG" }
 		optimize "on"
 		symbols "default"
 		
-	filter "configurations:Dist"
+	filter "configurations:Dist or configurations:R-Dist"
 		defines { "_DIST", "NDEBUG" }
 		optimize "full"
 		symbols "off"
