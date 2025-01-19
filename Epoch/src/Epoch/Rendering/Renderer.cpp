@@ -25,6 +25,8 @@ namespace Epoch
 		std::unique_ptr<filewatch::FileWatch<std::wstring>> shaderWatcherHandle = nullptr;
 	};
 
+	static RendererConfig staticConfig;
+
 	static RendererData staticRendererData;
 	static RendererAPI* staticRendererAPI = nullptr;
 
@@ -38,9 +40,11 @@ namespace Epoch
 		return nullptr;
 	}
 
-	void Renderer::Init()
+	void Renderer::Init(const RendererConfig& aRendererConfig)
 	{
 		EPOCH_PROFILE_FUNC();
+
+		staticConfig = aRendererConfig;
 
 		staticRendererAPI = InitRendererAPI();
 		staticRendererAPI->Init();
@@ -49,26 +53,36 @@ namespace Epoch
 
 		//Shaders
 		{
+			if (!staticConfig.shaderPackPath.empty())
+			{
+				Renderer::GetShaderLibrary()->LoadShaderPack(staticConfig.shaderPackPath);
+			}
+
 			JobSystem& js = Application::Get().GetJobSystem();
 
+			// Misc
 			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/BRDF_LUT.hlsl"); });
-			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/Posterization.hlsl"); });
-			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/Sprite.hlsl"); });
-			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/DebugWireframe.hlsl"); });
+			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/CopyTexture.hlsl"); });
 			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/Grid.hlsl"); });
+			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/DebugWireframe.hlsl"); });
+
+			// Environment compute shaders
 			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/EquirectangularToCubeMap.hlsl"); });
 			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/EnvironmentMipFilter.hlsl"); });
-			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/CopyTexture.hlsl"); });
-			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/Text.hlsl"); });
+			// 
+			// Geometry
 			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/GBuffer.hlsl"); });
+			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/Text.hlsl"); });
+			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/Sprite.hlsl"); });
+			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/DebugRender.hlsl"); });
+
+			// Light
 			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/EnvironmentalLight.hlsl"); });
 			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/PointLight.hlsl"); });
 			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/Spotlight.hlsl"); });
-			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/DebugRender.hlsl"); });
-			//js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/UberShader.hlsl"); });
 
-
-			staticRendererData.shaderLibrary->Load("Resources/Shaders/UberShader.hlsl");
+			// Post-processing
+			staticRendererData.shaderLibrary->Load("Resources/Shaders/UberShader.hlsl"); //Compiled/loaded on main thread
 			
 			js.WaitUntilDone();
 

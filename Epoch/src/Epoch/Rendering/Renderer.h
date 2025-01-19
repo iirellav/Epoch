@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <CommonUtilities/Math/Matrix/Matrix4x4.hpp>
+#include "RendererConfig.h"
 #include "Epoch/Utils/FileSystem.h"
 
 namespace Epoch
@@ -20,7 +21,7 @@ namespace Epoch
 		Renderer() = delete;
 		~Renderer() = delete;
 
-		static void Init();
+		static void Init(const RendererConfig& aRendererConfig);
 		static void Shutdown();
 		
 		static std::shared_ptr<ShaderLibrary> GetShaderLibrary();

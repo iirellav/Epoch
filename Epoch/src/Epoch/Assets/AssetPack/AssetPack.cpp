@@ -108,7 +108,7 @@ namespace Epoch
 			aProgress += progressIncrement;
 		}
 
-		CONSOLE_LOG_INFO("Project contains {} used assets", fullAssetList.size());
+		//CONSOLE_LOG_INFO("Project contains {} used assets", fullAssetList.size());
 
 		Buffer appBinary;
 		if (std::filesystem::exists(Project::GetScriptModuleFilePath()))
@@ -121,19 +121,59 @@ namespace Epoch
 		{
 			aDestination = Project::GetAssetDirectory() / "AssetPack.eap";
 		}
+		else
+		{
+			aDestination /= "AssetPack.eap";
+		}
 		assetPackSerializer.Serialize(aDestination, assetPackFile, appBinary, aProgress);
 
 		aProgress = 1.0f;
 		return true;
 	}
 
-	std::shared_ptr<AssetPack> AssetPack::LoadActiveProject()
+	std::shared_ptr<AssetPack> AssetPack::Load(const std::filesystem::path& aPath)
 	{
-		return std::shared_ptr<AssetPack>();
+		std::shared_ptr<AssetPack> assetPack = std::make_shared<AssetPack>();
+		assetPack->myPath = aPath;
+
+		AssetPackSerializer serializer;
+		bool success = serializer.DeserializeIndex(assetPack->myPath, assetPack->myFile);
+		EPOCH_ASSERT(success);
+		if (!success)
+		{
+			return nullptr;
+		}
+
+		// Populate asset handle index
+		const auto& index = assetPack->myFile.indexTable;
+		for (const auto& [sceneHandle, sceneInfo] : index.scenes)
+		{
+			assetPack->myAssetHandleIndex.insert(sceneHandle);
+			for (const auto& [assetHandle, assetInfo] : sceneInfo.assets)
+			{
+				assetPack->myAssetHandleIndex.insert(assetHandle);
+			}
+		}
+
+		return assetPack;
 	}
 
 	const char* AssetPack::GetLastErrorMessage()
 	{
-		return nullptr;
+		switch (myLastBuildError)
+		{
+		case Epoch::AssetPack::BuildError::NoStartScene: return "Start scene not set or not found";
+		default: return "";
+		}
+	}
+
+	Buffer AssetPack::ReadAppBinary()
+	{
+		FileStreamReader stream(myPath);
+		stream.SetStreamPosition(myFile.indexTable.packedAppBinaryOffset);
+		Buffer buffer;
+		stream.ReadBuffer(buffer);
+		EPOCH_ASSERT(myFile.indexTable.packedAppBinarySize == (buffer.size + sizeof(uint32_t)));
+		return buffer;
 	}
 }

@@ -1,5 +1,6 @@
 #include "epch.h"
 #include "Project.h"
+#include "Epoch/Debug/Log.h"
 
 namespace Epoch
 {
@@ -21,7 +22,7 @@ namespace Epoch
 		}
 	}
 
-	void Project::SetActiveRuntime(std::shared_ptr<Project> aProject)
+	void Project::SetActiveRuntime(std::shared_ptr<Project> aProject, std::shared_ptr<AssetPack> aAssetPack)
 	{
 		EPOCH_PROFILE_FUNC();
 

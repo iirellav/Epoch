@@ -16,13 +16,17 @@ namespace Epoch
 
 	public:
 		static bool CreateFromActiveProject(std::atomic<float>& aProgress, std::filesystem::path aDestination = "");
-		static std::shared_ptr<AssetPack> LoadActiveProject();
+		static std::shared_ptr<AssetPack> Load(const std::filesystem::path& aPath);
 
 		static const char* GetLastErrorMessage();
+
+		Buffer ReadAppBinary();
 
 	private:
 		std::filesystem::path myPath;
 		AssetPackFile myFile;
+
+		std::unordered_set<AssetHandle> myAssetHandleIndex;
 
 		static inline BuildError myLastBuildError;
 	};

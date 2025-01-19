@@ -48,7 +48,7 @@ namespace Epoch
 
 		GraphicsEngine::Get().GetVSyncBool() = aAppSpec.vSync;
 
-		Renderer::Init();
+		Renderer::Init(aAppSpec.rendererConfig);
 		ScriptEngine::Init(aAppSpec.scriptEngineConfig);
 		PhysicsSystem::Init();
 

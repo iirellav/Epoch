@@ -5,6 +5,8 @@
 #include "ProjectSerializer.h"
 #include "Epoch/Utils/FileSystem.h"
 #include "Epoch/Assets/AssetPack/AssetPack.h"
+#include "Epoch/Rendering/ShaderPack.h"
+#include "Epoch/Rendering/Renderer.h"
 
 namespace Epoch
 {
@@ -19,26 +21,29 @@ namespace Epoch
 
 		EPOCH_PROFILE_FUNC();
 
+		CONSOLE_LOG_INFO("Building...");
+
 		const auto projDir = Project::GetProjectDirectory();
 		const auto projFilePath = Project::GetProjectPath();
 
 		std::filesystem::path epochDir = std::filesystem::current_path();
-		if (epochDir.stem().string() == "Aeon")
-		{
-			epochDir = epochDir.parent_path();
-		}
 		
-		FileSystem::CopyContent(epochDir / "Aeon/Resources/Runtime", buildLocation);
+		//Copy the runtime exe to build location & modify the resources (name, icon) & serialize the project settings
+		{
+			FileSystem::CopyContent(epochDir / "Resources/Runtime", buildLocation);
 
-		ProjectSerializer projectSerializer(Project::GetActive());
-		projectSerializer.SerializeRuntime(buildLocation / "Project.eproj");
+			ProjectSerializer projectSerializer(Project::GetActive());
+			projectSerializer.SerializeRuntime(buildLocation / "Project.eproj");
+		}
 
 		//Build assetpack & shaderpack & copy to build location
 		{
-			AssetPack::CreateFromActiveProject(aProgress);
-			
-			FileSystem::CreateDirectory(buildLocation / "Resources/Shaders");
-			FileSystem::CopyContent(epochDir / "Aeon/Resources/Shaders", buildLocation / "Resources/Shaders");
+			FileSystem::CreateDirectory(buildLocation / "Assets");
+
+			CONSOLE_LOG_INFO("Building asset pack");
+			AssetPack::CreateFromActiveProject(aProgress, buildLocation / "Assets");
+			CONSOLE_LOG_INFO("Building shader pack");
+			ShaderPack::CreateFromLibrary(Renderer::GetShaderLibrary(), buildLocation / "Assets/ShaderPack.esp");
 		}
 
 		return true;

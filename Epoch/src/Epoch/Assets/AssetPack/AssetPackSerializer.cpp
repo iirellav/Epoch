@@ -67,7 +67,7 @@ namespace Epoch
 			aProgress += progressIncrement;
 		}
 
-		LOG_INFO("Serialized {} assets into AssetPack", serializedAssets.size());
+		CONSOLE_LOG_INFO("Serialized {} assets into asset pack", serializedAssets.size());
 
 		// Fill index table
 		serializer.SetStreamPosition(indexTablePos);
@@ -87,7 +87,40 @@ namespace Epoch
 
 	bool AssetPackSerializer::DeserializeIndex(const std::filesystem::path& aPath, AssetPackFile& aFile)
 	{
-		return false;
+		LOG_DEBUG("Deserializing AssetPack from {}", aPath.string());
+
+		FileStreamReader stream(aPath);
+		if (!stream.IsStreamGood())
+			return false;
+
+		stream.ReadRaw<AssetPackFile::FileHeader>(aFile.header);
+		bool validHeader = memcmp(aFile.header.HEADER, "HZAP", 4) == 0;
+		EPOCH_ASSERT(validHeader);
+		if (!validHeader)
+		{
+			return false;
+		}
+
+		// Read app binary info
+		stream.ReadRaw<uint64_t>(aFile.indexTable.packedAppBinaryOffset);
+		stream.ReadRaw<uint64_t>(aFile.indexTable.packedAppBinarySize);
+
+		uint32_t sceneCount = 0;
+		stream.ReadRaw<uint32_t>(sceneCount); // Read scene map size
+		for (uint32_t i = 0; i < sceneCount; i++)
+		{
+			uint64_t sceneHandle = 0;
+			stream.ReadRaw<uint64_t>(sceneHandle);
+
+			AssetPackFile::SceneInfo& sceneInfo = aFile.indexTable.scenes[sceneHandle];
+			stream.ReadRaw<uint64_t>(sceneInfo.packedOffset);
+			stream.ReadRaw<uint64_t>(sceneInfo.packedSize);
+
+			stream.ReadMap(sceneInfo.assets);
+		}
+
+		LOG_DEBUG("Deserialized index with {} scenes from AssetPack", sceneCount);
+		return true;
 	}
 
 	uint64_t AssetPackSerializer::CalculateIndexTableSize(const AssetPackFile& aFile)

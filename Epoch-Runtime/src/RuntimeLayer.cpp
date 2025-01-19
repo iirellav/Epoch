@@ -5,6 +5,7 @@
 #include <Epoch/Rendering/RenderPipeline.h>
 #include <Epoch/Rendering/Renderer.h>
 #include <Epoch/Project/ProjectSerializer.h>
+#include <Epoch/Assets/AssetPack/AssetPack.h>
 #include <Epoch/Scene/SceneRenderer.h>
 #include <Epoch/Scene/SceneSerializer.h>
 #include <Epoch/Script/ScriptEngine.h>
@@ -144,10 +145,14 @@ namespace Epoch
 		ProjectSerializer serializer(project);
 		serializer.DeserializeRuntime(myProjectPath);
 
-		//TODO: Load asset bank
-		Project::SetActiveRuntime(project);
+		// Load asset pack
+		myAssetPack = AssetPack::Load(Project::GetProjectDirectory() / project->GetConfig().assetDirectory / "AssetPack.eap");
+		Project::SetActiveRuntime(project, myAssetPack);
 
-		ScriptEngine::LoadAppAssembly(); //TODO: Should load binary from asset pack (maybe)
+		// Load app binary
+		Buffer appBinary = myAssetPack->ReadAppBinary();
+		ScriptEngine::LoadAppAssemblyRuntime(appBinary);
+		appBinary.Release();
 
 		LoadScene(Project::GetActive()->GetConfig().startScene);
 	}

@@ -6,6 +6,7 @@
 #include "Events/Event.h"
 #include "Events/WindowEvent.h"
 #include "Epoch/Script/ScriptEngineConfig.h"
+#include "Epoch/Rendering/RendererConfig.h"
 
 int main(int argc, char** argv);
 
@@ -29,6 +30,7 @@ namespace Epoch
 		std::string cacheDirectory = "cache";
 
 		ScriptEngineConfig scriptEngineConfig;
+		RendererConfig rendererConfig;
 	};
 
 	class Application

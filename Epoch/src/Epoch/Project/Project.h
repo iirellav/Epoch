@@ -3,8 +3,8 @@
 #include <memory>
 #include <filesystem>
 #include <CommonUtilities/Math/Vector/Vector3.hpp>
-#include <Epoch/Debug/Log.h>
 #include "Epoch/Assets/AssetManager/EditorAssetManager.h"
+#include "Epoch/Assets/AssetPack/AssetPack.h"
 
 namespace Epoch
 {
@@ -58,7 +58,7 @@ namespace Epoch
 		static std::shared_ptr<Project> GetActive() { return staticActiveProject; }
 
 		static void SetActive(std::shared_ptr<Project> aProject);
-		static void SetActiveRuntime(std::shared_ptr<Project> aProject);
+		static void SetActiveRuntime(std::shared_ptr<Project> aProject, std::shared_ptr<AssetPack> aAssetPack);
 
 		inline static std::shared_ptr<AssetManagerBase> GetAssetManager() { return staticAssetManager; }
 		inline static std::shared_ptr<EditorAssetManager> GetEditorAssetManager() { return std::static_pointer_cast<EditorAssetManager>(staticAssetManager); }
