@@ -43,7 +43,7 @@ namespace Epoch
 		}
 	}
 
-	bool AssetPack::CreateFromActiveProject(std::atomic<float>& aProgress)
+	bool AssetPack::CreateFromActiveProject(std::atomic<float>& aProgress, std::filesystem::path aDestination)
 	{
 		AssetPackFile assetPackFile;
 		assetPackFile.header.buildVersion = Platform::GetCurrentDateTimeU64();
@@ -110,8 +110,6 @@ namespace Epoch
 
 		CONSOLE_LOG_INFO("Project contains {} used assets", fullAssetList.size());
 
-		return true;
-
 		Buffer appBinary;
 		if (std::filesystem::exists(Project::GetScriptModuleFilePath()))
 		{
@@ -119,7 +117,11 @@ namespace Epoch
 		}
 
 		AssetPackSerializer assetPackSerializer;
-		assetPackSerializer.Serialize(Project::GetAssetDirectory() / "AssetPack.eap", assetPackFile, appBinary, aProgress);
+		if (aDestination == "")
+		{
+			aDestination = Project::GetAssetDirectory() / "AssetPack.eap";
+		}
+		assetPackSerializer.Serialize(aDestination, assetPackFile, appBinary, aProgress);
 
 		aProgress = 1.0f;
 		return true;

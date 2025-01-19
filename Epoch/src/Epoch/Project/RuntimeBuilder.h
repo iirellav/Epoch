@@ -8,6 +8,6 @@ namespace Epoch
 	public:
 		RuntimeBuilder() = default;
 
-		bool Build();
+		bool Build(std::atomic<float>& aProgress);
 	};
 }

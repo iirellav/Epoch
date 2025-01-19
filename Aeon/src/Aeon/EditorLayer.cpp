@@ -16,7 +16,6 @@
 #include <Epoch/Core/Events/MouseEvent.h>
 #include <Epoch/Core/Events/WindowEvent.h>
 #include <Epoch/Rendering/Renderer.h>
-#include <Epoch/Assets/AssetPack/AssetPack.h>
 #include <Epoch/Project/ProjectSerializer.h>
 #include <Epoch/Project/RuntimeBuilder.h>
 #include <Epoch/Scene/SceneSerializer.h>
@@ -491,10 +490,8 @@ namespace Epoch
 				if (ImGui::MenuItem("Build"))
 				{
 					std::atomic<float> progress = 0.0f;
-					AssetPack::CreateFromActiveProject(progress);
-
 					RuntimeBuilder builder;
-					builder.Build();
+					builder.Build(progress);
 				}
 
 				ImGui::Separator();

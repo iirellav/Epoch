@@ -15,7 +15,7 @@ namespace Epoch
 		};
 
 	public:
-		static bool CreateFromActiveProject(std::atomic<float>& aProgress);
+		static bool CreateFromActiveProject(std::atomic<float>& aProgress, std::filesystem::path aDestination = "");
 		static std::shared_ptr<AssetPack> LoadActiveProject();
 
 		static const char* GetLastErrorMessage();
