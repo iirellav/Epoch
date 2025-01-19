@@ -1428,7 +1428,6 @@ namespace Epoch
 	{
 		LOG_DEBUG("Serializing scene '{}'", myScene->myName);
 
-		YAML::Emitter out;
 		out << YAML::BeginMap;
 		out << YAML::Key << "Scene" << YAML::Value << myScene->myName;
 		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;

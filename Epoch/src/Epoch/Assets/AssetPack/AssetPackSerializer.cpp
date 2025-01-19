@@ -54,8 +54,8 @@ namespace Epoch
 					// Serialize asset
 					if (!AssetImporter::SerializeToAssetPack(assetHandle, serializer, serializationInfo))
 					{
-						//CONSOLE_LOG_ERROR("Failed to serialize asset '{}' to asset pack!", (uint64_t)assetHandle);
-						EPOCH_ASSERT("Failed to serialize asset '{}' to asset pack!", (uint64_t)assetHandle);
+						//CONSOLE_LOG_ERROR("Failed to serialize asset '{}' to asset pack!", assetHandle);
+						//EPOCH_ASSERT("Failed to serialize asset '{}' to asset pack!", assetHandle);
 					}
 
 					aFile.indexTable.scenes[sceneHandle].assets[assetHandle].packedOffset = serializationInfo.offset;

@@ -3,7 +3,7 @@
 #include <filesystem>
 #include "Scene.h"
 #include "Epoch/Serialization/FileStream.h"
-#include "Epoch/Assets/AssetPack/AssetPackFile.h"
+#include "Epoch/Assets/AssetSerializer/AssetSerializer.h"
 
 namespace YAML
 {

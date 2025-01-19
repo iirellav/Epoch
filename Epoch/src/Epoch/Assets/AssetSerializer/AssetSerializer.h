@@ -9,6 +9,7 @@ namespace Epoch
 {
 	class Prefab;
 	class Scene;
+	class Material;
 
 	struct AssetSerializationInfo
 	{
