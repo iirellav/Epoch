@@ -93,6 +93,7 @@ namespace Epoch
 		TextureFormat GetFormat() const override { return mySpecification.format; }
 		bool Loaded() const { return myTextureData; }
 
+		const Buffer GetReadableBuffer() { return myTextureData; }
 		Buffer GetWriteableBuffer() { return myTextureData; }
 		virtual void Resize(uint32_t aWidth, uint32_t aHeight) = 0;
 		virtual void SetData(Buffer aTextureData) = 0;

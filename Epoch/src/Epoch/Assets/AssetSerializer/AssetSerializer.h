@@ -2,6 +2,7 @@
 #include <memory>
 #include "Epoch/Serialization/FileStream.h"
 #include "Epoch/Assets/AssetMetadata.h"
+#include "Epoch/Assets/AssetPack/AssetPackFile.h"
 #include "Epoch/Utils/YAMLSerializationHelpers.h"
 
 namespace Epoch
@@ -21,6 +22,7 @@ namespace Epoch
 		virtual bool TryLoadData(const AssetMetadata& aMetadata, std::shared_ptr<Asset>& aAsset) const = 0;
 
 		virtual bool SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo) const = 0;
+		virtual std::shared_ptr<Asset> DeserializeFromAssetPack(FileStreamReader& aStream, const AssetPackFile::AssetInfo& aAssetInfo) const = 0;
 	};
 
 	class SceneAssetSerializer : public AssetSerializer
@@ -30,6 +32,8 @@ namespace Epoch
 		bool TryLoadData(const AssetMetadata& aMetadata, std::shared_ptr<Asset>& aAsset) const override;
 
 		bool SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo) const override;
+		std::shared_ptr<Asset> DeserializeFromAssetPack(FileStreamReader& aStream, const AssetPackFile::AssetInfo& aAssetInfo) const override;
+		std::shared_ptr<Scene> DeserializeSceneFromAssetPack(FileStreamReader& aStream, const AssetPackFile::SceneInfo& aSceneInfo) const;
 	};
 
 	class PrefabSerializer : public AssetSerializer
@@ -39,6 +43,7 @@ namespace Epoch
 		bool TryLoadData(const AssetMetadata& aMetadata, std::shared_ptr<Asset>& aAsset) const override;
 
 		bool SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo) const override;
+		std::shared_ptr<Asset> DeserializeFromAssetPack(FileStreamReader& aStream, const AssetPackFile::AssetInfo& aAssetInfo) const override;
 
 	private:
 		std::string SerializeToYAML(std::shared_ptr<Prefab> aPrefab) const;
@@ -52,6 +57,7 @@ namespace Epoch
 		bool TryLoadData(const AssetMetadata& aMetadata, std::shared_ptr<Asset>& aAsset) const override;
 
 		bool SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo) const override;
+		std::shared_ptr<Asset> DeserializeFromAssetPack(FileStreamReader& aStream, const AssetPackFile::AssetInfo& aAssetInfo) const override;
 	};
 
 	class FontSerializer : public AssetSerializer
@@ -61,6 +67,7 @@ namespace Epoch
 		bool TryLoadData(const AssetMetadata& aMetadata, std::shared_ptr<Asset>& aAsset) const override;
 
 		bool SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo) const override;
+		std::shared_ptr<Asset> DeserializeFromAssetPack(FileStreamReader& aStream, const AssetPackFile::AssetInfo& aAssetInfo) const override;
 	};
 
 	class EnvironmentSerializer : public AssetSerializer
@@ -70,6 +77,7 @@ namespace Epoch
 		bool TryLoadData(const AssetMetadata& aMetadata, std::shared_ptr<Asset>& aAsset) const override;
 
 		bool SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo) const override;
+		std::shared_ptr<Asset> DeserializeFromAssetPack(FileStreamReader& aStream, const AssetPackFile::AssetInfo& aAssetInfo) const override;
 	};
 
 	class MeshSerializer : public AssetSerializer
@@ -79,6 +87,7 @@ namespace Epoch
 		bool TryLoadData(const AssetMetadata& aMetadata, std::shared_ptr<Asset>& aAsset) const override;
 
 		bool SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo) const override;
+		std::shared_ptr<Asset> DeserializeFromAssetPack(FileStreamReader& aStream, const AssetPackFile::AssetInfo& aAssetInfo) const override;
 	};
 
 	class MaterialSerializer : public AssetSerializer
@@ -88,6 +97,7 @@ namespace Epoch
 		bool TryLoadData(const AssetMetadata& aMetadata, std::shared_ptr<Asset>& aAsset) const override;
 
 		bool SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo) const override;
+		std::shared_ptr<Asset> DeserializeFromAssetPack(FileStreamReader& aStream, const AssetPackFile::AssetInfo& aAssetInfo) const override;
 	};
 
 	class ScriptFileSerializer : public AssetSerializer
@@ -97,5 +107,6 @@ namespace Epoch
 		bool TryLoadData(const AssetMetadata& aMetadata, std::shared_ptr<Asset>& aAsset) const override;
 
 		bool SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo) const override;
+		std::shared_ptr<Asset> DeserializeFromAssetPack(FileStreamReader& aStream, const AssetPackFile::AssetInfo& aAssetInfo) const override;
 	};
 }

@@ -35,7 +35,7 @@ namespace Epoch
 		{
 			// Serialize Scene
 			AssetSerializationInfo serializationInfo;
-			//AssetImporter::SerializeToAssetPack(sceneHandle, serializer, serializationInfo);
+			AssetImporter::SerializeToAssetPack(sceneHandle, serializer, serializationInfo);
 			aFile.indexTable.scenes[sceneHandle].packedOffset = serializationInfo.offset;
 			aFile.indexTable.scenes[sceneHandle].packedSize = serializationInfo.size;
 
@@ -52,7 +52,12 @@ namespace Epoch
 				else
 				{
 					// Serialize asset
-					//AssetImporter::SerializeToAssetPack(assetHandle, serializer, serializationInfo);
+					if (!AssetImporter::SerializeToAssetPack(assetHandle, serializer, serializationInfo))
+					{
+						//CONSOLE_LOG_ERROR("Failed to serialize asset '{}' to asset pack!", (uint64_t)assetHandle);
+						EPOCH_ASSERT("Failed to serialize asset '{}' to asset pack!", (uint64_t)assetHandle);
+					}
+
 					aFile.indexTable.scenes[sceneHandle].assets[assetHandle].packedOffset = serializationInfo.offset;
 					aFile.indexTable.scenes[sceneHandle].assets[assetHandle].packedSize = serializationInfo.size;
 					serializedAssets[assetHandle] = serializationInfo;

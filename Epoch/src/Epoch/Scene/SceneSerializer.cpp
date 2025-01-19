@@ -12,21 +12,11 @@ namespace Epoch
 	{
 		EPOCH_PROFILE_FUNC();
 
-		LOG_DEBUG("Serializing scene '{}'", myScene->myName);
-
 		YAML::Emitter out;
-		out << YAML::BeginMap;
-		out << YAML::Key << "Scene" << YAML::Value << (myScene->myName = aFilepath.stem().string());
-		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
+		SerializeToYAML(out);
 
-		SerializeEntities(out);
-
-		out << YAML::EndSeq;
-		out << YAML::EndMap;
-
-		std::ofstream fileOut(aFilepath);
-		fileOut << out.c_str();
-		fileOut.close();
+		std::ofstream fout(aFilepath);
+		fout << out.c_str();
 	}
 
 	bool SceneSerializer::Deserialize(const std::filesystem::path& aFilepath)
@@ -37,34 +27,9 @@ namespace Epoch
 		std::stringstream strStream;
 		strStream << stream.rdbuf();
 
-		YAML::Node data = YAML::Load(strStream);
-		//YAML::Node data;
-		//try
-		//{
-		//	data = YAML::LoadFile(aFilepath.string());
-		//}
-		//catch (YAML::ParserException e)
-		//{
-		//	CONSOLE_LOG_ERROR("Failed to deserialize scene '{}': {}", aFilepath.string(), e.what());
-		//	LOG_ERROR("Failed to deserialize scene '{}': {}", aFilepath.string(), e.what());
-		//	return false;
-		//}
-
-		if (!data["Scene"])
-		{
-			return false;
-		}
-
 		myScene->myName = aFilepath.stem().string();
-		LOG_DEBUG("Deserializing scene '{}'", myScene->myName);
 
-		YAML::Node entities = data["Entities"];
-		if (entities)
-		{
-			DeserializeEntities(entities);
-		}
-
-		return true;
+		return DeserializeFromYAML(strStream.str());
 	}
 
 	void SceneSerializer::SerializeEntities(YAML::Emitter& aOut)
@@ -1436,5 +1401,61 @@ namespace Epoch
 				cc.layerID = characterControllerComponent["Layer"].as<uint32_t>(0);
 			}
 		}
+	}
+
+	bool SceneSerializer::SerializeToAssetPack(FileStreamWriter& aStream, AssetSerializationInfo& outInfo)
+	{
+		YAML::Emitter out;
+		SerializeToYAML(out);
+
+		outInfo.offset = aStream.GetStreamPosition();
+		std::string yamlString = out.c_str();
+		aStream.WriteString(yamlString);
+		outInfo.size = aStream.GetStreamPosition() - outInfo.offset;
+		return outInfo.size > 0;
+	}
+
+	bool SceneSerializer::DeserializeFromAssetPack(FileStreamReader& aStream, const AssetPackFile::SceneInfo& aSceneInfo)
+	{
+		aStream.SetStreamPosition(aSceneInfo.packedOffset);
+		std::string sceneYAML;
+		aStream.ReadString(sceneYAML);
+
+		return DeserializeFromYAML(sceneYAML);
+	}
+	
+	void SceneSerializer::SerializeToYAML(YAML::Emitter& out)
+	{
+		LOG_DEBUG("Serializing scene '{}'", myScene->myName);
+
+		YAML::Emitter out;
+		out << YAML::BeginMap;
+		out << YAML::Key << "Scene" << YAML::Value << myScene->myName;
+		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
+
+		SerializeEntities(out);
+
+		out << YAML::EndSeq;
+		out << YAML::EndMap;
+	}
+	
+	bool SceneSerializer::DeserializeFromYAML(const std::string& aYamlString)
+	{
+		YAML::Node data = YAML::Load(aYamlString);
+
+		if (!data["Scene"])
+		{
+			return false;
+		}
+
+		LOG_DEBUG("Deserializing scene '{}'", myScene->myName);
+
+		YAML::Node entities = data["Entities"];
+		if (entities)
+		{
+			DeserializeEntities(entities);
+		}
+
+		return true;
 	}
 }
