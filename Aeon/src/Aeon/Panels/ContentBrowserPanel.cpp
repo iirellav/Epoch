@@ -174,7 +174,7 @@ namespace Epoch
 
 								if (ImGui::MenuItem("Material"))
 								{
-									auto asset = CreateAsset<Scene>("New Material.mat");
+									auto asset = CreateAsset<Material>("New Material.mat");
 									if (asset)
 									{
 										size_t index = myCurrentItems.FindItem(asset->GetHandle());
