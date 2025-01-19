@@ -43,6 +43,7 @@ namespace Epoch
 
 	std::shared_ptr<Asset> SceneAssetSerializer::DeserializeFromAssetPack(FileStreamReader& aStream, const AssetPackFile::AssetInfo& aAssetInfo) const
 	{
+		EPOCH_ASSERT("Not implemented! Use 'DeserializeSceneFromAssetPack'.");
 		return nullptr;
 	}
 
@@ -276,26 +277,10 @@ namespace Epoch
 	{
 		std::shared_ptr<Material> material = std::static_pointer_cast<Material>(aAsset);
 
-		YAML::Emitter out;
-		
-		out << YAML::BeginMap;
-		
-		out << YAML::Key << "AlbedoColor" << YAML::Value << material->GetAlbedoColor();
-		out << YAML::Key << "Roughness" << YAML::Value << material->GetRoughness();
-		out << YAML::Key << "Metalness" << YAML::Value << material->GetMetalness();
-		out << YAML::Key << "NormalStrength" << YAML::Value << material->GetNormalStrength();
-		out << YAML::Key << "UVTiling" << YAML::Value << material->GetUVTiling();
-		out << YAML::Key << "EmissionColor" << YAML::Value << material->GetEmissionColor();
-		out << YAML::Key << "EmissionStrength" << YAML::Value << material->GetEmissionStrength();
-
-		out << YAML::Key << "AlbedoTexture" << YAML::Value << material->myAlbedoTexture;
-		out << YAML::Key << "NormalTexture" << YAML::Value << material->myNormalTexture;
-		out << YAML::Key << "MaterialTexture" << YAML::Value << material->myMaterialTexture;
-		
-		out << YAML::EndMap;
+		std::string yamlString = SerializeToYAML(material);
 
 		std::ofstream fout(Project::GetEditorAssetManager()->GetFileSystemPath(aMetadata));
-		fout << out.c_str();
+		fout << yamlString;
 		fout.close();
 	}
 
@@ -304,43 +289,95 @@ namespace Epoch
 		aAsset = std::make_shared<Material>();
 		aAsset->myHandle = aMetadata.handle;
 
-		YAML::Node data;
-		try
-		{
-			data = YAML::LoadFile(Project::GetEditorAssetManager()->GetFileSystemPath(aMetadata).string());
-		}
-		catch (YAML::ParserException e)
+		std::shared_ptr<Material> material = std::static_pointer_cast<Material>(aAsset);
+
+		std::ifstream stream(Project::GetEditorAssetManager()->GetFileSystemPath(aMetadata));
+		if (!stream.is_open())
 		{
 			aAsset->SetFlag(AssetFlag::Invalid);
-			LOG_ERROR("Failed to deserialize material '{}': {}", aMetadata.filePath.string(), e.what());
+			return false;
+		}
+
+		std::stringstream strStream;
+		strStream << stream.rdbuf();
+
+		bool success = DeserializeFromYAML(strStream.str(), material);
+		if (!success)
+		{
+			aAsset->SetFlag(AssetFlag::Invalid);
 			return false;
 		}
 		
-		std::shared_ptr<Material> material = std::static_pointer_cast<Material>(aAsset);
-
-		material->SetAlbedoColor(data["AlbedoColor"].as<CU::Vector3f>(CU::Vector3f::One));
-		material->SetRoughness(data["Roughness"].as<float>(1.0f));
-		material->SetMetalness(data["Metalness"].as<float>(0.0f));
-		material->SetNormalStrength(data["NormalStrength"].as<float>(1.0f));
-		material->SetUVTiling(data["UVTiling"].as<CU::Vector2f>(CU::Vector2f::One));
-		material->SetEmissionColor(data["EmissionColor"].as<CU::Vector3f>(CU::Vector3f::One));
-		material->SetEmissionStrength(data["EmissionStrength"].as<float>(0.0f));
-
-		material->SetAlbedoTexture(data["AlbedoTexture"].as<UUID>(UUID(0)));
-		material->SetNormalTexture(data["NormalTexture"].as<UUID>(UUID(0)));
-		material->SetMaterialTexture(data["MaterialTexture"].as<UUID>(UUID(0)));
-
 		return true;
 	}
 
 	bool MaterialSerializer::SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo) const
 	{
-		return false;
+		std::shared_ptr<Material> materialAsset = AssetManager::GetAsset<Material>(aHandle);
+
+		std::string yamlString = SerializeToYAML(materialAsset);
+		outInfo.offset = aStream.GetStreamPosition();
+		aStream.WriteString(yamlString);
+		outInfo.size = aStream.GetStreamPosition() - outInfo.offset;
+		return outInfo.size > 0;
 	}
 
 	std::shared_ptr<Asset> MaterialSerializer::DeserializeFromAssetPack(FileStreamReader& aStream, const AssetPackFile::AssetInfo& aAssetInfo) const
 	{
-		return std::shared_ptr<Asset>();
+		aStream.SetStreamPosition(aAssetInfo.packedOffset);
+		std::string yamlString;
+		aStream.ReadString(yamlString);
+
+		std::shared_ptr<Material> materialAsset;
+		bool result = DeserializeFromYAML(yamlString, materialAsset);
+		if (!result)
+		{
+			return nullptr;
+		}
+
+		return materialAsset;
+	}
+
+	std::string MaterialSerializer::SerializeToYAML(std::shared_ptr<Material> aMaterial) const
+	{
+		YAML::Emitter out;
+
+		out << YAML::BeginMap;
+
+		out << YAML::Key << "AlbedoColor" << YAML::Value << aMaterial->GetAlbedoColor();
+		out << YAML::Key << "Roughness" << YAML::Value << aMaterial->GetRoughness();
+		out << YAML::Key << "Metalness" << YAML::Value << aMaterial->GetMetalness();
+		out << YAML::Key << "NormalStrength" << YAML::Value << aMaterial->GetNormalStrength();
+		out << YAML::Key << "UVTiling" << YAML::Value << aMaterial->GetUVTiling();
+		out << YAML::Key << "EmissionColor" << YAML::Value << aMaterial->GetEmissionColor();
+		out << YAML::Key << "EmissionStrength" << YAML::Value << aMaterial->GetEmissionStrength();
+
+		out << YAML::Key << "AlbedoTexture" << YAML::Value << aMaterial->myAlbedoTexture;
+		out << YAML::Key << "NormalTexture" << YAML::Value << aMaterial->myNormalTexture;
+		out << YAML::Key << "MaterialTexture" << YAML::Value << aMaterial->myMaterialTexture;
+
+		out << YAML::EndMap;
+
+		return std::string(out.c_str());
+	}
+
+	bool MaterialSerializer::DeserializeFromYAML(const std::string& yamlString, std::shared_ptr<Material>& aMaterial) const
+	{
+		YAML::Node data = YAML::Load(yamlString);
+
+		aMaterial->SetAlbedoColor(data["AlbedoColor"].as<CU::Vector3f>(CU::Vector3f::One));
+		aMaterial->SetRoughness(data["Roughness"].as<float>(1.0f));
+		aMaterial->SetMetalness(data["Metalness"].as<float>(0.0f));
+		aMaterial->SetNormalStrength(data["NormalStrength"].as<float>(1.0f));
+		aMaterial->SetUVTiling(data["UVTiling"].as<CU::Vector2f>(CU::Vector2f::One));
+		aMaterial->SetEmissionColor(data["EmissionColor"].as<CU::Vector3f>(CU::Vector3f::One));
+		aMaterial->SetEmissionStrength(data["EmissionStrength"].as<float>(0.0f));
+
+		aMaterial->SetAlbedoTexture(data["AlbedoTexture"].as<UUID>(UUID(0)));
+		aMaterial->SetNormalTexture(data["NormalTexture"].as<UUID>(UUID(0)));
+		aMaterial->SetMaterialTexture(data["MaterialTexture"].as<UUID>(UUID(0)));
+
+		return true;
 	}
 
 
@@ -385,11 +422,13 @@ namespace Epoch
 
 	bool ScriptFileSerializer::SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo) const
 	{
+		EPOCH_ASSERT("Not implemented!");
 		return false;
 	}
 	
 	std::shared_ptr<Asset> ScriptFileSerializer::DeserializeFromAssetPack(FileStreamReader& aStream, const AssetPackFile::AssetInfo& aAssetInfo) const
 	{
-		return std::shared_ptr<Asset>();
+		EPOCH_ASSERT("Not implemented!");
+		return nullptr;
 	}
 }

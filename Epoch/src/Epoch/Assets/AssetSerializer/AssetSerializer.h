@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <memory>
 #include "Epoch/Serialization/FileStream.h"
 #include "Epoch/Assets/AssetMetadata.h"
@@ -99,6 +100,10 @@ namespace Epoch
 
 		bool SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo) const override;
 		std::shared_ptr<Asset> DeserializeFromAssetPack(FileStreamReader& aStream, const AssetPackFile::AssetInfo& aAssetInfo) const override;
+
+	private:
+		std::string SerializeToYAML(std::shared_ptr<Material> aMaterial) const;
+		bool DeserializeFromYAML(const std::string& yamlString, std::shared_ptr<Material>& aMaterial) const;
 	};
 
 	class ScriptFileSerializer : public AssetSerializer
