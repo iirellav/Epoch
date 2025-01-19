@@ -141,6 +141,12 @@ namespace Epoch
 		buffer.Release();
 	}
 
+	Font::Font(const std::string& aName, Buffer aBuffer) :
+		myName(aName), myMSDFData(new MSDFData())
+	{
+		CreateAtlas(aBuffer);
+	}
+
 	void Font::Init()
 	{
 		staticDefaultFont = std::make_shared<Font>("Resources/Fonts/opensans/OpenSans-Regular.ttf");

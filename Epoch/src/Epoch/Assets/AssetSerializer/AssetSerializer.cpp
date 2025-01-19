@@ -189,12 +189,28 @@ namespace Epoch
 
 	bool FontSerializer::SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo) const
 	{
-		return false;
+		outInfo.offset = aStream.GetStreamPosition();
+
+		std::shared_ptr<Font> font = AssetManager::GetAsset<Font>(aHandle);
+		auto path = Project::GetEditorAssetManager()->GetFileSystemPath(aHandle);
+		aStream.WriteString(font->GetName());
+		Buffer fontData = FileSystem::ReadBytes(path);
+		aStream.WriteBuffer(fontData);
+
+		outInfo.size = aStream.GetStreamPosition() - outInfo.offset;
+		return outInfo.size > 0;
 	}
 
 	std::shared_ptr<Asset> FontSerializer::DeserializeFromAssetPack(FileStreamReader& aStream, const AssetPackFile::AssetInfo& aAssetInfo) const
 	{
-		return std::shared_ptr<Asset>();
+		aStream.SetStreamPosition(aAssetInfo.packedOffset);
+
+		std::string name;
+		aStream.ReadString(name);
+		Buffer fontData;
+		aStream.ReadBuffer(fontData);
+
+		return std::make_shared<Font>(name, fontData);
 	}
 
 
