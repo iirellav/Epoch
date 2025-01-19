@@ -147,6 +147,7 @@ namespace Epoch
 			}
 		}
 
+#if 0
 		{
 			LOG_INFO("-----------------------------------------------------");
 			LOG_INFO("AssetPack Dump {}", assetPack->myPath);
@@ -175,6 +176,7 @@ namespace Epoch
 			}
 			LOG_INFO("-----------------------------------------------------");
 		}
+#endif
 
 		return assetPack;
 	}
