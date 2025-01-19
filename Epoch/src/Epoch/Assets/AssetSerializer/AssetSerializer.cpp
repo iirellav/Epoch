@@ -12,6 +12,7 @@
 #include "Epoch/Assets/AssetManager.h"
 #include "Epoch/Assets/AssimpMeshImporter.h"
 #include "Epoch/Assets/AssetSerializer/Runtime/TextureRuntimeSerializer.h"
+#include "Epoch/Utils/YAMLSerializationHelpers.h"
 
 namespace Epoch
 {
@@ -72,21 +73,20 @@ namespace Epoch
 
 	bool PrefabSerializer::TryLoadData(const AssetMetadata& aMetadata, std::shared_ptr<Asset>& aAsset) const
 	{
-		YAML::Node data;
-		try
+		std::ifstream stream(Project::GetEditorAssetManager()->GetFileSystemPath(aMetadata));
+		if (!stream.is_open())
 		{
-			data = YAML::LoadFile(Project::GetEditorAssetManager()->GetFileSystemPath(aMetadata).string());
-		}
-		catch (YAML::ParserException e)
-		{
-			LOG_ERROR_TAG("AssetManager", "Failed to deserialize prefab '{}': {}", Project::GetEditorAssetManager()->GetFileSystemPath(aMetadata).string(), e.what());
+			aAsset->SetFlag(AssetFlag::Invalid);
 			return false;
 		}
 		
+		std::stringstream strStream;
+		strStream << stream.rdbuf();
+
 		aAsset = std::make_shared<Prefab>();
 		aAsset->myHandle = aMetadata.handle;
 		std::shared_ptr<Prefab> prefabAsset = std::static_pointer_cast<Prefab>(aAsset);
-		bool success = DeserializeFromYAML(data, prefabAsset);
+		bool success = DeserializeFromYAML(strStream.str(), prefabAsset);
 		if (!success)
 		{
 			aAsset->SetFlag(AssetFlag::Invalid);
@@ -109,12 +109,40 @@ namespace Epoch
 
 	bool PrefabSerializer::SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo) const
 	{
-		return false;
+		std::shared_ptr<Prefab> prefab = AssetManager::GetAsset<Prefab>(aHandle);
+
+		std::string yamlString = SerializeToYAML(prefab);
+		outInfo.offset = aStream.GetStreamPosition();
+		aStream.WriteString(yamlString);
+		outInfo.size = aStream.GetStreamPosition() - outInfo.offset;
+		return true;
 	}
 
 	std::shared_ptr<Asset> PrefabSerializer::DeserializeFromAssetPack(FileStreamReader& aStream, const AssetPackFile::AssetInfo& aAssetInfo) const
 	{
-		return std::shared_ptr<Asset>();
+		aStream.SetStreamPosition(aAssetInfo.packedOffset);
+		std::string yamlString;
+		aStream.ReadString(yamlString);
+
+		std::shared_ptr<Prefab> prefab = std::make_shared<Prefab>();
+		bool result = DeserializeFromYAML(yamlString, prefab);
+		if (!result)
+		{
+			return nullptr;
+		}
+
+		auto entities = prefab->myScene->GetAllEntitiesWith<RelationshipComponent>();
+		for (auto e : entities)
+		{
+			Entity entity = { e, prefab->myScene.get() };
+			if (!entity.GetParent())
+			{
+				prefab->myEntity = entity;
+				break;
+			}
+		}
+
+		return prefab;
 	}
 
 	std::string PrefabSerializer::SerializeToYAML(std::shared_ptr<Prefab> aPrefab) const
@@ -134,14 +162,15 @@ namespace Epoch
 		return std::string(out.c_str());
 	}
 
-	bool PrefabSerializer::DeserializeFromYAML(YAML::Node& aData, std::shared_ptr<Prefab> aPrefab) const
+	bool PrefabSerializer::DeserializeFromYAML(const std::string& aYamlString, std::shared_ptr<Prefab> aPrefab) const
 	{
-		if (!aData["Prefab"])
+		YAML::Node data = YAML::Load(aYamlString);
+		if (!data["Prefab"])
 		{
 			return false;
 		}
 
-		YAML::Node prefabNode = aData["Prefab"];
+		YAML::Node prefabNode = data["Prefab"];
 		SceneSerializer sceneSerializer(aPrefab->myScene);
 		sceneSerializer.DeserializeEntities(prefabNode);
 

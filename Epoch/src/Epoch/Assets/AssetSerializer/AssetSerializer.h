@@ -4,7 +4,6 @@
 #include "Epoch/Serialization/FileStream.h"
 #include "Epoch/Assets/AssetMetadata.h"
 #include "Epoch/Assets/AssetPack/AssetPackFile.h"
-#include "Epoch/Utils/YAMLSerializationHelpers.h"
 
 namespace Epoch
 {
@@ -49,7 +48,7 @@ namespace Epoch
 
 	private:
 		std::string SerializeToYAML(std::shared_ptr<Prefab> aPrefab) const;
-		bool DeserializeFromYAML(YAML::Node& aData, std::shared_ptr<Prefab> aPrefab) const;
+		bool DeserializeFromYAML(const std::string& aYamlString, std::shared_ptr<Prefab> aPrefab) const;
 	};
 
 	class TextureSerializer : public AssetSerializer
