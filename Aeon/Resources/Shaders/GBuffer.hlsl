@@ -113,10 +113,10 @@ GBufferOutput main(VertexOutput input)
     pixelNormal.xy *= MB_NormalStrength;
     pixelNormal = normalize(mul(normalize(pixelNormal), tbn));
     
-    const float3 materialValues = materialTexture.Sample(wrapSampler, scaledUV).rgb;
+    const float4 materialValues = materialTexture.Sample(wrapSampler, scaledUV);
     
-    output.albedo = float4(albedoColor, 1.0f) + float4(MB_EmissionColor * MB_EmissionStrength, 1.0f);
-    output.material = float4(materialValues * float3(1.0f, MB_Roughness, MB_Metalness), 1.0f);
+    output.albedo = float4(albedoColor, 1.0f) + float4(MB_EmissionColor * MB_EmissionStrength * materialValues.a, 1.0f);
+    output.material = materialValues * float4(1.0f, MB_Roughness, MB_Metalness, 1.0f);
     output.normals = float4(EncodeOct(pixelNormal), 0.0f, 1.0f);
     output.worldPos = input.worldPos;
     output.entityID = input.entityID + 1;
