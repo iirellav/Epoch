@@ -58,32 +58,14 @@ namespace Epoch
 
 		if (Input::IsKeyPressed(KeyCode::F11))
 		{
-			Window& window = app.GetWindow();
-
-			if (window.IsFullscreen())
-			{
-				window.SetFullscreen(false);
-			}
-			else
-			{
-				window.SetFullscreen(true);
-			}
-		}
-
-		if (Input::IsKeyPressed(KeyCode::F3))
-		{
-			LOG_INFO("F3");
-			
 			if (Input::IsKeyHeld(KeyCode::LeftAlt))
 			{
 				if (Instrumentor::Get().IsPaused())
 				{
-					LOG_INFO("Instrumentor unpause");
 					Instrumentor::Get().Unpause();
 				}
 				else
 				{
-					LOG_INFO("Instrumentor pause");
 					Instrumentor::Get().Pause();
 				}
 			}

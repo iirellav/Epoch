@@ -717,7 +717,9 @@ namespace Epoch
 			Renderer::RemoveRenderPipeline(myDebugRenderPipeline);
 		}
 
+#ifndef _RUNTIME
 		UpdateStatistics();
+#endif
 
 		myDrawList.clear();
 		myMeshTransformMap.clear();

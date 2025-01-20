@@ -1,4 +1,6 @@
 #pragma once
+#include <map>
+#include <vector>
 #include "Epoch/Core/Buffer.h"
 
 namespace Epoch

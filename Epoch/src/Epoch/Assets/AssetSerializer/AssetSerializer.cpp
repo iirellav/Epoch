@@ -12,6 +12,7 @@
 #include "Epoch/Assets/AssetManager.h"
 #include "Epoch/Assets/AssimpMeshImporter.h"
 #include "Epoch/Assets/AssetSerializer/Runtime/TextureRuntimeSerializer.h"
+#include "Epoch/Assets/AssetSerializer/Runtime/MeshRuntimeSerializer.h"
 #include "Epoch/Utils/YAMLSerializationHelpers.h"
 
 namespace Epoch
@@ -293,12 +294,14 @@ namespace Epoch
 
 	bool MeshSerializer::SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo) const
 	{
-		return false;
+		MeshRuntimeSerializer serializer;
+		return serializer.SerializeToAssetPack(aHandle, aStream, outInfo);
 	}
 
 	std::shared_ptr<Asset> MeshSerializer::DeserializeFromAssetPack(FileStreamReader& aStream, const AssetPackFile::AssetInfo& aAssetInfo) const
 	{
-		return std::shared_ptr<Asset>();
+		MeshRuntimeSerializer serializer;
+		return serializer.DeserializeFromAssetPack(aStream, aAssetInfo);
 	}
 
 

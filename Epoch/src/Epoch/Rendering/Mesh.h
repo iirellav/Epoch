@@ -8,6 +8,8 @@
 #include "Epoch/Debug/Log.h"
 #include "Epoch/Assets/Asset.h"
 #include "Epoch/Math/AABB.h"
+#include "Epoch/Serialization/StreamReader.h"
+#include "Epoch/Serialization/StreamWriter.h"
 
 namespace Epoch
 {
@@ -44,6 +46,24 @@ namespace Epoch
 			position = aNormals;
 			normal = aNormals;
 			tangent = aTangent;
+		}
+
+		static void Serialize(StreamWriter* aStream, const Vertex& aInstance)
+		{
+			aStream->WriteRaw(aInstance.position);
+			aStream->WriteRaw(aInstance.normal);
+			aStream->WriteRaw(aInstance.tangent);
+			aStream->WriteRaw(aInstance.uv);
+			aStream->WriteRaw(aInstance.color);
+		}
+
+		static void Deserialize(StreamReader* aStream, Vertex& aInstance)
+		{
+			aStream->ReadRaw(aInstance.position);
+			aStream->ReadRaw(aInstance.normal);
+			aStream->ReadRaw(aInstance.tangent);
+			aStream->ReadRaw(aInstance.uv);
+			aStream->ReadRaw(aInstance.color);
 		}
 	};
 
@@ -117,6 +137,34 @@ namespace Epoch
 
 		std::string nodeName = "";
 		std::string meshName = "";
+
+		static void Serialize(StreamWriter* aStream, const Submesh& aInstance)
+		{
+			aStream->WriteRaw(aInstance.baseVertex);
+			aStream->WriteRaw(aInstance.baseIndex);
+			aStream->WriteRaw(aInstance.materialIndex);
+			aStream->WriteRaw(aInstance.indexCount);
+			aStream->WriteRaw(aInstance.vertexCount);
+			aStream->WriteRaw(aInstance.transform);
+			aStream->WriteRaw(aInstance.localTransform);
+			aStream->WriteRaw(aInstance.boundingBox);
+			aStream->WriteString(aInstance.nodeName);
+			aStream->WriteString(aInstance.meshName);
+		}
+
+		static void Deserialize(StreamReader* aStream, Submesh& aInstance)
+		{
+			aStream->ReadRaw(aInstance.baseVertex);
+			aStream->ReadRaw(aInstance.baseIndex);
+			aStream->ReadRaw(aInstance.materialIndex);
+			aStream->ReadRaw(aInstance.indexCount);
+			aStream->ReadRaw(aInstance.vertexCount);
+			aStream->ReadRaw(aInstance.transform);
+			aStream->ReadRaw(aInstance.localTransform);
+			aStream->ReadRaw(aInstance.boundingBox);
+			aStream->ReadString(aInstance.nodeName);
+			aStream->ReadString(aInstance.meshName);
+		}
 	};
 
 	struct MeshNode
@@ -129,6 +177,24 @@ namespace Epoch
 		CU::Matrix4x4f localTransform;
 
 		inline bool IsRoot() const { return parent == 0xffffffff; }
+
+		static void Serialize(StreamWriter* aStream, const MeshNode& aInstance)
+		{
+			aStream->WriteRaw(aInstance.parent);
+			aStream->WriteArray(aInstance.children);
+			aStream->WriteArray(aInstance.submeshes);
+			aStream->WriteString(aInstance.name);
+			aStream->WriteRaw(aInstance.localTransform);
+		}
+
+		static void Deserialize(StreamReader* aStream, MeshNode& aInstance)
+		{
+			aStream->ReadRaw(aInstance.parent);
+			aStream->ReadArray(aInstance.children);
+			aStream->ReadArray(aInstance.submeshes);
+			aStream->ReadString(aInstance.name);
+			aStream->ReadRaw(aInstance.localTransform);
+		}
 	};
 
 	class Mesh : public Asset
@@ -192,5 +258,6 @@ namespace Epoch
 
 		friend class AssimpMeshImporter;
 		friend class SceneRenderer;// TEMP
+		friend class MeshRuntimeSerializer;
 	};
 }
