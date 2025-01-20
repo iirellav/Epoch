@@ -6,6 +6,7 @@
 #include "Epoch/Core/Events/WindowEvent.h"
 #include "Epoch/Core/Events/MouseEvent.h"
 #include "Epoch/Core/Events/KeyEvent.h"
+#include <stb_image/stb_image.h>
 
 namespace Epoch
 {
@@ -160,6 +161,15 @@ namespace Epoch
 			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 			glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE);
 			myWindow = glfwCreateWindow((int)myData.width, (int)myData.height, myData.title.c_str(), nullptr, nullptr);
+		}
+
+		if (!aProps.iconPath.empty())
+		{
+			GLFWimage icon;
+			int channels;
+			icon.pixels = stbi_load(aProps.iconPath.c_str(), &icon.width, &icon.height, &channels, 4);
+			glfwSetWindowIcon(myWindow, 1, &icon);
+			stbi_image_free(icon.pixels);
 		}
 
 		glfwSetWindowUserPointer(myWindow, &myData);

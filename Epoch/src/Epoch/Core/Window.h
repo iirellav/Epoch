@@ -14,6 +14,7 @@ namespace Epoch
 		std::string title = "Epoch Application";
 		unsigned width = 1280;
 		unsigned height = 720;
+		std::string iconPath;
 	};
 
 	struct Resolution

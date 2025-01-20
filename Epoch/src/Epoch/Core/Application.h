@@ -21,6 +21,7 @@ namespace Epoch
 		std::string name = "Epoch Application";
 		unsigned windowWidth = 1280;
 		unsigned windowHeight = 720;
+		std::string iconPath;
 		bool startMaximized = false;
 		bool startFullscreen = false;
 		bool vSync = false;
