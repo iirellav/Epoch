@@ -15,12 +15,6 @@ namespace Epoch
 			{
 				EPOCH_PROFILE_SCOPE("Aeon: Update environment variable");
 				std::filesystem::path workingDirectory = std::filesystem::current_path();
-	
-				if (workingDirectory.stem().string() == "Aeon")
-				{
-					workingDirectory = workingDirectory.parent_path();
-				}
-	
 				FileSystem::SetEnvironmentVariable("EPOCH_DIR", workingDirectory.string());
 			}
 	

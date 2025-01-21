@@ -13,6 +13,12 @@ namespace Epoch
 		
 		InitializeCore();
 
+#if defined _DIST && _RUNTIME
+		auto app = Epoch::CreateApplication();
+		app->Run();
+		delete app;
+		app = nullptr;
+#else
 		EPOCH_PROFILE_BEGIN_SESSION("Startup", "Profiling_Results/EpochProfile-Startup.json", false);
 		auto app = Epoch::CreateApplication();
 		EPOCH_PROFILE_END_SESSION();
@@ -25,6 +31,7 @@ namespace Epoch
 		delete app;
 		app = nullptr;
 		EPOCH_PROFILE_END_SESSION();
+#endif // _RUNTIME
 
 		ShutdownCore();
 

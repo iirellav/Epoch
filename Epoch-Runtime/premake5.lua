@@ -8,7 +8,9 @@ project "Epoch-Runtime"
 	files
 	{
 		"src/**.h",
-		"src/**.cpp"
+		"src/**.cpp",
+		"resource.h",
+		"Epoch-Runtime.rc"
 	}
 
 	includedirs

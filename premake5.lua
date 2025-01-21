@@ -44,9 +44,15 @@ workspace "Epoch"
 		optimize "full"
 		symbols "off"
 
+	filter "configurations:R-Debug or configurations:R-Release or configurations:R-Dist"
+		defines 
+		{
+			"_RUNTIME"
+		}
+
 group "Core"
 include "Epoch"
-include "Epoch-ScriptCore"
+include "Aeon/Epoch-ScriptCore"
 group ""
 
 group "Tools"

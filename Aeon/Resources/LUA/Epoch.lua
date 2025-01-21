@@ -19,7 +19,7 @@ function linkAppReferences(linkScriptCore)
 	local monoLibsPath
     local monoLibsFacadesPath
 
-	monoLibsPath = path.join(epochDir, "Aeon", "mono", "lib", "mono", "4.5"):gsub("/", "\\")
+	monoLibsPath = path.join(epochDir, "mono", "lib", "mono", "4.5"):gsub("/", "\\")
 	monoLibsFacadesPath = path.join(monoLibsPath, "Facades"):gsub("/", "\\")
 
 	libdirs { monoLibsPath, monoLibsFacadesPath }

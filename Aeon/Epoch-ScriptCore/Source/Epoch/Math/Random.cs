@@ -4,7 +4,6 @@ namespace Epoch
 {
     public static class Random
     {
-        private static ulong[] staticState;
         private static System.Random staticRand;
 
         private const double INCR_DOUBLE = 1.0 / (1UL << 53);

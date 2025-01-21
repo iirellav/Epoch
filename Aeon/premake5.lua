@@ -7,7 +7,9 @@ project "Aeon"
 	files
 	{
 		"src/**.h",
-		"src/**.cpp"
+		"src/**.cpp",
+		"resource.h",
+		"Aeon.rc"
 	}
 
 	includedirs

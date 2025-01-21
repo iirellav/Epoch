@@ -127,7 +127,3 @@ project "Epoch"
 		{
 			"src/Epoch/Assets/AssimpMeshImporter.cpp"
 		}
-		defines 
-		{
-			"_RUNTIME"
-		}

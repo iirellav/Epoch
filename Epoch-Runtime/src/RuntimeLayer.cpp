@@ -56,6 +56,8 @@ namespace Epoch
 	{
 		Application& app = Application::Get();
 
+
+#if defined _RUNTIME && !_DIST || !_RUNTIME
 		if (Input::IsKeyPressed(KeyCode::F11))
 		{
 			if (Input::IsKeyHeld(KeyCode::LeftAlt))
@@ -74,6 +76,7 @@ namespace Epoch
 				//Show debug data
 			}
 		}
+#endif
 
 		uint32_t width = app.GetWindowWidth();
 		uint32_t height = app.GetWindowHeight();

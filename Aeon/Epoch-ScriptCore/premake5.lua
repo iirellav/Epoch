@@ -1,4 +1,4 @@
-include (path.join("../Aeon/Resources/LUA/Epoch.lua"))
+include (path.join("../Resources/LUA/Epoch.lua"))
 
 project "Epoch-ScriptCore"
 	kind "SharedLib"
@@ -7,8 +7,8 @@ project "Epoch-ScriptCore"
 
 	linkAppReferences(false)
 
-	targetdir ("../Aeon/Resources/Scripts")
-	objdir ("../Aeon/Resources/Scripts/Intermediates")
+	targetdir ("../Resources/Scripts")
+	objdir ("../Resources/Scripts/Intermediates")
 
 	files
 	{
