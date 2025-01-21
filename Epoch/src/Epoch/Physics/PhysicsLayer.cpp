@@ -91,7 +91,7 @@ namespace Epoch
 
 	PhysicsLayer& PhysicsLayerManager::GetLayer(uint32_t aLayerId)
 	{
-		return aLayerId >= staticLayers.size() ? staticNullLayer : staticLayers[aLayerId];
+		return aLayerId >= staticLayers.size() ? staticNullLayer : staticLayers[aLayerId].name == "" ? staticNullLayer : staticLayers[aLayerId];
 	}
 
 	PhysicsLayer& PhysicsLayerManager::GetLayer(const std::string& aLayerName)
