@@ -54,7 +54,7 @@ namespace Epoch
 	struct LightEnvironment
 	{
 		std::weak_ptr<Environment> environment;
-		float environmentIntensity = 0.0f;
+		float environmentIntensity = 1.0f;
 
 		DirectionalLight directionalLight;
 		std::vector<PointLight> pointLights;

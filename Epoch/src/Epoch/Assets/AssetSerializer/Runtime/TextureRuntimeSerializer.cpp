@@ -63,27 +63,14 @@ namespace Epoch
 		metadata.format = (uint16_t)aTexture->GetFormat();
 
 		Buffer imageBuffer;
-
-		bool owningBuffer = false;
-		//if (aTexture->Loaded())
-		//{
-		//	imageBuffer = aTexture->GetReadableBuffer();
-		//}
-		//else
-		//{
-		//	owningBuffer = true;
-		//	imageBuffer = aTexture->ReadData(aTexture->GetWidth(), aTexture->GetHeight(), 0, 0);
-		//}
+		imageBuffer = aTexture->ReadData();
 
 		uint64_t startPosition = aStream.GetStreamPosition();
 		aStream.WriteRaw(metadata);
 		aStream.WriteBuffer(imageBuffer);
 		uint64_t writtenSize = aStream.GetStreamPosition() - startPosition;
 
-		if (owningBuffer)
-		{
-			imageBuffer.Release();
-		}
+		imageBuffer.Release();
 		return writtenSize;
 
 		return 0;

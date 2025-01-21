@@ -19,6 +19,8 @@ namespace Epoch
 		std::shared_ptr<Texture2D> blackTexture;
 		std::shared_ptr<Texture2D> flatNormalTexture;
 		std::shared_ptr<Texture2D> defaultMaterialTexture;
+		std::shared_ptr<TextureCube> defaultBlackCubemap;
+		std::shared_ptr<TextureCube> defaultWhiteCubemap;
 		std::shared_ptr<Texture2D> defaultColorGradingLUT;
 		std::shared_ptr<Texture2D> BRDFLUTTexture;
 
@@ -115,6 +117,14 @@ namespace Epoch
 			constexpr uint32_t defaultMaterialTextureData = 0xffffffff;
 			spec.debugName = "Default - Material";
 			staticRendererData.defaultMaterialTexture = Texture2D::Create(spec, Buffer(&defaultMaterialTextureData, sizeof(uint32_t)));
+
+			spec.debugName = "Default - Black Cubemap";
+			constexpr uint32_t defaultBlackCubeTextureData[6] = { 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000 };
+			staticRendererData.defaultBlackCubemap = TextureCube::Create(spec, Buffer(&defaultBlackCubeTextureData, sizeof(defaultBlackCubeTextureData)));
+
+			spec.debugName = "Default - White Cubemap";
+			constexpr uint32_t defaultWhiteCubeTextureData[6] = { 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff };
+			staticRendererData.defaultWhiteCubemap = TextureCube::Create(spec, Buffer(&defaultWhiteCubeTextureData, sizeof(defaultWhiteCubeTextureData)));
 
 			staticRendererData.defaultColorGradingLUT = Texture2D::Create("Resources/Textures/DefaultColorGradingLUT.png");
 		}
@@ -231,6 +241,16 @@ namespace Epoch
 	std::shared_ptr<Texture2D> Renderer::GetDefaultMaterialTexture()
 	{
 		return staticRendererData.defaultMaterialTexture;
+	}
+
+	std::shared_ptr<TextureCube> Renderer::GetDefaultBlackCubemap()
+	{
+		return staticRendererData.defaultBlackCubemap;
+	}
+
+	std::shared_ptr<TextureCube> Renderer::GetDefaultWhiteCubemap()
+	{
+		return staticRendererData.defaultWhiteCubemap;
 	}
 
 	std::shared_ptr<Texture2D> Renderer::GetDefaultColorGradingLut()

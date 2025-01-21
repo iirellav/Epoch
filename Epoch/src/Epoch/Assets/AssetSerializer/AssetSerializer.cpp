@@ -264,12 +264,22 @@ namespace Epoch
 
 	bool EnvironmentSerializer::SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo) const
 	{
-		return false;
+		outInfo.offset = aStream.GetStreamPosition();
+
+		std::shared_ptr<Environment> environment = AssetManager::GetAsset<Environment>(aHandle);
+		uint64_t size = TextureRuntimeSerializer::SerializeTextureCubeToFile(environment->GetRadianceMap(), aStream);
+		//size = TextureRuntimeSerializer::SerializeToFile(environment->IrradianceMap, aStream);
+
+		outInfo.size = aStream.GetStreamPosition() - outInfo.offset;
+		return outInfo.size > 0;
 	}
 
 	std::shared_ptr<Asset> EnvironmentSerializer::DeserializeFromAssetPack(FileStreamReader& aStream, const AssetPackFile::AssetInfo& aAssetInfo) const
 	{
-		return std::shared_ptr<Asset>();
+		aStream.SetStreamPosition(aAssetInfo.packedOffset);
+		std::shared_ptr<TextureCube> radianceMap = TextureRuntimeSerializer::DeserializeTextureCube(aStream);
+		std::shared_ptr<TextureCube> irradianceMap = nullptr;//TextureRuntimeSerializer::DeserializeTextureCube(aStream);
+		return std::make_shared<Environment>(radianceMap, irradianceMap);
 	}
 	
 

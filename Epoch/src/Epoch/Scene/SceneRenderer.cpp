@@ -473,31 +473,27 @@ namespace Epoch
 					myLightBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 2);
 
 					auto env = mySceneData.lightEnvironment.environment.lock();
+					std::shared_ptr<TextureCube> cubeMap;
 
 					if (env)
 					{
-						std::vector<ID3D11ShaderResourceView*> SRVs(2);
-
-						auto textureCube = env->GetRadianceMap();
-						auto dxTextureCube = std::dynamic_pointer_cast<DX11TextureCube>(textureCube);
-						SRVs[0] = dxTextureCube->GetSRV().Get();
-
-						auto texture = Renderer::GetBRDFLut();
-						auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
-						SRVs[1] = dxTexture->GetSRV().Get();
-
-						RHI::GetContext()->PSSetShaderResources(10, 2, SRVs.data());
+						cubeMap = env->GetRadianceMap();
 					}
 					else
 					{
-						std::vector<ID3D11ShaderResourceView*> SRVs(1);
-
-						auto texture = Renderer::GetBRDFLut();
-						auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
-						SRVs[0] = dxTexture->GetSRV().Get();
-
-						RHI::GetContext()->PSSetShaderResources(11, 1, SRVs.data());
+						cubeMap = Renderer::GetDefaultBlackCubemap();
 					}
+
+					std::vector<ID3D11ShaderResourceView*> SRVs(2);
+
+					auto dxTextureCube = std::dynamic_pointer_cast<DX11TextureCube>(cubeMap);
+					SRVs[0] = dxTextureCube->GetSRV().Get();
+
+					auto texture = Renderer::GetBRDFLut();
+					auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
+					SRVs[1] = dxTexture->GetSRV().Get();
+
+					RHI::GetContext()->PSSetShaderResources(10, 2, SRVs.data());
 				}
 
 				//Set GBuffer as resource

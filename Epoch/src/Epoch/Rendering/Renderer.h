@@ -48,6 +48,8 @@ namespace Epoch
 		static std::shared_ptr<Texture2D> GetBlackTexture();
 		static std::shared_ptr<Texture2D> GetFlatNormalTexture();
 		static std::shared_ptr<Texture2D> GetDefaultMaterialTexture();
+		static std::shared_ptr<TextureCube> GetDefaultBlackCubemap();
+		static std::shared_ptr<TextureCube> GetDefaultWhiteCubemap();
 		static std::shared_ptr<Texture2D> GetDefaultColorGradingLut();
 		static std::shared_ptr<Texture2D> GetBRDFLut();
 
