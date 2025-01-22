@@ -15,16 +15,13 @@ namespace CU
 
 		static void Init()
 		{
-			staticInitialized = true;
 			staticRandomEngine.seed(std::random_device()());
 		}
-
 
 		static bool Bool()
 		{
 			return Int() > 0 ? true : false;
 		}
-
 
 		static int32_t Int()
 		{
@@ -36,7 +33,6 @@ namespace CU
 			return aMin + (GetRand % (aMax - aMin + 1));
 		}
 
-
 		static uint32_t UInt()
 		{
 			return GetRand;
@@ -46,7 +42,6 @@ namespace CU
 		{
 			return aMin + (GetRand % (aMax - aMin + 1));
 		}
-
 
 		static float Float01()
 		{
@@ -58,12 +53,10 @@ namespace CU
 			return Float01() * (aMax - aMin) + aMin;
 		}
 
-
 		static Vector3f Vector3(float aMin, float aMax)
 		{
 			return CU::Vector3f(Float(aMin, aMax), Float(aMin, aMax), Float(aMin, aMax));
 		}
-
 
 		template <typename T>
 		static const T& VectorValue(const std::vector<T>& aVector)
@@ -72,7 +65,6 @@ namespace CU
 		}
 
 	private:
-		inline static bool staticInitialized = false;
 		inline static thread_local std::mt19937 staticRandomEngine;
 		inline static thread_local std::uniform_int_distribution<std::mt19937::result_type> staticDistribution;
 	};
