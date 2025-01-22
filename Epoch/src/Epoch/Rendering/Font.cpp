@@ -3,6 +3,7 @@
 #include "MSDFData.h"
 #include "Epoch/Core/Application.h"
 #include "Epoch/Utils/FileSystem.h"
+#include "Epoch/Embed/OpenSans_Regular.h"
 
 namespace Epoch
 {
@@ -149,7 +150,8 @@ namespace Epoch
 
 	void Font::Init()
 	{
-		staticDefaultFont = std::make_shared<Font>("Resources/Fonts/opensans/OpenSans-Regular.ttf");
+		Buffer buffer(OpenSans_Regular_ttf, OpenSans_Regular_ttf_len);
+		staticDefaultFont = std::make_shared<Font>("OpenSans-Regular", buffer);
 	}
 
 	void Font::Shutdown()

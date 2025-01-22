@@ -22,7 +22,7 @@ namespace Epoch
 		applicationSpecification.startFullscreen = true;
 		applicationSpecification.enableImGui = false;
 		applicationSpecification.vSync = false;
-		applicationSpecification.cacheDirectory = "Resources/cache";
+		applicationSpecification.cacheDirectory = "cache";
 		applicationSpecification.scriptEngineConfig.coreAssemblyPath = "Epoch-ScriptCore.dll";
 		applicationSpecification.rendererConfig.shaderPackPath = "Assets/ShaderPack.esp";
 
