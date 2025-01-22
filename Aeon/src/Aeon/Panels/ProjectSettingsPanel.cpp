@@ -91,7 +91,7 @@ namespace Epoch
 				else
 				{
 					std::string layerName = layers[i].name;
-					if (UI::Property_InputText(("User Layer " + std::to_string(i)).c_str(), layerName))
+					if (UI::Property_InputText(("User Layer " + std::to_string(i)).c_str(), layerName, ImGuiInputTextFlags_EnterReturnsTrue))
 					{
 						PhysicsLayerManager::UpdateLayerName((uint32_t)i, layerName);
 					}

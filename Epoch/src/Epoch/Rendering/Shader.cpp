@@ -57,6 +57,8 @@ namespace Epoch
 		{
 			LOG_ERROR("Shader already loaded!");
 		}
+		
+		std::lock_guard lock(myMutex);
 		myShaders[name] = shader;
 	}
 

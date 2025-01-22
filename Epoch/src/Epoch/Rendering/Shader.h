@@ -131,5 +131,6 @@ namespace Epoch
 	private:
 		std::unordered_map<std::string, std::shared_ptr<Shader>> myShaders;
 		std::shared_ptr<ShaderPack> myShaderPack;
+		std::mutex myMutex;
 	};
 }
