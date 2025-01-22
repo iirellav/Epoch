@@ -27,9 +27,10 @@
 #include <Epoch/Editor/EditorSettings.h>
 #include <Epoch/Editor/Console/EditorConsolePanel.h>
 #include <Epoch/Editor/PanelIDs.h>
-#include <Epoch/Embed/OpenSans_Regular.h>
-#include <Epoch/Embed/OpenSans_Bold.h>
-#include <Epoch/Embed/Fontawesome.h>
+
+#include <Epoch/Embed/OpenSans_Regular.embed>
+#include <Epoch/Embed/OpenSans_Bold.embed>
+#include <Epoch/Embed/Fontawesome.embed>
 
 #include "EditorResources.h"
 #include "Panels/SceneHierarchyPanel.h"

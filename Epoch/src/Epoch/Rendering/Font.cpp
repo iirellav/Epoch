@@ -3,7 +3,8 @@
 #include "MSDFData.h"
 #include "Epoch/Core/Application.h"
 #include "Epoch/Utils/FileSystem.h"
-#include "Epoch/Embed/OpenSans_Regular.h"
+
+#include "Epoch/Embed/OpenSans_Regular.embed"
 
 namespace Epoch
 {
