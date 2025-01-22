@@ -405,7 +405,7 @@ namespace Epoch
 			std::lock_guard lock(staticMutex);
 			for (size_t i = 0; i < 6; i++)
 			{
-				RHI::GetContext()->UpdateSubresource(myTexture.Get(), i, nullptr, faceData[i], (uint32_t)size / mySpecification.height, 0u);
+				RHI::GetContext()->UpdateSubresource(myTexture.Get(), (UINT)i, nullptr, faceData[i], (uint32_t)size / mySpecification.height, 0u);
 			}
 		}
 		else
