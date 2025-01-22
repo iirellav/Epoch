@@ -464,7 +464,7 @@ namespace Epoch::UI
 		return clicked;
 	}
 
-	bool Property_InputText(const char* aLabel, std::string& outValue, const char* aTooltip)
+	bool Property_InputText(const char* aLabel, std::string& outValue, ImGuiInputTextFlags aFlags, const char* aTooltip)
 	{
 		bool modified = false;
 
@@ -482,7 +482,7 @@ namespace Epoch::UI
 		//ShiftCursorY(4.0f);
 		ImGui::PushItemWidth(-1);
 
-		modified = ImGui::InputText(std::format("##{0}", aLabel).c_str(), &outValue);
+		modified = ImGui::InputText(std::format("##{0}", aLabel).c_str(), &outValue, aFlags);
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();

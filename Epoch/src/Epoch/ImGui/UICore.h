@@ -140,7 +140,7 @@ namespace Epoch::UI
 
 	bool Property_ClickableText(const char* aLabel, const std::string& aValue, const char* aTooltip = "");
 
-	bool Property_InputText(const char* aLabel, std::string& outValue, const char* aTooltip = "");
+	bool Property_InputText(const char* aLabel, std::string& outValue, ImGuiInputTextFlags aFlags = 0, const char* aTooltip = "");
 
 	bool Property_InputTextMultiline(const char* aLabel, std::string& outValue, const CU::Vector2f& aSize = CU::Vector2f::Zero, ImGuiInputTextFlags aFlags = 0, const char* aTooltip = "");
 
@@ -545,7 +545,7 @@ namespace Epoch::UI
 		case FieldType::String:
 		{
 			std::string value = aStorage->GetValue<std::string>();
-			if (Property_InputText(aFieldName.c_str(), value, aTooltip))
+			if (Property_InputText(aFieldName.c_str(), value, 0, aTooltip))
 			{
 				aStorage->SetValue<std::string>(value);
 				result = true;
@@ -727,7 +727,7 @@ namespace Epoch::UI
 				case FieldType::String:
 				{
 					std::string value = aStorage->GetValue<std::string>(i);
-					if (Property_InputText(indexString.c_str(), value, aTooltip))
+					if (Property_InputText(indexString.c_str(), value, 0, aTooltip))
 					{
 						aStorage->SetValue<std::string>(i, value);
 						modified = true;
