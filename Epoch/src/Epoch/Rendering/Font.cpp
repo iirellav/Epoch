@@ -150,7 +150,7 @@ namespace Epoch
 
 	void Font::Init()
 	{
-		Buffer buffer(OpenSans_Regular_ttf, OpenSans_Regular_ttf_len);
+		Buffer buffer(OpenSans_Regular, OpenSans_Regular_len);
 		staticDefaultFont = std::make_shared<Font>("OpenSans-Regular", buffer);
 	}
 

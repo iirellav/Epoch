@@ -27,6 +27,9 @@
 #include <Epoch/Editor/EditorSettings.h>
 #include <Epoch/Editor/Console/EditorConsolePanel.h>
 #include <Epoch/Editor/PanelIDs.h>
+#include <Epoch/Embed/OpenSans_Regular.h>
+#include <Epoch/Embed/OpenSans_Bold.h>
+#include <Epoch/Embed/Fontawesome.h>
 
 #include "EditorResources.h"
 #include "Panels/SceneHierarchyPanel.h"
@@ -138,18 +141,18 @@ namespace Epoch
 		{
 			EPOCH_PROFILE_SCOPE("Load fonts");
 
-			UI::Fonts::Add("Regular", "Resources/Fonts/opensans/OpenSans-Regular.ttf", true);
+			UI::Fonts::Add("Regular", Buffer(OpenSans_Regular, OpenSans_Regular_len), true);
 
 			static const ImWchar staticFontAwesomeRanges[] = { EP_ICON_MIN, EP_ICON_MAX, 0 };
 			UI::FontConfiguration fontAwesome;
 			fontAwesome.fontName = "FontAwesome";
-			fontAwesome.filePath = "Resources/Fonts/FontAwesome/fontawesome-webfont.ttf";
+			fontAwesome.data = Buffer(fontawesome, fontawesome_len);
 			fontAwesome.size = 16.0f;
 			fontAwesome.glyphRanges = staticFontAwesomeRanges;
 			fontAwesome.mergeWithLast = true;
 			UI::Fonts::Add(fontAwesome);
 
-			UI::Fonts::Add("Bold", "Resources/Fonts/opensans/OpenSans-Bold.ttf");
+			UI::Fonts::Add("Bold", Buffer(OpenSans_Bold, OpenSans_Bold_len));
 		}
 
 		GradientEditor::Get().Init();
