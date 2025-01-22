@@ -22,21 +22,19 @@ namespace Epoch
 
 		std::filesystem::path epochDir = std::filesystem::current_path();
 		
-		//Copy the runtime exe to build location & modify the resources (name, icon) & serialize the project settings
-		{
-			FileSystem::CopyContent(epochDir / "Resources/Runtime", aBuildLocation);
+		FileSystem::CopyContent(epochDir / "Resources/Runtime", aBuildLocation);
 
-			ProjectSerializer projectSerializer(Project::GetActive());
-			projectSerializer.SerializeRuntime(aBuildLocation / "Project.eproj");
-		}
+		//Set icon and other app variables
 
-		//Build assetpack & shaderpack & copy to build location
-		{
-			FileSystem::CreateDirectory(aBuildLocation / "Assets");
+		ProjectSerializer projectSerializer(Project::GetActive());
+		projectSerializer.SerializeRuntime(aBuildLocation / "Project.eproj");
 
-			AssetPack::CreateFromActiveProject(aBuildLocation / "Assets");
-			ShaderPack::CreateFromLibrary(Renderer::GetShaderLibrary(), aBuildLocation / "Assets/ShaderPack.esp");
-		}
+		FileSystem::CopyFile("Resources/Scripts/Epoch-ScriptCore.dll", aBuildLocation);
+
+		FileSystem::CreateDirectory(aBuildLocation / "Assets");
+
+		AssetPack::CreateFromActiveProject(aBuildLocation / "Assets");
+		ShaderPack::CreateFromLibrary(Renderer::GetShaderLibrary(), aBuildLocation / "Assets/ShaderPack.esp");
 
 		CONSOLE_LOG_INFO("Build took {}s to complete", buildTimer.Elapsed());
 
