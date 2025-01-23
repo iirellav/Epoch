@@ -159,7 +159,7 @@ namespace Epoch
 		if (!staticGLFWInitialized)
 		{
 			int success = glfwInit();
-			EPOCH_ASSERT(success, "Could not intialize GLFW!");
+			EPOCH_ASSERT(success, "Could not initialize GLFW!");
 			glfwSetErrorCallback(GLFWErrorCallback);
 
 			staticGLFWInitialized = true;
