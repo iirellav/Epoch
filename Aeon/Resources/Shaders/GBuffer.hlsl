@@ -70,11 +70,13 @@ cbuffer MaterialBuffer : register(b1)
     float MB_NormalStrength;
 
     float2 MB_UVTiling;
-    float MB_Roughness;
-    float MB_Metalness;
+    float2 MB_UVOffset;
     
     float3 MB_EmissionColor;
     float MB_EmissionStrength;
+    
+    float MB_Roughness;
+    float MB_Metalness;
 }
 
 struct GBufferOutput
@@ -103,17 +105,17 @@ GBufferOutput main(VertexOutput input)
         input.normal
     );
     
-    const float2 scaledUV = input.uv * MB_UVTiling;
+    const float2 uv = input.uv * MB_UVTiling + MB_UVOffset;
     
-    const float3 albedoColor = ToLinear(albedoTexture.Sample(wrapSampler, scaledUV).rgb) * MB_AlbedoColor;
+    const float3 albedoColor = ToLinear(albedoTexture.Sample(wrapSampler, uv).rgb) * MB_AlbedoColor;
     
-    float3 pixelNormal = normalTexture.Sample(wrapSampler, scaledUV).xyz;
+    float3 pixelNormal = normalTexture.Sample(wrapSampler, uv).xyz;
     pixelNormal = 2 * pixelNormal - 1;
     pixelNormal.z = sqrt(1 - (pixelNormal.x * pixelNormal.x) + (pixelNormal.y * pixelNormal.y));
     pixelNormal.xy *= MB_NormalStrength;
     pixelNormal = normalize(mul(normalize(pixelNormal), tbn));
     
-    const float4 materialValues = materialTexture.Sample(wrapSampler, scaledUV);
+    const float4 materialValues = materialTexture.Sample(wrapSampler, uv);
     
     output.albedo = float4(albedoColor, 1.0f) + float4(MB_EmissionColor * MB_EmissionStrength * materialValues.a, 1.0f);
     output.material = materialValues * float4(1.0f, MB_Roughness, MB_Metalness, 1.0f);

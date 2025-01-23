@@ -391,6 +391,7 @@ namespace Epoch
 		out << YAML::Key << "Metalness" << YAML::Value << aMaterial->GetMetalness();
 		out << YAML::Key << "NormalStrength" << YAML::Value << aMaterial->GetNormalStrength();
 		out << YAML::Key << "UVTiling" << YAML::Value << aMaterial->GetUVTiling();
+		out << YAML::Key << "UVOffset" << YAML::Value << aMaterial->GetUVOffset();
 		out << YAML::Key << "EmissionColor" << YAML::Value << aMaterial->GetEmissionColor();
 		out << YAML::Key << "EmissionStrength" << YAML::Value << aMaterial->GetEmissionStrength();
 
@@ -412,6 +413,7 @@ namespace Epoch
 		aMaterial->SetMetalness(data["Metalness"].as<float>(0.0f));
 		aMaterial->SetNormalStrength(data["NormalStrength"].as<float>(1.0f));
 		aMaterial->SetUVTiling(data["UVTiling"].as<CU::Vector2f>(CU::Vector2f::One));
+		aMaterial->SetUVOffset(data["UVOffset"].as<CU::Vector2f>(CU::Vector2f::Zero));
 		aMaterial->SetEmissionColor(data["EmissionColor"].as<CU::Vector3f>(CU::Vector3f::One));
 		aMaterial->SetEmissionStrength(data["EmissionStrength"].as<float>(0.0f));
 

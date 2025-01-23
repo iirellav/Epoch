@@ -1171,6 +1171,7 @@ namespace Epoch
 		matData.metalness = aMaterial->GetMetalness();
 		matData.normalStrength = aMaterial->GetNormalStrength();
 		matData.uvTiling = aMaterial->GetUVTiling();
+		matData.uvOffset = aMaterial->GetUVOffset();
 		matData.emissionColor = aMaterial->GetEmissionColor();
 		matData.emissionStrength = aMaterial->GetEmissionStrength();
 

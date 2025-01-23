@@ -123,6 +123,7 @@ namespace Epoch
 		}
 		
 		modified |= UI::Property_DragFloat2("UV Tiling", material->GetUVTiling(), 0.02f);
+		modified |= UI::Property_DragFloat2("UV Offset", material->GetUVOffset(), 0.01f);
 		modified |= UI::Property_DragFloat("Normal Strength", material->GetNormalStrength(), 0.02f);
 
 		CU::Color emissionColor = material->GetEmissionColor();
