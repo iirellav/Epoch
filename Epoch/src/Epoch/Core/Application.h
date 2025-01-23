@@ -96,5 +96,5 @@ namespace Epoch
 		static inline bool staticIsRuntime = false;
 	};
 
-	Application* CreateApplication();
+	Application* CreateApplication(int aArgc, char** aArgv);
 }

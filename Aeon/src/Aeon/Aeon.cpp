@@ -22,7 +22,7 @@ namespace Epoch
 		}
 	};
 	
-	Application* CreateApplication()
+	Application* CreateApplication(int aArgc, char** aArgv)
 	{
 		ApplicationSpecification applicationSpecification;
 		applicationSpecification.isRuntime = false;

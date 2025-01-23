@@ -3,7 +3,7 @@
 #include "Epoch/Core/Application.h"
 #include "Epoch/Debug/Profiler.h"
 
-extern Epoch::Application* Epoch::CreateApplication();
+extern Epoch::Application* Epoch::CreateApplication(int aArgc, char** aArgv);
 
 namespace Epoch
 {
@@ -13,7 +13,7 @@ namespace Epoch
 		
 		InitializeCore();
 
-		auto app = Epoch::CreateApplication();
+		auto app = Epoch::CreateApplication(argc, argv);
 		app->Run();
 		delete app;
 		app = nullptr;
