@@ -5,7 +5,7 @@
 #include <Epoch/ImGui/ImGui.h>
 #include <Epoch/Core/Input.h>
 #include <Epoch/Debug/Log.h>
-#include <Epoch/Debug/Instrumentor.h>
+#include <Epoch/Debug/Profiler.h>
 #include <Epoch/Utils/FileSystem.h>
 #include <Epoch/Project/Project.h>
 #include <Epoch/Scene/Scene.h>

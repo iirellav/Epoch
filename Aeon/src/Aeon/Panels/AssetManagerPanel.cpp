@@ -1,7 +1,7 @@
 #include "AssetManagerPanel.h"
 #include <CommonUtilities/StringUtils.h>
 #include <Epoch/ImGui/ImGui.h>
-#include <Epoch/Debug/Instrumentor.h>
+#include <Epoch/Debug/Profiler.h>
 #include <Epoch/Project/Project.h>
 #include <Epoch/Editor/PanelIDs.h>
 

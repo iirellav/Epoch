@@ -181,6 +181,8 @@ namespace Epoch
 			CU::Timer::Update();
 			
 			ProcessEvents();
+			
+			EPOCH_PROFILE_MARK_FRAME;
 		}
 	}
 

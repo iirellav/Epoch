@@ -40,7 +40,7 @@
 #include "Epoch/Core/Base.h"
 #include "Epoch/Debug/Log.h"
 #include "Epoch/Debug/Timer.h"
-#include "Epoch/Debug/Instrumentor.h"
+#include "Epoch/Debug/Profiler.h"
 
 #include "Epoch/Utils/FileSystem.h"
 #include "Epoch/Utils/YAMLSerializationHelpers.h"

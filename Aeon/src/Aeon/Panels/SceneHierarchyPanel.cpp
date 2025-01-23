@@ -1,7 +1,7 @@
 #include "SceneHierarchyPanel.h"
 #include <CommonUtilities/StringUtils.h>
 #include <Epoch/Debug/Log.h>
-#include <Epoch/Debug/Instrumentor.h>
+#include <Epoch/Debug/Profiler.h>
 #include <Epoch/Scene/Components.h>
 #include <Epoch/Scene/Prefab.h>
 #include <Epoch/Physics/PhysicsTypes.h>

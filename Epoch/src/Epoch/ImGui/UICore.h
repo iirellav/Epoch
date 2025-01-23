@@ -1,7 +1,7 @@
 #pragma once
 #include <CommonUtilities/Math/Vector/Vector.h>
 #include <CommonUtilities/Gradient.h>
-#include "Epoch/Debug/Instrumentor.h"
+#include "Epoch/Debug/Profiler.h"
 #include "Epoch/Editor/FontAwesome.h"
 #include "Epoch/ImGui/ImGuiUtilities.h"
 #include "Epoch/ImGui/ImGuiWidgets.h"

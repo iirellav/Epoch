@@ -686,6 +686,12 @@ namespace Epoch
 		return staticData->scriptsDomain;
 	}
 
+	const std::string& ScriptEngine::GetScriptClassName(UUID aEntityID)
+	{
+		ManagedClass* managedClass = ScriptCache::GetMonoObjectClass(GCManager::GetReferencedObject(GetEntityInstance(aEntityID)));
+		return managedClass->fullName;
+	}
+
 	void ScriptEngine::UpdateDeltaTime()
 	{
 		{

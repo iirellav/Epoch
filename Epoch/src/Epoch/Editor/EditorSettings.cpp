@@ -2,7 +2,7 @@
 #include "EditorSettings.h"
 #include <filesystem>
 #include <Epoch/Debug/Log.h>
-#include <Epoch/Debug/Instrumentor.h>
+#include <Epoch/Debug/Profiler.h>
 #include <Epoch/Utils/YAMLSerializationHelpers.h>
 
 namespace Epoch

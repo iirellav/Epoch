@@ -4,7 +4,7 @@
 #include <CommonUtilities/StringUtils.h>
 #include <CommonUtilities/Math/Random.h>
 #include <Epoch/Debug/Log.h>
-#include <Epoch/Debug/Instrumentor.h>
+#include <Epoch/Debug/Profiler.h>
 #include <Epoch/Utils/FileSystem.h>
 #include <Epoch/ImGui/ImGui.h>
 #include <Epoch/ImGui/UICore.h>

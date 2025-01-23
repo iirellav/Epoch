@@ -16,7 +16,10 @@ workspace "Epoch"
 	{
 		"_CRT_SECURE_NO_WARNINGS",
 		"NOMINMAX",
-		"_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING"
+		"_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING",
+		"TRACY_ENABLE",
+		"TRACY_ON_DEMAND",
+		"TRACY_CALLSTACK=10"
 	}
 
 	filter "action:vs*"
@@ -67,6 +70,7 @@ group ""
 
 group "Dependencies"
 include "CommonUtilities"
+include "Epoch/vendor/Tracy"
 project "GLFW"
 	location "Epoch/vendor/GLFW"
 	kind "StaticLib"

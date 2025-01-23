@@ -905,7 +905,7 @@ namespace Epoch
 	void SceneRenderer::SubmitText(const std::string& aString, const std::shared_ptr<Font>& aFont, const CU::Matrix4x4f& aTransform, const TextSettings& aSettings, uint32_t aEntityID)
 	{
 		if (aString.empty()) return;
-
+		
 		std::shared_ptr<Texture2D> fontAtlas = aFont->GetFontAtlas();
 		EPOCH_ASSERT(fontAtlas, "Font didn't have a valid font atlas!");
 

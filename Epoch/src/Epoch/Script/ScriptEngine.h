@@ -76,6 +76,8 @@ namespace Epoch
 
 		static MonoDomain* GetScriptDomain();
 
+		static const std::string& GetScriptClassName(UUID aEntityID);
+
 		template<typename... TArgs>
 		static void CallMethod(MonoObject* aManagedObject, const std::string& aMethodName, TArgs&&... aArgs)
 		{

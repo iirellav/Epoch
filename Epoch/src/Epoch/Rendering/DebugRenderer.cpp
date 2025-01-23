@@ -2,7 +2,7 @@
 #include "DebugRenderer.h"
 #include <CommonUtilities/Math/Transform.h>
 #include <CommonUtilities/Math/CommonMath.hpp>
-#include "Epoch/Debug/Instrumentor.h"
+#include "Epoch/Debug/Profiler.h"
 #include "Epoch/Rendering/Renderer.h"
 #include "Epoch/Rendering/VertexBuffer.h"
 #include "Epoch/Rendering/IndexBuffer.h"

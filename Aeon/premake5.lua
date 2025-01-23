@@ -22,7 +22,8 @@ project "Aeon"
 		"../Epoch/vendor/filewatch/include",
 		"../Epoch/vendor/yaml-cpp/include",
 		"../Epoch/vendor/NFD-Extended/include",
-		"../Epoch/vendor/magic_enum/include"
+		"../Epoch/vendor/magic_enum/include",
+		"../Epoch/vendor/tracy/tracy"
 	}
 
 	links

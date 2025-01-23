@@ -29,7 +29,8 @@ project "Epoch"
 		"vendor/mono/include",
 		"vendor/msdf-atlas-gen/msdf-atlas-gen",
 		"vendor/msdf-atlas-gen/msdfgen",
-		"vendor/PhysX/include"
+		"vendor/PhysX/include",
+		"vendor/tracy/tracy"
 	}
 
 	links
@@ -49,6 +50,8 @@ project "Epoch"
 		"PhysXFoundation_static_64",
 		"PhysXPvdSDK_static_64",
 		
+		"Tracy",
+
 		"ImGui",
 		"yaml-cpp",
 		"NFD-Extended",

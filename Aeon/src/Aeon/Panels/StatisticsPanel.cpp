@@ -18,39 +18,6 @@ namespace Epoch
 
 		ImGui::Begin(STATISTICS_PANEL_ID, &aIsOpen);
 
-		//Profiler
-		{
-			static Timer profileTimer;
-			const float lineHeight = GImGui->Font->FontSize;
-			auto button = Instrumentor::Get().IsPaused() ? EditorResources::PlayButton : EditorResources::StopButton;
-			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-			if (ImGui::ImageButton((ImTextureID)button->GetView(), ImVec2(lineHeight, lineHeight)))
-			{
-				if (Instrumentor::Get().IsPaused())
-				{
-					profileTimer.Reset();
-					EPOCH_UNPAUSE_PROFILING();
-				}
-				else
-				{
-					EPOCH_PAUSE_PROFILING();
-				}
-			}
-			ImGui::PopStyleColor();
-			ImGui::SameLine(lineHeight * 2.0f);
-			UI::ShiftCursorY(2);
-			ImGui::Text("Profiler");
-
-			if (!Instrumentor::Get().IsPaused())
-			{
-				ImGui::Text("Profiling for %.1fs", profileTimer.Elapsed());
-			}
-		}
-
-		ImGui::Spacing();
-		ImGui::Separator();
-		ImGui::Spacing();
-
 		//Viewport
 		{
 			ImGui::Text("Viewport Size: %i, %i", (uint32_t)mySceneContext->GetViewportWidth(), (uint32_t)mySceneContext->GetViewportHeight());
