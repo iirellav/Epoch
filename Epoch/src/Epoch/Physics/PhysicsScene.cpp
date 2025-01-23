@@ -161,6 +161,9 @@ namespace Epoch
 
 				if (entity.IsActive() && ScriptEngine::IsEntityInstantiated(entity))
 				{
+#if EPOCH_ENABLE_PROFILING	//This will prevent ScriptEngine::GetScriptClassName from getting called in runtime dist
+					EPOCH_PROFILE_SCOPE(fmt::format("{}::OnFixedUpdate", ScriptEngine::GetScriptClassName(entity.GetUUID())).c_str());
+#endif
 					//TODO: Only call if entity has a rigidbody(?)
 					ScriptEngine::CallMethod(entityInstance, "OnFixedUpdate");
 				}
