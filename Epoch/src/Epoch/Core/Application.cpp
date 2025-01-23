@@ -28,7 +28,6 @@ namespace Epoch
 		windowProperties.title = aAppSpec.name;
 		windowProperties.width = aAppSpec.windowWidth;
 		windowProperties.height = aAppSpec.windowHeight;
-		windowProperties.iconPath = aAppSpec.iconPath;
 
 		myWindow = std::unique_ptr<Window>(Window::Create(windowProperties));
 		myWindow->SetEventCallback([this](Event& aEvent) { OnEvent(aEvent); });

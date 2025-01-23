@@ -27,7 +27,6 @@ namespace Epoch
 		ApplicationSpecification applicationSpecification;
 		applicationSpecification.isRuntime = false;
 		applicationSpecification.name = "Aeon";
-		applicationSpecification.iconPath = "Resources/Icons/Epoch_Icon.png";
 		applicationSpecification.startMaximized = true;
 		applicationSpecification.cacheDirectory = "Resources/cache";
 	

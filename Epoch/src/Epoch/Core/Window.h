@@ -14,7 +14,6 @@ namespace Epoch
 		std::string title = "Epoch Application";
 		unsigned width = 1280;
 		unsigned height = 720;
-		std::string iconPath;
 	};
 
 	struct Resolution
@@ -77,6 +76,8 @@ namespace Epoch
 			EventCallbackFn eventCallback;
 		};
 		WindowData myData;
+
+		bool myIsFullscreen = false;
 
 		int32_t myStoredSize[2];
 		int32_t myStoredPosition[2];

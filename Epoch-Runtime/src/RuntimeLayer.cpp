@@ -11,8 +11,7 @@
 #include <Epoch/Script/ScriptEngine.h>
 #include <Epoch/Rendering/RHI.h>
 #include <Epoch/Core/Input.h>
-#include <Epoch/Debug/Instrumentor.h>
-#include <d3d11.h>
+#include <Epoch/Debug/Profiler.h>
 
 namespace Epoch
 {
