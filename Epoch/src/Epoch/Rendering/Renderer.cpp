@@ -9,6 +9,8 @@
 #include "Epoch/Rendering/RenderPipeline.h"
 #include "Epoch/Editor/EditorSettings.h"
 
+#include "Epoch/Embed/ColorGradingLut.embed"
+
 namespace Epoch
 {
 	struct RendererData
@@ -125,8 +127,11 @@ namespace Epoch
 			spec.debugName = "Default - White Cubemap";
 			constexpr uint32_t defaultWhiteCubeTextureData[6] = { 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff };
 			staticRendererData.defaultWhiteCubemap = TextureCube::Create(spec, Buffer(&defaultWhiteCubeTextureData, sizeof(defaultWhiteCubeTextureData)));
-
-			staticRendererData.defaultColorGradingLUT = Texture2D::Create("Resources/Textures/DefaultColorGradingLUT.png");
+			
+			spec.width = 256;
+			spec.height = 16;
+			spec.debugName = "Default - ColorGradingLUT";
+			staticRendererData.defaultColorGradingLUT = Texture2D::Create(spec, Buffer(ColorGradingLUT, ColorGradingLUT_embed_len));
 		}
 
 		//BRDF_LUT
