@@ -355,7 +355,7 @@ namespace Epoch
 
 		bool isRuntimeInitialized = false;
 
-
+		// Set when script entity get initialized (don't modify)
 		bool shouldUpdate = false;
 		bool shouldLateUpdate = false;
 		bool shouldFixedUpdate = false;
