@@ -580,6 +580,54 @@ namespace Epoch
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void Material_SetAlbedoTexture(ref AssetHandle aMaterialHandle, ref AssetHandle aTextureHandle);
 
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Material_GetAlbedoColor(ref AssetHandle aMaterialHandle, out Color outAlbedoColor);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Material_SetAlbedoColor(ref AssetHandle aMaterialHandle, ref Color aAlbedoColor);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Material_GetEmissionColor(ref AssetHandle aMaterialHandle, out Color outEmissionColor);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Material_SetEmissionColor(ref AssetHandle aMaterialHandle, ref Color aEmissionColor);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern float Material_GetEmissionStrength(ref AssetHandle aMaterialHandle);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Material_SetEmissionStrength(ref AssetHandle aMaterialHandle, float aEmissionStrength);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern float Material_GetNormalStrength(ref AssetHandle aMaterialHandle);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Material_SetNormalStrength(ref AssetHandle aMaterialHandle, float aNormalStrength);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern float Material_GetRoughness(ref AssetHandle aMaterialHandle);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Material_SetRoughness(ref AssetHandle aMaterialHandle, float aRoughness);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern float Material_GetMetalness(ref AssetHandle aMaterialHandle);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Material_SetMetalness(ref AssetHandle aMaterialHandle, float aMetalness);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Material_GetUVTiling(ref AssetHandle aMaterialHandle, out Vector2 outTiling);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Material_SetUVTiling(ref AssetHandle aMaterialHandle, ref Vector2 aTiling);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Material_GetUVOffset(ref AssetHandle aMaterialHandle, out Vector2 outOffset);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Material_SetUVOffset(ref AssetHandle aMaterialHandle, ref Vector2 aOffset);
+
         #endregion
 
         #region Mesh

@@ -31,6 +31,9 @@ namespace Epoch
 		Material() = default;
 		~Material() = default;
 
+		Data& GetData() { return myData; }
+		const Data& GetData() const { return myData; }
+
 		CU::Vector3f& GetAlbedoColor();
 		void SetAlbedoColor(const CU::Vector3f& aColor);
 

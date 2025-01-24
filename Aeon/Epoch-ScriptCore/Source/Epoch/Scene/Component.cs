@@ -17,9 +17,9 @@
     public class TransformComponent : Component
     {
         /// <summary>
-		/// Transform relative to parent entity
-		/// </summary>
-		public Transform LocalTransform
+        /// Transform relative to parent entity
+        /// </summary>
+        public Transform LocalTransform
         {
             get
             {

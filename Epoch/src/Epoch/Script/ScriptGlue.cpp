@@ -311,6 +311,30 @@ namespace Epoch
 
 		EPOCH_ADD_INTERNAL_CALL(Material_SetAlbedoTexture);
 
+		EPOCH_ADD_INTERNAL_CALL(Material_GetAlbedoColor);
+		EPOCH_ADD_INTERNAL_CALL(Material_SetAlbedoColor);
+
+		EPOCH_ADD_INTERNAL_CALL(Material_GetEmissionColor);
+		EPOCH_ADD_INTERNAL_CALL(Material_SetEmissionColor);
+
+		EPOCH_ADD_INTERNAL_CALL(Material_GetEmissionStrength);
+		EPOCH_ADD_INTERNAL_CALL(Material_SetEmissionStrength);
+
+		EPOCH_ADD_INTERNAL_CALL(Material_GetNormalStrength);
+		EPOCH_ADD_INTERNAL_CALL(Material_SetNormalStrength);
+
+		EPOCH_ADD_INTERNAL_CALL(Material_GetRoughness);
+		EPOCH_ADD_INTERNAL_CALL(Material_SetRoughness);
+
+		EPOCH_ADD_INTERNAL_CALL(Material_GetMetalness);
+		EPOCH_ADD_INTERNAL_CALL(Material_SetMetalness);
+
+		EPOCH_ADD_INTERNAL_CALL(Material_GetUVTiling);
+		EPOCH_ADD_INTERNAL_CALL(Material_SetUVTiling);
+
+		EPOCH_ADD_INTERNAL_CALL(Material_GetUVOffset);
+		EPOCH_ADD_INTERNAL_CALL(Material_SetUVOffset);
+
 
 		EPOCH_ADD_INTERNAL_CALL(Mesh_Create);
 	}
@@ -2253,6 +2277,102 @@ namespace Epoch
 			}
 
 			material->SetAlbedoTexture(*aTextureHandle);
+		}
+
+		void Material_GetAlbedoColor(AssetHandle* aMaterialHandle, CU::Color* outAlbedoColor)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			*outAlbedoColor = material->GetAlbedoColor();
+		}
+
+		void Material_SetAlbedoColor(AssetHandle* aMaterialHandle, CU::Color* aAlbedoColor)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			material->SetAlbedoColor(aAlbedoColor->GetVector3());
+		}
+
+		void Material_GetEmissionColor(AssetHandle* aMaterialHandle, CU::Color* outEmissionColor)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			*outEmissionColor = material->GetEmissionColor();
+		}
+
+		void Material_SetEmissionColor(AssetHandle* aMaterialHandle, CU::Color* aEmissionColor)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			material->SetEmissionColor(aEmissionColor->GetVector3());
+		}
+
+		float Material_GetEmissionStrength(AssetHandle* aMaterialHandle)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			return material->GetEmissionStrength();
+		}
+
+		void Material_SetEmissionStrength(AssetHandle* aMaterialHandle, float aEmissionStrength)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			material->SetEmissionStrength(aEmissionStrength);
+		}
+
+		float Material_GetNormalStrength(AssetHandle* aMaterialHandle)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			return material->GetNormalStrength();
+		}
+
+		void Material_SetNormalStrength(AssetHandle* aMaterialHandle, float aNormalStrength)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			material->SetNormalStrength(aNormalStrength);
+		}
+
+		float Material_GetRoughness(AssetHandle* aMaterialHandle)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			return material->GetRoughness();
+		}
+
+		void Material_SetRoughness(AssetHandle* aMaterialHandle, float aRoughness)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			material->SetRoughness(aRoughness);
+		}
+
+		float Material_GetMetalness(AssetHandle* aMaterialHandle)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			return material->GetMetalness();
+		}
+
+		void Material_SetMetalness(AssetHandle* aMaterialHandle, float aMetalness)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			material->SetMetalness(aMetalness);
+		}
+
+		void Material_GetUVTiling(AssetHandle* aMaterialHandle, CU::Vector2f* outTiling)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			*outTiling = material->GetUVTiling();
+		}
+
+		void Material_SetUVTiling(AssetHandle* aMaterialHandle, CU::Vector2f* aTiling)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			material->SetUVTiling(*aTiling);
+		}
+
+		void Material_GetUVOffset(AssetHandle* aMaterialHandle, CU::Vector2f* outOffset)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			*outOffset = material->GetUVOffset();
+		}
+
+		void Material_SetUVOffset(AssetHandle* aMaterialHandle, CU::Vector2f* aOffset)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			material->SetUVOffset(*aOffset);
 		}
 
 #pragma endregion

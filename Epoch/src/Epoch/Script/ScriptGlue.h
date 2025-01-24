@@ -372,6 +372,30 @@ namespace Epoch
 
 		void Material_SetAlbedoTexture(AssetHandle* aMaterialHandle, AssetHandle* aTextureHandle);
 
+		void Material_GetAlbedoColor(AssetHandle* aMaterialHandle, CU::Color* outAlbedoColor);
+		void Material_SetAlbedoColor(AssetHandle* aMaterialHandle, CU::Color* aAlbedoColor);
+
+		void Material_GetEmissionColor(AssetHandle* aMaterialHandle, CU::Color* outEmissionColor);
+		void Material_SetEmissionColor(AssetHandle* aMaterialHandle, CU::Color* aEmissionColor);
+
+		float Material_GetEmissionStrength(AssetHandle* aMaterialHandle);
+		void Material_SetEmissionStrength(AssetHandle* aMaterialHandle, float aEmissionStrength);
+
+		float Material_GetNormalStrength(AssetHandle* aMaterialHandle);
+		void Material_SetNormalStrength(AssetHandle* aMaterialHandle, float aNormalStrength);
+
+		float Material_GetRoughness(AssetHandle* aMaterialHandle);
+		void Material_SetRoughness(AssetHandle* aMaterialHandle, float aRoughness);
+
+		float Material_GetMetalness(AssetHandle* aMaterialHandle);
+		void Material_SetMetalness(AssetHandle* aMaterialHandle, float aMetalness);
+
+		void Material_GetUVTiling(AssetHandle* aMaterialHandle, CU::Vector2f* outTiling);
+		void Material_SetUVTiling(AssetHandle* aMaterialHandle, CU::Vector2f* aTiling);
+
+		void Material_GetUVOffset(AssetHandle* aMaterialHandle, CU::Vector2f* outOffset);
+		void Material_SetUVOffset(AssetHandle* aMaterialHandle, CU::Vector2f* aOffset);
+
 #pragma endregion
 
 #pragma region Mesh

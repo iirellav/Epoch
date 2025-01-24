@@ -1165,17 +1165,7 @@ namespace Epoch
 	//Temp
 	void SceneRenderer::SetMaterial(std::shared_ptr<Material> aMaterial)
 	{
-		Material::Data matData;
-		matData.albedoColor = aMaterial->GetAlbedoColor();
-		matData.roughness = aMaterial->GetRoughness();
-		matData.metalness = aMaterial->GetMetalness();
-		matData.normalStrength = aMaterial->GetNormalStrength();
-		matData.uvTiling = aMaterial->GetUVTiling();
-		matData.uvOffset = aMaterial->GetUVOffset();
-		matData.emissionColor = aMaterial->GetEmissionColor();
-		matData.emissionStrength = aMaterial->GetEmissionStrength();
-
-		myMaterialBuffer->SetData(&matData);
+		myMaterialBuffer->SetData(&aMaterial->GetData());
 		myMaterialBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 1);
 
 		std::vector<ID3D11ShaderResourceView*> SRVs(3);
