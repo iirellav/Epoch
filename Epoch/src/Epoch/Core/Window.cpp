@@ -6,7 +6,6 @@
 #include "Epoch/Core/Events/WindowEvent.h"
 #include "Epoch/Core/Events/MouseEvent.h"
 #include "Epoch/Core/Events/KeyEvent.h"
-#include <stb_image/stb_image.h>
 
 namespace Epoch
 {
