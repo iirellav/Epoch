@@ -20,7 +20,7 @@ namespace Epoch
 
 		//Viewport
 		{
-			ImGui::Text("Viewport Size: %i, %i", (uint32_t)mySceneContext->GetViewportWidth(), (uint32_t)mySceneContext->GetViewportHeight());
+			ImGui::Text("Viewport Size: %i x %i", (uint32_t)mySceneContext->GetViewportWidth(), (uint32_t)mySceneContext->GetViewportHeight());
 		}
 
 		ImGui::Spacing();
