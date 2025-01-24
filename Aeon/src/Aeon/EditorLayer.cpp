@@ -1822,7 +1822,7 @@ namespace Epoch
 
 
 		bool hasPlayButton = mySceneState == SceneState::Edit || mySceneState == SceneState::Play;
-		//bool hasSimulateButton = mySceneState == SceneState::Edit;
+		bool hasSimulateButton = mySceneState == SceneState::Edit || mySceneState == SceneState::Simulate;
 		bool hasPauseButton = mySceneState != SceneState::Edit;
 
 		if (hasPlayButton)
@@ -1847,32 +1847,32 @@ namespace Epoch
 			}
 		}
 
-		//if (hasSimulateButton)
-		//{
-		//	if (hasPlayButton)
-		//	{
-		//		ImGui::SameLine();
-		//	}
-		//
-		//	auto icon = (mySceneState == SceneState::Edit) ? EditorResources::SimulateButton : EditorResources::StopButton;
-		//	if (ImGui::ImageButton((ImTextureID)icon->GetView(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled)
-		//	{
-		//		if (mySceneState == SceneState::Edit)
-		//		{
-		//			OnSceneSimulate();
-		//		}
-		//		else if (mySceneState == SceneState::Edit)
-		//		{
-		//			OnSceneStop();
-		//		}
-		//
-		//	}
-		//	if (ImGui::BeginItemTooltip())
-		//	{
-		//		(mySceneState == SceneState::Edit) ? ImGui::Text(" Simulate ") : ImGui::Text(" Stop ");
-		//		ImGui::EndTooltip();
-		//	}
-		//}
+		if (hasSimulateButton)
+		{
+			if (hasPlayButton)
+			{
+				ImGui::SameLine();
+			}
+		
+			auto icon = (mySceneState == SceneState::Edit) ? EditorResources::SimulateButton : EditorResources::StopButton;
+			if (ImGui::ImageButton((ImTextureID)icon->GetView(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled)
+			{
+				if (mySceneState == SceneState::Edit)
+				{
+					OnSceneSimulate();
+				}
+				else if (mySceneState == SceneState::Simulate)
+				{
+					OnSceneStop();
+				}
+		
+			}
+			if (ImGui::BeginItemTooltip())
+			{
+				(mySceneState == SceneState::Edit) ? ImGui::Text(" Simulate ") : ImGui::Text(" Stop ");
+				ImGui::EndTooltip();
+			}
+		}
 
 		if (hasPauseButton)
 		{
@@ -1896,36 +1896,36 @@ namespace Epoch
 			}
 
 			// Step button
-			//if (isPaused)
-			//{
-			//	ImGui::SameLine();
-			//	{
-			//		auto icon = EditorResources::StepButton;
-			//		ImGui::ImageButton((ImTextureID)icon->GetView(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled;
-			//
-			//		static float stepHeldTime = 0.0f;
-			//		if (ImGui::IsItemActive())
-			//		{
-			//			stepHeldTime -= CU::Timer::GetDeltaTime();
-			//			if (stepHeldTime <= 0.0f)
-			//			{
-			//				stepHeldTime = 0.1f;
-			//				myActiveScene->Step(5);
-			//			}
-			//		}
-			//
-			//		if (ImGui::IsItemDeactivated())
-			//		{
-			//			stepHeldTime = 0.0f;
-			//		}
-			//
-			//		if (ImGui::BeginItemTooltip())
-			//		{
-			//			ImGui::Text("Step");
-			//			ImGui::EndTooltip();
-			//		}
-			//	}
-			//}
+			if (isPaused)
+			{
+				ImGui::SameLine();
+				{
+					auto icon = EditorResources::StepButton;
+					ImGui::ImageButton((ImTextureID)icon->GetView(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled;
+			
+					static float stepHeldTime = 0.0f;
+					if (ImGui::IsItemActive())
+					{
+						stepHeldTime -= CU::Timer::GetDeltaTime();
+						if (stepHeldTime <= 0.0f)
+						{
+							stepHeldTime = 0.1f;
+							myActiveScene->Step(5);
+						}
+					}
+			
+					if (ImGui::IsItemDeactivated())
+					{
+						stepHeldTime = 0.0f;
+					}
+			
+					if (ImGui::BeginItemTooltip())
+					{
+						ImGui::Text("Step");
+						ImGui::EndTooltip();
+					}
+				}
+			}
 		}
 
 		ImGui::PopStyleVar(2);
@@ -1968,11 +1968,14 @@ namespace Epoch
 
 		ImGui::Image((ImTextureID)mySceneRenderer->GetFinalPassTexture()->GetView(), viewportPanelSize);
 
-		if (mySceneState == SceneState::Edit)
+		if (mySceneState != SceneState::Play)
 		{
 			UpdateViewportBoxSelection();
 			DrawGizmos();
-			HandleAssetDrop();
+			if (mySceneState == SceneState::Edit)
+			{
+				HandleAssetDrop();
+			}
 		}
 
 		if (myDisplayCurrentColorGradingLUT)
@@ -2042,7 +2045,6 @@ namespace Epoch
 
 		myActiveScene = std::make_shared<Scene>();
 		myEditorScene->CopyTo(myActiveScene);
-		ScriptEngine::SetSceneContext(myActiveScene, mySceneRenderer);
 
 		myPanelManager->OnSceneChanged(myActiveScene);
 		myActiveScene->OnSimulationStart();
@@ -2124,9 +2126,9 @@ namespace Epoch
 
 	bool EditorLayer::OnKeyPressedEvent(KeyPressedEvent& aEvent)
 	{
-		if (mySceneState == SceneState::Edit && (!Input::IsMouseButtonHeld(MouseButton::Right) && !Input::IsMouseButtonHeld(MouseButton::Middle)))
+		if (mySceneState != SceneState::Play && (!Input::IsMouseButtonHeld(MouseButton::Right) && !Input::IsMouseButtonHeld(MouseButton::Middle)))
 		{
-			if (Input::IsKeyHeld(KeyCode::LeftControl))
+			if (mySceneState == SceneState::Edit && Input::IsKeyHeld(KeyCode::LeftControl))
 			{
 				switch (aEvent.GetKeyCode())
 				{
@@ -2223,7 +2225,7 @@ namespace Epoch
 			}
 		}
 
-		if (aEvent.GetKeyCode() == KeyCode::P && Input::IsKeyHeld(KeyCode::LeftAlt) && (mySceneState == SceneState::Play || myViewportFocused))
+		if (aEvent.GetKeyCode() == KeyCode::P && Input::IsKeyHeld(KeyCode::LeftAlt) && (mySceneState != SceneState::Edit || myViewportFocused))
 		{
 			if (mySceneState == SceneState::Play)
 			{
@@ -2243,7 +2245,7 @@ namespace Epoch
 	{
 		if (aEvent.GetMouseButton() == MouseButton::Left)
 		{
-			if (mySceneState != SceneState::Edit ||
+			if (mySceneState == SceneState::Play ||
 				!myViewportHovered ||
 				ImGui::IsAnyItemHovered() ||
 				ImGuizmo::IsOver() ||

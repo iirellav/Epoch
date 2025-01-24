@@ -401,7 +401,6 @@ namespace Epoch
 		myIsSimulating = true;
 
 		myPhysicsScene = PhysicsSystem::CreatePhysicsScene(this);
-		ScriptEngine::InitializeRuntime();
 	}
 
 	void Scene::OnSimulationStop()
