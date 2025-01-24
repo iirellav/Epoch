@@ -50,10 +50,13 @@ namespace Epoch
 
 		uint64_t flags = 0;
 
+		
+#ifndef _RUNTIME
 		//Editor Only
 		std::string tooltip;
 		std::string header;
 		uint32_t spacing;
+#endif
 
 
 		bool HasFlag(FieldFlag aFlag) const { return flags & (uint64_t)aFlag; }

@@ -158,8 +158,9 @@ namespace Epoch
 				{
 					continue;
 				}
+				ScriptComponent sc = entity.GetComponent<ScriptComponent>();
 
-				if (entity.IsActive() && ScriptEngine::IsEntityInstantiated(entity))
+				if (entity.IsActive() && sc.isActive && sc.shouldFixedUpdate && ScriptEngine::IsEntityInstantiated(entity))
 				{
 #if EPOCH_ENABLE_PROFILING	//This will prevent ScriptEngine::GetScriptClassName from getting called in runtime dist
 					EPOCH_PROFILE_SCOPE(fmt::format("{}::OnFixedUpdate", ScriptEngine::GetScriptClassName(entity.GetUUID())).c_str());

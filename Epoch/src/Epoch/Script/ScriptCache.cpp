@@ -390,7 +390,7 @@ namespace Epoch
 			method = GetSpecificManagedMethod(&staticCache->classes.at(aManagedClass->parentID), aName, aParameterCount);
 		}
 
-		if (method == nullptr && !aIgnoreParent)
+		if (method == nullptr)
 		{
 			LOG_WARNING_TAG("ScriptEngine", "Failed to find method with name: {} and parameter count: {} in class {}", aName, aParameterCount, aManagedClass->fullName);
 		}
@@ -442,6 +442,19 @@ namespace Epoch
 			staticCache->methods[method.id].push_back(method);
 
 			mono_free(fullName);
+		}
+		
+		if (staticCache->methods.find((uint32_t)Hash::GenerateFNVHash(aManagedClass.fullName + ":OnUpdate")) != staticCache->methods.end())
+		{
+			aManagedClass.shouldUpdate = true;
+		}
+		if (staticCache->methods.find((uint32_t)Hash::GenerateFNVHash(aManagedClass.fullName + ":OnLateUpdate")) != staticCache->methods.end())
+		{
+			aManagedClass.shouldLateUpdate = true;
+		}
+		if (staticCache->methods.find((uint32_t)Hash::GenerateFNVHash(aManagedClass.fullName + ":OnFixedUpdate")) != staticCache->methods.end())
+		{
+			aManagedClass.shouldFixedUpdate = true;
 		}
 	}
 
@@ -543,8 +556,12 @@ namespace Epoch
 					MonoObject* attrib = mono_custom_attrs_get_attr(attributes, GetManagedClassByName("Epoch.ShowInEditorAttribute")->monoClass);
 
 					CSharpInstanceInspector inspector(attrib);
-					managedField.tooltip = inspector.GetFieldValue<std::string>("tooltip");
 					const bool isReadOnly = inspector.GetFieldValue<bool>("readOnly");
+
+#ifndef _RUNTIME
+					managedField.tooltip = inspector.GetFieldValue<std::string>("tooltip");
+#endif
+
 
 					if (isReadOnly)
 					{
@@ -559,7 +576,8 @@ namespace Epoch
 					managedField.flags &= ~(uint64_t)FieldFlag::Public;
 					managedField.flags |= (uint64_t)FieldFlag::Private;
 				}
-
+				
+#ifndef _RUNTIME
 				if (attributes && mono_custom_attrs_has_attr(attributes, GetManagedClassByName("Epoch.SpacingAttribute")->monoClass))
 				{
 					MonoObject* attrib = mono_custom_attrs_get_attr(attributes, GetManagedClassByName("Epoch.SpacingAttribute")->monoClass);
@@ -575,6 +593,7 @@ namespace Epoch
 					CSharpInstanceInspector inspector(attrib);
 					managedField.header = inspector.GetFieldValue<std::string>("header");
 				}
+#endif
 
 				if (managedField.IsArray())
 				{

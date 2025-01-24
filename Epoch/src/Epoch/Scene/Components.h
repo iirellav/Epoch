@@ -355,6 +355,12 @@ namespace Epoch
 
 		bool isRuntimeInitialized = false;
 
+
+		bool shouldUpdate = false;
+		bool shouldLateUpdate = false;
+		bool shouldFixedUpdate = false;
+
+
 		ScriptComponent() = default;
 		ScriptComponent(const ScriptComponent&) = default;
 		ScriptComponent(AssetHandle aScriptClassHandle) : scriptClassHandle(aScriptClassHandle) {}

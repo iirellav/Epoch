@@ -48,6 +48,11 @@ namespace Epoch
 		bool isStruct = false;
 		bool isEnum = false;
 
+		// Skip calling functions if not overriden
+		bool shouldUpdate = false;
+		bool shouldLateUpdate = false;
+		bool shouldFixedUpdate = false;
+
 		uint32_t parentID = 0;
 
 		MonoClass* monoClass = nullptr;

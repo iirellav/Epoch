@@ -432,7 +432,7 @@ namespace Epoch
 							Entity entity{ myEntityMap[entityID], this };
 							ScriptComponent sc = entity.GetComponent<ScriptComponent>();
 
-							if (entity.IsActive() && sc.isActive && ScriptEngine::IsEntityInstantiated(entity))
+							if (entity.IsActive() && sc.isActive && sc.shouldUpdate && ScriptEngine::IsEntityInstantiated(entity))
 							{
 #if EPOCH_ENABLE_PROFILING	//This will prevent ScriptEngine::GetScriptClassName from getting called in runtime dist
 								EPOCH_PROFILE_SCOPE(fmt::format("{}::OnUpdate", ScriptEngine::GetScriptClassName(entity.GetUUID())).c_str());
@@ -454,8 +454,9 @@ namespace Epoch
 						if (myEntityMap.find(entityID) != myEntityMap.end())
 						{
 							Entity entity{ myEntityMap[entityID], this };
+							ScriptComponent sc = entity.GetComponent<ScriptComponent>();
 
-							if (entity.IsActive() && ScriptEngine::IsEntityInstantiated(entity))
+							if (entity.IsActive() && sc.isActive && sc.shouldLateUpdate && ScriptEngine::IsEntityInstantiated(entity))
 							{
 #if EPOCH_ENABLE_PROFILING	//This will prevent ScriptEngine::GetScriptClassName from getting called in runtime dist
 								EPOCH_PROFILE_SCOPE(fmt::format("{}::OnLateUpdate", ScriptEngine::GetScriptClassName(entity.GetUUID())).c_str());

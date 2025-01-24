@@ -491,6 +491,10 @@ namespace Epoch
 			sc.fieldIDs.push_back(fieldID);
 		}
 
+		sc.shouldUpdate = managedClass->shouldUpdate;
+		sc.shouldLateUpdate = managedClass->shouldLateUpdate;
+		sc.shouldFixedUpdate = managedClass->shouldFixedUpdate;
+
 		if (std::find(staticData->scriptEntities.begin(), staticData->scriptEntities.end(), entityID) != staticData->scriptEntities.end())
 		{
 			//LOG_WARNING_TAG("ScriptEngine", "Initializing a script entity that already is initialized!");
