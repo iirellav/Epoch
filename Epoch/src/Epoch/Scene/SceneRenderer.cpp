@@ -750,7 +750,7 @@ namespace Epoch
 			std::shared_ptr<Material> material;
 			if (materialHandle != 0)
 			{
-				material = AssetManager::GetAsset<Material>(materialHandle);
+				material = AssetManager::GetAssetAsync<Material>(materialHandle);
 			}
 
 			if (materialHandle == 0 || !material)
