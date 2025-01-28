@@ -11,6 +11,7 @@
 #include "Epoch/Scene/SceneRenderer.h"
 #include "Epoch/Physics/PhysicsSystem.h"
 #include "Epoch/Script/ScriptEngine.h"
+#include "Epoch/Math/Noise.h"
 
 namespace Epoch
 {
@@ -58,6 +59,7 @@ namespace Epoch
 			PushOverlay(myImGuiLayer);
 		}
 
+		Noise::Init();
 		CU::Random::Init();
 		CU::Timer::Init();
 		Font::Init();

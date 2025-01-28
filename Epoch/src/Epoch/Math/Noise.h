@@ -7,6 +7,8 @@ namespace Epoch
 	class Noise
 	{
 	public:
+		static void Init();
+
 		static void SetSeed(int aSeed);
 
 		static float SimplexNoise(float x, float y);
