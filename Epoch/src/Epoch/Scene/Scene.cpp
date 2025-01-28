@@ -425,20 +425,14 @@ namespace Epoch
 					EPOCH_PROFILE_SCOPE("Scene::OnUpdate - C# OnUpdate");
 					Timer timer;
 
-					for (const auto& [entityID, entityInstance] : ScriptEngine::GetEntityInstances())
+					auto entities = GetAllEntitiesWith<ScriptComponent>();
+					for (auto id : entities)
 					{
-						if (myEntityMap.find(entityID) != myEntityMap.end())
+						Entity entity = Entity(id, this);
+						const auto& sc = entities.get<ScriptComponent>(id);
+						if (entity.IsActive() && sc.isActive && sc.IsFlagSet(ManagedClassMethodFlags::ShouldUpdate) && ScriptEngine::IsEntityInstantiated(entity))
 						{
-							Entity entity{ myEntityMap[entityID], this };
-							ScriptComponent sc = entity.GetComponent<ScriptComponent>();
-
-							if (entity.IsActive() && sc.isActive && sc.shouldUpdate && ScriptEngine::IsEntityInstantiated(entity))
-							{
-#if EPOCH_ENABLE_PROFILING	//This will prevent ScriptEngine::GetScriptClassName from getting called in runtime dist
-								EPOCH_PROFILE_SCOPE(fmt::format("{}::OnUpdate", ScriptEngine::GetScriptClassName(entity.GetUUID())).c_str());
-#endif
-								ScriptEngine::CallMethod(entityInstance, "OnUpdate");
-							}
+							ScriptEngine::CallMethod(ScriptEngine::GetEntityInstance(entity.GetUUID()), "OnUpdate");
 						}
 					}
 
@@ -449,20 +443,14 @@ namespace Epoch
 					EPOCH_PROFILE_SCOPE("Scene::OnLateUpdate - C# OnLateUpdate");
 					Timer timer;
 
-					for (const auto& [entityID, entityInstance] : ScriptEngine::GetEntityInstances())
+					auto entities = GetAllEntitiesWith<ScriptComponent>();
+					for (auto id : entities)
 					{
-						if (myEntityMap.find(entityID) != myEntityMap.end())
+						Entity entity = Entity(id, this);
+						const auto& sc = entities.get<ScriptComponent>(id);
+						if (entity.IsActive() && sc.isActive && sc.IsFlagSet(ManagedClassMethodFlags::ShouldLateUpdate) && ScriptEngine::IsEntityInstantiated(entity))
 						{
-							Entity entity{ myEntityMap[entityID], this };
-							ScriptComponent sc = entity.GetComponent<ScriptComponent>();
-
-							if (entity.IsActive() && sc.isActive && sc.shouldLateUpdate && ScriptEngine::IsEntityInstantiated(entity))
-							{
-#if EPOCH_ENABLE_PROFILING	//This will prevent ScriptEngine::GetScriptClassName from getting called in runtime dist
-								EPOCH_PROFILE_SCOPE(fmt::format("{}::OnLateUpdate", ScriptEngine::GetScriptClassName(entity.GetUUID())).c_str());
-#endif
-								ScriptEngine::CallMethod(entityInstance, "OnLateUpdate");
-							}
+							ScriptEngine::CallMethod(ScriptEngine::GetEntityInstance(entity.GetUUID()), "OnLateUpdate");
 						}
 					}
 
@@ -1210,13 +1198,12 @@ namespace Epoch
 		EPOCH_PROFILE_FUNC();
 
 		const Frustum frustum = CreateFrustum(aCullingCamera);
-		std::set<UUID> lastFramesFrustumCulledEntities = myFrustumCulledEntities;
+		std::unordered_set<UUID> lastFramesFrustumCulledEntities = myFrustumCulledEntities;
 		myFrustumCulledEntities.clear();
 
 		std::unordered_map<AssetHandle, std::shared_ptr<Asset>> assetAccelerationMap;
-
-		aRenderer->BeginScene(aRenderCamera);
-
+		
+		// Lighting
 		{
 			EPOCH_PROFILE_SCOPE("Scene::RenderScene::UpdateLightEnvironment");
 
@@ -1308,7 +1295,8 @@ namespace Epoch
 				sl.cookie = slc.cookieTexture;
 			}
 		}
-
+		
+		// Post Processing
 		{
 			EPOCH_PROFILE_SCOPE("Scene::RenderScene::UpdatePostProcessingData");
 
@@ -1362,6 +1350,9 @@ namespace Epoch
 			}
 		}
 
+		aRenderer->BeginScene(aRenderCamera);
+		
+		// Submit Meshes
 		{
 			EPOCH_PROFILE_SCOPE("Scene::RenderScene::SubmitMeshes");
 
@@ -1436,7 +1427,8 @@ namespace Epoch
 				}
 			}
 		}
-
+		
+		// Submit Sprites
 		{
 			EPOCH_PROFILE_SCOPE("Scene::RenderScene::SubmitSprites");
 
@@ -1465,7 +1457,8 @@ namespace Epoch
 				aRenderer->SubmitQuad(transform, texture, src.tint, src.flipX, src.flipY, (uint32_t)entity);
 			}
 		}
-
+		
+		// Submit Texts
 		{
 			EPOCH_PROFILE_SCOPE("Scene::RenderScene::SubmitText");
 

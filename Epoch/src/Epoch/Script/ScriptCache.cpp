@@ -446,19 +446,19 @@ namespace Epoch
 		
 		if (staticCache->methods.find((uint32_t)Hash::GenerateFNVHash(aManagedClass.fullName + ":OnUpdate")) != staticCache->methods.end())
 		{
-			aManagedClass.shouldUpdate = true;
+			aManagedClass.methodFlags |= ManagedClassMethodFlags::ShouldUpdate;
 		}
 		if (staticCache->methods.find((uint32_t)Hash::GenerateFNVHash(aManagedClass.fullName + ":OnLateUpdate")) != staticCache->methods.end())
 		{
-			aManagedClass.shouldLateUpdate = true;
+			aManagedClass.methodFlags |= ManagedClassMethodFlags::ShouldLateUpdate;
 		}
 		if (staticCache->methods.find((uint32_t)Hash::GenerateFNVHash(aManagedClass.fullName + ":OnFixedUpdate")) != staticCache->methods.end())
 		{
-			aManagedClass.shouldFixedUpdate = true;
+			aManagedClass.methodFlags |= ManagedClassMethodFlags::ShouldFixedUpdate;
 		}
 		if (staticCache->methods.find((uint32_t)Hash::GenerateFNVHash(aManagedClass.fullName + ":OnDebug")) != staticCache->methods.end())
 		{
-			aManagedClass.shouldDebug = true;
+			aManagedClass.methodFlags |= ManagedClassMethodFlags::ShouldDebug;
 		}
 	}
 

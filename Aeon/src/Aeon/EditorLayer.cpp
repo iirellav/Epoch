@@ -193,6 +193,7 @@ namespace Epoch
 		switch (mySceneState)
 		{
 		case SceneState::Edit:
+		case SceneState::Simulate:
 		{
 			myEditorCamera.SetActive(myAllowEditorCameraMovement);
 			myEditorCamera.OnUpdate();
@@ -202,7 +203,7 @@ namespace Epoch
 
 			OnRenderOverlay();
 
-			if (EditorSettings::Get().autosaveEnabled)
+			if (mySceneState == SceneState::Edit && EditorSettings::Get().autosaveEnabled)
 			{
 				myTimeSinceLastSave += CU::Timer::GetDeltaTime();
 				if (myTimeSinceLastSave >= EditorSettings::Get().autosaveIntervalSeconds)
@@ -210,15 +211,6 @@ namespace Epoch
 					SaveSceneAuto();
 				}
 			}
-			break;
-		}
-		case SceneState::Simulate:
-		{
-			myEditorCamera.SetActive(myAllowEditorCameraMovement);
-			myEditorCamera.OnUpdate();
-			myActiveScene->OnUpdateEditor();
-			mySceneRenderer->SetScene(myActiveScene);
-			myActiveScene->OnRenderEditor(mySceneRenderer, myEditorCamera);
 			break;
 		}
 		case SceneState::Play:
@@ -233,23 +225,21 @@ namespace Epoch
 				{
 					EPOCH_PROFILE_SCOPE("C# OnDebug");
 
-					for (const auto& [entityID, entityInstance] : ScriptEngine::GetEntityInstances())
+					auto entities = myActiveScene->GetAllEntitiesWith<ScriptComponent>();
+					for (auto id : entities)
 					{
-						Entity entity = myActiveScene->TryGetEntityWithUUID(entityID);
-						if (entity)
+						Entity entity = Entity(id, myActiveScene.get());
+						const auto& sc = entities.get<ScriptComponent>(id);
+						if (entity.IsActive() && sc.isActive && sc.IsFlagSet(ManagedClassMethodFlags::ShouldDebug) && ScriptEngine::IsEntityInstantiated(entity))
 						{
-							ScriptComponent sc = entity.GetComponent<ScriptComponent>();
-							if (entity.IsActive() && sc.isActive && sc.shouldDebug && ScriptEngine::IsEntityInstantiated(entity))
-							{
-								ScriptEngine::CallMethod(entityInstance, "OnDebug");
-							}
+							ScriptEngine::CallMethod(ScriptEngine::GetEntityInstance(entity.GetUUID()), "OnDebug");
 						}
 					}
 				}
 
-				CU::Transform worlTrans = camEntity.GetWorldSpaceTransform();
+				CU::Transform worldTrans = camEntity.GetWorldSpaceTransform();
 				const CameraComponent& camComponent = camEntity.GetComponent<CameraComponent>();
-				myDebugRenderer->Render(worlTrans.GetMatrix().GetFastInverse(), camComponent.camera.GetProjectionMatrix(), myDebugRendererOnTop);
+				myDebugRenderer->Render(worldTrans.GetMatrix().GetFastInverse(), camComponent.camera.GetProjectionMatrix(), myDebugRendererOnTop);
 			}
 
 			auto sceneUpdateQueue = myPostSceneUpdateQueue;
@@ -2349,7 +2339,7 @@ namespace Epoch
 				auto pixelData = IDBuffer->ReadData((uint32_t)boxSize.x, (uint32_t)boxSize.y, (uint32_t)selectionBoxMin.x, (uint32_t)selectionBoxMin.y);
 				if (pixelData)
 				{
-					std::set<uint32_t> ids;
+					std::unordered_set<uint32_t> ids;
 					for (size_t i = 0; i < pixelData.size; i += 4)
 					{
 						uint32_t id = pixelData.Read<uint32_t>(i);

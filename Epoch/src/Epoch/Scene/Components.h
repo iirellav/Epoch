@@ -356,12 +356,8 @@ namespace Epoch
 		bool isRuntimeInitialized = false;
 
 		// Set when script entity get initialized (don't modify)
-		bool shouldUpdate = false;
-		bool shouldLateUpdate = false;
-		bool shouldFixedUpdate = false;
-
-		bool shouldDebug = false;
-
+		ManagedClassMethodFlags methodFlags = ManagedClassMethodFlags::None;
+		bool IsFlagSet(ManagedClassMethodFlags aFlag) const { return (uint16_t)aFlag & (uint16_t)methodFlags; }
 
 		ScriptComponent() = default;
 		ScriptComponent(const ScriptComponent&) = default;

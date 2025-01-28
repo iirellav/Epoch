@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 #include <memory>
-#include <set>
 #include <unordered_set>
 #include <unordered_map>
 
@@ -212,10 +211,8 @@ namespace Epoch
 		entt::registry myRegistry;
 		std::unordered_map<UUID, entt::entity> myEntityMap;
 
-		/// <summary>
-		/// NOTE: This gets filled in Scene::RenderScene, so if this is used before Scene::RenderScene has been called the set contains the last frames culled entities.
-		/// </summary>
-		std::set<UUID> myFrustumCulledEntities;
+		//This gets filled in Scene::RenderScene, so if this is used before Scene::RenderScene has been called the set contains the last frames culled entities.
+		std::unordered_set<UUID> myFrustumCulledEntities;
 
 		std::shared_ptr<PhysicsScene> myPhysicsScene;
 

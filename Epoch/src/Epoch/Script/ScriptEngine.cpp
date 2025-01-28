@@ -491,10 +491,7 @@ namespace Epoch
 			sc.fieldIDs.push_back(fieldID);
 		}
 
-		sc.shouldUpdate = managedClass->shouldUpdate;
-		sc.shouldLateUpdate = managedClass->shouldLateUpdate;
-		sc.shouldFixedUpdate = managedClass->shouldFixedUpdate;
-		sc.shouldUpdate = managedClass->shouldUpdate;
+		sc.methodFlags = managedClass->methodFlags;
 
 		if (std::find(staticData->scriptEntities.begin(), staticData->scriptEntities.end(), entityID) != staticData->scriptEntities.end())
 		{
@@ -689,12 +686,6 @@ namespace Epoch
 	MonoDomain* ScriptEngine::GetScriptDomain()
 	{
 		return staticData->scriptsDomain;
-	}
-
-	const std::string& ScriptEngine::GetScriptClassName(UUID aEntityID)
-	{
-		ManagedClass* managedClass = ScriptCache::GetMonoObjectClass(GCManager::GetReferencedObject(GetEntityInstance(aEntityID)));
-		return managedClass->fullName;
 	}
 
 	void ScriptEngine::UpdateDeltaTime()
@@ -1107,11 +1098,6 @@ namespace Epoch
 			return nullptr;
 		}
 
-		if (staticData->scriptInstances.find(aEntityID) == staticData->scriptInstances.end())
-		{
-			return nullptr;
-		}
-
 		return staticData->scriptInstances.at(aEntityID);
 	}
 
@@ -1119,6 +1105,8 @@ namespace Epoch
 	
 	void ScriptEngine::CallMethod(MonoObject* aMonoObject, ManagedMethod* aManagedMethod, const void** aParameters)
 	{
+		EPOCH_PROFILE_SCOPE(fmt::format("{}", aManagedMethod->fullName).c_str());
+
 		MonoObject* exception = NULL;
 		mono_runtime_invoke(aManagedMethod->method, aMonoObject, const_cast<void**>(aParameters), &exception);
 		ScriptUtils::HandleException(exception);
