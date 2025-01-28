@@ -360,6 +360,8 @@ namespace Epoch
 		bool shouldLateUpdate = false;
 		bool shouldFixedUpdate = false;
 
+		bool shouldDebug = false;
+
 
 		ScriptComponent() = default;
 		ScriptComponent(const ScriptComponent&) = default;

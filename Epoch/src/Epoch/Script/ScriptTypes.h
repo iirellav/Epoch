@@ -53,6 +53,8 @@ namespace Epoch
 		bool shouldLateUpdate = false;
 		bool shouldFixedUpdate = false;
 
+		bool shouldDebug = false;
+
 		uint32_t parentID = 0;
 
 		MonoClass* monoClass = nullptr;

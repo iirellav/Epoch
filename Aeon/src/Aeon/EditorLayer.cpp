@@ -230,14 +230,19 @@ namespace Epoch
 			Entity camEntity = myActiveScene->GetPrimaryCameraEntity();
 			if (camEntity)
 			{
-				for (const auto& [entityID, entityInstance] : ScriptEngine::GetEntityInstances())
 				{
-					Entity entity = myActiveScene->TryGetEntityWithUUID(entityID);
-					if (entity)
+					EPOCH_PROFILE_SCOPE("C# OnDebug");
+
+					for (const auto& [entityID, entityInstance] : ScriptEngine::GetEntityInstances())
 					{
-						if (entity.IsActive() && ScriptEngine::IsEntityInstantiated(entity))
+						Entity entity = myActiveScene->TryGetEntityWithUUID(entityID);
+						if (entity)
 						{
-							ScriptEngine::CallMethod(entityInstance, "OnDebug");
+							ScriptComponent sc = entity.GetComponent<ScriptComponent>();
+							if (entity.IsActive() && sc.isActive && sc.shouldDebug && ScriptEngine::IsEntityInstantiated(entity))
+							{
+								ScriptEngine::CallMethod(entityInstance, "OnDebug");
+							}
 						}
 					}
 				}

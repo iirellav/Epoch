@@ -456,6 +456,10 @@ namespace Epoch
 		{
 			aManagedClass.shouldFixedUpdate = true;
 		}
+		if (staticCache->methods.find((uint32_t)Hash::GenerateFNVHash(aManagedClass.fullName + ":OnDebug")) != staticCache->methods.end())
+		{
+			aManagedClass.shouldDebug = true;
+		}
 	}
 
 	void ScriptCache::CacheClassFields(std::shared_ptr<AssemblyInfo> aAssemblyInfo, ManagedClass& aManagedClass)

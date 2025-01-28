@@ -145,6 +145,15 @@ namespace Epoch
 		ImGui::Separator();
 		ImGui::Spacing();
 
+		//Scene
+		{
+			ImGui::Text(("Mesh Entities: " + CU::NumberFormat(mySceneContext->GetAllEntitiesWith<MeshRendererComponent>().size())).c_str());
+		}
+
+		ImGui::Spacing();
+		ImGui::Separator();
+		ImGui::Spacing();
+
 		//Renderer Stats
 		{
 			const auto& stats = mySceneRendererReference.lock()->GetStats();

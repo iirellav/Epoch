@@ -494,6 +494,7 @@ namespace Epoch
 		sc.shouldUpdate = managedClass->shouldUpdate;
 		sc.shouldLateUpdate = managedClass->shouldLateUpdate;
 		sc.shouldFixedUpdate = managedClass->shouldFixedUpdate;
+		sc.shouldUpdate = managedClass->shouldUpdate;
 
 		if (std::find(staticData->scriptEntities.begin(), staticData->scriptEntities.end(), entityID) != staticData->scriptEntities.end())
 		{
