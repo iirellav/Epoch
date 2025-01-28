@@ -31,15 +31,13 @@ namespace Epoch
 		for (auto [handle, asset] : myLoadedAssets)
 		{
 			EPOCH_ASSERT(asset, "Loaded asset were nullptr!");
-			EPOCH_ASSERT(asset.use_count() <= 2, "Loaded asset will not be destroyed - something is still holding refs!");
-			EPOCH_ASSERT(asset.use_count() > 0, "Loaded asset had zero refs!");
+			EPOCH_ASSERT(asset.use_count() <= 2, "Loaded asset will not be destroyed - something is still holding refs!\n[{}] {}", handle, GetRelativePath(GetFileSystemPath(handle)));
 		}
 		
 		for (auto [handle, asset] : myMemoryAssets)
 		{
 			EPOCH_ASSERT(asset, "Memory asset were nullptr!");
-			EPOCH_ASSERT(asset.use_count() <= 2, "Memory asset will not be destroyed - something is still holding refs!");
-			EPOCH_ASSERT(asset.use_count() > 0, "Memory asset had zero refs!");
+			EPOCH_ASSERT(asset.use_count() <= 2, "Memory asset will not be destroyed - something is still holding refs!\n[{}] {}", handle, GetRelativePath(GetFileSystemPath(handle)));
 		}
 	}
 

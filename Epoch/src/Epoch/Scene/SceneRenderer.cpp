@@ -726,6 +726,9 @@ namespace Epoch
 
 		myTextVertices.clear();
 		myTextQuadCount = 0;
+
+		myTextures.clear();
+		myFontAtlases.clear();
 	}
 
 	void SceneRenderer::SubmitMesh(std::shared_ptr<Mesh> aMesh, std::shared_ptr<MaterialTable> aMaterialTable, const CU::Matrix4x4f& aTransform, uint32_t aEntityID)
