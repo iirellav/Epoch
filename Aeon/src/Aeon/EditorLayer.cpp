@@ -685,13 +685,40 @@ namespace Epoch
 				}
 				else if (asset->GetAssetType() == AssetType::Texture)
 				{
-					Entity spriteEntity = myActiveScene->CreateEntity(assetData.filePath.stem().string());
-					spriteEntity.AddComponent<SpriteRendererComponent>(asset->GetHandle());
+					if (Input::IsKeyHeld(KeyCode::LeftShift))
+					{
+						Entity hoveredEntity = GetHoveredEntity();
+						if (!hoveredEntity)
+						{
+							continue;
+						}
 
-					OnEntityCreated(spriteEntity);
+						if (!hoveredEntity.HasComponent<MeshRendererComponent>())
+						{
+							continue;
+						}
 
-					SelectionManager::DeselectAll(SelectionContext::Scene);
-					SelectionManager::Select(SelectionContext::Scene, spriteEntity.GetUUID());
+						MeshRendererComponent& mrc = hoveredEntity.GetComponent<MeshRendererComponent>();
+						if (mrc.materialTable->GetMaterialCount() > 0)
+						{
+							AssetHandle materialHandle = mrc.materialTable->GetMaterial(0);
+							if (materialHandle != Hash::GenerateFNVHash("Default-Material"))
+							{
+								auto material = AssetManager::GetAsset<Material>(materialHandle);
+								material->SetAlbedoTexture(assetHandle);
+							}
+						}
+					}
+					else
+					{
+						Entity spriteEntity = myActiveScene->CreateEntity(assetData.filePath.stem().string());
+						spriteEntity.AddComponent<SpriteRendererComponent>(assetHandle);
+
+						OnEntityCreated(spriteEntity);
+
+						SelectionManager::DeselectAll(SelectionContext::Scene);
+						SelectionManager::Select(SelectionContext::Scene, spriteEntity.GetUUID());
+					}
 
 					grabFocus = true;
 				}
