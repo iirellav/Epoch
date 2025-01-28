@@ -147,7 +147,82 @@ namespace Epoch
 
 		//Scene
 		{
-			ImGui::Text(("Mesh Entities: " + CU::NumberFormat(mySceneContext->GetAllEntitiesWith<MeshRendererComponent>().size())).c_str());
+			//Mesh
+			{
+				uint32_t counter = 0;
+				uint32_t casterCounter = 0;
+				auto entities = mySceneContext->GetAllEntitiesWith<MeshRendererComponent>();
+				for (auto id : entities)
+				{
+					Entity entity = Entity(id, mySceneContext.get());
+					if (!entity.IsActive()) continue;
+
+					const auto& component = entities.get<MeshRendererComponent>(id);
+					if (!component.isActive) continue;
+
+					counter++;
+
+					if (!component.castsShadows) continue;
+					casterCounter++;
+				}
+				ImGui::Text(("Active Mesh Entities: " + CU::NumberFormat(counter)).c_str());
+				ImGui::Text(("Active Shadow Casting Mesh Entities: " + CU::NumberFormat(casterCounter)).c_str());
+			}
+
+			ImGui::Spacing();
+
+			//Point Light
+			{
+				uint32_t counter = 0;
+				auto entities = mySceneContext->GetAllEntitiesWith<PointLightComponent>();
+				for (auto id : entities)
+				{
+					Entity entity = Entity(id, mySceneContext.get());
+					if (!entity.IsActive()) continue;
+
+					const auto& component = entities.get<PointLightComponent>(id);
+					if (!component.isActive || !component.castsShadows) continue;
+
+					counter++;
+				}
+				ImGui::Text(("Active Shadow Casters (Point Light): " + CU::NumberFormat(counter)).c_str());
+			}
+
+			//Spotlight
+			{
+				uint32_t counter = 0;
+				auto entities = mySceneContext->GetAllEntitiesWith<SpotlightComponent>();
+				for (auto id : entities)
+				{
+					Entity entity = Entity(id, mySceneContext.get());
+					if (!entity.IsActive()) continue;
+
+					const auto& component = entities.get<SpotlightComponent>(id);
+					if (!component.isActive || !component.castsShadows) continue;
+
+					counter++;
+				}
+				ImGui::Text(("Active Shadow Casters (Spotlight): " + CU::NumberFormat(counter)).c_str());
+			}
+
+			ImGui::Spacing();
+
+			//Text
+			{
+				uint32_t counter = 0;
+				auto entities = mySceneContext->GetAllEntitiesWith<TextRendererComponent>();
+				for (auto id : entities)
+				{
+					Entity entity = Entity(id, mySceneContext.get());
+					if (!entity.IsActive()) continue;
+
+					const auto& component = entities.get<TextRendererComponent>(id);
+					if (!component.isActive) continue;
+
+					counter++;
+				}
+				ImGui::Text(("Active Text Entities: " + CU::NumberFormat(counter)).c_str());
+			}
 		}
 
 		ImGui::Spacing();
