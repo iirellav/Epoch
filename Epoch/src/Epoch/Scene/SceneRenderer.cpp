@@ -238,10 +238,9 @@ namespace Epoch
 			VertexBufferLayout layout =
 			{
 				{ ShaderDataType::Float3,	"POSITION" },
-				{ ShaderDataType::UInt,		"TEXINDEX" },
+				{ ShaderDataType::UInt,		"ID" },
 				{ ShaderDataType::Float4,	"TINT" },
-				{ ShaderDataType::Float2,	"UV" },
-				{ ShaderDataType::UInt,		"ID" }
+				{ ShaderDataType::Float2,	"UV" }
 			};
 
 			FramebufferSpecification specs;
