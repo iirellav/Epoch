@@ -45,7 +45,7 @@ namespace CU
 
 		CU::Vector4<T> GetTranslation() const;
 		CU::Vector4<T> GetRotation() const;
-		Quaternion<T> GetOrientaion() const;
+		Quaternion<T> GetOrientation() const;
 		CU::Vector3<T> GetScale() const;
 
 		void Decompose(Vector3<T>& aPosition, Vector3<T>& aRotation, Vector3<T>& aScale) const;
@@ -520,7 +520,80 @@ namespace CU
 	template<typename T>
 	inline Matrix4x4<T> Matrix4x4<T>::GetInverse() const
 	{
-		return GetInverse(*this);
+		Matrix4x4<T> inv;
+		T det;
+		T m[16];
+
+		// Copy matrix data for easier indexing
+		for (int i = 0; i < 16; i++)
+			m[i] = myData[i];
+
+		// Compute cofactors
+		inv.myData[0] = m[5] * m[10] * m[15] - m[5] * m[11] * m[14] - m[9] * m[6] * m[15]
+			+ m[9] * m[7] * m[14] + m[13] * m[6] * m[11] - m[13] * m[7] * m[10];
+
+		inv.myData[1] = -m[1] * m[10] * m[15] + m[1] * m[11] * m[14] + m[9] * m[2] * m[15]
+			- m[9] * m[3] * m[14] - m[13] * m[2] * m[11] + m[13] * m[3] * m[10];
+
+		inv.myData[2] = m[1] * m[6] * m[15] - m[1] * m[7] * m[14] - m[5] * m[2] * m[15]
+			+ m[5] * m[3] * m[14] + m[13] * m[2] * m[7] - m[13] * m[3] * m[6];
+
+		inv.myData[3] = -m[1] * m[6] * m[11] + m[1] * m[7] * m[10] + m[5] * m[2] * m[11]
+			- m[5] * m[3] * m[10] - m[9] * m[2] * m[7] + m[9] * m[3] * m[6];
+
+		inv.myData[4] = -m[4] * m[10] * m[15] + m[4] * m[11] * m[14] + m[8] * m[6] * m[15]
+			- m[8] * m[7] * m[14] - m[12] * m[6] * m[11] + m[12] * m[7] * m[10];
+
+		inv.myData[5] = m[0] * m[10] * m[15] - m[0] * m[11] * m[14] - m[8] * m[2] * m[15]
+			+ m[8] * m[3] * m[14] + m[12] * m[2] * m[11] - m[12] * m[3] * m[10];
+
+		inv.myData[6] = -m[0] * m[6] * m[15] + m[0] * m[7] * m[14] + m[4] * m[2] * m[15]
+			- m[4] * m[3] * m[14] - m[12] * m[2] * m[7] + m[12] * m[3] * m[6];
+
+		inv.myData[7] = m[0] * m[6] * m[11] - m[0] * m[7] * m[10] - m[4] * m[2] * m[11]
+			+ m[4] * m[3] * m[10] + m[8] * m[2] * m[7] - m[8] * m[3] * m[6];
+
+		inv.myData[8] = m[4] * m[9] * m[15] - m[4] * m[11] * m[13] - m[8] * m[5] * m[15]
+			+ m[8] * m[7] * m[13] + m[12] * m[5] * m[11] - m[12] * m[7] * m[9];
+
+		inv.myData[9] = -m[0] * m[9] * m[15] + m[0] * m[11] * m[13] + m[8] * m[1] * m[15]
+			- m[8] * m[3] * m[13] - m[12] * m[1] * m[11] + m[12] * m[3] * m[9];
+
+		inv.myData[10] = m[0] * m[5] * m[15] - m[0] * m[7] * m[13] - m[4] * m[1] * m[15]
+			+ m[4] * m[3] * m[13] + m[12] * m[1] * m[7] - m[12] * m[3] * m[5];
+
+		inv.myData[11] = -m[0] * m[5] * m[11] + m[0] * m[7] * m[9] + m[4] * m[1] * m[11]
+			- m[4] * m[3] * m[9] - m[8] * m[1] * m[7] + m[8] * m[3] * m[5];
+
+		inv.myData[12] = -m[4] * m[9] * m[14] + m[4] * m[10] * m[13] + m[8] * m[5] * m[14]
+			- m[8] * m[6] * m[13] - m[12] * m[5] * m[10] + m[12] * m[6] * m[9];
+
+		inv.myData[13] = m[0] * m[9] * m[14] - m[0] * m[10] * m[13] - m[8] * m[1] * m[14]
+			+ m[8] * m[2] * m[13] + m[12] * m[1] * m[10] - m[12] * m[2] * m[9];
+
+		inv.myData[14] = -m[0] * m[5] * m[14] + m[0] * m[6] * m[13] + m[4] * m[1] * m[14]
+			- m[4] * m[2] * m[13] - m[12] * m[1] * m[6] + m[12] * m[2] * m[5];
+
+		inv.myData[15] = m[0] * m[5] * m[10] - m[0] * m[6] * m[9] - m[4] * m[1] * m[10]
+			+ m[4] * m[2] * m[9] + m[8] * m[1] * m[6] - m[8] * m[2] * m[5];
+
+		// Compute determinant
+		det = m[0] * inv.myData[0] + m[1] * inv.myData[4] + m[2] * inv.myData[8] + m[3] * inv.myData[12];
+
+		if (det == 0.0f)
+		{
+			return Matrix4x4<T>::Identity; // Non-invertible matrix
+		}
+
+		det = 1.0f / det;
+
+		// Multiply by determinant
+		for (int i = 0; i < 16; i++)
+		{
+			inv.myData[i] *= det;
+		}
+
+		return inv;
 	}
 
 	template<typename T>
@@ -609,7 +682,7 @@ namespace CU
 	}
 
 	template<typename T>
-	CU::Quaternion<T> Matrix4x4<T>::GetOrientaion() const
+	CU::Quaternion<T> Matrix4x4<T>::GetOrientation() const
 	{
 		const Vector3<T> rightDir = { m11, m12, m13 };
 		const Vector3<T> upDir = { m21, m22, m23 };
