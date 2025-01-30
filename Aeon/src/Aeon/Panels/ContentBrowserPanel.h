@@ -189,7 +189,7 @@ namespace Epoch
 
 		SelectionStack myCopiedAssets;
 
-		std::unordered_map<std::string, std::shared_ptr<Texture2D>> myAssetIconMap;
+		std::unordered_map<AssetType, std::shared_ptr<Texture2D>> myAssetIconMap;
 
 		std::unordered_map<AssetType, std::function<void(const AssetMetadata&)>> myItemActivationCallbacks;
 		std::unordered_map<AssetType, std::function<void(const AssetMetadata&)>> myNewAssetCreatedCallbacks;

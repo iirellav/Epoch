@@ -35,21 +35,14 @@ namespace Epoch
 		staticInstance = this;
 		memset(mySearchBuffer, 0, MAX_INPUT_BUFFER_LENGTH);
 
-		myAssetIconMap[""] = EditorResources::ClosedFolderIcon;
-		myAssetIconMap[".fbx"] = EditorResources::ModelIcon;
-		myAssetIconMap[".gltf"] = EditorResources::ModelIcon;
-		myAssetIconMap[".glb"] = EditorResources::ModelIcon;
-		myAssetIconMap[".obj"] = EditorResources::ModelIcon;
-		myAssetIconMap[".png"] = EditorResources::TextureIcon;
-		myAssetIconMap[".jpg"] = EditorResources::TextureIcon;
-		myAssetIconMap[".jpeg"] = EditorResources::TextureIcon;
-		myAssetIconMap[".hdr"] = EditorResources::TextureIcon;
-		myAssetIconMap[".epoch"] = EditorResources::SceneIcon;
-		myAssetIconMap[".cs"] = EditorResources::ScriptFileIcon;
-		myAssetIconMap[".prefab"] = EditorResources::PrefabIcon;
-		myAssetIconMap[".mat"] = EditorResources::MaterialIcon;
-		myAssetIconMap[".mp4"] = EditorResources::VideoIcon;
-		myAssetIconMap[".ttf"] = EditorResources::FontIcon;
+		myAssetIconMap[AssetType::Mesh]			= EditorResources::ModelIcon;
+		myAssetIconMap[AssetType::Texture]		= EditorResources::TextureIcon;
+		myAssetIconMap[AssetType::Scene]		= EditorResources::SceneIcon;
+		myAssetIconMap[AssetType::ScriptFile]	= EditorResources::ScriptFileIcon;
+		myAssetIconMap[AssetType::Prefab]		= EditorResources::PrefabIcon;
+		myAssetIconMap[AssetType::Material]		= EditorResources::MaterialIcon;
+		myAssetIconMap[AssetType::Video]		= EditorResources::VideoIcon;
+		myAssetIconMap[AssetType::Font]			= EditorResources::FontIcon;
 	}
 
 	void ContentBrowserPanel::OnImGuiRender(bool& aIsOpen)
@@ -408,10 +401,9 @@ namespace Epoch
 
 				auto itemIcon = EditorResources::OtherIcon;
 
-				auto extension = metadata.filePath.extension().string();
-				if (myAssetIconMap.find(extension) != myAssetIconMap.end())
+				if (myAssetIconMap.find(metadata.type) != myAssetIconMap.end())
 				{
-					itemIcon = myAssetIconMap[extension];
+					itemIcon = myAssetIconMap[metadata.type];
 				}
 
 				myCurrentItems.items.push_back(std::make_shared<ContentBrowserAsset>(metadata, itemIcon));
@@ -1372,7 +1364,7 @@ namespace Epoch
 
 			if (filename.find(queryLowerCase) != std::string::npos)
 			{
-				results.items.push_back(std::make_shared<ContentBrowserAsset>(asset, myAssetIconMap.find(asset.filePath.extension().string()) != myAssetIconMap.end() ? myAssetIconMap[asset.filePath.extension().string()] : EditorResources::OtherIcon));
+				results.items.push_back(std::make_shared<ContentBrowserAsset>(asset, myAssetIconMap.find(asset.type) != myAssetIconMap.end() ? myAssetIconMap[asset.type] : EditorResources::OtherIcon));
 			}
 		}
 
