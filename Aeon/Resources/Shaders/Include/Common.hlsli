@@ -61,3 +61,22 @@ float3 DecodeOct(float2 f)
     n.xy += n.xy >= 0.0 ? -t : t;
     return normalize(n);
 }
+
+float3 ClipToWorldSpace(const float2 uv, float depth, const float4x4 invViewProj)
+{
+    float4 screenPos;
+    screenPos.x = uv.x * 2.0f - 1.0f;
+    screenPos.y = -(uv.y * 2.0f - 1.0f);
+    screenPos.z = depth;
+    screenPos.w = 1.0f;
+    
+    float4 worldPos = mul(invViewProj, screenPos);
+    worldPos.xyz /= worldPos.w;
+    
+    return worldPos.xyz;
+}
+
+float ToLinearDepth(float depth, float nearPlane, float farPlane)
+{
+    return (2.0f * nearPlane) / (farPlane + nearPlane - depth * (farPlane - nearPlane));
+}

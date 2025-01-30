@@ -40,6 +40,7 @@ namespace Epoch
 	struct CameraBuffer
 	{
 		CU::Matrix4x4f viewProjection;
+		CU::Matrix4x4f invViewProjection;
 		CU::Vector3f pos;
 		float nearPlane = 0.0f;
 		float farPlane = 0.0f;

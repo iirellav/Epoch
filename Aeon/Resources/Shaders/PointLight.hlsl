@@ -55,7 +55,9 @@ float4 main(VertexOutput input) : SV_TARGET
     const float3 albedo = albedoTexture.Sample(clampSampler, input.uv).rgb;
     const float3 material = materialTexture.Sample(clampSampler, input.uv).rgb;
     const float3 normal = DecodeOct(normalTexture.Sample(clampSampler, input.uv).rg);
-    const float3 worldPos = worldPositionTexture.Sample(clampSampler, input.uv).rgb;
+    
+    const float depth = depthTexture.Sample(clampSampler, input.uv).x;
+    float3 worldPos = ClipToWorldSpace(input.uv, depth, CB_InvViewProj);
     
     const float occlusion = material.r;
     const float roughness = material.g;

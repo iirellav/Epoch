@@ -142,7 +142,6 @@ namespace Epoch
 			{ TextureFormat::R11G11B10F,	"Albedo" },
 			{ TextureFormat::RGBA,			"Material" },
 			{ TextureFormat::RG16F,			"Normal" },
-			{ TextureFormat::RGBA32F,		"WorldPosition" },
 			{ TextureFormat::R32UI,			"EntityID" },
 			{ TextureFormat::DEPTH32,		"Depth" } };
 
@@ -220,7 +219,7 @@ namespace Epoch
 
 			FramebufferSpecification specs;
 			specs.existingAttachments.push_back(myUberPipeline->GetSpecification().targetFramebuffer->GetTarget());
-			specs.existingAttachments.push_back(myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(4));
+			specs.existingAttachments.push_back(myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(3));
 			specs.existingDepthAttachment = myGBufferPipeline->GetSpecification().targetFramebuffer->GetDepthAttachment();
 			specs.clearColorOnLoad = false;
 			specs.clearDepthOnLoad = false;
@@ -245,7 +244,7 @@ namespace Epoch
 
 			FramebufferSpecification specs;
 			specs.existingAttachments.push_back(myUberPipeline->GetSpecification().targetFramebuffer->GetTarget());
-			specs.existingAttachments.push_back(myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(4));
+			specs.existingAttachments.push_back(myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(3));
 			specs.existingDepthAttachment = myGBufferPipeline->GetSpecification().targetFramebuffer->GetDepthAttachment();
 			specs.clearColorOnLoad = false;
 			specs.clearDepthOnLoad = false;
@@ -277,7 +276,7 @@ namespace Epoch
 		{
 			FramebufferSpecification specs;
 			specs.existingAttachments.push_back(myUberPipeline->GetSpecification().targetFramebuffer->GetTarget());
-			specs.existingAttachments.push_back(myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(4));
+			specs.existingAttachments.push_back(myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(3));
 			specs.existingDepthAttachment = myGBufferPipeline->GetSpecification().targetFramebuffer->GetDepthAttachment();
 			specs.clearColorOnLoad = false;
 			specs.clearDepthOnLoad = false;
@@ -418,6 +417,10 @@ namespace Epoch
 
 		CameraBuffer camBuffer;
 		camBuffer.viewProjection = aCamera.viewMatrix * aCamera.camera.GetProjectionMatrix();
+		camBuffer.invViewProjection = (aCamera.viewMatrix * aCamera.camera.GetProjectionMatrix()).GetInverse();
+
+		//CU::Matrix4x4f test = camBuffer.viewProjection * camBuffer.invViewProjection;
+
 		camBuffer.pos = aCamera.position;
 		camBuffer.nearPlane = aCamera.nearPlane;
 		camBuffer.farPlane = aCamera.farPlane;
@@ -499,16 +502,33 @@ namespace Epoch
 				{
 					auto gBuffer = myGBufferPipeline->GetSpecification().targetFramebuffer;
 
-					std::vector<ID3D11ShaderResourceView*> SRVs(gBuffer->GetColorAttachmentCount());
+					std::vector<ID3D11ShaderResourceView*> SRVs(4);
 
-					for (size_t i = 0; i < gBuffer->GetColorAttachmentCount(); i++)
 					{
-						auto texture = gBuffer->GetTarget((uint32_t)i);
+						auto texture = gBuffer->GetTarget(0);
 						auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
-						SRVs[i] = dxTexture->GetSRV().Get();
+						SRVs[0] = dxTexture->GetSRV().Get();
 					}
 
-					RHI::GetContext()->PSSetShaderResources(0, (UINT)gBuffer->GetColorAttachmentCount(), SRVs.data());
+					{
+						auto texture = gBuffer->GetTarget(1);
+						auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
+						SRVs[1] = dxTexture->GetSRV().Get();
+					}
+
+					{
+						auto texture = gBuffer->GetTarget(2);
+						auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
+						SRVs[2] = dxTexture->GetSRV().Get();
+					}
+
+					{
+						auto texture = gBuffer->GetDepthAttachment();
+						auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
+						SRVs[3] = dxTexture->GetSRV().Get();
+					}
+
+					RHI::GetContext()->PSSetShaderResources(0, (UINT)4, SRVs.data());
 				}
 
 				Renderer::SetRenderPipeline(myEnvironmentalLightPipeline);
@@ -520,7 +540,7 @@ namespace Epoch
 				{
 					myPointLightBuffer->SetData(&pointLight);
 					myPointLightBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 2);
-
+				
 					Renderer::RenderQuad();
 				}
 				Renderer::RemoveRenderPipeline(myPointLightPipeline);
@@ -544,26 +564,24 @@ namespace Epoch
 						}
 						RHI::GetContext()->PSSetShaderResources(5, 1, SRVs.data());
 					}
-
+				
 					mySpotlightBuffer->SetData(&spotlight);
 					mySpotlightBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 2);
-
+				
 					Renderer::RenderQuad();
-
+				
 					//Remove cookie
 					{
 						std::vector<ID3D11ShaderResourceView*> SRVs(1);
 						RHI::GetContext()->PSSetShaderResources(5, 1, SRVs.data());
 					}
 				}
-
 				Renderer::RemoveRenderPipeline(mySpotlightPipeline);
 
 				//Remove GBuffer as resource
 				{
-					auto gBuffer = myGBufferPipeline->GetSpecification().targetFramebuffer;
-					std::vector<ID3D11ShaderResourceView*> emptySRVs(gBuffer->GetColorAttachmentCount());
-					RHI::GetContext()->PSSetShaderResources(0, (UINT)gBuffer->GetColorAttachmentCount(), emptySRVs.data());
+					std::vector<ID3D11ShaderResourceView*> emptySRVs(4);
+					RHI::GetContext()->PSSetShaderResources(0, (UINT)4, emptySRVs.data());
 				}
 
 				//Remove light data and brdf
@@ -591,7 +609,7 @@ namespace Epoch
 					auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
 					SRVs[0] = dxTexture->GetSRV().Get();
 					
-					texture = myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(3);
+					texture = myGBufferPipeline->GetSpecification().targetFramebuffer->GetDepthAttachment();
 					dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
 					SRVs[1] = dxTexture->GetSRV().Get();
 
@@ -1151,7 +1169,7 @@ namespace Epoch
 	{
 		if (myDrawMode == DrawMode::Shaded)
 		{
-			return myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(4);
+			return myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(3);
 		}
 		else
 		{
