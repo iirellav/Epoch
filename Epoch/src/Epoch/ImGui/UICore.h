@@ -144,6 +144,8 @@ namespace Epoch::UI
 
 	bool Property_InputTextMultiline(const char* aLabel, std::string& outValue, const CU::Vector2f& aSize = CU::Vector2f::Zero, ImGuiInputTextFlags aFlags = 0, const char* aTooltip = "");
 
+	bool Property_FilePath(const char* aLabel, std::filesystem::path& outValue, ImGuiInputTextFlags aFlags = 0, const char* aTooltip = "");
+
 	bool Property_ColorEdit3(const char* aLabel, CU::Color& outValue, ImGuiColorEditFlags aFlags = 0, const char* aTooltip = "");
 
 	bool Property_ColorEdit4(const char* aLabel, CU::Color& outValue, const char* aTooltip = "");

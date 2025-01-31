@@ -45,18 +45,6 @@ namespace Epoch
 			ImGui::TreePop();
 		}
 
-		if (UI::PropertyGridHeader("Console"))
-		{
-			UI::BeginPropertyGrid();
-
-			modified |= UI::Property_Checkbox("Clear Console on Play", settings.clearConsoleOnPlay);
-			modified |= UI::Property_Checkbox("Collapse Console Messages", settings.collapseConsoleMessages);
-			
-			UI::EndPropertyGrid();
-
-			ImGui::TreePop();
-		}
-
 		if (modified)
 		{
 			EditorSettingsSerializer::SaveSettings();

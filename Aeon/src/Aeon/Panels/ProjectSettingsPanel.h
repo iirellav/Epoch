@@ -11,7 +11,9 @@ namespace Epoch
 
 	private:
 		void DrawGeneralPage();
+		void DrawBuildPage();
 		void DrawRendererPage();
 		void DrawPhysicsPage();
+		void DrawScriptingPage();
 	};
 }

@@ -21,7 +21,7 @@ namespace Epoch
 		applicationSpecification.isRuntime = true;
 		//applicationSpecification.name = "Epoch-Runtime";
 		applicationSpecification.name = std::filesystem::path(aArgv[0]).stem().string();
-		applicationSpecification.startFullscreen = true;
+		//applicationSpecification.startFullscreen = true;
 		applicationSpecification.enableImGui = false;
 		applicationSpecification.vSync = false;
 		applicationSpecification.cacheDirectory = "cache";

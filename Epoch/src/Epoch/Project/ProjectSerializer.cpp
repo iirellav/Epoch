@@ -86,6 +86,7 @@ namespace Epoch
 				out << YAML::Key << "ProductName" << YAML::Value << config.productName;
 				out << YAML::Key << "CompanyName" << YAML::Value << config.companyName;
 				out << YAML::Key << "Version" << YAML::Value << config.version;
+				out << YAML::Key << "IconPath" << YAML::Value << config.iconPath.string();
 
 				out << YAML::Key << "StartScene" << YAML::Value << config.startScene;
 
@@ -190,6 +191,7 @@ namespace Epoch
 
 			config.companyName = rootNode["CompanyName"].as<std::string>("");
 			config.version = rootNode["Version"].as<std::string>(config.version);
+			config.iconPath = (std::filesystem::path)rootNode["IconPath"].as<std::string>("");
 
 			config.startScene = rootNode["StartScene"].as<UUID>(UUID(0));
 

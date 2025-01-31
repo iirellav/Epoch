@@ -8,6 +8,7 @@
 #include "Epoch/Rendering/ShaderPack.h"
 #include "Epoch/Rendering/Renderer.h"
 #include "Epoch/Debug/Timer.h"
+#include "Epoch/Editor/EditorSettings.h"
 
 namespace Epoch
 {
@@ -17,6 +18,8 @@ namespace Epoch
 
 		Timer buildTimer;
 
+		const ProjectConfig& configs = Project::GetActive()->GetConfig();
+
 		const auto projDir = Project::GetProjectDirectory();
 		const auto projFilePath = Project::GetProjectPath();
 
@@ -24,7 +27,27 @@ namespace Epoch
 		
 		FileSystem::CopyContent(epochDir / "Resources/Runtime", aBuildLocation);
 
-		//Set icon and other app variables
+		if (FileSystem::Exists("ExternalTools/rcedit.exe"))
+		{
+			const std::filesystem::path rcEditPath = std::filesystem::absolute("ExternalTools/rcedit.exe");
+
+			std::ifstream stream(aBuildLocation / "SetResources.bat");
+			EPOCH_ASSERT(stream.is_open(), "Could not open project file!");
+			std::stringstream ss;
+			ss << stream.rdbuf();
+			stream.close();
+
+			std::string str = ss.str();
+			CU::ReplaceToken(str, "$RCEDIT$", rcEditPath.string());
+			CU::ReplaceToken(str, "$ICON_PATH$", configs.iconPath.string());
+			CU::ReplaceToken(str, "$PRUDUCT_NAME$", configs.productName);
+
+			std::ofstream ostream(aBuildLocation / "SetResources.bat");
+			ostream << str;
+			ostream.close();
+			
+			WinExec((aBuildLocation / "SetResources.bat").string().c_str(), SW_HIDE);
+		}
 
 		ProjectSerializer projectSerializer(Project::GetActive());
 		projectSerializer.SerializeRuntime(aBuildLocation / "Project.eproj");
