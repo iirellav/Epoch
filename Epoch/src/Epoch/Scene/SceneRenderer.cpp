@@ -344,20 +344,30 @@ namespace Epoch
 
 		//Sprites
 		{
-			myStats.drawCalls += CU::Math::CeilToUInt((float)myQuadCount / MaxQuads);
-			myStats.batched += myQuadCount;
-			myStats.vertices += myQuadCount * 4;
-			myStats.indices += myQuadCount * 6;
-			myStats.triangles += myQuadCount * 2;
+			for (auto [_, vb] : myQuadVertices)
+			{
+				auto quadCount = vb.size() / 4;
+
+				myStats.drawCalls += CU::Math::CeilToUInt((float)quadCount / MaxQuads);
+				myStats.batched += quadCount;
+				myStats.vertices += quadCount * 4;
+				myStats.indices += quadCount * 6;
+				myStats.triangles += quadCount * 2;
+			}
 		}
 
 		//Text
 		{
-			myStats.drawCalls += CU::Math::CeilToUInt((float)myTextQuadCount / MaxQuads);
-			myStats.batched += myTextQuadCount;
-			myStats.vertices += myTextQuadCount * 4;
-			myStats.indices += myTextQuadCount * 6;
-			myStats.triangles += myTextQuadCount * 2;
+			for (auto [_, vb] : myTextVertices)
+			{
+				auto quadCount = vb.size() / 4;
+
+				myStats.drawCalls += CU::Math::CeilToUInt((float)quadCount / MaxQuads);
+				myStats.batched += quadCount;
+				myStats.vertices += quadCount * 4;
+				myStats.indices += quadCount * 6;
+				myStats.triangles += quadCount * 2;
+			}
 		}
 
 		if (myStats.drawCalls > myStats.instances + myStats.batched)
