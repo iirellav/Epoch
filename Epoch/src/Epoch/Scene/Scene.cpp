@@ -1316,15 +1316,17 @@ namespace Epoch
 					myPostProcessingData.bufferData.tonemap = vc.tonemapping.tonemap;
 				}
 				
-				myPostProcessingData.bufferData.flags |= (vc.colorGrading.enabled << 0);
 				if (vc.colorGrading.enabled)
 				{
+					myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::ColorGradingEnabled;
+
 					myPostProcessingData.colorGradingLUT = vc.colorGrading.lut;
 				}
 				
-				myPostProcessingData.bufferData.flags |= (vc.vignette.enabled << 1);
 				if (vc.vignette.enabled)
 				{
+					myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::VignetteEnabled;
+
 					myPostProcessingData.bufferData.vignetteCenter = vc.vignette.center;
 					myPostProcessingData.bufferData.vignetteColor = vc.vignette.color;
 					myPostProcessingData.bufferData.vignetteIntensity = vc.vignette.intensity;
@@ -1332,17 +1334,19 @@ namespace Epoch
 					myPostProcessingData.bufferData.vignetteSmoothness = vc.vignette.smoothness;
 				}
 
-				myPostProcessingData.bufferData.flags |= (vc.distanceFog.enabled << 2);
 				if (vc.distanceFog.enabled)
 				{
+					myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::DistanceFogEnabled;
+
 					myPostProcessingData.bufferData.distanceFogColor = vc.distanceFog.color.GetVector3();
 					myPostProcessingData.bufferData.distanceFogDensity = vc.distanceFog.density;
 					myPostProcessingData.bufferData.distanceFogOffset = vc.distanceFog.offset;
 				}
 
-				myPostProcessingData.bufferData.flags |= (vc.posterization.enabled << 3);
 				if (vc.posterization.enabled)
 				{
+					myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::PosterizationEnabled;
+
 					myPostProcessingData.bufferData.posterizationSteps = vc.posterization.steps;
 				}
 

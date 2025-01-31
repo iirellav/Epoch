@@ -198,10 +198,10 @@ float4 main(VertexOutput input) : SV_TARGET
     const float depth = depthTexture.Sample(clampSampler, input.uv).x;
     float3 worldPos = ClipToWorldSpace(input.uv, depth, CB_InvViewProj);
     
-    bool colorGradingEnabled =  (Flags >> 0) & 1;
-    bool vignetteEnabled =      (Flags >> 1) & 1;
-    bool distanceFogEnabled =   (Flags >> 2) & 1;
-    bool posterizationEnabled = (Flags >> 3) & 1;
+    bool colorGradingEnabled    = Flags & (1 << 0);
+    bool vignetteEnabled        = Flags & (1 << 1);
+    bool distanceFogEnabled     = Flags & (1 << 2);
+    bool posterizationEnabled   = Flags & (1 << 3);
     
     sourceCol = saturate(Tonemapp(sourceCol)).rgb;
     
