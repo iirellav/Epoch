@@ -10,30 +10,10 @@ namespace Epoch
 {
 	ProjectSettingsPanel::ProjectSettingsPanel() : PagePanel(PROJECT_SETTINGS_PANEL_ID)
 	{
-		myPages.push_back({ "General", [this](){ DrawGeneralPage(); }});
-		myPages.push_back({ "Buid", [this](){ DrawBuildPage(); }});
+		myPages.push_back({ "Build", [this](){ DrawBuildPage(); }});
 		myPages.push_back({ "Renderer", [this](){ DrawRendererPage(); }});
 		myPages.push_back({ "Physics", [this](){ DrawPhysicsPage(); }});
 		myPages.push_back({ "Scripting", [this](){ DrawScriptingPage(); }});
-	}
-
-	void ProjectSettingsPanel::DrawGeneralPage()
-	{
-		ProjectConfig& config = Project::GetActive()->GetConfig();
-		
-		bool modified = false;
-
-		UI::BeginPropertyGrid();
-
-
-
-		UI::EndPropertyGrid();
-
-		if (modified)
-		{
-			ProjectSerializer serializer(Project::GetActive());
-			serializer.Serialize(Project::GetProjectPath());
-		}
 	}
 
 	void ProjectSettingsPanel::DrawBuildPage()

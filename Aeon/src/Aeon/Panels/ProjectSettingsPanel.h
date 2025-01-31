@@ -10,7 +10,6 @@ namespace Epoch
 		~ProjectSettingsPanel() override = default;
 
 	private:
-		void DrawGeneralPage();
 		void DrawBuildPage();
 		void DrawRendererPage();
 		void DrawPhysicsPage();
