@@ -25,7 +25,7 @@ namespace Epoch
 		UI::BeginPropertyGrid();
 		
 		modified |= UI::Property_InputText("Product Name", config.productName);
-		modified |= UI::Property_FilePath("Icon Path", config.iconPath);
+		modified |= UI::Property_AssetReference<Texture2D>("Icon Path", config.appIcon);
 
 		//modified |= UI::Property_InputText("Company Name", config.companyName);
 		//modified |= UI::Property_InputText("Version", config.version);
@@ -36,7 +36,7 @@ namespace Epoch
 		ImGui::Separator();
 
 		UI::BeginPropertyGrid();
-
+		
 		modified |= UI::Property_AssetReference<Scene>("Runtime Start Scene", config.startScene);
 
 		UI::EndPropertyGrid();

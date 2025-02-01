@@ -193,6 +193,8 @@ namespace Epoch::UI
 	{
 		EPOCH_PROFILE_FUNC();
 
+		ImGui::PushID(aLabel);
+
 		bool modified = false;
 
 		//ShiftCursor(10.0f, 9.0f);
@@ -349,12 +351,16 @@ namespace Epoch::UI
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
 
+		ImGui::PopID();
+
 		return modified;
 	}
 
 	static bool Property_EntityReference(const char* aLabel, UUID& outEntityID, std::shared_ptr<Scene> aCurrentScene, const char* aTooltip = "")
 	{
 		EPOCH_PROFILE_FUNC();
+		
+		ImGui::PushID(aLabel);
 
 		bool modified = false;
 
@@ -476,6 +482,8 @@ namespace Epoch::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
+
+		ImGui::PopID();
 
 		return modified;
 	}

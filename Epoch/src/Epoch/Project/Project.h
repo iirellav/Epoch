@@ -15,7 +15,7 @@ namespace Epoch
 		std::string name = "Untitled";
 		std::string companyName = "";
 		std::string version = "1.0.0";
-		std::filesystem::path iconPath = "";
+		AssetHandle appIcon = 0;
 
 		AssetHandle startScene = 0;
 
