@@ -44,6 +44,7 @@ namespace Epoch
 			LOG_WARNING("File not found ''!", batchFilePath);
 		}
 		
+		batchFilePath = "\"" + batchFilePath + "\"";
 		WinExec(batchFilePath.c_str(), SW_HIDE);
 		//std::system(batchFilePath.c_str());
 	}

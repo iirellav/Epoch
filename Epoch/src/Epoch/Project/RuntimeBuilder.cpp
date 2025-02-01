@@ -31,9 +31,9 @@ namespace Epoch
 		if (FileSystem::Exists("ExternalTools/rcedit.exe"))
 		{
 			std::string rcEditPath = std::filesystem::absolute("ExternalTools/rcedit.exe").string();
-			rcEditPath = "\"" + rcEditPath + "\"";
+			std::string magicPath = std::filesystem::absolute("ExternalTools/magick.exe").string();
 
-			std::string iconPath = "";
+			const std::string iconPath = "icon.ico";
 			std::string icoConvertCmd = "";
 			std::string deleteIcoCmd = "";
 			if (configs.appIcon != 0)
@@ -48,10 +48,7 @@ namespace Epoch
 						std::filesystem::path fullIconPath = Project::GetEditorAssetManager()->GetFileSystemPath(configs.appIcon);
 						if (FileSystem::Exists(fullIconPath))
 						{
-							iconPath = "icon.ico";
-							std::string magicPath = std::filesystem::absolute("ExternalTools/magick.exe").string();
-							magicPath = "\"" + magicPath + "\"";
-							icoConvertCmd = std::format("call {} {} -define icon:auto-resize=16,24,32,48,64,72,96,128,256 {}", magicPath, fullIconPath.string(), iconPath);
+							icoConvertCmd = std::format("call \"{}\" \"{}\" -define icon:auto-resize=16,24,32,48,64,72,96,128,256 \"{}\"", magicPath, fullIconPath.string(), iconPath);
 							deleteIcoCmd = std::format("call del {}", iconPath);
 						}
 					}
