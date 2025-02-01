@@ -73,7 +73,7 @@ namespace Epoch
 		AmbientOcclusion,
 		Roughness,
 		Metalness,
-		WorldPosition
+		Emission
 	};
 
 	class SceneRenderer

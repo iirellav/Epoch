@@ -51,6 +51,7 @@ VertexOutput main(VertexInput input)
 
 #stage pixel
 #include "Include/Common.hlsli"
+#include "Include/MaterialBuffer.hlsli"
 
 struct VertexOutput
 {
@@ -63,21 +64,6 @@ struct VertexOutput
     float3 color : COLOR;
     uint entityID : ID;
 };
-
-cbuffer MaterialBuffer : register(b1)
-{
-    float3 MB_AlbedoColor;
-    float MB_NormalStrength;
-
-    float2 MB_UVTiling;
-    float2 MB_UVOffset;
-    
-    float3 MB_EmissionColor;
-    float MB_EmissionStrength;
-    
-    float MB_Roughness;
-    float MB_Metalness;
-}
 
 struct GBufferOutput
 {

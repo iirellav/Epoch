@@ -1698,7 +1698,7 @@ namespace Epoch
 			//	//TODO: Change editor camera projection type
 			//}
 
-			const char* drawModeStrings[] = { "Shaded", "Albedo", "Normals", "Ambient Occlusion", "Roughness", "Metalness", "World Position" };
+			const char* drawModeStrings[] = { "Shaded", "Albedo", "Normals", "Ambient Occlusion", "Roughness", "Metalness", "Emission" };
 			uint32_t currentDrawMode = (int)mySceneRenderer->GetDrawMode();
 			if (UI::Property_Dropdown("Draw Mode", drawModeStrings, 7, currentDrawMode))
 			{
@@ -2268,6 +2268,7 @@ namespace Epoch
 		if (aEvent.GetMouseButton() == MouseButton::Left)
 		{
 			if (mySceneState == SceneState::Play ||
+				mySceneRenderer->GetDrawMode() != DrawMode::Shaded ||
 				!myViewportHovered ||
 				ImGui::IsAnyItemHovered() ||
 				ImGuizmo::IsOver() ||

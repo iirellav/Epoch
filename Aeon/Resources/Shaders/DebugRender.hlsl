@@ -53,6 +53,7 @@ VertexOutput main(VertexInput input)
 
 #stage pixel
 #include "Include/Common.hlsli"
+#include "Include/MaterialBuffer.hlsli"
 
 struct VertexOutput
 {
@@ -64,19 +65,6 @@ struct VertexOutput
     float2 uv : UV;
     float3 color : COLOR;
 };
-
-cbuffer MaterialBuffer : register(b1)
-{
-    float3 MB_AlbedoColor;
-    float MB_NormalStrength;
-
-    float2 MB_UVTiling;
-    float MB_Roughness;
-    float MB_Metalness;
-    
-    float3 MB_EmissionColor;
-    float MB_EmissionStrength;
-}
 
 cbuffer DrawModeBuffer : register(b2)
 {
@@ -108,16 +96,16 @@ float4 main(VertexOutput input) : SV_TARGET
     pixelNormal.xy *= MB_NormalStrength;
     pixelNormal = normalize(mul(normalize(pixelNormal), tbn));
     
-    const float3 materialValues = materialTexture.Sample(wrapSampler, scaledUV).rgb * float3(1.0f, MB_Roughness, MB_Metalness);
+    const float4 materialValues = materialTexture.Sample(wrapSampler, scaledUV);
     
     switch (DB_DrawMode)
     {
         case 1: return float4(albedoColor, 1.0f); //Albedo
         case 2: return float4((pixelNormal + 1.0f) * 0.5f, 1.0f); //Normals
         case 3: return float4(materialValues.rrr, 1.0f); //AmbientOcclusion
-        case 4: return float4(materialValues.ggg, 1.0f); //Roughness
-        case 5: return float4(materialValues.bbb, 1.0f); //Metalness
-        case 6: return float4(input.worldPos.xyz, 1.0f); //WorldPosition
+        case 4: return float4(materialValues.ggg * MB_Roughness, 1.0f); //Roughness
+        case 5: return float4(materialValues.bbb * MB_Metalness, 1.0f); //Metalness
+        case 6: return float4(materialValues.aaa, 1.0f) * float4(MB_EmissionColor * MB_EmissionStrength, 1.0f); //Emission
     }
     
     //output.albedoNormX = float4(albedoColor, normals.x);
