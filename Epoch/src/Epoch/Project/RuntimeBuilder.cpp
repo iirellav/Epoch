@@ -74,7 +74,7 @@ namespace Epoch
 
 			std::string str = ss.str();
 			CU::ReplaceToken(str, "$ICO_CONVERT_CMD$", icoConvertCmd);
-			CU::ReplaceToken(str, "$DELETE_ICO_CMD$", icoConvertCmd);
+			CU::ReplaceToken(str, "$DELETE_ICO_CMD$", deleteIcoCmd);
 			CU::ReplaceToken(str, "$RCEDIT$", rcEditPath);
 			CU::ReplaceToken(str, "$ICON_PATH$", iconPath);
 			CU::ReplaceToken(str, "$PRUDUCT_NAME$", configs.productName);
