@@ -10,7 +10,7 @@ namespace Epoch
 
 	private:
 		static void SetResources();
-		static std::pair<std::string, std::string> SetIcon();
+		static void SetIcon(std::string& outIcoConvertCmd, std::string& outDeleteIcoCmd);
 
 	private:
 		static inline std::filesystem::path myBuildLocation;

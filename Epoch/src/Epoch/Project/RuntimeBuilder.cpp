@@ -59,7 +59,9 @@ namespace Epoch
 
 		const ProjectConfig& configs = Project::GetActive()->GetConfig();
 
-		const auto [icoConvertCmd, deleteIcoCmd] = SetIcon();
+		std::string icoConvertCmd;
+		std::string deleteIcoCmd;
+		SetIcon(icoConvertCmd, deleteIcoCmd);
 
 		std::ifstream stream(myBuildLocation / "SetResources.bat");
 		EPOCH_ASSERT(stream.is_open(), "Could not open project file!");
@@ -81,20 +83,20 @@ namespace Epoch
 		WinExec((myBuildLocation / "SetResources.bat").string().c_str(), SW_HIDE);
 	}
 
-	std::pair<std::string, std::string> RuntimeBuilder::SetIcon()
+	void RuntimeBuilder::SetIcon(std::string& outIcoConvertCmd, std::string& outDeleteIcoCmd)
 	{
 		const ProjectConfig& configs = Project::GetActive()->GetConfig();
 
 		if (configs.appIcon == 0 || !FileSystem::Exists("ExternalTools/magick.exe"))
 		{
-			return { "", "" };
+			return;
 		}
 
 		const auto metadata = Project::GetEditorAssetManager()->GetMetadata(configs.appIcon);
 		if (metadata.filePath.extension() != ".png")
 		{
 			CONSOLE_LOG_ERROR("App icon needs to be of type 'png'");
-			return { "", "" };
+			return;
 		}
 
 		auto icon = AssetManager::GetAsset<Texture2D>(configs.appIcon);
@@ -102,7 +104,7 @@ namespace Epoch
 		if (icon->GetWidth() != icon->GetHeight())
 		{
 			CONSOLE_LOG_ERROR("App icon needs to be a square");
-			return { "", "" };
+			return;
 		}
 
 		std::string icoConvertCmd = "";
@@ -111,10 +113,8 @@ namespace Epoch
 		if (FileSystem::Exists(fullIconPath))
 		{
 			const std::string magicPath = std::filesystem::absolute("ExternalTools/magick.exe").string();
-			icoConvertCmd = std::format("call \"{}\" \"{}\" -define icon:auto-resize=16,24,32,48,64,72,96,128,256 \"{}\"", magicPath, fullIconPath.string(), IconPath);
-			deleteIcoCmd = std::format("call del {}", IconPath);
+			outIcoConvertCmd = std::format("call \"{}\" \"{}\" -define icon:auto-resize=16,24,32,48,64,72,96,128,256 \"{}\"", magicPath, fullIconPath.string(), IconPath);
+			outDeleteIcoCmd = std::format("call del {}", IconPath);
 		}
-
-		return { icoConvertCmd, deleteIcoCmd };
 	}
 }
