@@ -31,12 +31,11 @@ namespace Epoch
 		if (FileSystem::Exists("ExternalTools/rcedit.exe"))
 		{
 			std::string rcEditPath = std::filesystem::absolute("ExternalTools/rcedit.exe").string();
-			std::string magicPath = std::filesystem::absolute("ExternalTools/magick.exe").string();
 
 			const std::string iconPath = "icon.ico";
 			std::string icoConvertCmd = "";
 			std::string deleteIcoCmd = "";
-			if (configs.appIcon != 0)
+			if (configs.appIcon != 0 && FileSystem::Exists("ExternalTools/magick.exe"))
 			{
 				const auto metadata = Project::GetEditorAssetManager()->GetMetadata(configs.appIcon);
 				if (metadata.filePath.extension() == ".png")
@@ -48,6 +47,7 @@ namespace Epoch
 						std::filesystem::path fullIconPath = Project::GetEditorAssetManager()->GetFileSystemPath(configs.appIcon);
 						if (FileSystem::Exists(fullIconPath))
 						{
+							std::string magicPath = std::filesystem::absolute("ExternalTools/magick.exe").string();
 							icoConvertCmd = std::format("call \"{}\" \"{}\" -define icon:auto-resize=16,24,32,48,64,72,96,128,256 \"{}\"", magicPath, fullIconPath.string(), iconPath);
 							deleteIcoCmd = std::format("call del {}", iconPath);
 						}
@@ -90,7 +90,7 @@ namespace Epoch
 
 		FileSystem::CreateDirectory(aBuildLocation / "Assets");
 
-		AssetPack::CreateFromActiveProject(aBuildLocation / "Assets");
+		AssetPack::CreateFromActiveProject(aBuildLocation / "Assets/AssetPack.eap");
 		ShaderPack::CreateFromLibrary(Renderer::GetShaderLibrary(), aBuildLocation / "Assets/ShaderPack.esp");
 
 		CONSOLE_LOG_INFO("Build took {}s to complete", buildTimer.Elapsed());

@@ -110,14 +110,6 @@ namespace Epoch
 		}
 
 		AssetPackSerializer assetPackSerializer;
-		if (aDestination == "")
-		{
-			aDestination = Project::GetAssetDirectory() / "AssetPack.eap";
-		}
-		else
-		{
-			aDestination /= "AssetPack.eap";
-		}
 		assetPackSerializer.Serialize(aDestination, assetPackFile, appBinary);
 
 		return true;
