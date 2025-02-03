@@ -2336,6 +2336,27 @@ namespace Epoch
 			createdEntity = myContext->CreateEntity("New Entity");
 		}
 
+		if (ImGui::MenuItem("Create Empty Parent", 0, false, entitySelected))
+		{
+			Entity newParent;
+			if (entityChilded)
+			{
+				Entity oldParent = selection.GetParent();
+				newParent = myContext->CreateChildEntity(oldParent, "New Parent");
+			}
+			else
+			{
+				newParent = myContext->CreateEntity("New Parent");
+			}
+
+			auto selectedEntities = SelectionManager::GetSelections(SelectionContext::Scene);
+			for (UUID entityID : selectedEntities)
+			{
+				Entity entity = myContext->GetEntityWithUUID(entityID);
+				entity.SetParent(newParent);
+			}
+		}
+
 		if (ImGui::BeginMenu("3D Object"))
 		{
 			if (ImGui::MenuItem("Cube"))
