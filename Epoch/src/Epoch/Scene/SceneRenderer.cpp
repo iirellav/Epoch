@@ -346,7 +346,7 @@ namespace Epoch
 		{
 			for (auto [_, vb] : myQuadVertices)
 			{
-				auto quadCount = vb.size() / 4;
+				auto quadCount = (uint32_t)vb.size() / 4;
 
 				myStats.drawCalls += CU::Math::CeilToUInt((float)quadCount / MaxQuads);
 				myStats.batched += quadCount;
@@ -360,7 +360,7 @@ namespace Epoch
 		{
 			for (auto [_, vb] : myTextVertices)
 			{
-				auto quadCount = vb.size() / 4;
+				auto quadCount = (uint32_t)vb.size() / 4;
 
 				myStats.drawCalls += CU::Math::CeilToUInt((float)quadCount / MaxQuads);
 				myStats.batched += quadCount;
