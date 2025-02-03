@@ -33,7 +33,10 @@ namespace Epoch
 
 		//myScene->setSimulationEventCallback(myEventCallback.get());
 
+#if  _RUNTIME && !_DIST || !_RUNTIME
 		api->ConnectPVD();
+#endif
+
 		api->InitControllerManager(this);
 
 		CreatePhysicsBodies();

@@ -15,34 +15,44 @@ namespace Epoch
 {
 	constexpr std::string IconPath = "icon.ico";
 
-	bool RuntimeBuilder::Build(const std::filesystem::path& aBuildLocation)
+	bool RuntimeBuilder::Build(const std::filesystem::path& aBuildLocation, bool aDevMode)
 	{
 		EPOCH_PROFILE_FUNC();
 
-		myBuildLocation = aBuildLocation;
+		const ProjectConfig& configs = Project::GetActive()->GetConfig();
+		
+		staticBuildLocation = aBuildLocation;
+		staticAppName = aDevMode ? configs.productName + "_Dev" : configs.productName;
 
 		Timer buildTimer;
-
-		const ProjectConfig& configs = Project::GetActive()->GetConfig();
 
 		const auto projDir = Project::GetProjectDirectory();
 		const auto projFilePath = Project::GetProjectPath();
 
 		std::filesystem::path epochDir = std::filesystem::current_path();
 		
-		FileSystem::CopyContent(epochDir / "Resources/Runtime", myBuildLocation);
+		FileSystem::CopyContent(epochDir / "Resources/Runtime", staticBuildLocation);
+		if (aDevMode)
+		{
+			FileSystem::DeleteFile(staticBuildLocation / "Runtime.exe");
+			FileSystem::Rename(staticBuildLocation / "Runtime_Dev.exe", staticBuildLocation / "Runtime.exe");
+		}
+		else
+		{
+			FileSystem::DeleteFile(staticBuildLocation / "Runtime_Dev.exe");
+		}
 
 		SetResources();
 
 		ProjectSerializer projectSerializer(Project::GetActive());
-		projectSerializer.SerializeRuntime(myBuildLocation / "Project.eproj");
+		projectSerializer.SerializeRuntime(staticBuildLocation / "Project.eproj");
 
-		FileSystem::CopyFile("Resources/Scripts/Epoch-ScriptCore.dll", myBuildLocation);
+		FileSystem::CopyFile("Resources/Scripts/Epoch-ScriptCore.dll", staticBuildLocation);
 
-		FileSystem::CreateDirectory(myBuildLocation / "Assets");
+		FileSystem::CreateDirectory(staticBuildLocation / "Assets");
 
-		AssetPack::CreateFromActiveProject(myBuildLocation / "Assets/AssetPack.eap");
-		ShaderPack::CreateFromLibrary(Renderer::GetShaderLibrary(), myBuildLocation / "Assets/ShaderPack.esp");
+		AssetPack::CreateFromActiveProject(staticBuildLocation / "Assets/AssetPack.eap");
+		ShaderPack::CreateFromLibrary(Renderer::GetShaderLibrary(), staticBuildLocation / "Assets/ShaderPack.esp");
 
 		CONSOLE_LOG_INFO("Build took {}s to complete", buildTimer.Elapsed());
 
@@ -57,13 +67,11 @@ namespace Epoch
 		}
 		const std::string rcEditPath = std::filesystem::absolute("ExternalTools/rcedit.exe").string();
 
-		const ProjectConfig& configs = Project::GetActive()->GetConfig();
-
 		std::string icoConvertCmd;
 		std::string deleteIcoCmd;
 		SetIcon(icoConvertCmd, deleteIcoCmd);
 
-		std::ifstream stream(myBuildLocation / "SetResources.bat");
+		std::ifstream stream(staticBuildLocation / "SetResources.bat");
 		EPOCH_ASSERT(stream.is_open(), "Could not open project file!");
 		std::stringstream ss;
 		ss << stream.rdbuf();
@@ -74,13 +82,13 @@ namespace Epoch
 		CU::ReplaceToken(str, "$DELETE_ICO_CMD$", deleteIcoCmd);
 		CU::ReplaceToken(str, "$RCEDIT$", rcEditPath);
 		CU::ReplaceToken(str, "$ICON_PATH$", IconPath);
-		CU::ReplaceToken(str, "$PRUDUCT_NAME$", configs.productName);
+		CU::ReplaceToken(str, "$PRUDUCT_NAME$", staticAppName);
 
-		std::ofstream ostream(myBuildLocation / "SetResources.bat");
+		std::ofstream ostream(staticBuildLocation / "SetResources.bat");
 		ostream << str;
 		ostream.close();
 		
-		WinExec((myBuildLocation / "SetResources.bat").string().c_str(), SW_HIDE);
+		WinExec((staticBuildLocation / "SetResources.bat").string().c_str(), SW_HIDE);
 	}
 
 	void RuntimeBuilder::SetIcon(std::string& outIcoConvertCmd, std::string& outDeleteIcoCmd)

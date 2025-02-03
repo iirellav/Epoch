@@ -1,6 +1,8 @@
 project "Epoch-Runtime"
 	kind "ConsoleApp"
 	targetname "Runtime"
+	filter "configurations:R-Release"
+		targetname "Runtime_Dev"
 
 	targetdir ("../bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("../bin-int/" .. outputdir .. "/%{prj.name}")
@@ -23,7 +25,8 @@ project "Epoch-Runtime"
 		"../Epoch/vendor/filewatch/include",
 		"../Epoch/vendor/yaml-cpp/include",
 		"../Epoch/vendor/NFD-Extended/include",
-		"../Epoch/vendor/magic_enum/include"
+		"../Epoch/vendor/magic_enum/include",
+		"../Epoch/vendor/tracy/tracy"
 	}
 
 	links

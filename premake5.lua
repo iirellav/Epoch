@@ -37,7 +37,7 @@ workspace "Epoch"
 		optimize "off"
 		symbols "on"
 		
-	filter "configurations:Release or configurations:Runtime-Release"
+	filter "configurations:Release or configurations:R-Release"
 		defines { "_RELEASE", "NDEBUG" }
 		optimize "on"
 		symbols "default"

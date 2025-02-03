@@ -496,6 +496,16 @@ namespace Epoch
 					}
 				}
 
+				if (ImGui::MenuItem("Build (Dev)"))
+				{
+					const auto buildLocation = FileSystem::OpenFolderDialog();
+
+					if (!buildLocation.empty())
+					{
+						RuntimeBuilder::Build(buildLocation, true);
+					}
+				}
+
 				ImGui::Separator();
 
 				if (ImGui::MenuItem("Exit"))
