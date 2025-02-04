@@ -13,7 +13,7 @@
 
 namespace Epoch
 {
-	constexpr std::string IconPath = "icon.ico";
+	const std::string IconPath = "icon.ico";
 
 	bool RuntimeBuilder::Build(const std::filesystem::path& aBuildLocation, bool aDevMode)
 	{

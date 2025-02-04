@@ -6,12 +6,9 @@ namespace Epoch
 	class AssetManagerPanel : public EditorPanel
 	{
 	public:
-		AssetManagerPanel() = default;
+		AssetManagerPanel(const std::string& aName);
 		~AssetManagerPanel() = default;
 
 		void OnImGuiRender(bool& aIsOpen) override;
-
-	private:
-
 	};
 }

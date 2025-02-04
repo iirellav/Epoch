@@ -6,7 +6,7 @@ namespace Epoch
 	class ScriptEngineDebugPanel : public EditorPanel
 	{
 	public:
-		ScriptEngineDebugPanel() = default;
+		ScriptEngineDebugPanel(const std::string& aName);
 		~ScriptEngineDebugPanel() override = default;
 		
 		void OnImGuiRender(bool& aIsOpen) override;

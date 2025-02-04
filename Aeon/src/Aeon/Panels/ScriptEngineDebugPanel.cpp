@@ -2,15 +2,24 @@
 #include <Epoch/ImGui/ImGui.h>
 #include <Epoch/Script/ScriptCache.h>
 #include <Epoch/Script/ScriptEngine.h>
-#include <Epoch/Editor/PanelIDs.h>
 
 namespace Epoch
 {
 	static std::vector<AssemblyMetadata> staticLoadedAssembliesMetadata;
 
+	ScriptEngineDebugPanel::ScriptEngineDebugPanel(const std::string& aName) : EditorPanel(aName)
+	{
+	}
+
 	void ScriptEngineDebugPanel::OnImGuiRender(bool& aIsOpen)
 	{
-		ImGui::Begin(SCRIPT_ENGINE_DEBUG_PANEL_ID, &aIsOpen);
+		bool open = ImGui::Begin(myName.c_str(), &aIsOpen);
+		
+		if (!open)
+		{
+			ImGui::End();
+			return;
+		}
 
 		if (UI::PropertyGridHeader(fmt::format("Loaded Assemblies ({})", staticLoadedAssembliesMetadata.size()), false))
 		{

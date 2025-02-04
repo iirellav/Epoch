@@ -63,6 +63,21 @@ namespace Epoch
 			myEventQueue.emplace(func);
 		}
 
+		template<typename TEvent, bool DispatchImmediately = false, typename... TEventArgs>
+		void DispatchEvent(TEventArgs&&... args)
+		{
+			std::shared_ptr<TEvent> event = std::make_shared<TEvent>(std::forward<TEventArgs>(args)...);
+			if constexpr (DispatchImmediately)
+			{
+				OnEvent(*event);
+			}
+			else
+			{
+				std::scoped_lock<std::mutex> lock(myEventQueueMutex);
+				myEventQueue.emplace([event](){ Application::Get().OnEvent(*event); });
+			}
+		}
+
 		static bool IsRuntime() { return staticIsRuntime; }
 
 	private:

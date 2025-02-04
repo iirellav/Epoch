@@ -8,7 +8,7 @@
 #include <Epoch/Editor/EditorCamera.h>
 #include <Epoch/Rendering/Texture.h>
 #include <Epoch/Rendering/DebugRenderer.h>
-#include "Aeon/PanelManager.h"
+#include "PanelManager.h"
 
 namespace ImGuizmo
 {
@@ -20,6 +20,8 @@ namespace Epoch
 	class KeyPressedEvent;
 	class MouseButtonPressedEvent;
 	class EditorFileDroppedEvent;
+
+	class ViewportPanel;
 
 	class EditorLayer : public Layer
 	{
@@ -80,7 +82,6 @@ namespace Epoch
 
 		void EditorOptionsPanel();
 		void ToolbarPanel();
-		void ViewportPanel();
 
 		void OnScenePlay();
 		void OnSceneSimulate();
@@ -102,22 +103,13 @@ namespace Epoch
 
 	private:
 		std::unique_ptr<PanelManager> myPanelManager;
-		
+		std::shared_ptr<ViewportPanel> mySceneViewport;
+		std::shared_ptr<ViewportPanel> myGameViewport;
+
 		std::vector<std::function<void()>> myPostSceneUpdateQueue;
 
-		bool myViewportFocused = false;
-		bool myViewportHovered = false;
-		bool myStartedCameraClickInViewport = false;
-		struct Bounds
-		{
-			CU::Vector2f min;
-			CU::Vector2f max;
-		} myViewportBounds;
-
 		EditorCamera myEditorCamera;
-		bool myAllowEditorCameraMovement = false;
 
-		std::shared_ptr<SceneRenderer> mySceneRenderer;
 		std::shared_ptr<DebugRenderer> myDebugRenderer;
 
 		std::shared_ptr<Scene> myActiveScene;

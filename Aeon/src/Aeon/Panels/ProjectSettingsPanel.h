@@ -6,7 +6,7 @@ namespace Epoch
 	class ProjectSettingsPanel : public PagePanel
 	{
 	public:
-		ProjectSettingsPanel();
+		ProjectSettingsPanel(const std::string& aName);
 		~ProjectSettingsPanel() override = default;
 
 	private:

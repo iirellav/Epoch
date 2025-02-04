@@ -6,7 +6,7 @@ namespace Epoch
 	class PreferencesPanel : public PagePanel
 	{
 	public:
-		PreferencesPanel();
+		PreferencesPanel(const std::string& aName);
 		~PreferencesPanel() override = default;
 		
 	private:

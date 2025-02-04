@@ -84,7 +84,7 @@ namespace Epoch
 	class ContentBrowserPanel : public EditorPanel
 	{
 	public:
-		ContentBrowserPanel();
+		ContentBrowserPanel(const std::string& aName);
 		~ContentBrowserPanel() = default;
 
 		static ContentBrowserPanel& Get() { return *staticInstance; }

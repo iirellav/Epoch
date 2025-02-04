@@ -7,16 +7,25 @@
 #include <Epoch/Scene/SceneRenderer.h>
 #include <Epoch/Rendering/DebugRenderer.h>
 #include <Epoch/Rendering/Font.h>
-#include <Epoch/Editor/PanelIDs.h>
 #include "../EditorResources.h"
 
 namespace Epoch
 {
+	StatisticsPanel::StatisticsPanel(const std::string& aName) : EditorPanel(aName)
+	{
+	}
+
 	void StatisticsPanel::OnImGuiRender(bool& aIsOpen)
 	{
 		EPOCH_PROFILE_FUNC();
 
-		ImGui::Begin(STATISTICS_PANEL_ID, &aIsOpen);
+		bool open = ImGui::Begin(myName.c_str(), &aIsOpen);
+
+		if (!open)
+		{
+			ImGui::End();
+			return;
+		}
 
 		//Viewport
 		{

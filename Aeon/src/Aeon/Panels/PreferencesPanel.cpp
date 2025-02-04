@@ -6,7 +6,7 @@
 
 namespace Epoch
 {
-	PreferencesPanel::PreferencesPanel() : PagePanel(PREFERENCES_PANEL_ID)
+	PreferencesPanel::PreferencesPanel(const std::string& aName) : PagePanel(aName)
 	{
 		myPages.push_back({ "General", [this](){ DrawGeneralPage(); }});
 		myPages.push_back({ "Level Editor", [this](){ DrawLevelEditorPage(); }});

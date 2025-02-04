@@ -56,7 +56,7 @@ namespace Epoch
 		template<typename T>
 		std::shared_ptr<T> AddPanel(PanelCategory aCategory, const std::string& aName, bool aIsOpenByDefault)
 		{
-			return AddPanel<T>(aCategory, PanelData{ aName, std::make_shared<T>(), aIsOpenByDefault });
+			return AddPanel<T>(aCategory, PanelData{ aName, std::make_shared<T>(aName), aIsOpenByDefault });
 		}
 
 		PanelData* GetPanelData(const std::string& aName);

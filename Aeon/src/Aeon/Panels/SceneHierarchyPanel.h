@@ -31,7 +31,7 @@ namespace Epoch
 		};
 
 	public:
-		SceneHierarchyPanel();
+		SceneHierarchyPanel(const std::string& aName);
 		~SceneHierarchyPanel() override = default;
 
 		void OnImGuiRender(bool& aIsOpen) override;

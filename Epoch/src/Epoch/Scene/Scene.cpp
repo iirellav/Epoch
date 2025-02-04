@@ -498,6 +498,7 @@ namespace Epoch
 	{
 		Entity cameraEntity = GetPrimaryCameraEntity();
 		if (!cameraEntity) return;
+		if (myViewportWidth == 0 || myViewportHeight == 0) return;
 
 		CU::Transform worlTrans = GetWorldSpaceTransform(cameraEntity);
 		const CU::Matrix4x4f cameraTransformMatrix = worlTrans.GetMatrix();

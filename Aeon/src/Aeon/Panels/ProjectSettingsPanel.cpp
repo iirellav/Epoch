@@ -8,7 +8,7 @@
 
 namespace Epoch
 {
-	ProjectSettingsPanel::ProjectSettingsPanel() : PagePanel(PROJECT_SETTINGS_PANEL_ID)
+	ProjectSettingsPanel::ProjectSettingsPanel(const std::string& aName) : PagePanel(aName)
 	{
 		myPages.push_back({ "Build", [this](){ DrawBuildPage(); }});
 		myPages.push_back({ "Renderer", [this](){ DrawRendererPage(); }});

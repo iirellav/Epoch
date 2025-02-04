@@ -10,7 +10,7 @@ namespace Epoch
 	class StatisticsPanel : public EditorPanel
 	{
 	public:
-		StatisticsPanel() = default;
+		StatisticsPanel(const std::string& aName);
 		~StatisticsPanel() override = default;
 
 		void OnImGuiRender(bool& aIsOpen) override;
