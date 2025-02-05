@@ -1050,14 +1050,7 @@ namespace Epoch
 
 					const CU::Matrix4x4f transform = myActiveScene->GetWorldSpaceTransformMatrix(entity);
 
-					if (cc.camera.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
-					{
-						myDebugRenderer->DrawPerspectiveFrustum(transform, cc.camera.GetPerspectiveNearPlane(), cc.camera.GetPerspectiveFarPlane(), cc.camera.GetPerspectiveFOV(), cc.camera.GetAspectRatio(), CU::Color::Green);
-					}
-					else
-					{
-						myDebugRenderer->DrawOrthographicFrustum(transform, cc.camera.GetOrthographicNearPlane(), cc.camera.GetOrthographicFarPlane(), cc.camera.GetOrthographicSize(), cc.camera.GetAspectRatio(), CU::Color::Green);
-					}
+					myDebugRenderer->DrawFrustum(transform.GetFastInverse(), cc.camera.GetProjectionMatrix(), CU::Color::Green);
 				}
 
 				if (entity.HasComponent<DirectionalLightComponent>())
