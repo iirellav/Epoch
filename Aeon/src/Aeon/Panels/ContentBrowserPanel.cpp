@@ -783,11 +783,12 @@ namespace Epoch
 				Refresh();
 				SortItemList();
 
-				if (item->GetID() == mySceneContext->GetHandle() && myCurrentSceneRenamedCallback)
+				auto assetItem = std::static_pointer_cast<ContentBrowserAsset>(item);
+				const auto& assetMetadata = assetItem->GetAssetInfo();
+
+				if (myAssetRenamedCallbacks.find(assetMetadata.type) != myAssetRenamedCallbacks.end())
 				{
-					auto assetItem = std::static_pointer_cast<ContentBrowserAsset>(item);
-					const auto& assetMetadata = assetItem->GetAssetInfo();
-					myCurrentSceneRenamedCallback(assetMetadata);
+					myAssetRenamedCallbacks[assetMetadata.type](assetMetadata);
 				}
 
 				break;

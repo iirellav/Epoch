@@ -35,9 +35,7 @@ namespace Epoch
 	{
 		EPOCH_PROFILE_FUNC();
 
-		std::string batchFilePath = aProjectDirectory.string();
-		std::replace(batchFilePath.begin(), batchFilePath.end(), '/', '\\'); // Only windows
-		batchFilePath += "\\CreateScriptProject.bat";
+		std::string batchFilePath = (aProjectDirectory / "CreateScriptProject.bat").string();
 
 		if (!FileSystem::Exists(batchFilePath))
 		{

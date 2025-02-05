@@ -166,7 +166,7 @@ namespace Epoch
 		{
 			result.Set(ContentBrowserAction::Hovered, true);
 
-			if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && !myIsRenaming)
+			if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && !myIsRenaming && !result.IsSet(ContentBrowserAction::StartRenaming))
 			{
 				result.Set(ContentBrowserAction::Activated, true);
 			}

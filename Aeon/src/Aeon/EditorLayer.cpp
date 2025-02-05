@@ -116,9 +116,17 @@ namespace Epoch
 				ScriptBuilder::RegenerateScriptSolution(Project::GetProjectDirectory());
 			});
 
-		contentBrowserPanel->RegistryCurrentSceneRenamedCallback([this](const AssetMetadata& aMetadata)
+		contentBrowserPanel->RegisterAssetRenamedCallbackForType(AssetType::ScriptFile, [this](const AssetMetadata& aMetadata)
 			{
-				OnCurrentSceneRenamed(aMetadata);
+				ScriptBuilder::RegenerateScriptSolution(Project::GetProjectDirectory());
+			});
+
+		contentBrowserPanel->RegisterAssetRenamedCallbackForType(AssetType::Scene, [this](const AssetMetadata& aMetadata)
+			{
+				if (aMetadata.handle == myEditorScene->GetHandle())
+				{
+					OnCurrentSceneRenamed(aMetadata);
+				}
 			});
 
 		myPanelManager->AddPanel<ProjectSettingsPanel>(PanelCategory::Edit, "Project Settings", PROJECT_SETTINGS_PANEL_ID, false);
@@ -242,7 +250,7 @@ namespace Epoch
 			auto sceneRenderer = mySceneViewport->GetSceneRenderer();
 
 			sceneRenderer->SetScene(myActiveScene);
-			myActiveScene->OnRenderEditor(sceneRenderer, myEditorCamera, !myCullWithSceneCamera);
+			myActiveScene->OnRenderEditor(sceneRenderer, myEditorCamera, !myCullWithSceneCamera, myPostProcessingInSceneView);
 
 			OnRenderOverlay();
 		}
@@ -1924,6 +1932,7 @@ namespace Epoch
 
 			UI::BeginPropertyGrid();
 
+			UI::Property_Checkbox("Post Processing in Scene View", myPostProcessingInSceneView);
 			UI::Property_Checkbox("Show Color Grading LUT", myDisplayCurrentColorGradingLUT);
 
 			UI::EndPropertyGrid();

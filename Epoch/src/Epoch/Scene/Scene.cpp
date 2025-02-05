@@ -520,7 +520,7 @@ namespace Epoch
 		RenderScene(aRenderer, renderCamera, renderCamera, true);
 	}
 
-	void Scene::OnRenderEditor(std::shared_ptr<SceneRenderer> aRenderer, EditorCamera& aCamera, bool aCullWithEditorCamera)
+	void Scene::OnRenderEditor(std::shared_ptr<SceneRenderer> aRenderer, EditorCamera& aCamera, bool aCullWithEditorCamera, bool aWithPostProccessing)
 	{
 		const SceneRendererCamera renderCamera
 		(
@@ -538,7 +538,7 @@ namespace Epoch
 
 		if (aCullWithEditorCamera || !cameraEntity)
 		{
-			RenderScene(aRenderer, renderCamera, renderCamera, false);
+			RenderScene(aRenderer, renderCamera, renderCamera, false, aWithPostProccessing);
 		}
 		else
 		{
@@ -560,7 +560,7 @@ namespace Epoch
 				camera.GetAspectRatio()
 			);
 
-			RenderScene(aRenderer, renderCamera, cullingCamera, false);
+			RenderScene(aRenderer, renderCamera, cullingCamera, false, aWithPostProccessing);
 		}
 	}
 
@@ -1194,7 +1194,7 @@ namespace Epoch
 		outBoneTransforms[aBoneIndex] = bone.invBindPose * matrix;
 	}
 
-	void Scene::RenderScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aRenderCamera, const SceneRendererCamera& aCullingCamera, bool aIsRuntime)
+	void Scene::RenderScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aRenderCamera, const SceneRendererCamera& aCullingCamera, bool aIsRuntime, bool aWithPostProccessing)
 	{
 		EPOCH_PROFILE_FUNC();
 
@@ -1303,55 +1303,58 @@ namespace Epoch
 
 			myPostProcessingData = PostProcessingData();
 			
-			auto volumes = GetAllEntitiesWith<VolumeComponent>();
-			for (auto entityID : volumes)
+			if (aWithPostProccessing)
 			{
-				Entity entity = Entity(entityID, this);
-				if (!entity.IsActive()) continue;
-
-				const auto& vc = volumes.get<VolumeComponent>(entityID);
-				if (!vc.isActive) continue;
-
-				if (vc.tonemapping.enabled)
+				auto volumes = GetAllEntitiesWith<VolumeComponent>();
+				for (auto entityID : volumes)
 				{
-					myPostProcessingData.bufferData.tonemap = vc.tonemapping.tonemap;
+					Entity entity = Entity(entityID, this);
+					if (!entity.IsActive()) continue;
+
+					const auto& vc = volumes.get<VolumeComponent>(entityID);
+					if (!vc.isActive) continue;
+
+					if (vc.tonemapping.enabled)
+					{
+						myPostProcessingData.bufferData.tonemap = vc.tonemapping.tonemap;
+					}
+					
+					if (vc.colorGrading.enabled)
+					{
+						myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::ColorGradingEnabled;
+
+						myPostProcessingData.colorGradingLUT = vc.colorGrading.lut;
+					}
+					
+					if (vc.vignette.enabled)
+					{
+						myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::VignetteEnabled;
+
+						myPostProcessingData.bufferData.vignetteCenter = vc.vignette.center;
+						myPostProcessingData.bufferData.vignetteColor = vc.vignette.color;
+						myPostProcessingData.bufferData.vignetteIntensity = vc.vignette.intensity;
+						myPostProcessingData.bufferData.vignetteSize = vc.vignette.size;
+						myPostProcessingData.bufferData.vignetteSmoothness = vc.vignette.smoothness;
+					}
+
+					if (vc.distanceFog.enabled)
+					{
+						myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::DistanceFogEnabled;
+
+						myPostProcessingData.bufferData.distanceFogColor = vc.distanceFog.color.GetVector3();
+						myPostProcessingData.bufferData.distanceFogDensity = vc.distanceFog.density;
+						myPostProcessingData.bufferData.distanceFogOffset = vc.distanceFog.offset;
+					}
+
+					if (vc.posterization.enabled)
+					{
+						myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::PosterizationEnabled;
+
+						myPostProcessingData.bufferData.posterizationSteps = vc.posterization.steps;
+					}
+
+					break;
 				}
-				
-				if (vc.colorGrading.enabled)
-				{
-					myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::ColorGradingEnabled;
-
-					myPostProcessingData.colorGradingLUT = vc.colorGrading.lut;
-				}
-				
-				if (vc.vignette.enabled)
-				{
-					myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::VignetteEnabled;
-
-					myPostProcessingData.bufferData.vignetteCenter = vc.vignette.center;
-					myPostProcessingData.bufferData.vignetteColor = vc.vignette.color;
-					myPostProcessingData.bufferData.vignetteIntensity = vc.vignette.intensity;
-					myPostProcessingData.bufferData.vignetteSize = vc.vignette.size;
-					myPostProcessingData.bufferData.vignetteSmoothness = vc.vignette.smoothness;
-				}
-
-				if (vc.distanceFog.enabled)
-				{
-					myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::DistanceFogEnabled;
-
-					myPostProcessingData.bufferData.distanceFogColor = vc.distanceFog.color.GetVector3();
-					myPostProcessingData.bufferData.distanceFogDensity = vc.distanceFog.density;
-					myPostProcessingData.bufferData.distanceFogOffset = vc.distanceFog.offset;
-				}
-
-				if (vc.posterization.enabled)
-				{
-					myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::PosterizationEnabled;
-
-					myPostProcessingData.bufferData.posterizationSteps = vc.posterization.steps;
-				}
-
-				break;
 			}
 		}
 

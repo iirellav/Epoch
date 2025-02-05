@@ -72,7 +72,7 @@ namespace Epoch
 		void OnUpdateEditor();
 
 		void OnRenderRuntime(std::shared_ptr<SceneRenderer> aRenderer);
-		void OnRenderEditor(std::shared_ptr<SceneRenderer> aRenderer, EditorCamera& aCamera, bool aCullWithEditorCamera = true);
+		void OnRenderEditor(std::shared_ptr<SceneRenderer> aRenderer, EditorCamera& aCamera, bool aCullWithEditorCamera = true, bool aWithPostProccessing = true);
 
 		void OnSceneTransition(AssetHandle aScene);
 
@@ -200,7 +200,7 @@ namespace Epoch
 		std::vector<CU::Matrix4x4f> GetModelSpaceBoneTransforms(Entity aEntity, std::shared_ptr<Mesh> aMesh);
 		void GetModelSpaceBoneTransform(const std::vector<UUID>& aBoneEntityIds, std::vector<CU::Matrix4x4f>& outBoneTransforms, uint32_t aBoneIndex, const CU::Matrix4x4f& aParentTransform, std::shared_ptr<Skeleton> aSkeleton);
 
-		void RenderScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aRenderCamera, const SceneRendererCamera& aCullingCamera, bool aIsRuntime);
+		void RenderScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aRenderCamera, const SceneRendererCamera& aCullingCamera, bool aIsRuntime, bool aWithPostProccessing = true);
 		Frustum CreateFrustum(const SceneRendererCamera& aCamera);
 		bool FrustumIntersection(const Frustum& aFrustum, const AABB aAABB);
 		
