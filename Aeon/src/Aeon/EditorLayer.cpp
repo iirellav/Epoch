@@ -17,6 +17,7 @@
 #include <Epoch/Core/Events/WindowEvent.h>
 #include <Epoch/Core/Events/SceneEvents.h>
 #include <Epoch/Rendering/Renderer.h>
+#include <Epoch/Rendering/DebugRenderer.h>
 #include <Epoch/Project/ProjectSerializer.h>
 #include <Epoch/Project/RuntimeBuilder.h>
 #include <Epoch/Scene/SceneSerializer.h>
@@ -2063,7 +2064,7 @@ namespace Epoch
 				if (ImGui::ImageButton((ImTextureID)icon->GetView(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled)
 				{
 					myActiveScene->SetPaused(!isPaused);
-					if (!isPaused)
+					if (!myActiveScene->IsPaused() && mySceneState == SceneState::Play)
 					{
 						myGameViewport->SetFocus();
 					}

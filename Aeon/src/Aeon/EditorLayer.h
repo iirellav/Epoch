@@ -4,10 +4,7 @@
 #include <CommonUtilities/Math/Vector/Vector2.hpp>
 #include <Epoch/Core/Layer.h>
 #include <Epoch/Scene/Scene.h>
-#include <Epoch/Scene/SceneRenderer.h>
 #include <Epoch/Editor/EditorCamera.h>
-#include <Epoch/Rendering/Texture.h>
-#include <Epoch/Rendering/DebugRenderer.h>
 #include "PanelManager.h"
 
 namespace ImGuizmo
@@ -20,6 +17,8 @@ namespace Epoch
 	class KeyPressedEvent;
 	class MouseButtonPressedEvent;
 	class EditorFileDroppedEvent;
+
+	class DebugRenderer;
 
 	class ViewportPanel;
 	class StatisticsPanel;
