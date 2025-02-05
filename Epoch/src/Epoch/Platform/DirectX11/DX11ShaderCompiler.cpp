@@ -250,9 +250,13 @@ namespace Epoch
 
 		if (FAILED(result))
 		{
-			LOG_ERROR("Failed to compile {} - {} shader!\nError: '{}'", myShaderSourcePath.stem().string(), ShaderTypeToString(aStage), (char*)errorBlob->GetBufferPointer());
+			LOG_ERROR("Failed to compile {} - {} shader!\nError: {}", myShaderSourcePath.stem().string(), ShaderTypeToString(aStage), (char*)errorBlob->GetBufferPointer());
+			CONSOLE_LOG_ERROR("Failed to compile {} - {} shader!\nError: {}", myShaderSourcePath.stem().string(), ShaderTypeToString(aStage), (char*)errorBlob->GetBufferPointer());
 			errorBlob->Release();
-			blob->Release();
+			if (blob)
+			{
+				blob->Release();
+			}
 			return false;
 		}
 		else

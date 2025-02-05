@@ -8,15 +8,13 @@
 
 namespace Epoch
 {
-	using AssetMap = std::unordered_map<AssetHandle, std::shared_ptr<Asset>>;
-
 	class EditorAssetManager : public AssetManagerBase
 	{
 	public:
 		EditorAssetManager();
 		~EditorAssetManager() override;
 
-		void LoadBuiltInAssets();
+		void LoadBuiltInAssets() override;
 
 		AssetType GetAssetType(AssetHandle aHandle) override;
 		std::shared_ptr<Asset> GetAsset(AssetHandle aHandle) override;
@@ -27,11 +25,12 @@ namespace Epoch
 		bool ReloadData(AssetHandle aAssetHandle) override;
 		void RemoveAsset(AssetHandle aHandle) override;
 
-		bool IsMemoryAsset(AssetHandle handle) override;
+		bool IsMemoryAsset(AssetHandle aHandle) override;
 		bool IsAssetHandleValid(AssetHandle aHandle) override;
 		bool IsAssetLoaded(AssetHandle aHandle) override;
-		bool IsAssetValid(AssetHandle aHandle) override;
-		bool IsAssetMissing(AssetHandle aHandle) override;
+
+		bool IsAssetValid(AssetHandle aHandle);
+		bool IsAssetMissing(AssetHandle aHandle);
 
 		std::unordered_set<AssetHandle> GetAllAssetsWithType(AssetType aType) override;
 		const std::unordered_map<AssetHandle, std::shared_ptr<Asset>>& GetLoadedAssets() override;

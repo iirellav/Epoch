@@ -44,6 +44,8 @@ namespace Epoch
 		
 		void Resize(uint32_t aWidth, uint32_t aHeight) override;
 		void SetData(Buffer aTextureData) override;
+
+		Buffer ReadData() const override;
 		Buffer ReadData(uint32_t aWidth, uint32_t aHeight, uint32_t aX, uint32_t aY) const override;
 
 	private:
@@ -67,6 +69,7 @@ namespace Epoch
 
 		friend class RHI;
 		friend class DX11Framebuffer;
+		friend class DX11TextureCube;
 	};
 
 	class DX11TextureCube : public TextureCube
@@ -78,12 +81,18 @@ namespace Epoch
 		void GenerateMips();
 
 		const void* const GetView() override { return mySRV.Get(); }
+
 		ComPtr<ID3D11Resource> const GetTexture() { return myTexture; }
 		ComPtr<ID3D11ShaderResourceView> const GetSRV() { return mySRV; }
 		ComPtr<ID3D11RenderTargetView> const GetRTV() { return myRTV; }
 		ComPtr<ID3D11UnorderedAccessView> const GetUAV() { return myUAV; }
 
 		ComPtr<ID3D11UnorderedAccessView> const GetMipUAV(uint32_t aMipLevel);
+
+		Buffer ReadData() const override;
+
+	private:
+		static std::shared_ptr<DX11Texture2D> CreateStagingTexture(TextureFormat aFormat, uint32_t aWidth, uint32_t aHeight);
 
 	private:
 		ComPtr<ID3D11Resource> myTexture = nullptr;
@@ -96,6 +105,6 @@ namespace Epoch
 		unsigned myUsageFlags{};
 		unsigned myAccessFlags{};
 
-		DXGI_FORMAT myFormat = DXGI_FORMAT_UNKNOWN;
+		static inline std::mutex staticMutex;
 	};
 }

@@ -9,6 +9,7 @@ namespace Epoch
 		// Epoch types
 		{ ".epoch",		AssetType::Scene },
 		{ ".mat",		AssetType::Material },
+		{ ".anim",		AssetType::Animation },
 		{ ".prefab",	AssetType::Prefab },
 		
 		// Script file

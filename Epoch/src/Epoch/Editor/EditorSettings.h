@@ -38,7 +38,8 @@ namespace Epoch
 		//---------- Grid ------------
 		bool gridEnabled = true;
 		float gridOpacity = 0.5f;
-		CU::Vector2i gridSize = { 20, 20 };
+		CU::Vector3f gridOffset;
+		CU::Vector2f gridSize = { 20.0f, 20.0f };
 		GridPlane gridPlane = GridPlane::Y;
 
 		//---------- Content Browser ------------

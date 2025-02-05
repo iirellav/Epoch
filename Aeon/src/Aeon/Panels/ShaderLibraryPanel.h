@@ -6,7 +6,7 @@ namespace Epoch
 	class ShaderLibraryPanel : public EditorPanel
 	{
 	public:
-		ShaderLibraryPanel() = default;
+		ShaderLibraryPanel(const std::string& aName);
 		~ShaderLibraryPanel() = default;
 
 		void OnImGuiRender(bool& aIsOpen) override;

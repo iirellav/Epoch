@@ -125,6 +125,11 @@ namespace Epoch
 		Create();
 	}
 
+	Buffer DX11Texture2D::ReadData() const
+	{
+		return ReadData(GetWidth(), GetHeight(), 0, 0);
+	}
+
 	Buffer DX11Texture2D::ReadData(uint32_t aWidth, uint32_t aHeight, uint32_t aX, uint32_t aY) const
 	{
 		Buffer outputData;
@@ -219,7 +224,7 @@ namespace Epoch
 		description.CPUAccessFlags = 0;
 		description.MiscFlags = mySpecification.generateMips ? D3D11_RESOURCE_MISC_GENERATE_MIPS : 0;
 
-		if (mySpecification.generateMips)
+		if (mySpecification.generateMips && myTextureData)
 		{
 			HRESULT result = RHI::GetDevice()->CreateTexture2D(&description, nullptr, reinterpret_cast<ID3D11Texture2D**>(myTexture.GetAddressOf()));
 			if (FAILED(result))
@@ -290,7 +295,7 @@ namespace Epoch
 			}
 		}
 
-		if (mySpecification.generateMips && mipLevels > 1)
+		if (mySpecification.generateMips && mipLevels > 1 && myTextureData)
 		{
 			std::lock_guard lock(staticMutex);
 			RHI::GetContext()->GenerateMips(mySRV.Get());
@@ -336,18 +341,24 @@ namespace Epoch
 	DX11TextureCube::DX11TextureCube(const TextureSpecification& aSpec, Buffer aTextureData)
 	{
 		mySpecification = aSpec;
+		auto size = GetMemorySize(mySpecification.format, mySpecification.width, mySpecification.height);
 
 		if (aTextureData)
 		{
 			myTextureData = Buffer::Copy(aTextureData.data, aTextureData.size);
 		}
 
-		D3D11_SUBRESOURCE_DATA subResourceData{};
+		void* faceData[6];
+		D3D11_SUBRESOURCE_DATA subResourceData[6];
 		if (myTextureData)
 		{
-			subResourceData.pSysMem = myTextureData.data;
-			subResourceData.SysMemPitch = (uint32_t)aSpec.width / 4;
-			subResourceData.SysMemSlicePitch = 0;
+			for (size_t i = 0; i < 6; i++)
+			{
+				faceData[i] = myTextureData.ReadBytes(size, size * i);
+				subResourceData[i].pSysMem = faceData[i];
+				subResourceData[i].SysMemPitch = (uint32_t)size / mySpecification.height;
+				subResourceData[i].SysMemSlicePitch = 0;
+			}
 		}
 
 		UINT bindFlags;
@@ -362,11 +373,10 @@ namespace Epoch
 		else
 		{
 			bindFlags = D3D11_BIND_SHADER_RESOURCE;
+			bindFlags |= mySpecification.generateMips ? D3D11_BIND_RENDER_TARGET : 0;
 		}
 
-		//mySpecification.generateMips = mySpecification.generateMips && (bindFlags & D3D11_BIND_RENDER_TARGET) ? true : false;
-
-		myFormat = DX11TextureFormat(mySpecification.format);
+		DXGI_FORMAT format = DX11TextureFormat(mySpecification.format);
 		UINT mipLevels = mySpecification.generateMips ? GetMipLevelCount() : 1;
 
 		D3D11_TEXTURE2D_DESC desc;
@@ -375,18 +385,36 @@ namespace Epoch
 		desc.Height = mySpecification.height;
 		desc.MipLevels = mipLevels;
 		desc.ArraySize = 6;
-		desc.Format = myFormat;
+		desc.Format = format;
 		desc.SampleDesc.Count = 1;
 		desc.SampleDesc.Quality = 0;
 		desc.Usage = D3D11_USAGE_DEFAULT;
 		desc.BindFlags = bindFlags;
 		desc.CPUAccessFlags = 0;
-		desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE | D3D11_RESOURCE_MISC_GENERATE_MIPS; // mySpecification.generateMips ? D3D11_RESOURCE_MISC_TEXTURECUBE | D3D11_RESOURCE_MISC_GENERATE_MIPS : D3D11_RESOURCE_MISC_TEXTURECUBE;
+		desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+		desc.MiscFlags |= mySpecification.generateMips ? D3D11_RESOURCE_MISC_GENERATE_MIPS : 0;
 
-		HRESULT result = RHI::GetDevice()->CreateTexture2D(&desc, nullptr, reinterpret_cast<ID3D11Texture2D**>(myTexture.GetAddressOf()));
-		if (FAILED(result))
+		if (mySpecification.generateMips && myTextureData)
 		{
-			EPOCH_ASSERT(false, "Failed to create a texture 2D!");
+			HRESULT result = RHI::GetDevice()->CreateTexture2D(&desc, nullptr, reinterpret_cast<ID3D11Texture2D**>(myTexture.GetAddressOf()));
+			if (FAILED(result))
+			{
+				EPOCH_ASSERT(false, "Failed to create a texture 2D!");
+			}
+
+			std::lock_guard lock(staticMutex);
+			for (size_t i = 0; i < 6; i++)
+			{
+				RHI::GetContext()->UpdateSubresource(myTexture.Get(), (UINT)i, nullptr, faceData[i], (uint32_t)size / mySpecification.height, 0u);
+			}
+		}
+		else
+		{
+			HRESULT result = RHI::GetDevice()->CreateTexture2D(&desc, myTextureData ? &subResourceData[0] : nullptr, reinterpret_cast<ID3D11Texture2D**>(myTexture.GetAddressOf()));
+			if (FAILED(result))
+			{
+				EPOCH_ASSERT(false, "Failed to create a texture 2D!");
+			}
 		}
 
 		if (bindFlags & D3D11_BIND_SHADER_RESOURCE)
@@ -397,7 +425,7 @@ namespace Epoch
 			srvDesc.TextureCube.MipLevels = mipLevels;
 			srvDesc.TextureCube.MostDetailedMip = 0;
 
-			result = RHI::GetDevice()->CreateShaderResourceView(myTexture.Get(), &srvDesc, mySRV.GetAddressOf());
+			HRESULT result = RHI::GetDevice()->CreateShaderResourceView(myTexture.Get(), &srvDesc, mySRV.GetAddressOf());
 			if (FAILED(result))
 			{
 				EPOCH_ASSERT(false, "Failed to create a shader resource view!");
@@ -406,7 +434,7 @@ namespace Epoch
 
 		if (bindFlags & D3D11_BIND_RENDER_TARGET)
 		{
-			result = RHI::GetDevice()->CreateRenderTargetView(myTexture.Get(), nullptr, myRTV.GetAddressOf());
+			HRESULT result = RHI::GetDevice()->CreateRenderTargetView(myTexture.Get(), nullptr, myRTV.GetAddressOf());
 			if (FAILED(result))
 			{
 				EPOCH_ASSERT(false, "Failed to create a render target view!");
@@ -432,14 +460,19 @@ namespace Epoch
 
 		if (bindFlags & D3D11_BIND_UNORDERED_ACCESS)
 		{
-			result = RHI::GetDevice()->CreateUnorderedAccessView(myTexture.Get(), nullptr, myUAV.GetAddressOf());
+			HRESULT result = RHI::GetDevice()->CreateUnorderedAccessView(myTexture.Get(), nullptr, myUAV.GetAddressOf());
 			if (FAILED(result))
 			{
 				EPOCH_ASSERT(false, "Failed to create a unordered access view!");
 			}
 		}
-		
-		//RHI::GetContext()->GenerateMips(mySRV.Get());
+
+		const uint32_t mipCount = GetMipLevelCount();
+		if (mySpecification.generateMips && mipCount > 1 && myTextureData)
+		{
+			std::lock_guard lock(staticMutex);
+			RHI::GetContext()->GenerateMips(mySRV.Get());
+		}
 
 		myBindFlags = bindFlags;
 		myUsageFlags = D3D11_USAGE_DEFAULT;
@@ -470,7 +503,7 @@ namespace Epoch
 		{
 			const uint32_t mipCount = GetMipLevelCount();
 			D3D11_UNORDERED_ACCESS_VIEW_DESC desc;
-			desc.Format = myFormat;
+			desc.Format = DX11TextureFormat(mySpecification.format);
 			desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
 			desc.Texture2DArray.MipSlice = CU::Math::Clamp(aMipLevel, 0u, mipCount);
 			desc.Texture2DArray.FirstArraySlice = 0;
@@ -488,5 +521,71 @@ namespace Epoch
 		}
 
 		return nullptr;
+	}
+
+	Buffer DX11TextureCube::ReadData() const
+	{
+		const uint64_t faceMemSize = GetMemorySize(mySpecification.format, mySpecification.width, mySpecification.width);
+
+		Buffer out;
+		out.Allocate(faceMemSize * 6);
+
+		for (uint32_t i = 0; i < 6; i++)
+		{
+			auto stagingBuffer = CreateStagingTexture(mySpecification.format, mySpecification.width, mySpecification.height);
+			{
+				D3D11_BOX box = {};
+				box.left = 0;
+				box.right = mySpecification.width;
+				box.top = 0;
+				box.bottom = mySpecification.height;
+				box.front = 0;
+				box.back = 1;
+
+				ID3D11Resource* resource = nullptr;
+				myRTV.Get()->GetResource(&resource);
+				RHI::GetContext()->CopySubresourceRegion(stagingBuffer->myTexture.Get(), 0, 0, 0, 0, resource, i, &box);
+			}
+
+			D3D11_MAPPED_SUBRESOURCE resource;
+			RHI::GetContext()->Map(stagingBuffer->myTexture.Get(), 0, D3D11_MAP_READ, 0, &resource);
+			if (resource.pData)
+			{
+				out.Write(resource.pData, faceMemSize, faceMemSize * i);
+			}
+			RHI::GetContext()->Unmap(stagingBuffer->myTexture.Get(), 0);
+		}
+
+		return out;
+	}
+
+	std::shared_ptr<DX11Texture2D> DX11TextureCube::CreateStagingTexture(TextureFormat aFormat, uint32_t aWidth, uint32_t aHeight)
+	{
+		std::shared_ptr<DX11Texture2D> output = std::make_shared<DX11Texture2D>();
+
+		DXGI_FORMAT format = DX11TextureFormat(aFormat);
+
+		D3D11_TEXTURE2D_DESC description;
+		ZeroMemory(&description, sizeof(description));
+		description.Width = aWidth;
+		description.Height = aHeight;
+		description.MipLevels = 1;
+		description.ArraySize = 1;
+		description.Format = format;
+		description.SampleDesc.Count = 1;
+		description.SampleDesc.Quality = 0;
+		description.Usage = D3D11_USAGE_STAGING;
+		description.BindFlags = 0;
+		description.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+		description.MiscFlags = 0;
+
+		HRESULT result = RHI::GetDevice()->CreateTexture2D(&description, nullptr, reinterpret_cast<ID3D11Texture2D**>(output->myTexture.GetAddressOf()));
+		if (FAILED(result))
+		{
+			EPOCH_ASSERT(false, "Failed to create a staging texture!");
+			output = nullptr;
+		}
+
+		return output;
 	}
 }

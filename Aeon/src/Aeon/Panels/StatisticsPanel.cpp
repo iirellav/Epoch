@@ -7,53 +7,30 @@
 #include <Epoch/Scene/SceneRenderer.h>
 #include <Epoch/Rendering/DebugRenderer.h>
 #include <Epoch/Rendering/Font.h>
-#include <Epoch/Editor/PanelIDs.h>
 #include "../EditorResources.h"
 
 namespace Epoch
 {
+	StatisticsPanel::StatisticsPanel(const std::string& aName) : EditorPanel(aName)
+	{
+	}
+
 	void StatisticsPanel::OnImGuiRender(bool& aIsOpen)
 	{
 		EPOCH_PROFILE_FUNC();
 
-		ImGui::Begin(STATISTICS_PANEL_ID, &aIsOpen);
+		bool open = ImGui::Begin(myName.c_str(), &aIsOpen);
 
-		//Profiler
+		if (!open)
 		{
-			static Timer profileTimer;
-			const float lineHeight = GImGui->Font->FontSize;
-			auto button = Instrumentor::Get().IsPaused() ? EditorResources::PlayButton : EditorResources::StopButton;
-			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-			if (ImGui::ImageButton((ImTextureID)button->GetView(), ImVec2(lineHeight, lineHeight)))
-			{
-				if (Instrumentor::Get().IsPaused())
-				{
-					profileTimer.Reset();
-					EPOCH_UNPAUSE_PROFILING();
-				}
-				else
-				{
-					EPOCH_PAUSE_PROFILING();
-				}
-			}
-			ImGui::PopStyleColor();
-			ImGui::SameLine(lineHeight * 2.0f);
-			UI::ShiftCursorY(2);
-			ImGui::Text("Profiler");
-
-			if (!Instrumentor::Get().IsPaused())
-			{
-				ImGui::Text("Profiling for %.1fs", profileTimer.Elapsed());
-			}
+			ImGui::End();
+			return;
 		}
-
-		ImGui::Spacing();
-		ImGui::Separator();
-		ImGui::Spacing();
 
 		//Viewport
 		{
-			ImGui::Text("Viewport Size: %i, %i", (uint32_t)mySceneContext->GetViewportWidth(), (uint32_t)mySceneContext->GetViewportHeight());
+			const auto [width, height] = mySceneRendererReference.lock()->GetViewportSize();
+			ImGui::Text("Viewport Size: %i x %i", width, height);
 		}
 
 		ImGui::Spacing();
@@ -172,6 +149,90 @@ namespace Epoch
 			ImGui::Spacing();
 			//ImGui::Text("Physics Simulation: %.3fms", mySceneContext->GetPerformanceTimers().physicsSimulation);
 			ImGui::Text("Physics Simulation: %.3fms", frameTimeMs);
+		}
+
+		ImGui::Spacing();
+		ImGui::Separator();
+		ImGui::Spacing();
+
+		//Scene
+		{
+			//Mesh
+			{
+				uint32_t counter = 0;
+				uint32_t casterCounter = 0;
+				auto entities = mySceneContext->GetAllEntitiesWith<MeshRendererComponent>();
+				for (auto id : entities)
+				{
+					Entity entity = Entity(id, mySceneContext.get());
+					if (!entity.IsActive()) continue;
+
+					const auto& component = entities.get<MeshRendererComponent>(id);
+					if (!component.isActive) continue;
+
+					counter++;
+
+					if (!component.castsShadows) continue;
+					casterCounter++;
+				}
+				ImGui::Text(("Active Mesh Entities: " + CU::NumberFormat(counter)).c_str());
+				ImGui::Text(("Active Shadow Casting Mesh Entities: " + CU::NumberFormat(casterCounter)).c_str());
+			}
+
+			ImGui::Spacing();
+
+			//Point Light
+			{
+				uint32_t counter = 0;
+				auto entities = mySceneContext->GetAllEntitiesWith<PointLightComponent>();
+				for (auto id : entities)
+				{
+					Entity entity = Entity(id, mySceneContext.get());
+					if (!entity.IsActive()) continue;
+
+					const auto& component = entities.get<PointLightComponent>(id);
+					if (!component.isActive || !component.castsShadows) continue;
+
+					counter++;
+				}
+				ImGui::Text(("Active Shadow Casters (Point Light): " + CU::NumberFormat(counter)).c_str());
+			}
+
+			//Spotlight
+			{
+				uint32_t counter = 0;
+				auto entities = mySceneContext->GetAllEntitiesWith<SpotlightComponent>();
+				for (auto id : entities)
+				{
+					Entity entity = Entity(id, mySceneContext.get());
+					if (!entity.IsActive()) continue;
+
+					const auto& component = entities.get<SpotlightComponent>(id);
+					if (!component.isActive || !component.castsShadows) continue;
+
+					counter++;
+				}
+				ImGui::Text(("Active Shadow Casters (Spotlight): " + CU::NumberFormat(counter)).c_str());
+			}
+
+			ImGui::Spacing();
+
+			//Text
+			{
+				uint32_t counter = 0;
+				auto entities = mySceneContext->GetAllEntitiesWith<TextRendererComponent>();
+				for (auto id : entities)
+				{
+					Entity entity = Entity(id, mySceneContext.get());
+					if (!entity.IsActive()) continue;
+
+					const auto& component = entities.get<TextRendererComponent>(id);
+					if (!component.isActive) continue;
+
+					counter++;
+				}
+				ImGui::Text(("Active Text Entities: " + CU::NumberFormat(counter)).c_str());
+			}
 		}
 
 		ImGui::Spacing();

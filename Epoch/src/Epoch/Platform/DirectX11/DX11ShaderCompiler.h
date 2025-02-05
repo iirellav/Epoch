@@ -2,7 +2,7 @@
 #include <memory>
 #include <string>
 #include <filesystem>
-#include <unordered_map>
+#include <map>
 #include "Epoch/Rendering/Shader.h"
 
 namespace Epoch
@@ -33,7 +33,7 @@ namespace Epoch
 		bool myDisableOptimization = false;
 		ShaderSourceLang myLanguage;
 
-		std::unordered_map<ShaderStage, std::string> myShaderSources;
-		std::unordered_map<ShaderStage, std::vector<uint8_t>> myBinaries;
+		std::map<ShaderStage, std::string> myShaderSources;
+		std::map<ShaderStage, std::vector<uint8_t>> myBinaries;
 	};
 }

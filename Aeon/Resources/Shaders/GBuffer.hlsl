@@ -51,6 +51,7 @@ VertexOutput main(VertexInput input)
 
 #stage pixel
 #include "Include/Common.hlsli"
+#include "Include/MaterialBuffer.hlsli"
 
 struct VertexOutput
 {
@@ -64,26 +65,12 @@ struct VertexOutput
     uint entityID : ID;
 };
 
-cbuffer MaterialBuffer : register(b1)
-{
-    float3 MB_AlbedoColor;
-    float MB_NormalStrength;
-
-    float2 MB_UVTiling;
-    float MB_Roughness;
-    float MB_Metalness;
-    
-    float3 MB_EmissionColor;
-    float MB_EmissionStrength;
-}
-
 struct GBufferOutput
 {
     float4 albedo : SV_TARGET0;
     float4 material : SV_TARGET1;
     float4 normals : SV_TARGET2;
-    float4 worldPos : SV_TARGET3;
-    uint entityID : SV_TARGET4;
+    uint entityID : SV_TARGET3;
 };
 
 SamplerState wrapSampler : register(s0);
@@ -103,22 +90,21 @@ GBufferOutput main(VertexOutput input)
         input.normal
     );
     
-    const float2 scaledUV = input.uv * MB_UVTiling;
+    const float2 uv = input.uv * MB_UVTiling + MB_UVOffset;
     
-    const float3 albedoColor = ToLinear(albedoTexture.Sample(wrapSampler, scaledUV).rgb) * MB_AlbedoColor;
+    const float3 albedoColor = ToLinear(albedoTexture.Sample(wrapSampler, uv).rgb) * MB_AlbedoColor;
     
-    float3 pixelNormal = normalTexture.Sample(wrapSampler, scaledUV).xyz;
+    float3 pixelNormal = normalTexture.Sample(wrapSampler, uv).xyz;
     pixelNormal = 2 * pixelNormal - 1;
     pixelNormal.z = sqrt(1 - (pixelNormal.x * pixelNormal.x) + (pixelNormal.y * pixelNormal.y));
     pixelNormal.xy *= MB_NormalStrength;
     pixelNormal = normalize(mul(normalize(pixelNormal), tbn));
     
-    const float3 materialValues = materialTexture.Sample(wrapSampler, scaledUV).rgb;
+    const float4 materialValues = materialTexture.Sample(wrapSampler, uv);
     
-    output.albedo = float4(albedoColor, 1.0f) + float4(MB_EmissionColor * MB_EmissionStrength, 1.0f);
-    output.material = float4(materialValues * float3(1.0f, MB_Roughness, MB_Metalness), 1.0f);
+    output.albedo = float4(albedoColor, 1.0f) + float4(MB_EmissionColor * MB_EmissionStrength * materialValues.a, 1.0f);
+    output.material = materialValues * float4(1.0f, MB_Roughness, MB_Metalness, 1.0f);
     output.normals = float4(EncodeOct(pixelNormal), 0.0f, 1.0f);
-    output.worldPos = input.worldPos;
     output.entityID = input.entityID + 1;
     
     return output;

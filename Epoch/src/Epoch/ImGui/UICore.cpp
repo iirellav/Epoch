@@ -464,7 +464,7 @@ namespace Epoch::UI
 		return clicked;
 	}
 
-	bool Property_InputText(const char* aLabel, std::string& outValue, const char* aTooltip)
+	bool Property_InputText(const char* aLabel, std::string& outValue, ImGuiInputTextFlags aFlags, const char* aTooltip)
 	{
 		bool modified = false;
 
@@ -482,7 +482,7 @@ namespace Epoch::UI
 		//ShiftCursorY(4.0f);
 		ImGui::PushItemWidth(-1);
 
-		modified = ImGui::InputText(std::format("##{0}", aLabel).c_str(), &outValue);
+		modified = ImGui::InputText(std::format("##{0}", aLabel).c_str(), &outValue, aFlags);
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
@@ -509,6 +509,53 @@ namespace Epoch::UI
 		ImGui::PushItemWidth(-1);
 
 		modified = ImGui::InputTextMultiline(std::format("##{0}", aLabel).c_str(), &outValue, { aSize.x, aSize.y }, aFlags);
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		return modified;
+	}
+
+	bool Property_FilePath(const char* aLabel, std::filesystem::path& outValue, ImGuiInputTextFlags aFlags, const char* aTooltip)
+	{
+		bool modified = false;
+
+		//ShiftCursor(10.0f, 9.0f);
+		ShiftCursor(10.0f, 3.0f);
+		ImGui::Text(aLabel);
+
+		if (std::strlen(aTooltip) != 0)
+		{
+			ImGui::SameLine();
+			HelpMarker(aTooltip);
+		}
+
+		ImGui::NextColumn();
+		//ShiftCursorY(4.0f);
+		ImGui::PushItemWidth(-1);
+		
+		ImVec2 label_size = ImGui::CalcTextSize("...", NULL, true);
+		auto& style = ImGui::GetStyle();
+		ImVec2 button_size = ImGui::CalcItemSize(ImVec2(0, 0), label_size.x + style.FramePadding.x + style.ItemInnerSpacing.x, label_size.y + style.FramePadding.y);
+
+		std::string stringValue = outValue.string();
+
+		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - button_size.x - style.FramePadding.x - style.ItemInnerSpacing.x);
+		ImGui::BeginDisabled();
+		ImGui::InputText(std::format("##{0}", aLabel).c_str(), (char*)stringValue.c_str(), stringValue.size(), ImGuiInputTextFlags_ReadOnly);
+		ImGui::EndDisabled();
+
+		ImGui::SameLine();
+
+		if (ImGui::Button("..."))
+		{
+			std::string result = FileSystem::OpenFileDialog().string();
+			if (result != "")
+			{
+				outValue = result;
+				modified = true;
+			}
+		}
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();

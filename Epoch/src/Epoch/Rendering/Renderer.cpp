@@ -9,6 +9,8 @@
 #include "Epoch/Rendering/RenderPipeline.h"
 #include "Epoch/Editor/EditorSettings.h"
 
+#include "Epoch/Embed/ColorGradingLut.embed"
+
 namespace Epoch
 {
 	struct RendererData
@@ -19,11 +21,15 @@ namespace Epoch
 		std::shared_ptr<Texture2D> blackTexture;
 		std::shared_ptr<Texture2D> flatNormalTexture;
 		std::shared_ptr<Texture2D> defaultMaterialTexture;
+		std::shared_ptr<TextureCube> defaultBlackCubemap;
+		std::shared_ptr<TextureCube> defaultWhiteCubemap;
 		std::shared_ptr<Texture2D> defaultColorGradingLUT;
 		std::shared_ptr<Texture2D> BRDFLUTTexture;
 
 		std::unique_ptr<filewatch::FileWatch<std::wstring>> shaderWatcherHandle = nullptr;
 	};
+
+	static RendererConfig staticConfig;
 
 	static RendererData staticRendererData;
 	static RendererAPI* staticRendererAPI = nullptr;
@@ -38,9 +44,11 @@ namespace Epoch
 		return nullptr;
 	}
 
-	void Renderer::Init()
+	void Renderer::Init(const RendererConfig& aRendererConfig)
 	{
 		EPOCH_PROFILE_FUNC();
+
+		staticConfig = aRendererConfig;
 
 		staticRendererAPI = InitRendererAPI();
 		staticRendererAPI->Init();
@@ -49,26 +57,36 @@ namespace Epoch
 
 		//Shaders
 		{
+			if (!staticConfig.shaderPackPath.empty())
+			{
+				Renderer::GetShaderLibrary()->LoadShaderPack(staticConfig.shaderPackPath);
+			}
+
 			JobSystem& js = Application::Get().GetJobSystem();
 
+			// Misc
 			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/BRDF_LUT.hlsl"); });
-			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/Posterization.hlsl"); });
-			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/Sprite.hlsl"); });
-			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/DebugWireframe.hlsl"); });
+			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/CopyTexture.hlsl"); });
 			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/Grid.hlsl"); });
+			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/DebugWireframe.hlsl"); });
+
+			// Environment compute shaders
 			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/EquirectangularToCubeMap.hlsl"); });
 			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/EnvironmentMipFilter.hlsl"); });
-			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/CopyTexture.hlsl"); });
-			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/Text.hlsl"); });
+			// 
+			// Geometry
 			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/GBuffer.hlsl"); });
+			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/Text.hlsl"); });
+			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/Sprite.hlsl"); });
+			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/DebugRender.hlsl"); });
+
+			// Light
 			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/EnvironmentalLight.hlsl"); });
 			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/PointLight.hlsl"); });
 			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/Spotlight.hlsl"); });
-			js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/DebugRender.hlsl"); });
-			//js.AddAJob([] { staticRendererData.shaderLibrary->Load("Resources/Shaders/UberShader.hlsl"); });
 
-
-			staticRendererData.shaderLibrary->Load("Resources/Shaders/UberShader.hlsl");
+			// Post-processing
+			staticRendererData.shaderLibrary->Load("Resources/Shaders/UberShader.hlsl"); //Compiled/loaded on main thread
 			
 			js.WaitUntilDone();
 
@@ -102,7 +120,18 @@ namespace Epoch
 			spec.debugName = "Default - Material";
 			staticRendererData.defaultMaterialTexture = Texture2D::Create(spec, Buffer(&defaultMaterialTextureData, sizeof(uint32_t)));
 
-			staticRendererData.defaultColorGradingLUT = Texture2D::Create("Resources/Textures/DefaultColorGradingLUT.png");
+			spec.debugName = "Default - Black Cubemap";
+			constexpr uint32_t defaultBlackCubeTextureData[6] = { 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000 };
+			staticRendererData.defaultBlackCubemap = TextureCube::Create(spec, Buffer(&defaultBlackCubeTextureData, sizeof(defaultBlackCubeTextureData)));
+
+			spec.debugName = "Default - White Cubemap";
+			constexpr uint32_t defaultWhiteCubeTextureData[6] = { 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff };
+			staticRendererData.defaultWhiteCubemap = TextureCube::Create(spec, Buffer(&defaultWhiteCubeTextureData, sizeof(defaultWhiteCubeTextureData)));
+			
+			spec.width = 256;
+			spec.height = 16;
+			spec.debugName = "Default - ColorGradingLUT";
+			staticRendererData.defaultColorGradingLUT = Texture2D::Create(spec, Buffer(ColorGradingLUT, ColorGradingLUT_embed_len));
 		}
 
 		//BRDF_LUT
@@ -217,6 +246,16 @@ namespace Epoch
 	std::shared_ptr<Texture2D> Renderer::GetDefaultMaterialTexture()
 	{
 		return staticRendererData.defaultMaterialTexture;
+	}
+
+	std::shared_ptr<TextureCube> Renderer::GetDefaultBlackCubemap()
+	{
+		return staticRendererData.defaultBlackCubemap;
+	}
+
+	std::shared_ptr<TextureCube> Renderer::GetDefaultWhiteCubemap()
+	{
+		return staticRendererData.defaultWhiteCubemap;
 	}
 
 	std::shared_ptr<Texture2D> Renderer::GetDefaultColorGradingLut()

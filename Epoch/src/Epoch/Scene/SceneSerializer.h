@@ -2,6 +2,8 @@
 #include <memory>
 #include <filesystem>
 #include "Scene.h"
+#include "Epoch/Serialization/FileStream.h"
+#include "Epoch/Assets/AssetSerializer/AssetSerializer.h"
 
 namespace YAML
 {
@@ -24,6 +26,13 @@ namespace Epoch
 
 		void SerializeEntities(YAML::Emitter& aOut);
 		void DeserializeEntities(YAML::Node& aEntitiesNode);
+
+		bool SerializeToAssetPack(FileStreamWriter& aStream, AssetSerializationInfo& outInfo);
+		bool DeserializeFromAssetPack(FileStreamReader& aStream, const AssetPackFile::SceneInfo& aSceneInfo);
+
+	private:
+		void SerializeToYAML(YAML::Emitter& out);
+		bool DeserializeFromYAML(const std::string& aYamlString);
 
 	private:
 		std::shared_ptr<Scene> myScene;

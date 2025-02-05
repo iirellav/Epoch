@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <unordered_map>
 #include <vector>
+#include "Epoch/Core/Base.h"
 
 extern "C"
 {
@@ -35,6 +36,15 @@ namespace Epoch
 		bool ContainsAttribute(void* aAttributeList, const std::string& aAttributeName);
 	}
 
+	enum class ManagedClassMethodFlags : uint16_t
+	{
+		None = 0,
+		ShouldUpdate		= BIT(0),
+		ShouldLateUpdate	= BIT(1),
+		ShouldFixedUpdate	= BIT(2),
+		ShouldDebug			= BIT(3),
+	};
+
 	struct ManagedClass
 	{
 		uint32_t id = 0;
@@ -47,6 +57,14 @@ namespace Epoch
 		bool isAbstract = false;
 		bool isStruct = false;
 		bool isEnum = false;
+
+		// Skip calling functions if not overriden
+		ManagedClassMethodFlags methodFlags;
+		bool shouldUpdate = false;
+		bool shouldLateUpdate = false;
+		bool shouldFixedUpdate = false;
+
+		bool shouldDebug = false;
 
 		uint32_t parentID = 0;
 

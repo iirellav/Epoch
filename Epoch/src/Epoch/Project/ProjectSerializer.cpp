@@ -86,6 +86,7 @@ namespace Epoch
 				out << YAML::Key << "ProductName" << YAML::Value << config.productName;
 				out << YAML::Key << "CompanyName" << YAML::Value << config.companyName;
 				out << YAML::Key << "Version" << YAML::Value << config.version;
+				out << YAML::Key << "AppIcon" << YAML::Value << config.appIcon;
 
 				out << YAML::Key << "StartScene" << YAML::Value << config.startScene;
 
@@ -190,6 +191,7 @@ namespace Epoch
 
 			config.companyName = rootNode["CompanyName"].as<std::string>("");
 			config.version = rootNode["Version"].as<std::string>(config.version);
+			config.appIcon = rootNode["AppIcon"].as<AssetHandle>(AssetHandle(0));
 
 			config.startScene = rootNode["StartScene"].as<UUID>(UUID(0));
 
@@ -298,31 +300,24 @@ namespace Epoch
 
 		LOG_DEBUG("Serializing runtime project '{}'", config.name);
 
-		std::ofstream fout(aFilepath);
-		fout << out.c_str();
-		fout.close();
+		FileStreamWriter stream(aFilepath);
+		stream.WriteString(std::string(out.c_str()));
 	}
 
 	bool ProjectSerializer::DeserializeRuntime(const std::filesystem::path& aFilepath)
 	{
 		EPOCH_PROFILE_FUNC();
 
-		YAML::Node data;
-		try
-		{
-			data = YAML::LoadFile(aFilepath.string());
-		}
-		catch (YAML::ParserException e)
-		{
-			LOG_ERROR("Failed to load .epoch file '{}'\n     {}", aFilepath.string(), e.what());
-			return false;
-		}
+		FileStreamReader stream(aFilepath);
+		std::string yamlString;
+		stream.ReadString(yamlString);
+
+		YAML::Node data = YAML::Load(yamlString);
 
 		if (!data["Project"])
 		{
 			return false;
 		}
-
 
 		YAML::Node rootNode = data["Project"];
 

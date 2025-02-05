@@ -11,6 +11,7 @@
 #include "Epoch/Scene/SceneRenderer.h"
 #include "Epoch/Physics/PhysicsSystem.h"
 #include "Epoch/Script/ScriptEngine.h"
+#include "Epoch/Math/Noise.h"
 
 namespace Epoch
 {
@@ -48,7 +49,7 @@ namespace Epoch
 
 		GraphicsEngine::Get().GetVSyncBool() = aAppSpec.vSync;
 
-		Renderer::Init();
+		Renderer::Init(aAppSpec.rendererConfig);
 		ScriptEngine::Init(aAppSpec.scriptEngineConfig);
 		PhysicsSystem::Init();
 
@@ -58,6 +59,7 @@ namespace Epoch
 			PushOverlay(myImGuiLayer);
 		}
 
+		Noise::Init();
 		CU::Random::Init();
 		CU::Timer::Init();
 		Font::Init();
@@ -180,6 +182,8 @@ namespace Epoch
 			CU::Timer::Update();
 			
 			ProcessEvents();
+			
+			EPOCH_PROFILE_MARK_FRAME;
 		}
 	}
 

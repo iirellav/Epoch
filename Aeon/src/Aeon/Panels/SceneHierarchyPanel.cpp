@@ -1,7 +1,7 @@
 #include "SceneHierarchyPanel.h"
 #include <CommonUtilities/StringUtils.h>
 #include <Epoch/Debug/Log.h>
-#include <Epoch/Debug/Instrumentor.h>
+#include <Epoch/Debug/Profiler.h>
 #include <Epoch/Scene/Components.h>
 #include <Epoch/Scene/Prefab.h>
 #include <Epoch/Physics/PhysicsTypes.h>
@@ -11,7 +11,6 @@
 #include <Epoch/Rendering/Environment.h>
 #include <Epoch/Script/ScriptEngine.h>
 #include <Epoch/Script/ScriptAsset.h>
-#include <Epoch/Editor/PanelIDs.h>
 
 namespace Epoch
 {
@@ -23,7 +22,7 @@ namespace Epoch
 
 	static int staticRowIndex = -1; //TODO: Remove
 
-	SceneHierarchyPanel::SceneHierarchyPanel()
+	SceneHierarchyPanel::SceneHierarchyPanel(const std::string& aName) : EditorPanel(aName)
 	{
 		myComponentCopyScene = std::make_shared<Scene>();
 		myComponentCopyEntity = myComponentCopyScene->CreateEntity();
@@ -33,7 +32,14 @@ namespace Epoch
 	{
 		EPOCH_PROFILE_FUNC();
 
-		ImGui::Begin(SCENE_HIERARCHY_PANEL_ID);
+		bool open = ImGui::Begin(myName.c_str());
+		
+		if (!open)
+		{
+			ImGui::End();
+			return;
+		}
+
 		ImRect windowRect = { ImGui::GetWindowContentRegionMin(), ImGui::GetWindowContentRegionMax() };
 
 		if (myContext)
@@ -410,40 +416,40 @@ namespace Epoch
 		ImGui::PushID(aLabel.c_str());
 
 		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+		ImVec2 buttonSize = { 20.0f, lineHeight };
 
 		auto drawControl = [&](
-			const std::string& label, float& value,
-			const ImVec4& colorN,
-			const ImVec4& colorH,
-			const ImVec4& colorA,
-			bool renderMultiSelect)
+			const std::string& aLabel, float& aValue,
+			const ImVec4& aColorN,
+			const ImVec4& aColorH,
+			const ImVec4& aColorA,
+			bool aRenderMultiSelect)
 			{
 				{
-					UI::ScopedColor buttonCol(ImGuiCol_Button, colorN);
-					UI::ScopedColor hoveredButtonCol(ImGuiCol_ButtonHovered, colorH);
-					UI::ScopedColor activeButtonCol(ImGuiCol_ButtonActive, colorA);
+					UI::ScopedColor buttonCol(ImGuiCol_Button, aColorN);
+					UI::ScopedColor hoveredButtonCol(ImGuiCol_ButtonHovered, aColorH);
+					UI::ScopedColor activeButtonCol(ImGuiCol_ButtonActive, aColorA);
 					UI::ScopedFont boldFont("Bold");
 					UI::ShiftCursorY(-4.0f);
-					if (ImGui::Button(label.c_str(), buttonSize))
+					if (ImGui::Button(aLabel.c_str(), buttonSize))
 					{
-						value = aResetValue;
+						aValue = aResetValue;
 						modified = true;
 					}
 				}
 
 				ImGui::SameLine();
 				UI::ShiftCursorY(-4.0f);
-				ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, renderMultiSelect);
-				bool wasTempInputActive = ImGui::TempInputIsActive(ImGui::GetID(("##" + label).c_str()));
-				modified |= UI::DragFloat(("##" + label).c_str(), &value, aSpeed, 0.0f, 0.0f, "%.3f");
+				ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aRenderMultiSelect);
+				bool wasTempInputActive = ImGui::TempInputIsActive(ImGui::GetID(("##" + aLabel).c_str()));
+				modified |= UI::DragFloat(("##" + aLabel).c_str(), &aValue, aSpeed, 0.0f, 0.0f, "%.3f");
 
 				if (modified && ImGui::IsKeyDown(ImGuiKey_Tab))
 				{
 					aManuallyEdited = true;
 				}
 
-				if (ImGui::TempInputIsActive(ImGui::GetID(("##" + label).c_str())))
+				if (ImGui::TempInputIsActive(ImGui::GetID(("##" + aLabel).c_str())))
 				{
 					modified = false;
 				}
@@ -462,7 +468,7 @@ namespace Epoch
 		ImGui::Text(aLabel.c_str());
 		ImGui::SameLine(125.0f);
 
-		ImGui::PushMultiItemsWidths(3, ImGui::GetContentRegionAvail().x - 85.0f);
+		ImGui::PushMultiItemsWidths(3, ImGui::GetContentRegionAvail().x - 52.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
 
 		drawControl("X", aValues.x, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f }, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f }, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f }, aRenderMultiSelectAxes & (uint32_t)VectorAxis::X);
@@ -499,7 +505,6 @@ namespace Epoch
 				for (auto entityID : aEntityIDs)
 				{
 					Entity entity = myContext->GetEntityWithUUID(entityID);
-					//entity.GetComponent<ActiveComponent>().isActive = state;
 					entity.SetIsActive(state);
 				}
 			}
@@ -659,7 +664,7 @@ namespace Epoch
 				}
 			}, EditorResources::TransformIcon);
 
-		//DONE - Multi Edit
+		//DONE - Multi Edit (Not the overides enabled bool)
 		DrawComponent<VolumeComponent>("Volume", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
 		{
 			{
@@ -2004,7 +2009,6 @@ namespace Epoch
 						aFirstComponent.offset = offset * 100.0f;
 					}
 
-
 					float stepOffset = aFirstComponent.stepOffset * 0.01f;
 					if (UI::Property_DragFloat("Step Offset", stepOffset, 0.05f, 0.0f, aFirstComponent.height * 0.01f))
 					{
@@ -2012,6 +2016,22 @@ namespace Epoch
 					}
 
 					UI::Property_DragFloat("Slope Limit", aFirstComponent.slopeLimit, 0.1f, 0.0f, 90.0f);
+
+					const auto& layerNames = PhysicsLayerManager::GetLayerNames();
+					std::vector<std::string> layerNamesVector(layerNames.size());
+					for (size_t i = 0; i < layerNames.size(); i++)
+					{
+						layerNamesVector[i] = layerNames[i];
+					}
+					if (UI::Property_Dropdown("Layer", layerNamesVector, (uint32_t)layerNamesVector.size(), aFirstComponent.layerID))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& cc = entity.GetComponent<CharacterControllerComponent>();
+							cc.layerID = aFirstComponent.layerID;
+						}
+					}
 
 					UI::EndPropertyGrid();
 				}
@@ -2320,6 +2340,27 @@ namespace Epoch
 		if (ImGui::MenuItem("Create Empty"))
 		{
 			createdEntity = myContext->CreateEntity("New Entity");
+		}
+
+		if (ImGui::MenuItem("Create Empty Parent", 0, false, entitySelected))
+		{
+			Entity newParent;
+			if (entityChilded)
+			{
+				Entity oldParent = selection.GetParent();
+				newParent = myContext->CreateChildEntity(oldParent, "New Parent");
+			}
+			else
+			{
+				newParent = myContext->CreateEntity("New Parent");
+			}
+
+			auto selectedEntities = SelectionManager::GetSelections(SelectionContext::Scene);
+			for (UUID entityID : selectedEntities)
+			{
+				Entity entity = myContext->GetEntityWithUUID(entityID);
+				entity.SetParent(newParent);
+			}
 		}
 
 		if (ImGui::BeginMenu("3D Object"))

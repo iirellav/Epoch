@@ -16,16 +16,23 @@ namespace Epoch
 			float normalStrength = 1;
 
 			CU::Vector2f uvTiling = CU::Vector2f::One;
-			float roughness = 1;
-			float metalness = 0;
+			CU::Vector2f uvOffset = CU::Vector2f::Zero;
 			
 			CU::Vector3f emissionColor = CU::Vector3f::One;
 			float emissionStrength = 0;
+
+			float roughness = 1;
+			float metalness = 0;
+
+			CU::Vector2f padding;
 		};
 
 	public:
 		Material() = default;
 		~Material() = default;
+
+		Data& GetData() { return myData; }
+		const Data& GetData() const { return myData; }
 
 		CU::Vector3f& GetAlbedoColor();
 		void SetAlbedoColor(const CU::Vector3f& aColor);
@@ -41,6 +48,9 @@ namespace Epoch
 
 		CU::Vector2f& GetUVTiling();
 		void SetUVTiling(CU::Vector2f aUVTiling);
+
+		CU::Vector2f& GetUVOffset();
+		void SetUVOffset(CU::Vector2f aUVOffset);
 		
 		CU::Vector3f& GetEmissionColor();
 		void SetEmissionColor(const CU::Vector3f& aColor);

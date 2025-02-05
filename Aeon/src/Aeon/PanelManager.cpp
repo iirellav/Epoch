@@ -1,6 +1,6 @@
 #include "PanelManager.h"
 #include <filesystem>
-#include <Epoch/Debug/Instrumentor.h>
+#include <Epoch/Debug/Profiler.h>
 #include <Epoch/Utils/FileSystem.h>
 #include <Epoch/Utils/YAMLSerializationHelpers.h>
 

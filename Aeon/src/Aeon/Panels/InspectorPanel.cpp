@@ -2,13 +2,12 @@
 #include <CommonUtilities/StringUtils.h>
 #include <Epoch/ImGui/ImGui.h>
 #include <Epoch/Editor/SelectionManager.h>
-#include <Epoch/Editor/PanelIDs.h>
 #include <Epoch/Rendering/Material.h>
 #include <Epoch/Rendering/Texture.h>
 
 namespace Epoch
 {
-	InspectorPanel::InspectorPanel()
+	InspectorPanel::InspectorPanel(const std::string& aName) : EditorPanel(aName)
 	{
 		myDrawFunctions[AssetType::Material] = [this](UUID aAssetID) { DrawMaterialInspector(aAssetID); };
 		myDrawFunctions[AssetType::Mesh] = [this](UUID aAssetID) { DrawMeshInspector(aAssetID); };
@@ -20,8 +19,14 @@ namespace Epoch
 	{
 		EPOCH_PROFILE_FUNC();
 
-		ImGui::Begin(INSPECTOR_PANEL_ID, &aIsOpen);
+		bool open = ImGui::Begin(myName.c_str(), &aIsOpen);
 		
+		if (!open)
+		{
+			ImGui::End();
+			return;
+		}
+
 		size_t selectionCount = SelectionManager::GetSelectionCount(SelectionContext::ContentBrowser);
 		if (selectionCount > 1)
 		{
@@ -123,6 +128,7 @@ namespace Epoch
 		}
 		
 		modified |= UI::Property_DragFloat2("UV Tiling", material->GetUVTiling(), 0.02f);
+		modified |= UI::Property_DragFloat2("UV Offset", material->GetUVOffset(), 0.01f);
 		modified |= UI::Property_DragFloat("Normal Strength", material->GetNormalStrength(), 0.02f);
 
 		CU::Color emissionColor = material->GetEmissionColor();

@@ -60,7 +60,7 @@ namespace Epoch
 
 	bool Window::IsFullscreen() const
 	{
-		return glfwGetWindowMonitor(myWindow) != nullptr;
+		return myIsFullscreen;
 	}
 
 	void Window::SetFullscreen(bool aFullscreen)
@@ -74,14 +74,23 @@ namespace Epoch
 			glfwGetWindowPos(myWindow, &myStoredPosition[0], &myStoredPosition[1]);
 			glfwGetWindowSize(myWindow, &myStoredSize[0], &myStoredSize[1]);
 
-			GLFWmonitor* monitor = GetOverlappedMonitor();// glfwGetPrimaryMonitor();
+			GLFWmonitor* monitor = GetOverlappedMonitor();
 			const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+			
+			int x, y;
+			glfwGetMonitorPos(monitor, &x, &y);
 
-			glfwSetWindowMonitor(myWindow, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+			glfwSetWindowAttrib(myWindow, GLFW_DECORATED, GLFW_FALSE);
+			glfwSetWindowMonitor(myWindow, nullptr, x, y, mode->width, mode->height, mode->refreshRate);
+
+			myIsFullscreen = true;
 		}
 		else
 		{
+			glfwSetWindowAttrib(myWindow, GLFW_DECORATED, GLFW_TRUE);
 			glfwSetWindowMonitor(myWindow, nullptr, myStoredPosition[0], myStoredPosition[1], myStoredSize[0], myStoredSize[1], 0);
+
+			myIsFullscreen = false;
 		}
 	}
 
@@ -149,7 +158,7 @@ namespace Epoch
 		if (!staticGLFWInitialized)
 		{
 			int success = glfwInit();
-			EPOCH_ASSERT(success, "Could not intialize GLFW!");
+			EPOCH_ASSERT(success, "Could not initialize GLFW!");
 			glfwSetErrorCallback(GLFWErrorCallback);
 
 			staticGLFWInitialized = true;

@@ -6,12 +6,13 @@ namespace Epoch
 	class ProjectSettingsPanel : public PagePanel
 	{
 	public:
-		ProjectSettingsPanel();
+		ProjectSettingsPanel(const std::string& aName);
 		~ProjectSettingsPanel() override = default;
 
 	private:
-		void DrawGeneralPage();
+		void DrawBuildPage();
 		void DrawRendererPage();
 		void DrawPhysicsPage();
+		void DrawScriptingPage();
 	};
 }

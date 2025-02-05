@@ -5,7 +5,7 @@
 #include <Epoch/ImGui/ImGui.h>
 #include <Epoch/Core/Input.h>
 #include <Epoch/Debug/Log.h>
-#include <Epoch/Debug/Instrumentor.h>
+#include <Epoch/Debug/Profiler.h>
 #include <Epoch/Utils/FileSystem.h>
 #include <Epoch/Project/Project.h>
 #include <Epoch/Scene/Scene.h>
@@ -30,33 +30,33 @@ namespace Epoch
 	static char staticDeleteModalName[] = " Delete selected asset(s)?";
 	static char staticNewScriptModalName[] = " New Script";
 
-	ContentBrowserPanel::ContentBrowserPanel()
+	ContentBrowserPanel::ContentBrowserPanel(const std::string& aName) : EditorPanel(aName)
 	{
 		staticInstance = this;
 		memset(mySearchBuffer, 0, MAX_INPUT_BUFFER_LENGTH);
 
-		myAssetIconMap[""] = EditorResources::ClosedFolderIcon;
-		myAssetIconMap[".fbx"] = EditorResources::ModelIcon;
-		myAssetIconMap[".gltf"] = EditorResources::ModelIcon;
-		myAssetIconMap[".glb"] = EditorResources::ModelIcon;
-		myAssetIconMap[".obj"] = EditorResources::ModelIcon;
-		myAssetIconMap[".png"] = EditorResources::TextureIcon;
-		myAssetIconMap[".jpg"] = EditorResources::TextureIcon;
-		myAssetIconMap[".jpeg"] = EditorResources::TextureIcon;
-		myAssetIconMap[".hdr"] = EditorResources::TextureIcon;
-		myAssetIconMap[".epoch"] = EditorResources::SceneIcon;
-		myAssetIconMap[".cs"] = EditorResources::ScriptFileIcon;
-		myAssetIconMap[".prefab"] = EditorResources::PrefabIcon;
-		myAssetIconMap[".mat"] = EditorResources::MaterialIcon;
-		myAssetIconMap[".mp4"] = EditorResources::VideoIcon;
-		myAssetIconMap[".ttf"] = EditorResources::FontIcon;
+		myAssetIconMap[AssetType::Mesh]			= EditorResources::ModelIcon;
+		myAssetIconMap[AssetType::Texture]		= EditorResources::TextureIcon;
+		myAssetIconMap[AssetType::Scene]		= EditorResources::SceneIcon;
+		myAssetIconMap[AssetType::ScriptFile]	= EditorResources::ScriptFileIcon;
+		myAssetIconMap[AssetType::Prefab]		= EditorResources::PrefabIcon;
+		myAssetIconMap[AssetType::Material]		= EditorResources::MaterialIcon;
+		myAssetIconMap[AssetType::Video]		= EditorResources::VideoIcon;
+		myAssetIconMap[AssetType::Font]			= EditorResources::FontIcon;
 	}
 
 	void ContentBrowserPanel::OnImGuiRender(bool& aIsOpen)
 	{
 		EPOCH_PROFILE_FUNC();
 
-		ImGui::Begin(CONTENT_BROWSER_PANEL_ID, 0, ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar);
+		bool open = ImGui::Begin(CONTENT_BROWSER_PANEL_ID, 0, ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar);
+
+		if (!open)
+		{
+			ImGui::End();
+			return;
+		}
+
 		{
 			if (myShouldRefresh)
 			{
@@ -174,7 +174,7 @@ namespace Epoch
 
 								if (ImGui::MenuItem("Material"))
 								{
-									auto asset = CreateAsset<Scene>("New Material.mat");
+									auto asset = CreateAsset<Material>("New Material.mat");
 									if (asset)
 									{
 										size_t index = myCurrentItems.FindItem(asset->GetHandle());
@@ -360,7 +360,8 @@ namespace Epoch
 					continue;
 				}
 
-				metadata.handle = Project::GetEditorAssetManager()->ImportAsset(entry.path());
+				Project::GetEditorAssetManager()->ImportAsset(entry.path());
+				metadata = Project::GetEditorAssetManager()->GetMetadata(std::filesystem::relative(entry.path(), Project::GetAssetDirectory()));
 			}
 
 			// Failed to import
@@ -385,6 +386,7 @@ namespace Epoch
 
 		myUpdateNavigationPath = true;
 
+		ClearSelections();
 		myCurrentItems.items.clear();
 
 		if (strlen(mySearchBuffer) == 0)
@@ -406,10 +408,9 @@ namespace Epoch
 
 				auto itemIcon = EditorResources::OtherIcon;
 
-				auto extension = metadata.filePath.extension().string();
-				if (myAssetIconMap.find(extension) != myAssetIconMap.end())
+				if (myAssetIconMap.find(metadata.type) != myAssetIconMap.end())
 				{
-					itemIcon = myAssetIconMap[extension];
+					itemIcon = myAssetIconMap[metadata.type];
 				}
 
 				myCurrentItems.items.push_back(std::make_shared<ContentBrowserAsset>(metadata, itemIcon));
@@ -424,8 +425,6 @@ namespace Epoch
 
 		myPreviousDirectory = aDirectory;
 		myCurrentDirectory = aDirectory;
-
-		ClearSelections();
 	}
 
 	void ContentBrowserPanel::OnBrowseBack()
@@ -661,6 +660,17 @@ namespace Epoch
 					UpdateDropArea(directory);
 				}
 			}
+
+			// Size slider
+			{
+				ImGui::SameLine();
+
+				const float sliderWidth = 200.0f;
+				UI::ShiftCursorX(ImGui::GetContentRegionAvail().x - sliderWidth);
+
+				ImGui::SetNextItemWidth(sliderWidth);
+				ImGui::SliderFloat("##CellSize", &EditorSettings::Get().contentBrowserThumbnailSize, 64.0f, 256.0f, "", ImGuiSliderFlags_AlwaysClamp);
+			}
 		}
 		//ImGui::EndHorizontal();
 		ImGui::EndChild();
@@ -716,7 +726,8 @@ namespace Epoch
 
 			if (result.IsSet(ContentBrowserAction::Copy))
 			{
-				myCopiedAssets.Select(item->GetID());
+				myCopiedAssets.CopyFrom(SelectionManager::GetSelections(SelectionContext::ContentBrowser));
+				//myCopiedAssets.Select(item->GetID());
 			}
 
 			if (result.IsSet(ContentBrowserAction::Reload))
@@ -760,7 +771,8 @@ namespace Epoch
 
 			if (result.IsSet(ContentBrowserAction::Duplicate))
 			{
-				myCopiedAssets.Select(item->GetID());
+				myCopiedAssets.CopyFrom(SelectionManager::GetSelections(SelectionContext::ContentBrowser));
+				//myCopiedAssets.Select(item->GetID());
 				PasteCopiedAssets();
 				break;
 			}
@@ -771,11 +783,12 @@ namespace Epoch
 				Refresh();
 				SortItemList();
 
-				if (item->GetID() == mySceneContext->GetHandle() && myCurrentSceneRenamedCallback)
+				auto assetItem = std::static_pointer_cast<ContentBrowserAsset>(item);
+				const auto& assetMetadata = assetItem->GetAssetInfo();
+
+				if (myAssetRenamedCallbacks.find(assetMetadata.type) != myAssetRenamedCallbacks.end())
 				{
-					auto assetItem = std::static_pointer_cast<ContentBrowserAsset>(item);
-					const auto& assetMetadata = assetItem->GetAssetInfo();
-					myCurrentSceneRenamedCallback(assetMetadata);
+					myAssetRenamedCallbacks[assetMetadata.type](assetMetadata);
 				}
 
 				break;
@@ -1359,7 +1372,7 @@ namespace Epoch
 
 			if (filename.find(queryLowerCase) != std::string::npos)
 			{
-				results.items.push_back(std::make_shared<ContentBrowserAsset>(asset, myAssetIconMap.find(asset.filePath.extension().string()) != myAssetIconMap.end() ? myAssetIconMap[asset.filePath.extension().string()] : EditorResources::OtherIcon));
+				results.items.push_back(std::make_shared<ContentBrowserAsset>(asset, myAssetIconMap.find(asset.type) != myAssetIconMap.end() ? myAssetIconMap[asset.type] : EditorResources::OtherIcon));
 			}
 		}
 

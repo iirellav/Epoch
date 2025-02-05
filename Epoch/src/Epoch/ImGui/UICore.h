@@ -1,7 +1,7 @@
 #pragma once
 #include <CommonUtilities/Math/Vector/Vector.h>
 #include <CommonUtilities/Gradient.h>
-#include "Epoch/Debug/Instrumentor.h"
+#include "Epoch/Debug/Profiler.h"
 #include "Epoch/Editor/FontAwesome.h"
 #include "Epoch/ImGui/ImGuiUtilities.h"
 #include "Epoch/ImGui/ImGuiWidgets.h"
@@ -140,9 +140,11 @@ namespace Epoch::UI
 
 	bool Property_ClickableText(const char* aLabel, const std::string& aValue, const char* aTooltip = "");
 
-	bool Property_InputText(const char* aLabel, std::string& outValue, const char* aTooltip = "");
+	bool Property_InputText(const char* aLabel, std::string& outValue, ImGuiInputTextFlags aFlags = 0, const char* aTooltip = "");
 
 	bool Property_InputTextMultiline(const char* aLabel, std::string& outValue, const CU::Vector2f& aSize = CU::Vector2f::Zero, ImGuiInputTextFlags aFlags = 0, const char* aTooltip = "");
+
+	bool Property_FilePath(const char* aLabel, std::filesystem::path& outValue, ImGuiInputTextFlags aFlags = 0, const char* aTooltip = "");
 
 	bool Property_ColorEdit3(const char* aLabel, CU::Color& outValue, ImGuiColorEditFlags aFlags = 0, const char* aTooltip = "");
 
@@ -191,6 +193,8 @@ namespace Epoch::UI
 	{
 		EPOCH_PROFILE_FUNC();
 
+		ImGui::PushID(aLabel);
+
 		bool modified = false;
 
 		//ShiftCursor(10.0f, 9.0f);
@@ -219,11 +223,11 @@ namespace Epoch::UI
 		}
 		else if (AssetManager::IsAssetHandleValid(outHandle))
 		{
-			if (AssetManager::IsAssetMissing(outHandle))
+			if (Project::GetEditorAssetManager()->IsAssetMissing(outHandle))
 			{
 				buttonText = "Missing";
 			}
-			else if (!AssetManager::IsAssetValid(outHandle))
+			else if (!Project::GetEditorAssetManager()->IsAssetValid(outHandle))
 			{
 				buttonText = "Invalid";
 			}
@@ -347,12 +351,16 @@ namespace Epoch::UI
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
 
+		ImGui::PopID();
+
 		return modified;
 	}
 
 	static bool Property_EntityReference(const char* aLabel, UUID& outEntityID, std::shared_ptr<Scene> aCurrentScene, const char* aTooltip = "")
 	{
 		EPOCH_PROFILE_FUNC();
+		
+		ImGui::PushID(aLabel);
 
 		bool modified = false;
 
@@ -475,6 +483,8 @@ namespace Epoch::UI
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
 
+		ImGui::PopID();
+
 		return modified;
 	}
 
@@ -545,7 +555,7 @@ namespace Epoch::UI
 		case FieldType::String:
 		{
 			std::string value = aStorage->GetValue<std::string>();
-			if (Property_InputText(aFieldName.c_str(), value, aTooltip))
+			if (Property_InputText(aFieldName.c_str(), value, 0, aTooltip))
 			{
 				aStorage->SetValue<std::string>(value);
 				result = true;
@@ -727,7 +737,7 @@ namespace Epoch::UI
 				case FieldType::String:
 				{
 					std::string value = aStorage->GetValue<std::string>(i);
-					if (Property_InputText(indexString.c_str(), value, aTooltip))
+					if (Property_InputText(indexString.c_str(), value, 0, aTooltip))
 					{
 						aStorage->SetValue<std::string>(i, value);
 						modified = true;

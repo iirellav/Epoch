@@ -2,15 +2,24 @@
 #include <Epoch/ImGui/ImGui.h>
 #include <Epoch/Rendering/Renderer.h>
 #include <Epoch/Rendering/Shader.h>
-#include <Epoch/Editor/PanelIDs.h>
 
 namespace Epoch
 {
+	ShaderLibraryPanel::ShaderLibraryPanel(const std::string& aName) : EditorPanel(aName)
+	{
+	}
+
 	void ShaderLibraryPanel::OnImGuiRender(bool& aIsOpen)
 	{
 		auto& shaders = Renderer::GetShaderLibrary()->GetShaders();
 
-		ImGui::Begin(SHADER_LIBRARY_PANEL_ID, &aIsOpen);
+		bool open = ImGui::Begin(myName.c_str(), &aIsOpen);
+		
+		if (!open)
+		{
+			ImGui::End();
+			return;
+		}
 
 		static std::string searchString;
 		ImGui::InputTextWithHint("##Search", "Search...", &searchString, ImGuiInputTextFlags_AutoSelectAll);

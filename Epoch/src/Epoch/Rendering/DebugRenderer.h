@@ -36,11 +36,7 @@ namespace Epoch
 		void DrawWireCapsule(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, float aRadius, float aHeight, const CU::Color aColor = CU::Color::White);
 		void DrawWireCone(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, float aAngle, float aRange, const CU::Color aColor = CU::Color::White);
 
-		//NOTE: Not working
 		void DrawFrustum(const CU::Matrix4x4f& aView, const CU::Matrix4x4f& aProj, const CU::Color aColor = CU::Color::White);
-
-		void DrawPerspectiveFrustum(const CU::Matrix4x4f& aTransform, float aNear, float aFar, float aFov, float aRatio, const CU::Color aColor = CU::Color::White);
-		void DrawOrthographicFrustum(const CU::Matrix4x4f& aTransform, float aNear, float aFar, float aSize, float aRatio, const CU::Color aColor = CU::Color::White);
 
 		void DrawWireAABB(const AABB& aAABB, const CU::Matrix4x4f& aTransform, const CU::Color aColor = CU::Color::White);
 

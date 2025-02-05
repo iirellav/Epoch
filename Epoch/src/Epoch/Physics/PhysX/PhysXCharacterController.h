@@ -28,5 +28,8 @@ namespace Epoch
 		physx::PxController* myCharacterController;
 
 		CU::Vector3f myDisplacement; // displacement (if any) for next update (comes from Move() calls)
+
+		uint32_t myLayerValue;
+		uint32_t myCollisionValue;
 	};
 }

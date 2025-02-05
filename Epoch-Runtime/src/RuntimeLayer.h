@@ -4,12 +4,12 @@
 #include <functional>
 #include <Epoch/Core/Layer.h>
 
-
 namespace Epoch
 {
 	class Scene;
 	class SceneRenderer;
 	class RenderPipeline;
+	class AssetPack;
 
 	class RuntimeLayer : public Layer
 	{
@@ -35,10 +35,11 @@ namespace Epoch
 		std::shared_ptr<RenderPipeline> myCompositePipeline;
 		
 		std::string myProjectPath;
+		std::shared_ptr<AssetPack> myAssetPack;
 
 		std::shared_ptr<Scene> myRuntimeScene;
 		std::shared_ptr<SceneRenderer> mySceneRenderer;
-		
+
 		std::vector<std::function<void()>> myPostSceneUpdateQueue;
 
 		uint32_t myViewportWidth = 0;

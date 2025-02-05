@@ -2,7 +2,7 @@
 #include "DebugRenderer.h"
 #include <CommonUtilities/Math/Transform.h>
 #include <CommonUtilities/Math/CommonMath.hpp>
-#include "Epoch/Debug/Instrumentor.h"
+#include "Epoch/Debug/Profiler.h"
 #include "Epoch/Rendering/Renderer.h"
 #include "Epoch/Rendering/VertexBuffer.h"
 #include "Epoch/Rendering/IndexBuffer.h"
@@ -594,87 +594,26 @@ namespace Epoch
 	void DebugRenderer::DrawFrustum(const CU::Matrix4x4f& aView, const CU::Matrix4x4f& aProj, const CU::Color aColor)
 	{
 		const auto corners = Frustum::GetCorners(aView, aProj);
-
+		
 		for (const CU::Vector4f& corner : corners)
 		{
 			DrawWireSphere(corner, CU::Vector3f::Zero, 12.5f, aColor);
 		}
-	}
 
-	void DebugRenderer::DrawPerspectiveFrustum(const CU::Matrix4x4f& aTransform, float aNear, float aFar, float aFov, float aRatio, const CU::Color aColor)
-	{
-		CU::Vector3f nearCenter = aTransform.GetTranslation() + aTransform.GetForward() * aNear;
-		CU::Vector3f farCenter = aTransform.GetTranslation() + aTransform.GetForward() * aFar;
+		DrawLine(corners[5], corners[6], aColor);
+		DrawLine(corners[6], corners[7], aColor);
+		DrawLine(corners[7], corners[4], aColor);
+		DrawLine(corners[4], corners[5], aColor);
 
-		float nearHeight = 2.0f * std::tanf(aFov / 2.0f) * aNear;
-		float farHeight = 2.0f * std::tanf(aFov / 2.0f) * aFar;
-		float nearWidth = nearHeight * aRatio;
-		float farWidth = farHeight * aRatio;
+		DrawLine(corners[1], corners[2], aColor);
+		DrawLine(corners[2], corners[3], aColor);
+		DrawLine(corners[3], corners[0], aColor);
+		DrawLine(corners[0], corners[1], aColor);
 
-		CU::Vector3f up = aTransform.GetUp();
-		CU::Vector3f right = aTransform.GetRight();
-
-		CU::Vector3f farTopLeft = farCenter + up * (farHeight * 0.5f) - right * (farWidth * 0.5f);
-		CU::Vector3f farTopRight = farCenter + up * (farHeight * 0.5f) + right * (farWidth * 0.5f);
-		CU::Vector3f farBottomLeft = farCenter - up * (farHeight * 0.5f) - right * (farWidth * 0.5f);
-		CU::Vector3f farBottomRight = farCenter - up * (farHeight * 0.5f) + right * (farWidth * 0.5f);
-
-		CU::Vector3f nearTopLeft = nearCenter + up * (nearHeight * 0.5f) - right * (nearWidth * 0.5f);
-		CU::Vector3f nearTopRight = nearCenter + up * (nearHeight * 0.5f) + right * (nearWidth * 0.5f);
-		CU::Vector3f nearBottomLeft = nearCenter - up * (nearHeight * 0.5f) - right * (nearWidth * 0.5f);
-		CU::Vector3f nearBottomRight = nearCenter - up * (nearHeight * 0.5f) + right * (nearWidth * 0.5f);
-
-		DrawLine(farTopLeft, farTopRight, aColor);
-		DrawLine(farTopRight, farBottomRight, aColor);
-		DrawLine(farBottomRight, farBottomLeft, aColor);
-		DrawLine(farBottomLeft, farTopLeft, aColor);
-
-		DrawLine(nearTopLeft, nearTopRight, aColor);
-		DrawLine(nearTopRight, nearBottomRight, aColor);
-		DrawLine(nearBottomRight, nearBottomLeft, aColor);
-		DrawLine(nearBottomLeft, nearTopLeft, aColor);
-
-		DrawLine(farTopLeft, nearTopLeft, aColor);
-		DrawLine(farTopRight, nearTopRight, aColor);
-		DrawLine(farBottomLeft, nearBottomLeft, aColor);
-		DrawLine(farBottomRight, nearBottomRight, aColor);
-	}
-
-	void DebugRenderer::DrawOrthographicFrustum(const CU::Matrix4x4f& aTransform, float aNear, float aFar, float aSize, float aRatio, const CU::Color aColor)
-	{
-		CU::Vector3f nearCenter = aTransform.GetTranslation() + aTransform.GetForward() * aNear;
-		CU::Vector3f farCenter = aTransform.GetTranslation() + aTransform.GetForward() * aFar;
-
-		float width = aSize * aRatio * 0.5f;
-		float height = aSize * 0.5f;
-
-		CU::Vector3f up = aTransform.GetUp();
-		CU::Vector3f right = aTransform.GetRight();
-
-		CU::Vector3f farTopLeft = farCenter + up * height - right * width;
-		CU::Vector3f farTopRight = farCenter + up * height + right * width;
-		CU::Vector3f farBottomLeft = farCenter - up * height - right * width;
-		CU::Vector3f farBottomRight = farCenter - up * height + right * width;
-
-		CU::Vector3f nearTopLeft = nearCenter + up * height - right * width;
-		CU::Vector3f nearTopRight = nearCenter + up * height + right * width;
-		CU::Vector3f nearBottomLeft = nearCenter - up * height - right * width;
-		CU::Vector3f nearBottomRight = nearCenter - up * height + right * width;
-
-		DrawLine(farTopLeft, farTopRight, aColor);
-		DrawLine(farTopRight, farBottomRight, aColor);
-		DrawLine(farBottomRight, farBottomLeft, aColor);
-		DrawLine(farBottomLeft, farTopLeft, aColor);
-
-		DrawLine(nearTopLeft, nearTopRight, aColor);
-		DrawLine(nearTopRight, nearBottomRight, aColor);
-		DrawLine(nearBottomRight, nearBottomLeft, aColor);
-		DrawLine(nearBottomLeft, nearTopLeft, aColor);
-
-		DrawLine(farTopLeft, nearTopLeft, aColor);
-		DrawLine(farTopRight, nearTopRight, aColor);
-		DrawLine(farBottomLeft, nearBottomLeft, aColor);
-		DrawLine(farBottomRight, nearBottomRight, aColor);
+		DrawLine(corners[5], corners[1], aColor);
+		DrawLine(corners[6], corners[2], aColor);
+		DrawLine(corners[4], corners[0], aColor);
+		DrawLine(corners[7], corners[3], aColor);
 	}
 
 	void DebugRenderer::DrawWireAABB(const AABB& aAABB, const CU::Matrix4x4f& aTransform, const CU::Color aColor)

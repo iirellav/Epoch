@@ -1,92 +1,128 @@
 #include "epch.h"
 #include "RuntimeBuilder.h"
 #include <ShlObj.h>
-#include "Epoch/Utils/FileSystem.h"
 #include "Project.h"
 #include "ProjectSerializer.h"
+#include "Epoch/Utils/FileSystem.h"
+#include "Epoch/Assets/AssetPack/AssetPack.h"
+#include "Epoch/Assets/AssetManager.h"
+#include "Epoch/Rendering/ShaderPack.h"
+#include "Epoch/Rendering/Renderer.h"
+#include "Epoch/Debug/Timer.h"
+#include "Epoch/Editor/EditorSettings.h"
 
 namespace Epoch
 {
-	bool RuntimeBuilder::Build()
+	const std::string IconPath = "icon.ico";
+
+	bool RuntimeBuilder::Build(const std::filesystem::path& aBuildLocation, bool aDevMode)
 	{
-		const auto buildLocation = FileSystem::OpenFolderDialog();
-
-		if (buildLocation.empty())
-		{
-			return false;
-		}
-
 		EPOCH_PROFILE_FUNC();
+
+		const ProjectConfig& configs = Project::GetActive()->GetConfig();
+		
+		staticBuildLocation = aBuildLocation;
+		staticAppName = aDevMode ? configs.productName + "_Dev" : configs.productName;
+
+		Timer buildTimer;
 
 		const auto projDir = Project::GetProjectDirectory();
 		const auto projFilePath = Project::GetProjectPath();
 
 		std::filesystem::path epochDir = std::filesystem::current_path();
-		if (epochDir.stem().string() == "Aeon")
-		{
-			epochDir = epochDir.parent_path();
-		}
-
-		//Build runtime proj
-		{
-			//EPOCH_PROFILE_SCOPE("RuntimeBuilder::Build::MSBuild()");
-			//
-			//TCHAR programFilesFilePath[MAX_PATH];
-			//SHGetSpecialFolderPath(0, programFilesFilePath, CSIDL_PROGRAM_FILES, FALSE);
-			//std::filesystem::path msBuildPath = std::filesystem::path(programFilesFilePath) / "Microsoft Visual Studio" / "2022" / "Community" / "Msbuild" / "Current" / /"Bin" / /"MSBuild.exe";
-			//
-			//const std::filesystem::path projFileDir = epochDir / "Epoch-Runtime";
-			//const std::string projFile = (projFileDir / "Epoch-Runtime.vcxproj").string();
-			//std::string command = fmt::format("cd \"{}\" && \"{}\" \"{}\" -property:Configuration=Dist -property:Platform=x64", projFileDir, msBuildPath.string(), projFile);
-			////std::system(command.c_str());
-			//WinExec(command.c_str(), SW_HIDE);
-
-			//if (!FileSystem::Exists(epochDir / "bin/Dist-x86_64/Epoch-Runtime/Runtime.exe"))
-			//{
-			//	LOG_ERROR("Failed to build!");
-			//	CONSOLE_LOG_ERROR("Failed to build!");
-			//	std::system(command.c_str());
-			//}
-			
-			//if (!FileSystem::Exists(epochDir / "bin/Dist-x86_64/Epoch-Runtime/Runtime.exe"))
-			//{
-			//	LOG_ERROR("Failed to build!");
-			//	CONSOLE_LOG_ERROR("Failed to build!");
-			//}
-		}
 		
-		FileSystem::CopyContent(epochDir / "Aeon/Resources/Runtime", buildLocation);
+		FileSystem::CopyContent(epochDir / "Resources/Runtime", staticBuildLocation);
+		if (aDevMode)
+		{
+			FileSystem::DeleteFile(staticBuildLocation / "Runtime.exe");
+			FileSystem::Rename(staticBuildLocation / "Runtime_Dev.exe", staticBuildLocation / "Runtime.exe");
+		}
+		else
+		{
+			FileSystem::DeleteFile(staticBuildLocation / "Runtime_Dev.exe");
+		}
+
+		SetResources();
 
 		ProjectSerializer projectSerializer(Project::GetActive());
-		projectSerializer.SerializeRuntime(buildLocation / "Project.eproj");
+		projectSerializer.SerializeRuntime(staticBuildLocation / "Project.eproj");
 
-		//Copy the .exe & the script .dll:s to build location
-		{
-			//if (FileSystem::Exists(epochDir / "bin/Dist-x86_64/Epoch-Runtime/Runtime.exe"))
-			//{
-			//	FileSystem::CopyFile(epochDir / "bin/Dist-x86_64/Epoch-Runtime/Runtime.exe", buildLocation);
-			//	FileSystem::RenameFilename(buildLocation / "Runtime.exe", Project::GetProductName());
-			//}
+		FileSystem::CopyFile("Resources/Scripts/Epoch-ScriptCore.dll", staticBuildLocation);
 
-			FileSystem::CreateDirectory(buildLocation / "Scripts/Binaries");
-			FileSystem::CopyFile(projDir / "Scripts/Binaries/Epoch-ScriptCore.dll", buildLocation / "Scripts/Binaries");
-			FileSystem::CopyFile(projDir / "Scripts/Binaries/" / (Project::GetProjectName() + ".dll"), buildLocation / "Scripts/Binaries");
-		}
-		
-		//Build assetpack & shaderpack & copy to build location
-		{
-			//TODO: Build assetpack & shaderpack & copy to build location
+		FileSystem::CreateDirectory(staticBuildLocation / "Assets");
 
-			FileSystem::CreateDirectory(buildLocation / "Assets");
-			FileSystem::CopyContent(projDir / "Assets", buildLocation / "Assets");
+		AssetPack::CreateFromActiveProject(staticBuildLocation / "Assets/AssetPack.eap");
+		ShaderPack::CreateFromLibrary(Renderer::GetShaderLibrary(), staticBuildLocation / "Assets/ShaderPack.esp");
 
-			FileSystem::CreateDirectory(buildLocation / "Regs");
-			FileSystem::CopyContent(projDir / "Regs", buildLocation / "Regs");
-			
-			FileSystem::CreateDirectory(buildLocation / "Resources/Shaders");
-			FileSystem::CopyContent(epochDir / "Aeon/Resources/Shaders", buildLocation / "Resources/Shaders");
-		}
+		CONSOLE_LOG_INFO("Build took {}s to complete", buildTimer.Elapsed());
 
 		return true;
+	}
+
+	void RuntimeBuilder::SetResources()
+	{
+		if (!FileSystem::Exists("ExternalTools/rcedit.exe"))
+		{
+			return;
+		}
+		const std::string rcEditPath = std::filesystem::absolute("ExternalTools/rcedit.exe").string();
+
+		std::string icoConvertCmd;
+		std::string deleteIcoCmd;
+		SetIcon(icoConvertCmd, deleteIcoCmd);
+
+		std::ifstream stream(staticBuildLocation / "SetResources.bat");
+		EPOCH_ASSERT(stream.is_open(), "Could not open project file!");
+		std::stringstream ss;
+		ss << stream.rdbuf();
+		stream.close();
+
+		std::string str = ss.str();
+		CU::ReplaceToken(str, "$ICO_CONVERT_CMD$", icoConvertCmd);
+		CU::ReplaceToken(str, "$DELETE_ICO_CMD$", deleteIcoCmd);
+		CU::ReplaceToken(str, "$RCEDIT$", rcEditPath);
+		CU::ReplaceToken(str, "$ICON_PATH$", IconPath);
+		CU::ReplaceToken(str, "$PRUDUCT_NAME$", staticAppName);
+
+		std::ofstream ostream(staticBuildLocation / "SetResources.bat");
+		ostream << str;
+		ostream.close();
+		
+		WinExec((staticBuildLocation / "SetResources.bat").string().c_str(), SW_HIDE);
+	}
+
+	void RuntimeBuilder::SetIcon(std::string& outIcoConvertCmd, std::string& outDeleteIcoCmd)
+	{
+		const ProjectConfig& configs = Project::GetActive()->GetConfig();
+
+		if (configs.appIcon == 0 || !FileSystem::Exists("ExternalTools/magick.exe"))
+		{
+			return;
+		}
+
+		const auto metadata = Project::GetEditorAssetManager()->GetMetadata(configs.appIcon);
+		if (metadata.filePath.extension() != ".png")
+		{
+			CONSOLE_LOG_ERROR("App icon needs to be of type 'png'");
+			return;
+		}
+
+		auto icon = AssetManager::GetAsset<Texture2D>(configs.appIcon);
+
+		if (icon->GetWidth() != icon->GetHeight())
+		{
+			CONSOLE_LOG_ERROR("App icon needs to be a square");
+			return;
+		}
+
+		std::string icoConvertCmd = "";
+		std::string deleteIcoCmd = "";
+		const std::filesystem::path fullIconPath = Project::GetEditorAssetManager()->GetFileSystemPath(configs.appIcon);
+		if (FileSystem::Exists(fullIconPath))
+		{
+			const std::string magicPath = std::filesystem::absolute("ExternalTools/magick.exe").string();
+			outIcoConvertCmd = std::format("call \"{}\" \"{}\" -define icon:auto-resize=16,24,32,48,64,72,96,128,256 \"{}\"", magicPath, fullIconPath.string(), IconPath);
+			outDeleteIcoCmd = std::format("call del {}", IconPath);
+		}
 	}
 }

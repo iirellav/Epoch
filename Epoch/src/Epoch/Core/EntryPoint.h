@@ -1,9 +1,9 @@
 #pragma once
 #include "Epoch/Core/Base.h"
 #include "Epoch/Core/Application.h"
-#include "Epoch/Debug/Instrumentor.h"
+#include "Epoch/Debug/Profiler.h"
 
-extern Epoch::Application* Epoch::CreateApplication();
+extern Epoch::Application* Epoch::CreateApplication(int aArgc, char** aArgv);
 
 namespace Epoch
 {
@@ -13,18 +13,10 @@ namespace Epoch
 		
 		InitializeCore();
 
-		EPOCH_PROFILE_BEGIN_SESSION("Startup", "Profiling_Results/EpochProfile-Startup.json", false);
-		auto app = Epoch::CreateApplication();
-		EPOCH_PROFILE_END_SESSION();
-
-		EPOCH_PROFILE_BEGIN_SESSION("Runtime", "Profiling_Results/EpochProfile-Runtime.json", true);
+		auto app = Epoch::CreateApplication(argc, argv);
 		app->Run();
-		EPOCH_PROFILE_END_SESSION();
-
-		EPOCH_PROFILE_BEGIN_SESSION("Shutdown", "Profiling_Results/EpochProfile-Shutdown.json", false);
 		delete app;
 		app = nullptr;
-		EPOCH_PROFILE_END_SESSION();
 
 		ShutdownCore();
 

@@ -334,6 +334,8 @@ namespace Epoch
 		float height = 200.0f;
 		CU::Vector3f offset;
 
+		uint32_t layerID = 0;
+
 		CharacterControllerComponent() = default;
 		CharacterControllerComponent(const CharacterControllerComponent&) = default;
 	};
@@ -352,6 +354,10 @@ namespace Epoch
 		std::vector<uint32_t> fieldIDs;
 
 		bool isRuntimeInitialized = false;
+
+		// Set when script entity get initialized (don't modify)
+		ManagedClassMethodFlags methodFlags = ManagedClassMethodFlags::None;
+		bool IsFlagSet(ManagedClassMethodFlags aFlag) const { return (uint16_t)aFlag & (uint16_t)methodFlags; }
 
 		ScriptComponent() = default;
 		ScriptComponent(const ScriptComponent&) = default;

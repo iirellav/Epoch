@@ -77,6 +77,8 @@ namespace Epoch
 		};
 		WindowData myData;
 
+		bool myIsFullscreen = false;
+
 		int32_t myStoredSize[2];
 		int32_t myStoredPosition[2];
 	};

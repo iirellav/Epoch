@@ -9,7 +9,7 @@ namespace Epoch
 	class InspectorPanel : public EditorPanel
 	{
 	public:
-		InspectorPanel();
+		InspectorPanel(const std::string& aName);
 		~InspectorPanel() = default;
 		
 		void OnImGuiRender(bool& aIsOpen) override;

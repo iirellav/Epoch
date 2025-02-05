@@ -35,15 +35,14 @@ namespace Epoch
 	{
 		EPOCH_PROFILE_FUNC();
 
-		std::string batchFilePath = aProjectDirectory.string();
-		std::replace(batchFilePath.begin(), batchFilePath.end(), '/', '\\'); // Only windows
-		batchFilePath += "\\CreateScriptProject.bat";
+		std::string batchFilePath = (aProjectDirectory / "CreateScriptProject.bat").string();
 
 		if (!FileSystem::Exists(batchFilePath))
 		{
 			LOG_WARNING("File not found ''!", batchFilePath);
 		}
 		
+		batchFilePath = "\"" + batchFilePath + "\"";
 		WinExec(batchFilePath.c_str(), SW_HIDE);
 		//std::system(batchFilePath.c_str());
 	}

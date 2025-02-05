@@ -18,12 +18,13 @@ namespace Epoch
             CU::Vector4f( 1.0f, -1.0f, 1.0f, 1.0f)
         };
 
+		const CU::Matrix4x4f invViewProjection = (aView * aProj).GetInverse();
         std::array<CU::Vector4f, 8> outputCorners;
         for (size_t i = 0; i < 8; i++)
         {
             const CU::Vector4f& corner = corners[i];
 
-            CU::Vector4f result = (aView * aProj).GetFastInverse() * corner;
+            CU::Vector4f result = invViewProjection * corner;
             result = result / result.w;
 
             outputCorners[i] = result;

@@ -2,7 +2,7 @@
 #include <memory>
 #include <filesystem>
 #include <Epoch/Debug/Log.h>
-#include <Epoch/Debug/Instrumentor.h>
+#include <Epoch/Debug/Profiler.h>
 #include <Epoch/Core/Application.h>
 #include <Epoch/Rendering/Texture.h>
 

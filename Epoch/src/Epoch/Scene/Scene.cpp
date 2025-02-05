@@ -403,7 +403,6 @@ namespace Epoch
 		myIsSimulating = true;
 
 		myPhysicsScene = PhysicsSystem::CreatePhysicsScene(this);
-		ScriptEngine::InitializeRuntime();
 	}
 
 	void Scene::OnSimulationStop()
@@ -428,17 +427,14 @@ namespace Epoch
 					EPOCH_PROFILE_SCOPE("Scene::OnUpdate - C# OnUpdate");
 					Timer timer;
 
-					for (const auto& [entityID, entityInstance] : ScriptEngine::GetEntityInstances())
+					auto entities = GetAllEntitiesWith<ScriptComponent>();
+					for (auto id : entities)
 					{
-						if (myEntityMap.find(entityID) != myEntityMap.end())
+						Entity entity = Entity(id, this);
+						const auto& sc = entities.get<ScriptComponent>(id);
+						if (entity.IsActive() && sc.isActive && sc.IsFlagSet(ManagedClassMethodFlags::ShouldUpdate) && ScriptEngine::IsEntityInstantiated(entity))
 						{
-							Entity entity{ myEntityMap[entityID], this };
-							ScriptComponent sc = entity.GetComponent<ScriptComponent>();
-
-							if (entity.IsActive() && sc.isActive && ScriptEngine::IsEntityInstantiated(entity))
-							{
-								ScriptEngine::CallMethod(entityInstance, "OnUpdate");
-							}
+							ScriptEngine::CallMethod(ScriptEngine::GetEntityInstance(entity.GetUUID()), "OnUpdate");
 						}
 					}
 
@@ -449,16 +445,14 @@ namespace Epoch
 					EPOCH_PROFILE_SCOPE("Scene::OnLateUpdate - C# OnLateUpdate");
 					Timer timer;
 
-					for (const auto& [entityID, entityInstance] : ScriptEngine::GetEntityInstances())
+					auto entities = GetAllEntitiesWith<ScriptComponent>();
+					for (auto id : entities)
 					{
-						if (myEntityMap.find(entityID) != myEntityMap.end())
+						Entity entity = Entity(id, this);
+						const auto& sc = entities.get<ScriptComponent>(id);
+						if (entity.IsActive() && sc.isActive && sc.IsFlagSet(ManagedClassMethodFlags::ShouldLateUpdate) && ScriptEngine::IsEntityInstantiated(entity))
 						{
-							Entity entity{ myEntityMap[entityID], this };
-
-							if (entity.IsActive() && ScriptEngine::IsEntityInstantiated(entity))
-							{
-								ScriptEngine::CallMethod(entityInstance, "OnLateUpdate");
-							}
+							ScriptEngine::CallMethod(ScriptEngine::GetEntityInstance(entity.GetUUID()), "OnLateUpdate");
 						}
 					}
 
@@ -506,6 +500,7 @@ namespace Epoch
 	{
 		Entity cameraEntity = GetPrimaryCameraEntity();
 		if (!cameraEntity) return;
+		if (myViewportWidth == 0 || myViewportHeight == 0) return;
 
 		CU::Transform worlTrans = GetWorldSpaceTransform(cameraEntity);
 		const CU::Matrix4x4f cameraTransformMatrix = worlTrans.GetMatrix();
@@ -527,7 +522,7 @@ namespace Epoch
 		RenderScene(aRenderer, renderCamera, renderCamera, true);
 	}
 
-	void Scene::OnRenderEditor(std::shared_ptr<SceneRenderer> aRenderer, EditorCamera& aCamera, bool aCullWithEditorCamera)
+	void Scene::OnRenderEditor(std::shared_ptr<SceneRenderer> aRenderer, EditorCamera& aCamera, bool aCullWithEditorCamera, bool aWithPostProccessing)
 	{
 		const SceneRendererCamera renderCamera
 		(
@@ -545,7 +540,7 @@ namespace Epoch
 
 		if (aCullWithEditorCamera || !cameraEntity)
 		{
-			RenderScene(aRenderer, renderCamera, renderCamera, false);
+			RenderScene(aRenderer, renderCamera, renderCamera, false, aWithPostProccessing);
 		}
 		else
 		{
@@ -567,7 +562,7 @@ namespace Epoch
 				camera.GetAspectRatio()
 			);
 
-			RenderScene(aRenderer, renderCamera, cullingCamera, false);
+			RenderScene(aRenderer, renderCamera, cullingCamera, false, aWithPostProccessing);
 		}
 	}
 
@@ -854,6 +849,244 @@ namespace Epoch
 		aEntity.SetParentUUID(0);
 	}
 
+	std::unordered_set<AssetHandle> Scene::GetAllSceneReferences()
+	{
+		std::unordered_set<AssetHandle> sceneList;
+
+		// ScriptComponent
+		{
+			auto view = myRegistry.view<ScriptComponent>();
+			for (auto entity : view)
+			{
+				const auto& sc = myRegistry.get<ScriptComponent>(entity);
+				for (auto fieldID : sc.fieldIDs)
+				{
+					FieldInfo* fieldInfo = ScriptCache::GetFieldByID(fieldID);
+					std::shared_ptr<FieldStorageBase> storage = ScriptEngine::GetFieldStorage(Entity{ entity, this }, fieldID);
+					if (!FieldUtils::IsAsset(fieldInfo->type))
+					{
+						continue;
+					}
+
+					if (!fieldInfo->IsArray())
+					{
+						std::shared_ptr<FieldStorage> fieldStorage = std::static_pointer_cast<FieldStorage>(storage);
+						AssetHandle handle = fieldStorage->GetValue<UUID>();
+						if (AssetManager::IsMemoryAsset(handle) || Project::GetEditorAssetManager()->GetAssetType(handle) != AssetType::Scene)
+						{
+							continue;
+						}
+
+						if (AssetManager::IsAssetHandleValid(handle))
+						{
+							sceneList.insert(handle);
+						}
+					}
+					else
+					{
+						std::shared_ptr<ArrayFieldStorage> arrayFieldStorage = std::static_pointer_cast<ArrayFieldStorage>(storage);
+
+						for (uint32_t i = 0; i < arrayFieldStorage->GetLength(); i++)
+						{
+							AssetHandle handle = arrayFieldStorage->GetValue<UUID>(i);
+
+							if (AssetManager::IsMemoryAsset(handle))
+							{
+								continue;
+							}
+
+							if (Project::GetEditorAssetManager()->GetAssetType(handle) != AssetType::Scene)
+							{
+								break;
+							}
+
+							if (AssetManager::IsAssetHandleValid(handle))
+							{
+								sceneList.insert(handle);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return sceneList;
+	}
+
+	std::unordered_set<AssetHandle> Scene::GetAllSceneAssets()
+	{
+		std::unordered_set<AssetHandle> assetList;
+
+		// MeshRendererComponent
+		{
+			auto view = myRegistry.view<MeshRendererComponent>();
+			for (auto entity : view)
+			{
+				auto& mrc = myRegistry.get<MeshRendererComponent>(entity);
+				if (mrc.mesh)
+				{
+					if (!AssetManager::IsMemoryAsset(mrc.mesh) && AssetManager::IsAssetHandleValid(mrc.mesh))
+					{
+						assetList.insert(mrc.mesh);
+					}
+				}
+
+				if (mrc.materialTable)
+				{
+					for (size_t i = 0; i < mrc.materialTable->GetMaterialCount(); i++)
+					{
+						auto materialAssetHandle = mrc.materialTable->GetMaterial((uint32_t)i);
+
+						if (!AssetManager::IsAssetHandleValid(materialAssetHandle))
+						{
+							continue;
+						}
+
+						assetList.insert(materialAssetHandle);
+
+						std::shared_ptr<Material> materialAsset = AssetManager::GetAsset<Material>(materialAssetHandle);
+
+						std::array<AssetHandle, 3> textures =
+						{
+							materialAsset->GetAlbedoTexture(),
+							materialAsset->GetNormalTexture(),
+							materialAsset->GetMaterialTexture()
+						};
+
+						// Textures
+						for (auto texture : textures)
+						{
+							if (AssetManager::IsAssetHandleValid(texture))
+							{
+								assetList.insert(texture);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// SpriteRendererComponent
+		{
+			auto view = myRegistry.view<SpriteRendererComponent>();
+			for (auto entity : view)
+			{
+				auto& src = myRegistry.get<SpriteRendererComponent>(entity);
+				if (src.texture)
+				{
+					if (AssetManager::IsMemoryAsset(src.texture) || !AssetManager::IsAssetHandleValid(src.texture))
+					{
+						continue;
+					}
+
+					assetList.insert(src.texture);
+				}
+			}
+		}
+
+		// TextRendererComponent
+		{
+			auto view = myRegistry.view<TextRendererComponent>();
+			for (auto entity : view)
+			{
+				auto& trc = myRegistry.get<TextRendererComponent>(entity);
+				if (trc.font)
+				{
+					if (AssetManager::IsMemoryAsset(trc.font) || !AssetManager::IsAssetHandleValid(trc.font))
+					{
+						continue;
+					}
+
+					assetList.insert(trc.font);
+				}
+			}
+		}
+
+		// ScriptComponent
+		{
+			auto view = myRegistry.view<ScriptComponent>();
+			for (auto entity : view)
+			{
+				const auto& sc = myRegistry.get<ScriptComponent>(entity);
+				for (auto fieldID : sc.fieldIDs)
+				{
+					FieldInfo* fieldInfo = ScriptCache::GetFieldByID(fieldID);
+					std::shared_ptr<FieldStorageBase> storage = ScriptEngine::GetFieldStorage(Entity{ entity, this }, fieldID);
+					if (!FieldUtils::IsAsset(fieldInfo->type))
+					{
+						continue;
+					}
+
+					if (!fieldInfo->IsArray())
+					{
+						std::shared_ptr<FieldStorage> fieldStorage = std::static_pointer_cast<FieldStorage>(storage);
+						AssetHandle handle = fieldStorage->GetValue<UUID>();
+						if (AssetManager::IsMemoryAsset(handle) || !AssetManager::IsAssetHandleValid(handle))
+						{
+							continue;
+						}
+
+						assetList.insert(handle);
+					}
+					else
+					{
+						std::shared_ptr<ArrayFieldStorage> arrayFieldStorage = std::static_pointer_cast<ArrayFieldStorage>(storage);
+
+						for (uint32_t i = 0; i < arrayFieldStorage->GetLength(); i++)
+						{
+							AssetHandle handle = arrayFieldStorage->GetValue<UUID>(i);
+
+							if (AssetManager::IsMemoryAsset(handle) || !AssetManager::IsAssetHandleValid(handle))
+							{
+								continue;
+							}
+
+							assetList.insert(handle);
+						}
+					}
+				}
+			}
+		}
+
+		// SkyLightComponent
+		{
+			auto view = myRegistry.view<SkyLightComponent>();
+			for (auto entity : view)
+			{
+				const auto& slc = myRegistry.get<SkyLightComponent>(entity);
+				if (slc.environment)
+				{
+					if (AssetManager::IsMemoryAsset(slc.environment) || !AssetManager::IsAssetHandleValid(slc.environment))
+					{
+						continue;
+					}
+
+					assetList.insert(slc.environment);
+				}
+			}
+		}
+
+		// SpotlightComponent
+		{
+			auto view = myRegistry.view<SpotlightComponent>();
+			for (auto entity : view)
+			{
+				const auto& sc = myRegistry.get<SpotlightComponent>(entity);
+				if (sc.cookieTexture)
+				{
+					if (AssetManager::IsMemoryAsset(sc.cookieTexture) || !AssetManager::IsAssetHandleValid(sc.cookieTexture))
+					{
+						continue;
+					}
+
+					assetList.insert(sc.cookieTexture);
+				}
+			}
+		}
+
+		return assetList;
+	}
+
 	void Scene::BuildMeshEntityHierarchy(Entity aParent, std::shared_ptr<Mesh> aMesh, const MeshNode& aNode)
 	{
 		const auto& nodes = aMesh->GetNodes();
@@ -963,18 +1196,17 @@ namespace Epoch
 		outBoneTransforms[aBoneIndex] = bone.invBindPose * matrix;
 	}
 
-	void Scene::RenderScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aRenderCamera, const SceneRendererCamera& aCullingCamera, bool aIsRuntime)
+	void Scene::RenderScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aRenderCamera, const SceneRendererCamera& aCullingCamera, bool aIsRuntime, bool aWithPostProccessing)
 	{
 		EPOCH_PROFILE_FUNC();
 
-		Frustum frustum = CreateFrustum(aCullingCamera);
-		std::set<UUID> lastFramesFrustumCulledEntities = myFrustumCulledEntities;
+		const Frustum frustum = CreateFrustum(aCullingCamera);
+		std::unordered_set<UUID> lastFramesFrustumCulledEntities = myFrustumCulledEntities;
 		myFrustumCulledEntities.clear();
 
 		std::unordered_map<AssetHandle, std::shared_ptr<Asset>> assetAccelerationMap;
-
-		aRenderer->BeginScene(aRenderCamera);
-
+		
+		// Lighting
 		{
 			EPOCH_PROFILE_SCOPE("Scene::RenderScene::UpdateLightEnvironment");
 
@@ -1066,60 +1298,71 @@ namespace Epoch
 				sl.cookie = slc.cookieTexture;
 			}
 		}
-
+		
+		// Post Processing
 		{
 			EPOCH_PROFILE_SCOPE("Scene::RenderScene::UpdatePostProcessingData");
 
 			myPostProcessingData = PostProcessingData();
 			
-			auto volumes = GetAllEntitiesWith<VolumeComponent>();
-			for (auto entityID : volumes)
+			if (aWithPostProccessing)
 			{
-				Entity entity = Entity(entityID, this);
-				if (!entity.IsActive()) continue;
-
-				const auto& vc = volumes.get<VolumeComponent>(entityID);
-				if (!vc.isActive) continue;
-
-				if (vc.tonemapping.enabled)
+				auto volumes = GetAllEntitiesWith<VolumeComponent>();
+				for (auto entityID : volumes)
 				{
-					myPostProcessingData.bufferData.tonemap = vc.tonemapping.tonemap;
-				}
-				
-				myPostProcessingData.bufferData.flags |= (vc.colorGrading.enabled << 0);
-				if (vc.colorGrading.enabled)
-				{
-					myPostProcessingData.colorGradingLUT = vc.colorGrading.lut;
-				}
-				
-				myPostProcessingData.bufferData.flags |= (vc.vignette.enabled << 1);
-				if (vc.vignette.enabled)
-				{
-					myPostProcessingData.bufferData.vignetteCenter = vc.vignette.center;
-					myPostProcessingData.bufferData.vignetteColor = vc.vignette.color;
-					myPostProcessingData.bufferData.vignetteIntensity = vc.vignette.intensity;
-					myPostProcessingData.bufferData.vignetteSize = vc.vignette.size;
-					myPostProcessingData.bufferData.vignetteSmoothness = vc.vignette.smoothness;
-				}
+					Entity entity = Entity(entityID, this);
+					if (!entity.IsActive()) continue;
 
-				myPostProcessingData.bufferData.flags |= (vc.distanceFog.enabled << 2);
-				if (vc.distanceFog.enabled)
-				{
-					myPostProcessingData.bufferData.distanceFogColor = vc.distanceFog.color.GetVector3();
-					myPostProcessingData.bufferData.distanceFogDensity = vc.distanceFog.density;
-					myPostProcessingData.bufferData.distanceFogOffset = vc.distanceFog.offset;
-				}
+					const auto& vc = volumes.get<VolumeComponent>(entityID);
+					if (!vc.isActive) continue;
 
-				myPostProcessingData.bufferData.flags |= (vc.posterization.enabled << 3);
-				if (vc.posterization.enabled)
-				{
-					myPostProcessingData.bufferData.posterizationSteps = vc.posterization.steps;
-				}
+					if (vc.tonemapping.enabled)
+					{
+						myPostProcessingData.bufferData.tonemap = vc.tonemapping.tonemap;
+					}
+					
+					if (vc.colorGrading.enabled)
+					{
+						myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::ColorGradingEnabled;
 
-				break;
+						myPostProcessingData.colorGradingLUT = vc.colorGrading.lut;
+					}
+					
+					if (vc.vignette.enabled)
+					{
+						myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::VignetteEnabled;
+
+						myPostProcessingData.bufferData.vignetteCenter = vc.vignette.center;
+						myPostProcessingData.bufferData.vignetteColor = vc.vignette.color;
+						myPostProcessingData.bufferData.vignetteIntensity = vc.vignette.intensity;
+						myPostProcessingData.bufferData.vignetteSize = vc.vignette.size;
+						myPostProcessingData.bufferData.vignetteSmoothness = vc.vignette.smoothness;
+					}
+
+					if (vc.distanceFog.enabled)
+					{
+						myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::DistanceFogEnabled;
+
+						myPostProcessingData.bufferData.distanceFogColor = vc.distanceFog.color.GetVector3();
+						myPostProcessingData.bufferData.distanceFogDensity = vc.distanceFog.density;
+						myPostProcessingData.bufferData.distanceFogOffset = vc.distanceFog.offset;
+					}
+
+					if (vc.posterization.enabled)
+					{
+						myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::PosterizationEnabled;
+
+						myPostProcessingData.bufferData.posterizationSteps = vc.posterization.steps;
+					}
+
+					break;
+				}
 			}
 		}
 
+		aRenderer->BeginScene(aRenderCamera);
+		
+		// Submit Meshes
 		{
 			EPOCH_PROFILE_SCOPE("Scene::RenderScene::SubmitMeshes");
 
@@ -1194,7 +1437,8 @@ namespace Epoch
 				}
 			}
 		}
-
+		
+		// Submit Sprites
 		{
 			EPOCH_PROFILE_SCOPE("Scene::RenderScene::SubmitSprites");
 
@@ -1223,7 +1467,8 @@ namespace Epoch
 				aRenderer->SubmitQuad(transform, texture, src.tint, src.flipX, src.flipY, (uint32_t)entity);
 			}
 		}
-
+		
+		// Submit Texts
 		{
 			EPOCH_PROFILE_SCOPE("Scene::RenderScene::SubmitText");
 

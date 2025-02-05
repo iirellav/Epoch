@@ -6,7 +6,7 @@
 
 namespace Epoch
 {
-	PreferencesPanel::PreferencesPanel() : PagePanel(PREFERENCES_PANEL_ID)
+	PreferencesPanel::PreferencesPanel(const std::string& aName) : PagePanel(aName)
 	{
 		myPages.push_back({ "General", [this](){ DrawGeneralPage(); }});
 		myPages.push_back({ "Level Editor", [this](){ DrawLevelEditorPage(); }});
@@ -40,18 +40,6 @@ namespace Epoch
 
 			modified |= UI::Property_Checkbox("Autosave Scene on Play", settings.autoSaveSceneBeforePlay);
 
-			UI::EndPropertyGrid();
-
-			ImGui::TreePop();
-		}
-
-		if (UI::PropertyGridHeader("Console"))
-		{
-			UI::BeginPropertyGrid();
-
-			modified |= UI::Property_Checkbox("Clear Console on Play", settings.clearConsoleOnPlay);
-			modified |= UI::Property_Checkbox("Collapse Console Messages", settings.collapseConsoleMessages);
-			
 			UI::EndPropertyGrid();
 
 			ImGui::TreePop();
@@ -111,7 +99,14 @@ namespace Epoch
 
 			modified |= UI::Property_Checkbox("Show Grid", settings.gridEnabled);
 			modified |= UI::Property_SliderFloat("Opacity", settings.gridOpacity, 0.0f, 1.0f, NULL, ImGuiSliderFlags_NoInput | ImGuiSliderFlags_AlwaysClamp);
-			modified |= UI::Property_DragInt2("Size", settings.gridSize, 1, 0, 64);
+
+			CU::Vector3f gridOffset = settings.gridOffset * 0.01f;
+			modified |= UI::Property_DragFloat3("Offset", gridOffset, 0.2f);
+			settings.gridOffset = gridOffset * 100.0f;
+
+			CU::Vector2i gridSize = CU::Vector2i((int)settings.gridSize.x, (int)settings.gridSize.y);
+			modified |= UI::Property_DragInt2("Size", gridSize, 1, 0, 64);
+			settings.gridSize = CU::Vector2f((float)gridSize.x, (float)gridSize.y);
 
 			bool gridPlaneX = settings.gridPlane == GridPlane::X;
 			bool gridPlaneY = settings.gridPlane == GridPlane::Y;

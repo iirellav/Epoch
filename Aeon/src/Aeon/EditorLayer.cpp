@@ -4,7 +4,7 @@
 #include <CommonUtilities/StringUtils.h>
 #include <CommonUtilities/Math/Random.h>
 #include <Epoch/Debug/Log.h>
-#include <Epoch/Debug/Instrumentor.h>
+#include <Epoch/Debug/Profiler.h>
 #include <Epoch/Utils/FileSystem.h>
 #include <Epoch/ImGui/ImGui.h>
 #include <Epoch/ImGui/UICore.h>
@@ -15,7 +15,9 @@
 #include <Epoch/Core/Events/KeyEvent.h>
 #include <Epoch/Core/Events/MouseEvent.h>
 #include <Epoch/Core/Events/WindowEvent.h>
+#include <Epoch/Core/Events/SceneEvents.h>
 #include <Epoch/Rendering/Renderer.h>
+#include <Epoch/Rendering/DebugRenderer.h>
 #include <Epoch/Project/ProjectSerializer.h>
 #include <Epoch/Project/RuntimeBuilder.h>
 #include <Epoch/Scene/SceneSerializer.h>
@@ -28,7 +30,12 @@
 #include <Epoch/Editor/Console/EditorConsolePanel.h>
 #include <Epoch/Editor/PanelIDs.h>
 
+#include <Epoch/Embed/OpenSans_Regular.embed>
+#include <Epoch/Embed/OpenSans_Bold.embed>
+#include <Epoch/Embed/Fontawesome.embed>
+
 #include "EditorResources.h"
+#include "Panels/ViewportPanel.h"
 #include "Panels/SceneHierarchyPanel.h"
 #include "Panels/ContentBrowserPanel.h"
 #include "Panels/InspectorPanel.h"
@@ -42,7 +49,6 @@
 namespace Epoch
 {
 	static bool staticCreateNewProj = false;
-	static bool staticFocusOnViewport = false;
 
 	EditorLayer::EditorLayer() : Layer("Editor Layer")
 	{
@@ -76,12 +82,19 @@ namespace Epoch
 		myPanelManager = std::make_unique<PanelManager>();
 		myPanelManager->SetEntityDestroyedCallback([this](Entity aEntity) { OnEntityDeleted(aEntity); });
 
-		std::shared_ptr<SceneHierarchyPanel> sceneHierarchyPanel = myPanelManager->AddPanel<SceneHierarchyPanel>(PanelCategory::View, "Scene Hierarchy", true);
+		myGameViewport = myPanelManager->AddPanel<ViewportPanel>(PanelCategory::View, "Panel/Game", GAME_PANEL_ID, true);
+
+		mySceneViewport = myPanelManager->AddPanel<ViewportPanel>(PanelCategory::View, "Panel/Scene", SCENE_PANEL_ID, true);
+		mySceneViewport->AddAdditionalFunction([this]() { UpdateViewportBoxSelection(); });
+		mySceneViewport->AddAdditionalFunction([this]() { DrawGizmos(); });
+		mySceneViewport->AddAdditionalFunction([this]() { HandleAssetDrop(); });
+
+		std::shared_ptr<SceneHierarchyPanel> sceneHierarchyPanel = myPanelManager->AddPanel<SceneHierarchyPanel>(PanelCategory::View, "Panel/Scene Hierarchy", SCENE_HIERARCHY_PANEL_ID, true);
 		sceneHierarchyPanel->SetEntityCreationCallback([this](Entity aEntity) { return OnEntityCreated(aEntity); });
 		sceneHierarchyPanel->AddEntityPopupPlugin("Set Transform to Editor Camera Transform", [this](Entity aEntity) { OnSetToEditorCameraTransform(aEntity); });
 		sceneHierarchyPanel->AddEntityPopupPlugin("Reset Bone Transforms", [this](Entity aEntity) { OnResetBoneTransforms(aEntity); });
 
-		std::shared_ptr<ContentBrowserPanel> contentBrowserPanel = myPanelManager->AddPanel<ContentBrowserPanel>(PanelCategory::View, "Content Browser", true);
+		std::shared_ptr<ContentBrowserPanel> contentBrowserPanel = myPanelManager->AddPanel<ContentBrowserPanel>(PanelCategory::View, "Panel/Content Browser", CONTENT_BROWSER_PANEL_ID, true);
 
 		contentBrowserPanel->RegisterItemActivateCallbackForType(AssetType::Scene, [this](const AssetMetadata& aMetadata)
 			{
@@ -103,20 +116,28 @@ namespace Epoch
 				ScriptBuilder::RegenerateScriptSolution(Project::GetProjectDirectory());
 			});
 
-		contentBrowserPanel->RegistryCurrentSceneRenamedCallback([this](const AssetMetadata& aMetadata)
+		contentBrowserPanel->RegisterAssetRenamedCallbackForType(AssetType::ScriptFile, [this](const AssetMetadata& aMetadata)
 			{
-				OnCurrentSceneRenamed(aMetadata);
+				ScriptBuilder::RegenerateScriptSolution(Project::GetProjectDirectory());
 			});
 
-		myPanelManager->AddPanel<ProjectSettingsPanel>(PanelCategory::Edit, "Project Settings", false);
-		myPanelManager->AddPanel<PreferencesPanel>(PanelCategory::Edit, "Preferences", false);
+		contentBrowserPanel->RegisterAssetRenamedCallbackForType(AssetType::Scene, [this](const AssetMetadata& aMetadata)
+			{
+				if (aMetadata.handle == myEditorScene->GetHandle())
+				{
+					OnCurrentSceneRenamed(aMetadata);
+				}
+			});
 
-		myPanelManager->AddPanel<InspectorPanel>(PanelCategory::View, "Inspector", true);
-		myPanelManager->AddPanel<EditorConsolePanel>(PanelCategory::View, "Console", true);
-		myPanelManager->AddPanel<AssetManagerPanel>(PanelCategory::View, "Asset Manager", false);
-		myPanelManager->AddPanel<ShaderLibraryPanel>(PanelCategory::View, "Shader Library", false);
-		myPanelManager->AddPanel<ScriptEngineDebugPanel>(PanelCategory::View, "Script Engine", false);
-		std::shared_ptr<StatisticsPanel> statisticsPanel = myPanelManager->AddPanel<StatisticsPanel>(PanelCategory::View, "Statistics", false);
+		myPanelManager->AddPanel<ProjectSettingsPanel>(PanelCategory::Edit, "Project Settings", PROJECT_SETTINGS_PANEL_ID, false);
+		myPanelManager->AddPanel<PreferencesPanel>(PanelCategory::Edit, "Preferences", PREFERENCES_PANEL_ID, false);
+
+		myPanelManager->AddPanel<InspectorPanel>(PanelCategory::View, "Panel/Inspector", INSPECTOR_PANEL_ID, true);
+		myPanelManager->AddPanel<EditorConsolePanel>(PanelCategory::View, "Panel/Console", CONSOLE_PANEL_ID, true);
+		myPanelManager->AddPanel<ShaderLibraryPanel>(PanelCategory::View, "Panel/Shader Library", SHADER_LIBRARY_PANEL_ID, false);
+		myPanelManager->AddPanel<AssetManagerPanel>(PanelCategory::View, "Debug/Asset Manager", ASSET_MANAGER_PANEL_ID, false);
+		myPanelManager->AddPanel<ScriptEngineDebugPanel>(PanelCategory::View, "Debug/Script Engine", SCRIPT_ENGINE_DEBUG_PANEL_ID, false);
+		myStatisticsPanel = myPanelManager->AddPanel<StatisticsPanel>(PanelCategory::View, "Debug/Statistics", STATISTICS_PANEL_ID, false);
 
 		myPanelManager->Deserialize();
 
@@ -138,30 +159,29 @@ namespace Epoch
 		{
 			EPOCH_PROFILE_SCOPE("Load fonts");
 
-			UI::Fonts::Add("Regular", "Resources/Fonts/opensans/OpenSans-Regular.ttf", true);
+			UI::Fonts::Add("Regular", Buffer(OpenSans_Regular, OpenSans_Regular_len), true);
 
 			static const ImWchar staticFontAwesomeRanges[] = { EP_ICON_MIN, EP_ICON_MAX, 0 };
 			UI::FontConfiguration fontAwesome;
 			fontAwesome.fontName = "FontAwesome";
-			fontAwesome.filePath = "Resources/Fonts/FontAwesome/fontawesome-webfont.ttf";
+			fontAwesome.data = Buffer(fontawesome, fontawesome_len);
 			fontAwesome.size = 16.0f;
 			fontAwesome.glyphRanges = staticFontAwesomeRanges;
 			fontAwesome.mergeWithLast = true;
 			UI::Fonts::Add(fontAwesome);
 
-			UI::Fonts::Add("Bold", "Resources/Fonts/opensans/OpenSans-Bold.ttf");
+			UI::Fonts::Add("Bold", Buffer(OpenSans_Bold, OpenSans_Bold_len));
 		}
 
 		GradientEditor::Get().Init();
 
-		// All icons needs to be loaded as the scene renderer needs to be able to create frame buffers (without stalling)
-		mySceneRenderer = std::make_shared<SceneRenderer>();
+		auto sceneRenderer = mySceneViewport->GetSceneRenderer();
 		myDebugRenderer = std::make_shared<DebugRenderer>();
-		myDebugRenderer->Init(mySceneRenderer->GetExternalCompositingFramebuffer());
-		mySceneRenderer->SetDebugRenderer(myDebugRenderer);
+		myDebugRenderer->Init(sceneRenderer->GetExternalCompositingFramebuffer());
+		sceneRenderer->SetDebugRenderer(myDebugRenderer);
 
-		statisticsPanel->SetSceneRenderer(mySceneRenderer);
-		statisticsPanel->SetDebugRenderer(myDebugRenderer);
+		myStatisticsPanel->SetSceneRenderer(sceneRenderer);
+		myStatisticsPanel->SetDebugRenderer(myDebugRenderer);
 	}
 
 	void EditorLayer::OnDetach()
@@ -186,19 +206,69 @@ namespace Epoch
 
 		if (!myActiveScene) return;
 
+		myEditorCamera.SetActive(mySceneViewport->AllowEditorCameraMovement());
+		myEditorCamera.OnUpdate();
+
+		switch (mySceneState)
+		{
+		case SceneState::Edit:
+		case SceneState::Simulate:
+		{
+			myActiveScene->OnUpdateEditor();
+			break;
+		}
+		case SceneState::Play:
+		{
+			myActiveScene->OnUpdateRuntime();
+
+			Entity camEntity = myActiveScene->GetPrimaryCameraEntity();
+			if (camEntity)
+			{
+				{
+					EPOCH_PROFILE_SCOPE("C# OnDebug");
+
+					auto entities = myActiveScene->GetAllEntitiesWith<ScriptComponent>();
+					for (auto id : entities)
+					{
+						Entity entity = Entity(id, myActiveScene.get());
+						const auto& sc = entities.get<ScriptComponent>(id);
+						if (entity.IsActive() && sc.isActive && sc.IsFlagSet(ManagedClassMethodFlags::ShouldDebug) && ScriptEngine::IsEntityInstantiated(entity))
+						{
+							ScriptEngine::CallMethod(ScriptEngine::GetEntityInstance(entity.GetUUID()), "OnDebug");
+						}
+					}
+				}
+			}
+
+			break;
+		}
+		}
+
+		// Render scene view
+		if (mySceneViewport->IsVisible())
+		{
+			auto sceneRenderer = mySceneViewport->GetSceneRenderer();
+
+			sceneRenderer->SetScene(myActiveScene);
+			myActiveScene->OnRenderEditor(sceneRenderer, myEditorCamera, !myCullWithSceneCamera, myPostProcessingInSceneView);
+
+			OnRenderOverlay();
+		}
+		
+		// Render game view
+		if (myGameViewport->IsVisible())
+		{
+			auto sceneRenderer = myGameViewport->GetSceneRenderer();
+
+			sceneRenderer->SetScene(myActiveScene);
+			myActiveScene->OnRenderRuntime(sceneRenderer);
+		}
+
 		switch (mySceneState)
 		{
 		case SceneState::Edit:
 		{
-			myEditorCamera.SetActive(myAllowEditorCameraMovement);
-			myEditorCamera.OnUpdate();
-			myActiveScene->OnUpdateEditor();
-			mySceneRenderer->SetScene(myActiveScene);
-			myActiveScene->OnRenderEditor(mySceneRenderer, myEditorCamera, !myCullWithSceneCamera);
-
-			OnRenderOverlay();
-
-			if (EditorSettings::Get().autosaveEnabled)
+			if (mySceneState == SceneState::Edit && EditorSettings::Get().autosaveEnabled)
 			{
 				myTimeSinceLastSave += CU::Timer::GetDeltaTime();
 				if (myTimeSinceLastSave >= EditorSettings::Get().autosaveIntervalSeconds)
@@ -208,39 +278,14 @@ namespace Epoch
 			}
 			break;
 		}
-		case SceneState::Simulate:
-		{
-			myEditorCamera.SetActive(myAllowEditorCameraMovement);
-			myEditorCamera.OnUpdate();
-			myActiveScene->OnUpdateEditor();
-			mySceneRenderer->SetScene(myActiveScene);
-			myActiveScene->OnRenderEditor(mySceneRenderer, myEditorCamera);
-			break;
-		}
 		case SceneState::Play:
 		{
-			myActiveScene->OnUpdateRuntime();
-			mySceneRenderer->SetScene(myActiveScene);
-			myActiveScene->OnRenderRuntime(mySceneRenderer);
-
 			Entity camEntity = myActiveScene->GetPrimaryCameraEntity();
 			if (camEntity)
 			{
-				for (const auto& [entityID, entityInstance] : ScriptEngine::GetEntityInstances())
-				{
-					Entity entity = myActiveScene->TryGetEntityWithUUID(entityID);
-					if (entity)
-					{
-						if (entity.IsActive() && ScriptEngine::IsEntityInstantiated(entity))
-						{
-							ScriptEngine::CallMethod(entityInstance, "OnDebug");
-						}
-					}
-				}
-
-				CU::Transform worlTrans = camEntity.GetWorldSpaceTransform();
+				CU::Transform worldTrans = camEntity.GetWorldSpaceTransform();
 				const CameraComponent& camComponent = camEntity.GetComponent<CameraComponent>();
-				myDebugRenderer->Render(worlTrans.GetMatrix().GetFastInverse(), camComponent.camera.GetProjectionMatrix(), myDebugRendererOnTop);
+				myDebugRenderer->Render(worldTrans.GetMatrix().GetFastInverse(), camComponent.camera.GetProjectionMatrix(), myDebugRendererOnTop);
 			}
 
 			auto sceneUpdateQueue = myPostSceneUpdateQueue;
@@ -252,6 +297,70 @@ namespace Epoch
 			break;
 		}
 		}
+
+		//switch (mySceneState)
+		//{
+		//case SceneState::Edit:
+		//case SceneState::Simulate:
+		//{
+		//	auto sceneRenderer = mySceneViewport->GetSceneRenderer();
+		//	myEditorCamera.SetActive(mySceneViewport->AllowEditorCameraMovement());
+		//	myEditorCamera.OnUpdate();
+		//	myActiveScene->OnUpdateEditor();
+		//	sceneRenderer->SetScene(myActiveScene);
+		//	myActiveScene->OnRenderEditor(sceneRenderer, myEditorCamera, !myCullWithSceneCamera);
+		//
+		//	OnRenderOverlay();
+		//
+		//	if (mySceneState == SceneState::Edit && EditorSettings::Get().autosaveEnabled)
+		//	{
+		//		myTimeSinceLastSave += CU::Timer::GetDeltaTime();
+		//		if (myTimeSinceLastSave >= EditorSettings::Get().autosaveIntervalSeconds)
+		//		{
+		//			SaveSceneAuto();
+		//		}
+		//	}
+		//	break;
+		//}
+		//case SceneState::Play:
+		//{
+		//	auto sceneRenderer = myGameViewport->GetSceneRenderer();
+		//	myActiveScene->OnUpdateRuntime();
+		//	sceneRenderer->SetScene(myActiveScene);
+		//	myActiveScene->OnRenderRuntime(sceneRenderer);
+		//
+		//	Entity camEntity = myActiveScene->GetPrimaryCameraEntity();
+		//	if (camEntity)
+		//	{
+		//		{
+		//			EPOCH_PROFILE_SCOPE("C# OnDebug");
+		//
+		//			auto entities = myActiveScene->GetAllEntitiesWith<ScriptComponent>();
+		//			for (auto id : entities)
+		//			{
+		//				Entity entity = Entity(id, myActiveScene.get());
+		//				const auto& sc = entities.get<ScriptComponent>(id);
+		//				if (entity.IsActive() && sc.isActive && sc.IsFlagSet(ManagedClassMethodFlags::ShouldDebug) && ScriptEngine::IsEntityInstantiated(entity))
+		//				{
+		//					ScriptEngine::CallMethod(ScriptEngine::GetEntityInstance(entity.GetUUID()), "OnDebug");
+		//				}
+		//			}
+		//		}
+		//
+		//		CU::Transform worldTrans = camEntity.GetWorldSpaceTransform();
+		//		const CameraComponent& camComponent = camEntity.GetComponent<CameraComponent>();
+		//		myDebugRenderer->Render(worldTrans.GetMatrix().GetFastInverse(), camComponent.camera.GetProjectionMatrix(), myDebugRendererOnTop);
+		//	}
+		//
+		//	auto sceneUpdateQueue = myPostSceneUpdateQueue;
+		//	myPostSceneUpdateQueue.clear();
+		//	for (auto& fn : sceneUpdateQueue)
+		//	{
+		//		fn();
+		//	}
+		//	break;
+		//}
+		//}
 
 		if (ScriptEngine::ShouldReloadAppAssembly())
 		{
@@ -276,13 +385,13 @@ namespace Epoch
 			}
 		}
 
-		if (Input::IsMouseButtonPressed(MouseButton::Right) && !myStartedCameraClickInViewport && myViewportFocused && myViewportHovered)
+		if (Input::IsMouseButtonHeld(MouseButton::Right) && !mySceneViewport->GetStartedCameraClickInPanel() && mySceneViewport->IsFocused() && mySceneViewport->IsHovered())
 		{
-			myStartedCameraClickInViewport = true;
+			mySceneViewport->SetStartedCameraClickInPanel(true);
 		}
-		else if (!Input::IsMouseButtonHeld(MouseButton::Right) && myStartedCameraClickInViewport)
+		else if ((!Input::IsMouseButtonHeld(MouseButton::Right) || !mySceneViewport->IsHovered()) && mySceneViewport->GetStartedCameraClickInPanel())
 		{
-			myStartedCameraClickInViewport = false;
+			mySceneViewport->SetStartedCameraClickInPanel(false);
 		}
 	}
 
@@ -292,16 +401,16 @@ namespace Epoch
 
 		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) || (ImGui::IsMouseClicked(ImGuiMouseButton_Right)))
 		{
-			if (!myStartedCameraClickInViewport && mySceneState != SceneState::Play)
+			if (!mySceneViewport->GetStartedCameraClickInPanel() && mySceneViewport->IsHovered())
 			{
 				ImGui::FocusWindow(GImGui->HoveredWindow);
 				Input::SetCursorMode(CursorMode::Normal);
 			}
 		}
 
-		BeginDockspace();
-
 		OnRenderMenuBar();
+
+		BeginDockspace();
 
 		if (staticCreateNewProj)
 		{
@@ -310,8 +419,12 @@ namespace Epoch
 		}
 		ShowCreateProjectPopup(); // TODO: Make a easier way to display popups
 
-		ViewportPanel();
 		myPanelManager->OnImGuiRender();
+
+		ToolbarPanel();
+		myEditorCamera.SetViewportSize(mySceneViewport->Size().x, mySceneViewport->Size().y);
+		myDebugRenderer->SetViewportSize(mySceneViewport->Size().x, mySceneViewport->Size().y);
+		myActiveScene->SetViewportSize(myGameViewport->Size().x, myGameViewport->Size().y);
 
 		EditorOptionsPanel();
 
@@ -369,7 +482,9 @@ namespace Epoch
 		// We cannot preserve the docking relationship between an active window and an inactive docking, otherwise 
 		// any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+		//ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 12.0f));
 		ImGui::Begin("DockSpace Editor", &dockspaceOpen, window_flags);
+		//ImGui::PopStyleVar(2);
 		ImGui::PopStyleVar();
 
 		if (opt_fullscreen)
@@ -401,8 +516,13 @@ namespace Epoch
 
 	void EditorLayer::OnRenderMenuBar()
 	{
-		if (ImGui::BeginMenuBar())
+		ImVec2 framePadding = ImGui::GetStyle().FramePadding;
+		//ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 12.0f));
+		if (ImGui::BeginMainMenuBar())
 		{
+			ImVec2 pos = ImGui::GetCursorPos();
+			float menuBarCenter = ImGui::GetContentRegionAvail().x / 2;
+
 			if (ImGui::BeginMenu("File"))
 			{
 				{
@@ -489,8 +609,22 @@ namespace Epoch
 
 				if (ImGui::MenuItem("Build"))
 				{
-					RuntimeBuilder builder;
-					builder.Build();
+					const auto buildLocation = FileSystem::OpenFolderDialog();
+
+					if (!buildLocation.empty())
+					{
+						RuntimeBuilder::Build(buildLocation);
+					}
+				}
+
+				if (ImGui::MenuItem("Build (Dev)"))
+				{
+					const auto buildLocation = FileSystem::OpenFolderDialog();
+
+					if (!buildLocation.empty())
+					{
+						RuntimeBuilder::Build(buildLocation, true);
+					}
 				}
 
 				ImGui::Separator();
@@ -507,7 +641,7 @@ namespace Epoch
 			{
 				for (auto& [id, panelData] : myPanelManager->GetPanels(PanelCategory::Edit))
 				{
-					auto nameParts = CU::SplitString(panelData.name, "/");
+					auto nameParts = CU::SplitString(panelData.menuName, "/");
 					RecursivePanelMenuItem(nameParts, 0, panelData.isOpen);
 				}
 				ImGui::Separator();
@@ -545,15 +679,65 @@ namespace Epoch
 			{
 				for (auto& [id, panelData] : myPanelManager->GetPanels(PanelCategory::View))
 				{
-					auto nameParts = CU::SplitString(panelData.name, "/");
+					auto nameParts = CU::SplitString(panelData.menuName, "/");
 					RecursivePanelMenuItem(nameParts, 0, panelData.isOpen);
+				}
+
+				ImGui::Separator();
+
+				if (ImGui::BeginMenu("Layout"))
+				{
+					std::filesystem::path layoutDir = "Resources/Layouts";
+					for (auto const& dirEntry : std::filesystem::directory_iterator(layoutDir))
+					{
+						if (ImGui::MenuItem(dirEntry.path().stem().string().c_str()))
+						{
+							ImGui::LoadIniSettingsFromDisk(dirEntry.path().string().c_str());
+						}
+					}
+
+					ImGui::EndMenu();
 				}
 
 				ImGui::EndMenu();
 			}
 
-			ImGui::EndMenuBar();
+			if (false)
+			{
+				ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
+				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+				auto& colors = ImGui::GetStyle().Colors;
+				const ImVec4& buttonHovered = colors[ImGuiCol_ButtonHovered];
+				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(buttonHovered.x, buttonHovered.y, buttonHovered.z, 0.5f));
+				const auto& buttonActive = colors[ImGuiCol_ButtonActive];
+				ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(buttonActive.x, buttonActive.y, buttonActive.z, 0.5f));
+
+				ImGui::SetCursorPos(pos + ImVec2(menuBarCenter, ImGui::GetContentRegionAvail().y / 2 - 11));
+				auto icon = (mySceneState == SceneState::Edit) ? EditorResources::PlayButton : EditorResources::StopButton;
+				if (ImGui::ImageButton((ImTextureID)icon->GetView(), ImVec2(24, 24), { 0, 0 }, { 1, 1 }, (int)framePadding.y))
+				{
+					if (mySceneState == SceneState::Edit)
+					{
+						OnScenePlay();
+					}
+					else if (mySceneState == SceneState::Play)
+					{
+						OnSceneStop();
+					}
+				}
+				if (ImGui::BeginItemTooltip())
+				{
+					(mySceneState == SceneState::Edit) ? ImGui::Text(" Play ") : ImGui::Text(" Stop ");
+					ImGui::EndTooltip();
+				}
+
+				ImGui::PopStyleVar();
+				ImGui::PopStyleColor(3);
+			}
+
+			ImGui::EndMainMenuBar();
 		}
+		//ImGui::PopStyleVar();
 	}
 
 	void EditorLayer::RecursivePanelMenuItem(const std::vector<std::string>& aNameParts, uint32_t aDepth, bool& aIsOpen)
@@ -578,9 +762,9 @@ namespace Epoch
 	std::pair<float, float> EditorLayer::GetMouseViewportCord() const
 	{
 		auto [mx, my] = ImGui::GetMousePos();
-		mx -= myViewportBounds.min.x;
-		my -= myViewportBounds.min.y;
-		CU::Vector2f viewportSize = myViewportBounds.max - myViewportBounds.min;
+		mx -= mySceneViewport->MinBounds().x;
+		my -= mySceneViewport->MinBounds().y;
+		CU::Vector2f viewportSize = mySceneViewport->MaxBounds() - mySceneViewport->MinBounds();
 		my = viewportSize.y - my;
 
 		return { mx, my };
@@ -589,7 +773,7 @@ namespace Epoch
 	std::pair<float, float> EditorLayer::GetMouseViewportSpace() const
 	{
 		auto [mx, my] = GetMouseViewportCord();
-		CU::Vector2f viewportSize = myViewportBounds.max - myViewportBounds.min;
+		CU::Vector2f viewportSize = mySceneViewport->MaxBounds() - mySceneViewport->MinBounds();
 
 		return { (mx / viewportSize.x) * 2.0f - 1.0f, (my / viewportSize.y) * 2.0f - 1.0f };
 	}
@@ -604,7 +788,8 @@ namespace Epoch
 	{
 		auto [px, py] = GetMouseViewportCord();
 
-		auto IDBuffer = mySceneRenderer->GetEntityIDTexture();
+		auto sceneRenderer = mySceneViewport->GetSceneRenderer();
+		auto IDBuffer = sceneRenderer->GetEntityIDTexture();
 		auto pixelData = IDBuffer->ReadData(1, 1, (uint32_t)px, (uint32_t)py);
 		if (!pixelData)
 		{
@@ -624,7 +809,7 @@ namespace Epoch
 
 	void EditorLayer::HandleAssetDrop()
 	{
-		if (mySceneState != SceneState::Edit) return;
+		if (mySceneState == SceneState::Play) return;
 		if (!ImGui::BeginDragDropTarget()) return;
 
 		auto data = ImGui::AcceptDragDropPayload("asset_payload");
@@ -666,13 +851,40 @@ namespace Epoch
 				}
 				else if (asset->GetAssetType() == AssetType::Texture)
 				{
-					Entity spriteEntity = myActiveScene->CreateEntity(assetData.filePath.stem().string());
-					spriteEntity.AddComponent<SpriteRendererComponent>(asset->GetHandle());
+					if (Input::IsKeyHeld(KeyCode::LeftShift))
+					{
+						Entity hoveredEntity = GetHoveredEntity();
+						if (!hoveredEntity)
+						{
+							continue;
+						}
 
-					OnEntityCreated(spriteEntity);
+						if (!hoveredEntity.HasComponent<MeshRendererComponent>())
+						{
+							continue;
+						}
 
-					SelectionManager::DeselectAll(SelectionContext::Scene);
-					SelectionManager::Select(SelectionContext::Scene, spriteEntity.GetUUID());
+						MeshRendererComponent& mrc = hoveredEntity.GetComponent<MeshRendererComponent>();
+						if (mrc.materialTable->GetMaterialCount() > 0)
+						{
+							AssetHandle materialHandle = mrc.materialTable->GetMaterial(0);
+							if (materialHandle != Hash::GenerateFNVHash("Default-Material"))
+							{
+								auto material = AssetManager::GetAsset<Material>(materialHandle);
+								material->SetAlbedoTexture(assetHandle);
+							}
+						}
+					}
+					else
+					{
+						Entity spriteEntity = myActiveScene->CreateEntity(assetData.filePath.stem().string());
+						spriteEntity.AddComponent<SpriteRendererComponent>(assetHandle);
+
+						OnEntityCreated(spriteEntity);
+
+						SelectionManager::DeselectAll(SelectionContext::Scene);
+						SelectionManager::Select(SelectionContext::Scene, spriteEntity.GetUUID());
+					}
 
 					grabFocus = true;
 				}
@@ -724,7 +936,7 @@ namespace Epoch
 				}
 			}
 
-			staticFocusOnViewport |= grabFocus;
+			if (grabFocus) mySceneViewport->SetFocus();
 		}
 
 		ImGui::EndDragDropTarget();
@@ -820,7 +1032,8 @@ namespace Epoch
 				break;
 			}
 
-			myDebugRenderer->DrawGrid(CU::Vector3f::Zero, gridRotation, EditorSettings::Get().gridSize, EditorSettings::Get().gridOpacity);
+			CU::Vector2i gridSize = CU::Vector2i((int)EditorSettings::Get().gridSize.x, (int)EditorSettings::Get().gridSize.y);
+			myDebugRenderer->DrawGrid(EditorSettings::Get().gridOffset, gridRotation, gridSize, EditorSettings::Get().gridOpacity);
 		}
 
 		if (SelectionManager::GetSelectionCount(SelectionContext::Scene) > 0)
@@ -831,20 +1044,13 @@ namespace Epoch
 
 				if (entity.HasComponent<CameraComponent>())
 				{
-					const CU::Vector2f viewportSize = myViewportBounds.max - myViewportBounds.min;
+					const CU::Vector2f viewportSize = mySceneViewport->MaxBounds() - mySceneViewport->MinBounds();
 					auto& cc = entity.GetComponent<CameraComponent>();
 					cc.camera.SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
 
 					const CU::Matrix4x4f transform = myActiveScene->GetWorldSpaceTransformMatrix(entity);
 
-					if (cc.camera.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
-					{
-						myDebugRenderer->DrawPerspectiveFrustum(transform, cc.camera.GetPerspectiveNearPlane(), cc.camera.GetPerspectiveFarPlane(), cc.camera.GetPerspectiveFOV(), cc.camera.GetAspectRatio(), CU::Color::Green);
-					}
-					else
-					{
-						myDebugRenderer->DrawOrthographicFrustum(transform, cc.camera.GetOrthographicNearPlane(), cc.camera.GetOrthographicFarPlane(), cc.camera.GetOrthographicSize(), cc.camera.GetAspectRatio(), CU::Color::Green);
-					}
+					myDebugRenderer->DrawFrustum(transform.GetFastInverse(), cc.camera.GetProjectionMatrix(), CU::Color::Green);
 				}
 
 				if (entity.HasComponent<DirectionalLightComponent>())
@@ -1374,7 +1580,6 @@ namespace Epoch
 		ScriptEngine::SetSceneContext(nullptr, nullptr);
 
 		myPanelManager->OnSceneChanged(nullptr);
-		if (mySceneRenderer) mySceneRenderer->SetScene(nullptr);
 		myActiveScene = nullptr;
 
 		EPOCH_ASSERT(myEditorScene.use_count() == 1, "Scene will not be destroyed after project is closed - something is still holding scene refs!");
@@ -1536,11 +1741,12 @@ namespace Epoch
 
 		myEditorScene = newScene;
 		myEditorScenePath = aPath;
-
+		
+		auto sceneRenderer = mySceneViewport->GetSceneRenderer();
 		myActiveScene = myEditorScene;
 		myPanelManager->OnSceneChanged(myActiveScene);
-		if (mySceneRenderer) mySceneRenderer->SetScene(nullptr);
-		ScriptEngine::SetSceneContext(myActiveScene, mySceneRenderer);
+		if (sceneRenderer) sceneRenderer->SetScene(nullptr);
+		ScriptEngine::SetSceneContext(myActiveScene, sceneRenderer);
 
 		myTimeSinceLastSave = 0.0f;
 
@@ -1579,12 +1785,13 @@ namespace Epoch
 
 		myEditorScene = std::make_shared<Scene>(aName);
 		myEditorScenePath = std::filesystem::path();
-
+		
+		auto sceneRenderer = mySceneViewport->GetSceneRenderer();
 		myActiveScene = myEditorScene;
 		myPanelManager->OnSceneChanged(myActiveScene);
-		ScriptEngine::SetSceneContext(myActiveScene, mySceneRenderer);
+		ScriptEngine::SetSceneContext(myActiveScene, sceneRenderer);
 
-		if (mySceneRenderer) mySceneRenderer->SetScene(nullptr);
+		if (sceneRenderer) sceneRenderer->SetScene(nullptr);
 	}
 
 	void EditorLayer::SaveScene()
@@ -1651,11 +1858,12 @@ namespace Epoch
 			//	//TODO: Change editor camera projection type
 			//}
 
-			const char* drawModeStrings[] = { "Shaded", "Albedo", "Normals", "Ambient Occlusion", "Roughness", "Metalness", "World Position" };
-			uint32_t currentDrawMode = (int)mySceneRenderer->GetDrawMode();
+			auto sceneRenderer = mySceneViewport->GetSceneRenderer();
+			const char* drawModeStrings[] = { "Shaded", "Albedo", "Normals", "Ambient Occlusion", "Roughness", "Metalness", "Emission" };
+			uint32_t currentDrawMode = (int)sceneRenderer->GetDrawMode();
 			if (UI::Property_Dropdown("Draw Mode", drawModeStrings, 7, currentDrawMode))
 			{
-				mySceneRenderer->SetDrawMode((DrawMode)currentDrawMode);
+				sceneRenderer->SetDrawMode((DrawMode)currentDrawMode);
 			}
 
 			UI::EndPropertyGrid();
@@ -1717,6 +1925,7 @@ namespace Epoch
 
 			UI::BeginPropertyGrid();
 
+			UI::Property_Checkbox("Post Processing in Scene View", myPostProcessingInSceneView);
 			UI::Property_Checkbox("Show Color Grading LUT", myDisplayCurrentColorGradingLUT);
 
 			UI::EndPropertyGrid();
@@ -1797,7 +2006,7 @@ namespace Epoch
 
 
 		bool hasPlayButton = mySceneState == SceneState::Edit || mySceneState == SceneState::Play;
-		//bool hasSimulateButton = mySceneState == SceneState::Edit;
+		bool hasSimulateButton = mySceneState == SceneState::Edit || mySceneState == SceneState::Simulate;
 		bool hasPauseButton = mySceneState != SceneState::Edit;
 
 		if (hasPlayButton)
@@ -1808,7 +2017,6 @@ namespace Epoch
 				if (mySceneState == SceneState::Edit)
 				{
 					OnScenePlay();
-					staticFocusOnViewport = true;
 				}
 				else if (mySceneState == SceneState::Play)
 				{
@@ -1822,32 +2030,32 @@ namespace Epoch
 			}
 		}
 
-		//if (hasSimulateButton)
-		//{
-		//	if (hasPlayButton)
-		//	{
-		//		ImGui::SameLine();
-		//	}
-		//
-		//	auto icon = (mySceneState == SceneState::Edit) ? EditorResources::SimulateButton : EditorResources::StopButton;
-		//	if (ImGui::ImageButton((ImTextureID)icon->GetView(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled)
-		//	{
-		//		if (mySceneState == SceneState::Edit)
-		//		{
-		//			OnSceneSimulate();
-		//		}
-		//		else if (mySceneState == SceneState::Edit)
-		//		{
-		//			OnSceneStop();
-		//		}
-		//
-		//	}
-		//	if (ImGui::BeginItemTooltip())
-		//	{
-		//		(mySceneState == SceneState::Edit) ? ImGui::Text(" Simulate ") : ImGui::Text(" Stop ");
-		//		ImGui::EndTooltip();
-		//	}
-		//}
+		if (hasSimulateButton)
+		{
+			if (hasPlayButton)
+			{
+				ImGui::SameLine();
+			}
+		
+			auto icon = (mySceneState == SceneState::Edit) ? EditorResources::SimulateButton : EditorResources::StopButton;
+			if (ImGui::ImageButton((ImTextureID)icon->GetView(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled)
+			{
+				if (mySceneState == SceneState::Edit)
+				{
+					OnSceneSimulate();
+				}
+				else if (mySceneState == SceneState::Simulate)
+				{
+					OnSceneStop();
+				}
+		
+			}
+			if (ImGui::BeginItemTooltip())
+			{
+				(mySceneState == SceneState::Edit) ? ImGui::Text(" Simulate ") : ImGui::Text(" Stop ");
+				ImGui::EndTooltip();
+			}
+		}
 
 		if (hasPauseButton)
 		{
@@ -1858,9 +2066,9 @@ namespace Epoch
 				if (ImGui::ImageButton((ImTextureID)icon->GetView(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled)
 				{
 					myActiveScene->SetPaused(!isPaused);
-					if (!isPaused)
+					if (!myActiveScene->IsPaused() && mySceneState == SceneState::Play)
 					{
-						staticFocusOnViewport = true;
+						myGameViewport->SetFocus();
 					}
 				}
 				if (ImGui::BeginItemTooltip())
@@ -1871,118 +2079,41 @@ namespace Epoch
 			}
 
 			// Step button
-			//if (isPaused)
-			//{
-			//	ImGui::SameLine();
-			//	{
-			//		auto icon = EditorResources::StepButton;
-			//		ImGui::ImageButton((ImTextureID)icon->GetView(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled;
-			//
-			//		static float stepHeldTime = 0.0f;
-			//		if (ImGui::IsItemActive())
-			//		{
-			//			stepHeldTime -= CU::Timer::GetDeltaTime();
-			//			if (stepHeldTime <= 0.0f)
-			//			{
-			//				stepHeldTime = 0.1f;
-			//				myActiveScene->Step(5);
-			//			}
-			//		}
-			//
-			//		if (ImGui::IsItemDeactivated())
-			//		{
-			//			stepHeldTime = 0.0f;
-			//		}
-			//
-			//		if (ImGui::BeginItemTooltip())
-			//		{
-			//			ImGui::Text("Step");
-			//			ImGui::EndTooltip();
-			//		}
-			//	}
-			//}
+			if (isPaused)
+			{
+				ImGui::SameLine();
+				{
+					auto icon = EditorResources::StepButton;
+					ImGui::ImageButton((ImTextureID)icon->GetView(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled;
+			
+					static float stepHeldTime = 0.0f;
+					if (ImGui::IsItemActive())
+					{
+						stepHeldTime -= CU::Timer::GetDeltaTime();
+						if (stepHeldTime <= 0.0f)
+						{
+							stepHeldTime = 0.1f;
+							myActiveScene->Step(5);
+						}
+					}
+			
+					if (ImGui::IsItemDeactivated())
+					{
+						stepHeldTime = 0.0f;
+					}
+			
+					if (ImGui::BeginItemTooltip())
+					{
+						ImGui::Text("Step");
+						ImGui::EndTooltip();
+					}
+				}
+			}
 		}
 
 		ImGui::PopStyleVar(2);
 		ImGui::PopStyleColor(3);
 		ImGui::End();
-	}
-
-	void EditorLayer::ViewportPanel()
-	{
-		ToolbarPanel();
-
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-		ImGui::Begin(VIEWPORT_PANEL_ID);
-
-		if (staticFocusOnViewport)
-		{
-			staticFocusOnViewport = false;
-			ImGui::SetKeyboardFocusHere(-1);
-		}
-
-		auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
-		auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
-		auto viewportOffset = ImGui::GetWindowPos();
-		myViewportBounds.min = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
-		myViewportBounds.max = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
-
-		myViewportHovered = ImGui::IsWindowHovered();
-		myViewportFocused = ImGui::IsWindowFocused();
-
-		myAllowEditorCameraMovement = (ImGui::IsMouseHoveringRect(myViewportBounds.min, myViewportBounds.max) && myViewportFocused) || myStartedCameraClickInViewport;
-
-		ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-
-		myEditorCamera.SetViewportSize((unsigned)viewportPanelSize.x, (unsigned)viewportPanelSize.y);
-		mySceneRenderer->SetViewportSize((unsigned)viewportPanelSize.x, (unsigned)viewportPanelSize.y);
-		myDebugRenderer->SetViewportSize((unsigned)viewportPanelSize.x, (unsigned)viewportPanelSize.y);
-		myActiveScene->SetViewportSize((unsigned)viewportPanelSize.x, (unsigned)viewportPanelSize.y);
-
-		auto curPos = ImGui::GetCursorPos();
-
-		ImGui::Image((ImTextureID)mySceneRenderer->GetFinalPassTexture()->GetView(), viewportPanelSize);
-
-		if (mySceneState == SceneState::Edit)
-		{
-			UpdateViewportBoxSelection();
-			DrawGizmos();
-			HandleAssetDrop();
-		}
-
-		if (myDisplayCurrentColorGradingLUT)
-		{
-			AssetHandle lutHandle(0);
-
-			auto entities = myActiveScene->GetAllEntitiesWith<VolumeComponent>();
-			for (auto entityID : entities)
-			{
-				Entity entity = Entity(entityID, myActiveScene.get());
-				if (!entity.IsActive()) continue;
-
-				const auto& vc = entities.get<VolumeComponent>(entityID);
-				if (!vc.isActive) continue;
-
-				lutHandle = vc.colorGrading.lut;
-
-				break;
-			}
-
-			ImGui::SetCursorPos(curPos);
-			UI::ShiftCursor(3, 2);
-			if (mySceneRenderer->ColorGrading() && lutHandle != 0)
-			{
-				auto lut = AssetManager::GetAsset<Texture>(lutHandle);
-				ImGui::Image((ImTextureID)lut->GetView(), { 256, 16 });
-			}
-			else
-			{
-				ImGui::Image((ImTextureID)Renderer::GetDefaultColorGradingLut()->GetView(), { 256, 16 });
-			}
-		}
-
-		ImGui::End();
-		ImGui::PopStyleVar();
 	}
 
 	void EditorLayer::OnScenePlay()
@@ -1997,13 +2128,16 @@ namespace Epoch
 		myActiveScene = std::make_shared<Scene>();
 		myEditorScene->CopyTo(myActiveScene);
 		myActiveScene->SetSceneTransitionCallback([this](AssetHandle scene) { QueueSceneTransition(scene); });
-		ScriptEngine::SetSceneContext(myActiveScene, mySceneRenderer);
-
-		auto console = myPanelManager->GetPanel<EditorConsolePanel>("Console");
-		console->OnScenePlay();
+		ScriptEngine::SetSceneContext(myActiveScene, mySceneViewport->GetSceneRenderer());
 
 		myPanelManager->OnSceneChanged(myActiveScene);
+
+		Application::Get().DispatchEvent<ScenePreStartEvent, true>(myActiveScene);
 		myActiveScene->OnRuntimeStart();
+		Application::Get().DispatchEvent<ScenePostStartEvent, true>(myActiveScene);
+
+		myGameViewport->SetFocus();
+		myStatisticsPanel->SetSceneRenderer(myGameViewport->GetSceneRenderer());
 	}
 
 	void EditorLayer::OnSceneSimulate()
@@ -2017,7 +2151,6 @@ namespace Epoch
 
 		myActiveScene = std::make_shared<Scene>();
 		myEditorScene->CopyTo(myActiveScene);
-		ScriptEngine::SetSceneContext(myActiveScene, mySceneRenderer);
 
 		myPanelManager->OnSceneChanged(myActiveScene);
 		myActiveScene->OnSimulationStart();
@@ -2025,9 +2158,14 @@ namespace Epoch
 
 	void EditorLayer::OnSceneStop()
 	{
+		bool stoppedPlay = false;
 		if (mySceneState == SceneState::Play)
 		{
+			Application::Get().DispatchEvent<ScenePreStopEvent, true>(myActiveScene);
 			myActiveScene->OnRuntimeStop();
+			Application::Get().DispatchEvent<ScenePostStopEvent, true>(myActiveScene);
+			
+			stoppedPlay = true;
 		}
 		else if (mySceneState == SceneState::Simulate)
 		{
@@ -2048,10 +2186,16 @@ namespace Epoch
 			}
 		}
 
-		ScriptEngine::SetSceneContext(myActiveScene, mySceneRenderer);
+		ScriptEngine::SetSceneContext(myActiveScene, mySceneViewport->GetSceneRenderer());
 		myPanelManager->OnSceneChanged(myActiveScene);
 
 		Input::SetCursorMode(CursorMode::Normal);
+
+		if (stoppedPlay)
+		{
+			mySceneViewport->SetFocus();
+			myStatisticsPanel->SetSceneRenderer(mySceneViewport->GetSceneRenderer());
+		}
 	}
 
 	void EditorLayer::OnSceneTransition(AssetHandle aScene)
@@ -2064,16 +2208,17 @@ namespace Epoch
 		std::filesystem::path scenePath = metadata.filePath;
 		if (serializer.Deserialize((Project::GetAssetDirectory() / scenePath).string()))
 		{
-			const CU::Vector2f viewportSize = myViewportBounds.max - myViewportBounds.min;
+			const CU::Vector2f viewportSize = mySceneViewport->MaxBounds() - mySceneViewport->MinBounds();
 			newScene->SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
 
 			myActiveScene->OnRuntimeStop();
 
 			SelectionManager::DeselectAll();
 
+			auto sceneRenderer = mySceneViewport->GetSceneRenderer();
 			myActiveScene = newScene;
 			myActiveScene->SetSceneTransitionCallback([this](AssetHandle scene) { QueueSceneTransition(scene); });
-			ScriptEngine::SetSceneContext(myActiveScene, mySceneRenderer);
+			ScriptEngine::SetSceneContext(myActiveScene, sceneRenderer);
 			myActiveScene->OnRuntimeStart();
 			myPanelManager->OnSceneChanged(myActiveScene);
 		}
@@ -2099,34 +2244,37 @@ namespace Epoch
 
 	bool EditorLayer::OnKeyPressedEvent(KeyPressedEvent& aEvent)
 	{
-		if (mySceneState == SceneState::Edit && (!Input::IsMouseButtonHeld(MouseButton::Right) && !Input::IsMouseButtonHeld(MouseButton::Middle)))
+		if ((!Input::IsMouseButtonHeld(MouseButton::Right) && !Input::IsMouseButtonHeld(MouseButton::Middle)))
 		{
-			if (Input::IsKeyHeld(KeyCode::LeftControl))
+			if (mySceneState != SceneState::Play)
 			{
-				switch (aEvent.GetKeyCode())
+				if (mySceneState == SceneState::Edit && Input::IsKeyHeld(KeyCode::LeftControl))
 				{
-				case KeyCode::O:
-					OpenScene();
-					break;
-				case KeyCode::N:
-					NewScene();
-					break;
-				case KeyCode::S:
-				{
-					if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
+					switch (aEvent.GetKeyCode())
 					{
-						SaveSceneAs();
-					}
-					else
+					case KeyCode::O:
+						OpenScene();
+						break;
+					case KeyCode::N:
+						NewScene();
+						break;
+					case KeyCode::S:
 					{
-						SaveScene();
+						if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
+						{
+							SaveSceneAs();
+						}
+						else
+						{
+							SaveScene();
+						}
+						break;
 					}
-					break;
-				}
+					}
 				}
 			}
 
-			if (myViewportHovered && !ImGui::IsAnyItemActive())
+			if (mySceneViewport->IsHovered() && !ImGui::IsAnyItemActive())
 			{
 				switch (aEvent.GetKeyCode())
 				{
@@ -2161,7 +2309,7 @@ namespace Epoch
 			}
 		}
 
-		if (UI::IsWindowFocused(VIEWPORT_PANEL_ID) || UI::IsWindowFocused(SCENE_HIERARCHY_PANEL_ID))
+		if (UI::IsWindowFocused(SCENE_PANEL_ID) || UI::IsWindowFocused(SCENE_HIERARCHY_PANEL_ID))
 		{
 			switch (aEvent.GetKeyCode())
 			{
@@ -2198,7 +2346,7 @@ namespace Epoch
 			}
 		}
 
-		if (aEvent.GetKeyCode() == KeyCode::P && Input::IsKeyHeld(KeyCode::LeftAlt) && (mySceneState == SceneState::Play || myViewportFocused))
+		if (aEvent.GetKeyCode() == KeyCode::P && Input::IsKeyHeld(KeyCode::LeftAlt) && (mySceneState != SceneState::Edit || mySceneViewport->IsFocused()))
 		{
 			if (mySceneState == SceneState::Play)
 			{
@@ -2207,7 +2355,6 @@ namespace Epoch
 			else
 			{
 				OnScenePlay();
-				staticFocusOnViewport = true;
 			}
 		}
 
@@ -2218,8 +2365,9 @@ namespace Epoch
 	{
 		if (aEvent.GetMouseButton() == MouseButton::Left)
 		{
-			if (mySceneState != SceneState::Edit ||
-				!myViewportHovered ||
+			auto sceneRenderer = mySceneViewport->GetSceneRenderer();
+			if (sceneRenderer->GetDrawMode() != DrawMode::Shaded ||
+				!mySceneViewport->IsHovered() ||
 				ImGui::IsAnyItemHovered() ||
 				ImGuizmo::IsOver() ||
 				!MouseInViewport() ||
@@ -2276,8 +2424,7 @@ namespace Epoch
 		static CU::Vector2f dragStartPos;
 		static CU::Vector2f dragEndPos;
 
-		if (mySceneState != SceneState::Edit ||
-			!myViewportFocused ||
+		if (!mySceneViewport->IsFocused() ||
 			(!dragging && ImGuizmo::IsOver()) ||
 			!MouseInViewport())
 		{
@@ -2313,11 +2460,12 @@ namespace Epoch
 			const CU::Vector2f boxSize = selectionBoxMax - selectionBoxMin;
 			if (boxSize.x > 0 && boxSize.y > 0)
 			{
-				auto IDBuffer = mySceneRenderer->GetEntityIDTexture();
+				auto sceneRenderer = mySceneViewport->GetSceneRenderer();
+				auto IDBuffer = sceneRenderer->GetEntityIDTexture();
 				auto pixelData = IDBuffer->ReadData((uint32_t)boxSize.x, (uint32_t)boxSize.y, (uint32_t)selectionBoxMin.x, (uint32_t)selectionBoxMin.y);
 				if (pixelData)
 				{
-					std::set<uint32_t> ids;
+					std::unordered_set<uint32_t> ids;
 					for (size_t i = 0; i < pixelData.size; i += 4)
 					{
 						uint32_t id = pixelData.Read<uint32_t>(i);

@@ -54,7 +54,7 @@ namespace Epoch
 	struct LightEnvironment
 	{
 		std::weak_ptr<Environment> environment;
-		float environmentIntensity = 0.0f;
+		float environmentIntensity = 1.0f;
 
 		DirectionalLight directionalLight;
 		std::vector<PointLight> pointLights;
@@ -63,6 +63,15 @@ namespace Epoch
 
 	struct PostProcessingData
 	{
+		enum class Flag : uint32_t
+		{
+			None = 0,
+			ColorGradingEnabled		= BIT(0),
+			VignetteEnabled			= BIT(1),
+			DistanceFogEnabled		= BIT(2),
+			PosterizationEnabled	= BIT(3),
+		};
+
 		AssetHandle colorGradingLUT = 0;
 		struct BufferData
 		{
@@ -73,7 +82,7 @@ namespace Epoch
 			float vignetteIntensity = 1.0f;
 			float vignetteSmoothness = 1.0f;
 
-			PostProcessing::Tonemap tonemap;
+			PostProcessing::Tonemap tonemap = PostProcessing::Tonemap::None;
 			uint32_t flags = 0; //colorGradingEnabled, vignetteEnabled, distanceFogEnabled, posterizationEnabled
 			float distanceFogDensity = 0.0f;
 			float distanceFogOffset = 0.0f;

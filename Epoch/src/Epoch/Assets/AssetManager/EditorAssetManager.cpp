@@ -31,29 +31,18 @@ namespace Epoch
 		for (auto [handle, asset] : myLoadedAssets)
 		{
 			EPOCH_ASSERT(asset, "Loaded asset were nullptr!");
-			EPOCH_ASSERT(asset.use_count() <= 2, "Loaded asset will not be destroyed - something is still holding refs!");
-			EPOCH_ASSERT(asset.use_count() > 0, "Loaded asset had zero refs!");
+			EPOCH_ASSERT(asset.use_count() <= 2, "Loaded asset will not be destroyed - something is still holding refs!\n[{}] {}", handle, GetRelativePath(GetFileSystemPath(handle)));
 		}
 		
 		for (auto [handle, asset] : myMemoryAssets)
 		{
 			EPOCH_ASSERT(asset, "Memory asset were nullptr!");
-			EPOCH_ASSERT(asset.use_count() <= 2, "Memory asset will not be destroyed - something is still holding refs!");
-			EPOCH_ASSERT(asset.use_count() > 0, "Memory asset had zero refs!");
+			EPOCH_ASSERT(asset.use_count() <= 2, "Memory asset will not be destroyed - something is still holding refs!\n[{}] {}", handle, GetRelativePath(GetFileSystemPath(handle)));
 		}
 	}
 
 	void EditorAssetManager::LoadBuiltInAssets()
 	{
-		JobSystem& js = Application::Get().GetJobSystem();
-
-		//js.AddAJob(MeshFactory::CreateCube);
-		//js.AddAJob(MeshFactory::CreateSphere);
-		//js.AddAJob(MeshFactory::CreateQuad);
-		//js.AddAJob(MeshFactory::CreatePlane);
-		////js.AddAJob(MeshFactory::CreateCapsule);
-		////js.AddAJob(MeshFactory::CreateCylinder);
-
 		MeshFactory::CreateCube();
 		MeshFactory::CreateSphere();
 		MeshFactory::CreateQuad();
@@ -204,9 +193,9 @@ namespace Epoch
 		}
 	}
 
-	bool EditorAssetManager::IsMemoryAsset(AssetHandle handle)
+	bool EditorAssetManager::IsMemoryAsset(AssetHandle aHandle)
 	{
-		return myMemoryAssets.find(handle) != myMemoryAssets.end();
+		return myMemoryAssets.find(aHandle) != myMemoryAssets.end();
 	}
 
 	bool EditorAssetManager::IsAssetHandleValid(AssetHandle aHandle)

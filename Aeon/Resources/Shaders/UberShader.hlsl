@@ -42,7 +42,7 @@ VertexOutput main(unsigned int aVertexIndex : SV_VertexID)
 #include "Include/CameraBuffer.hlsli"
 
 Texture2D sourceColerTexture : register(t0);
-Texture2D worldPosTexture : register(t1);
+Texture2D depthTexture : register(t1);
 Texture2D lutTextue : register(t2);
 
 struct VertexOutput
@@ -159,13 +159,9 @@ float3 ColorGrade(const float3 color)
     return float4(gradedColor.rgb, 1.0f);
 }
 
-float3 DistanceFog(const float3 color, float4 worldPos)
+float3 DistanceFog(const float3 color, float3 worldPos)
 {
-    float viewDistance = distance(worldPos.rgb, CB_CameraPos);
-    if (worldPos.a == 0.0f)
-    {
-        viewDistance = CB_FarPlane;
-    }
+    float viewDistance = distance(worldPos, CB_CameraPos);
     
     float fogFactor = ((DistannceFog_Density / 10000) / sqrt(log(2))) * max(0.0f, viewDistance - (DistannceFog_Offset * 100));
     fogFactor = exp2(-fogFactor * fogFactor);
@@ -198,13 +194,14 @@ float3 Posterize(const float3 color)
 float4 main(VertexOutput input) : SV_TARGET
 {
     float3 sourceCol = sourceColerTexture.SampleLevel(LUTSampler, input.uv, 0).rgb;
-    float4 worldPos = worldPosTexture.SampleLevel(LUTSampler, input.uv, 0);
-    //float linearDepth = (2.0f * CB_NearPlane) / (CB_FarPlane + CB_NearPlane - sourceDepth * (CB_FarPlane - CB_NearPlane));
     
-    bool colorGradingEnabled =  (Flags >> 0) & 1;
-    bool vignetteEnabled =      (Flags >> 1) & 1;
-    bool distanceFogEnabled =   (Flags >> 2) & 1;
-    bool posterizationEnabled = (Flags >> 3) & 1;
+    const float depth = depthTexture.Sample(clampSampler, input.uv).x;
+    float3 worldPos = ClipToWorldSpace(input.uv, depth, CB_InvViewProj);
+    
+    bool colorGradingEnabled    = Flags & (1 << 0);
+    bool vignetteEnabled        = Flags & (1 << 1);
+    bool distanceFogEnabled     = Flags & (1 << 2);
+    bool posterizationEnabled   = Flags & (1 << 3);
     
     sourceCol = saturate(Tonemapp(sourceCol)).rgb;
     

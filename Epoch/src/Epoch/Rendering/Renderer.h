@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <CommonUtilities/Math/Matrix/Matrix4x4.hpp>
+#include "RendererConfig.h"
 #include "Epoch/Utils/FileSystem.h"
 
 namespace Epoch
@@ -20,7 +21,7 @@ namespace Epoch
 		Renderer() = delete;
 		~Renderer() = delete;
 
-		static void Init();
+		static void Init(const RendererConfig& aRendererConfig);
 		static void Shutdown();
 		
 		static std::shared_ptr<ShaderLibrary> GetShaderLibrary();
@@ -47,6 +48,8 @@ namespace Epoch
 		static std::shared_ptr<Texture2D> GetBlackTexture();
 		static std::shared_ptr<Texture2D> GetFlatNormalTexture();
 		static std::shared_ptr<Texture2D> GetDefaultMaterialTexture();
+		static std::shared_ptr<TextureCube> GetDefaultBlackCubemap();
+		static std::shared_ptr<TextureCube> GetDefaultWhiteCubemap();
 		static std::shared_ptr<Texture2D> GetDefaultColorGradingLut();
 		static std::shared_ptr<Texture2D> GetBRDFLut();
 

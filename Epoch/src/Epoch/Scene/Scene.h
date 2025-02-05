@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <memory>
-#include <set>
+#include <unordered_set>
 #include <unordered_map>
 
 #include "Entity.h"
@@ -72,7 +72,7 @@ namespace Epoch
 		void OnUpdateEditor();
 
 		void OnRenderRuntime(std::shared_ptr<SceneRenderer> aRenderer);
-		void OnRenderEditor(std::shared_ptr<SceneRenderer> aRenderer, EditorCamera& aCamera, bool aCullWithEditorCamera = true);
+		void OnRenderEditor(std::shared_ptr<SceneRenderer> aRenderer, EditorCamera& aCamera, bool aCullWithEditorCamera = true, bool aWithPostProccessing = true);
 
 		void OnSceneTransition(AssetHandle aScene);
 
@@ -119,6 +119,9 @@ namespace Epoch
 		void SetTimeScale(float aTimeScale) { myTimeScale = aTimeScale; }
 
 		const std::string& GetName() { return myName; }
+
+		std::unordered_set<AssetHandle> GetAllSceneReferences();
+		std::unordered_set<AssetHandle> GetAllSceneAssets();
 
 		PerformanceTimers& GetPerformanceTimers() { return myPerformanceTimers; }
 		const PerformanceTimers& GetPerformanceTimers() const { return myPerformanceTimers; }
@@ -197,8 +200,7 @@ namespace Epoch
 		std::vector<CU::Matrix4x4f> GetModelSpaceBoneTransforms(Entity aEntity, std::shared_ptr<Mesh> aMesh);
 		void GetModelSpaceBoneTransform(const std::vector<UUID>& aBoneEntityIds, std::vector<CU::Matrix4x4f>& outBoneTransforms, uint32_t aBoneIndex, const CU::Matrix4x4f& aParentTransform, std::shared_ptr<Skeleton> aSkeleton);
 
-		void RenderScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aRenderCamera, const SceneRendererCamera& aCullingCamera, bool aIsRuntime);
-		//Frustum CreateFrustum(const SceneRendererCamera& aCamera);
+		void RenderScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aRenderCamera, const SceneRendererCamera& aCullingCamera, bool aIsRuntime, bool aWithPostProccessing = true);
 		Frustum CreateFrustum(const SceneRendererCamera& aCamera);
 		bool FrustumIntersection(const Frustum& aFrustum, const AABB aAABB, std::shared_ptr<SceneRenderer> aRenderer);
 		
@@ -209,10 +211,8 @@ namespace Epoch
 		entt::registry myRegistry;
 		std::unordered_map<UUID, entt::entity> myEntityMap;
 
-		/// <summary>
-		/// NOTE: This gets filled in Scene::RenderScene, so if this is used before Scene::RenderScene has been called the set contains the last frames culled entities.
-		/// </summary>
-		std::set<UUID> myFrustumCulledEntities;
+		//This gets filled in Scene::RenderScene, so if this is used before Scene::RenderScene has been called the set contains the last frames culled entities.
+		std::unordered_set<UUID> myFrustumCulledEntities;
 
 		std::shared_ptr<PhysicsScene> myPhysicsScene;
 
@@ -243,6 +243,7 @@ namespace Epoch
 		friend class PrefabSerializer;
 		friend class SceneRenderer;
 		friend class SceneHierarchyPanel;
+		friend class AssetPack;
 	};
 }
 

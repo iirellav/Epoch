@@ -3,6 +3,9 @@
 #include "MSDFData.h"
 #include "Epoch/Core/Application.h"
 #include "Epoch/Utils/FileSystem.h"
+#include "Epoch/Core/Hash.h"
+
+#include "Epoch/Embed/OpenSans_Regular.embed"
 
 namespace Epoch
 {
@@ -64,7 +67,7 @@ namespace Epoch
 
 	static bool TryReadFontAtlasFromCache(const std::string& aFontName, float aFontSize, AtlasHeader& aHeader, void*& aPixels, Buffer& aStorageBuffer)
 	{
-		std::string filename = fmt::format("{}-{}.efa", aFontName, aFontSize);
+		std::string filename = fmt::format("{}{}.efa", Hash::GenerateFNVHash(aFontName), aFontSize);
 		std::filesystem::path filepath = Utils::GetCacheDirectory() / filename;
 
 		if (std::filesystem::exists(filepath))
@@ -81,7 +84,7 @@ namespace Epoch
 	{
 		Utils::CreateCacheDirectoryIfNeeded();
 
-		std::string filename = fmt::format("{}-{}.efa", aFontName, aFontSize);
+		std::string filename = fmt::format("{}{}.efa", Hash::GenerateFNVHash(aFontName), aFontSize);
 		std::filesystem::path filepath = Utils::GetCacheDirectory() / filename;
 
 		std::ofstream stream(filepath, std::ios::binary | std::ios::trunc);
@@ -141,9 +144,15 @@ namespace Epoch
 		buffer.Release();
 	}
 
+	Font::Font(const std::string& aName, Buffer aBuffer) :
+		myName(aName), myMSDFData(new MSDFData())
+	{
+		CreateAtlas(aBuffer);
+	}
+
 	void Font::Init()
 	{
-		staticDefaultFont = std::make_shared<Font>("Resources/Fonts/opensans/OpenSans-Regular.ttf");
+		staticDefaultFont = std::make_shared<Font>("OpenSans-Regular", Buffer(OpenSans_Regular, OpenSans_Regular_len));
 	}
 
 	void Font::Shutdown()

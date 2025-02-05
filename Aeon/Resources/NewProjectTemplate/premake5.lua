@@ -1,5 +1,5 @@
 EpochRootDirectory = os.getenv("EPOCH_DIR")
-include (path.join(EpochRootDirectory, "Aeon", "Resources", "LUA", "Epoch.lua"))
+include (path.join(EpochRootDirectory, "Resources", "LUA", "Epoch.lua"))
 
 workspace "$PROJECT_NAME$"
 	startproject "$PROJECT_NAME$"
@@ -32,8 +32,8 @@ group "Epoch"
 		language "C#"
 		dotnetframework "4.7.2"
 	
-		targetdir ("%{EpochRootDirectory}/Aeon/Resources/Scripts")
-		objdir ("%{EpochRootDirectory}/Aeon/Resources/Scripts/Intermediates")
+		targetdir ("%{EpochRootDirectory}/Resources/Scripts")
+		objdir ("%{EpochRootDirectory}/Resources/Scripts/Intermediates")
 	
 		files
 		{

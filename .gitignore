@@ -22,4 +22,7 @@ Aeon/Resources/Scripts
 Aeon/Profiling_Results
 Aeon/logs
 Aeon/Config
+
+# Files
 **.auto
+Aeon/imgui.ini

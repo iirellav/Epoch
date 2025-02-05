@@ -1,9 +1,8 @@
 #include "AssetManagerPanel.h"
 #include <CommonUtilities/StringUtils.h>
 #include <Epoch/ImGui/ImGui.h>
-#include <Epoch/Debug/Instrumentor.h>
+#include <Epoch/Debug/Profiler.h>
 #include <Epoch/Project/Project.h>
-#include <Epoch/Editor/PanelIDs.h>
 
 namespace Epoch
 {
@@ -19,13 +18,21 @@ namespace Epoch
 		{ "Id",			SearchType::Id }
 	};
 
+	AssetManagerPanel::AssetManagerPanel(const std::string& aName) : EditorPanel(aName)
+	{
+	}
+
 	void AssetManagerPanel::OnImGuiRender(bool& aIsOpen)
 	{
 		EPOCH_PROFILE_FUNC();
 
-		if (!aIsOpen) return;
-
-		ImGui::Begin(ASSET_MANAGER_PANEL_ID, &aIsOpen);
+		bool open = ImGui::Begin(myName.c_str(), &aIsOpen);
+		
+		if (!open)
+		{
+			ImGui::End();
+			return;
+		}
 
 		static std::string searchString;
 		ImGui::InputTextWithHint("##Search", "Search...", &searchString, ImGuiInputTextFlags_AutoSelectAll);

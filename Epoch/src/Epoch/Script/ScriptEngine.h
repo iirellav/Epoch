@@ -34,6 +34,7 @@ namespace Epoch
 		static void OnProjectChanged(std::shared_ptr<Project> aProject);
 
 		static bool LoadAppAssembly();
+		static bool LoadAppAssemblyRuntime(Buffer aAppAssemblyData);
 		static bool ReloadAppAssembly(const bool aScheduleReload = false);
 		static bool ShouldReloadAppAssembly();
 		static void UnloadAppAssembly();
@@ -93,10 +94,10 @@ namespace Epoch
 				return;
 			}
 			
-			ManagedMethod* method = ScriptCache::GetSpecificManagedMethod(managedClass, aMethodName, argsCount, true);
+			ManagedMethod* method = ScriptCache::GetSpecificManagedMethod(managedClass, aMethodName, argsCount);
 			if (method == nullptr)
 			{
-				//LOG_ERROR_TAG("ScriptEngine", "Failed to find a C# method called {} with {} parameters", aMethodName, argsCount);
+				LOG_ERROR_TAG("ScriptEngine", "Failed to find a C# method called {} with {} parameters", aMethodName, argsCount);
 				return;
 			}
 			
@@ -129,6 +130,7 @@ namespace Epoch
 
 		static bool LoadCoreAssembly();
 		static MonoAssembly* LoadMonoAssembly(const std::filesystem::path& aAssemblyPath);
+		static MonoAssembly* LoadMonoAssemblyRuntime(Buffer aAssemblyData);
 		static void UnloadAssembly(std::shared_ptr<AssemblyInfo> aAssemblyInfo);
 
 		static void LoadReferencedAssemblies(const std::shared_ptr<AssemblyInfo>& aAssemblyInfo);
