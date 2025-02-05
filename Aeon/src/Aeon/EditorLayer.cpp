@@ -81,19 +81,19 @@ namespace Epoch
 		myPanelManager = std::make_unique<PanelManager>();
 		myPanelManager->SetEntityDestroyedCallback([this](Entity aEntity) { OnEntityDeleted(aEntity); });
 
-		myGameViewport = myPanelManager->AddPanel<ViewportPanel>(PanelCategory::View, GAME_PANEL_ID, true);
+		myGameViewport = myPanelManager->AddPanel<ViewportPanel>(PanelCategory::View, "Panel/Game", GAME_PANEL_ID, true);
 
-		mySceneViewport = myPanelManager->AddPanel<ViewportPanel>(PanelCategory::View, SCENE_PANEL_ID, true);
+		mySceneViewport = myPanelManager->AddPanel<ViewportPanel>(PanelCategory::View, "Panel/Scene", SCENE_PANEL_ID, true);
 		mySceneViewport->AddAdditionalFunction([this]() { UpdateViewportBoxSelection(); });
 		mySceneViewport->AddAdditionalFunction([this]() { DrawGizmos(); });
 		mySceneViewport->AddAdditionalFunction([this]() { HandleAssetDrop(); });
 
-		std::shared_ptr<SceneHierarchyPanel> sceneHierarchyPanel = myPanelManager->AddPanel<SceneHierarchyPanel>(PanelCategory::View, SCENE_HIERARCHY_PANEL_ID, true);
+		std::shared_ptr<SceneHierarchyPanel> sceneHierarchyPanel = myPanelManager->AddPanel<SceneHierarchyPanel>(PanelCategory::View, "Panel/Scene Hierarchy", SCENE_HIERARCHY_PANEL_ID, true);
 		sceneHierarchyPanel->SetEntityCreationCallback([this](Entity aEntity) { return OnEntityCreated(aEntity); });
 		sceneHierarchyPanel->AddEntityPopupPlugin("Set Transform to Editor Camera Transform", [this](Entity aEntity) { OnSetToEditorCameraTransform(aEntity); });
 		sceneHierarchyPanel->AddEntityPopupPlugin("Reset Bone Transforms", [this](Entity aEntity) { OnResetBoneTransforms(aEntity); });
 
-		std::shared_ptr<ContentBrowserPanel> contentBrowserPanel = myPanelManager->AddPanel<ContentBrowserPanel>(PanelCategory::View, CONTENT_BROWSER_PANEL_ID, true);
+		std::shared_ptr<ContentBrowserPanel> contentBrowserPanel = myPanelManager->AddPanel<ContentBrowserPanel>(PanelCategory::View, "Panel/Content Browser", CONTENT_BROWSER_PANEL_ID, true);
 
 		contentBrowserPanel->RegisterItemActivateCallbackForType(AssetType::Scene, [this](const AssetMetadata& aMetadata)
 			{
@@ -120,15 +120,15 @@ namespace Epoch
 				OnCurrentSceneRenamed(aMetadata);
 			});
 
-		myPanelManager->AddPanel<ProjectSettingsPanel>(PanelCategory::Edit, PROJECT_SETTINGS_PANEL_ID, false);
-		myPanelManager->AddPanel<PreferencesPanel>(PanelCategory::Edit, PREFERENCES_PANEL_ID, false);
+		myPanelManager->AddPanel<ProjectSettingsPanel>(PanelCategory::Edit, "Project Settings", PROJECT_SETTINGS_PANEL_ID, false);
+		myPanelManager->AddPanel<PreferencesPanel>(PanelCategory::Edit, "Preferences", PREFERENCES_PANEL_ID, false);
 
-		myPanelManager->AddPanel<InspectorPanel>(PanelCategory::View, INSPECTOR_PANEL_ID, true);
-		myPanelManager->AddPanel<EditorConsolePanel>(PanelCategory::View, CONSOLE_PANEL_ID, true);
-		myPanelManager->AddPanel<AssetManagerPanel>(PanelCategory::View, ASSET_MANAGER_PANEL_ID, false);
-		myPanelManager->AddPanel<ShaderLibraryPanel>(PanelCategory::View, SHADER_LIBRARY_PANEL_ID, false);
-		myPanelManager->AddPanel<ScriptEngineDebugPanel>(PanelCategory::View, SCRIPT_ENGINE_DEBUG_PANEL_ID, false);
-		std::shared_ptr<StatisticsPanel> statisticsPanel = myPanelManager->AddPanel<StatisticsPanel>(PanelCategory::View, STATISTICS_PANEL_ID, false);
+		myPanelManager->AddPanel<InspectorPanel>(PanelCategory::View, "Panel/Inspector", INSPECTOR_PANEL_ID, true);
+		myPanelManager->AddPanel<EditorConsolePanel>(PanelCategory::View, "Panel/Console", CONSOLE_PANEL_ID, true);
+		myPanelManager->AddPanel<ShaderLibraryPanel>(PanelCategory::View, "Panel/Shader Library", SHADER_LIBRARY_PANEL_ID, false);
+		myPanelManager->AddPanel<AssetManagerPanel>(PanelCategory::View, "Debug/Asset Manager", ASSET_MANAGER_PANEL_ID, false);
+		myPanelManager->AddPanel<ScriptEngineDebugPanel>(PanelCategory::View, "Debug/Script Engine", SCRIPT_ENGINE_DEBUG_PANEL_ID, false);
+		std::shared_ptr<StatisticsPanel> statisticsPanel = myPanelManager->AddPanel<StatisticsPanel>(PanelCategory::View, "Debug/Statistics", STATISTICS_PANEL_ID, false);
 
 		myPanelManager->Deserialize();
 
@@ -469,8 +469,9 @@ namespace Epoch
 		// We cannot preserve the docking relationship between an active window and an inactive docking, otherwise 
 		// any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 12.0f));
 		ImGui::Begin("DockSpace Editor", &dockspaceOpen, window_flags);
-		ImGui::PopStyleVar();
+		ImGui::PopStyleVar(2);
 
 		if (opt_fullscreen)
 		{
@@ -501,8 +502,13 @@ namespace Epoch
 
 	void EditorLayer::OnRenderMenuBar()
 	{
+		ImVec2 framePadding = ImGui::GetStyle().FramePadding;
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 12.0f));
 		if (ImGui::BeginMainMenuBar())
 		{
+			ImVec2 pos = ImGui::GetCursorPos();
+			float menuBarCenter = ImGui::GetContentRegionAvail().x / 2;
+
 			if (ImGui::BeginMenu("File"))
 			{
 				{
@@ -621,7 +627,7 @@ namespace Epoch
 			{
 				for (auto& [id, panelData] : myPanelManager->GetPanels(PanelCategory::Edit))
 				{
-					auto nameParts = CU::SplitString(panelData.name, "/");
+					auto nameParts = CU::SplitString(panelData.menuName, "/");
 					RecursivePanelMenuItem(nameParts, 0, panelData.isOpen);
 				}
 				ImGui::Separator();
@@ -659,7 +665,7 @@ namespace Epoch
 			{
 				for (auto& [id, panelData] : myPanelManager->GetPanels(PanelCategory::View))
 				{
-					auto nameParts = CU::SplitString(panelData.name, "/");
+					auto nameParts = CU::SplitString(panelData.menuName, "/");
 					RecursivePanelMenuItem(nameParts, 0, panelData.isOpen);
 				}
 
@@ -682,8 +688,43 @@ namespace Epoch
 				ImGui::EndMenu();
 			}
 
+			{
+				ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
+				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+				auto& colors = ImGui::GetStyle().Colors;
+				const ImVec4& buttonHovered = colors[ImGuiCol_ButtonHovered];
+				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(buttonHovered.x, buttonHovered.y, buttonHovered.z, 0.5f));
+				const auto& buttonActive = colors[ImGuiCol_ButtonActive];
+				ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(buttonActive.x, buttonActive.y, buttonActive.z, 0.5f));
+
+				ImGui::SetCursorPos(pos + ImVec2(menuBarCenter, ImGui::GetContentRegionAvail().y / 2 - 11));
+				auto icon = (mySceneState == SceneState::Edit) ? EditorResources::PlayButton : EditorResources::StopButton;
+				if (ImGui::ImageButton((ImTextureID)icon->GetView(), ImVec2(24, 24), { 0, 0 }, { 1, 1 }, (int)framePadding.y))
+				{
+					if (mySceneState == SceneState::Edit)
+					{
+						OnScenePlay();
+						myGameViewport->SetFocus();
+					}
+					else if (mySceneState == SceneState::Play)
+					{
+						OnSceneStop();
+						mySceneViewport->SetFocus();
+					}
+				}
+				if (ImGui::BeginItemTooltip())
+				{
+					(mySceneState == SceneState::Edit) ? ImGui::Text(" Play ") : ImGui::Text(" Stop ");
+					ImGui::EndTooltip();
+				}
+
+				ImGui::PopStyleVar();
+				ImGui::PopStyleColor(3);
+			}
+
 			ImGui::EndMainMenuBar();
 		}
+		ImGui::PopStyleVar();
 	}
 
 	void EditorLayer::RecursivePanelMenuItem(const std::vector<std::string>& aNameParts, uint32_t aDepth, bool& aIsOpen)

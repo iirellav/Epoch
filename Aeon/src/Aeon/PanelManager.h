@@ -9,6 +9,7 @@ namespace Epoch
 {
 	struct PanelData
 	{
+		std::string menuName = "";
 		std::string name = "";
 		std::shared_ptr<EditorPanel> panel = nullptr;
 		bool isOpen = false;
@@ -54,9 +55,9 @@ namespace Epoch
 		}
 
 		template<typename T>
-		std::shared_ptr<T> AddPanel(PanelCategory aCategory, const std::string& aName, bool aIsOpenByDefault)
+		std::shared_ptr<T> AddPanel(PanelCategory aCategory, const std::string& aMenuName, const std::string& aName, bool aIsOpenByDefault)
 		{
-			return AddPanel<T>(aCategory, PanelData{ aName, std::make_shared<T>(aName), aIsOpenByDefault });
+			return AddPanel<T>(aCategory, PanelData{ aMenuName, aName, std::make_shared<T>(aName), aIsOpenByDefault });
 		}
 
 		PanelData* GetPanelData(const std::string& aName);
