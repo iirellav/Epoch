@@ -85,7 +85,8 @@ namespace Epoch
 		void SetDebugRenderer(std::shared_ptr<DebugRenderer> aDebugRenderer) { myDebugRenderer = aDebugRenderer; }
 		std::shared_ptr<DebugRenderer> GetDebugRenderer() { return myDebugRenderer; }
 
-		void SetViewportSize(unsigned aWidth, unsigned aHeight);
+		std::pair<uint32_t, uint32_t> GetViewportSize() { return { myViewportWidth, myViewportHeight }; }
+		void SetViewportSize(uint32_t aWidth, uint32_t aHeight);
 
 		void SetScene(std::shared_ptr<Scene> aScene);
 		void BeginScene(const SceneRendererCamera& aCamera);

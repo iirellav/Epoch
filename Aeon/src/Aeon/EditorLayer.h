@@ -22,6 +22,7 @@ namespace Epoch
 	class EditorFileDroppedEvent;
 
 	class ViewportPanel;
+	class StatisticsPanel;
 
 	class EditorLayer : public Layer
 	{
@@ -105,6 +106,7 @@ namespace Epoch
 		std::unique_ptr<PanelManager> myPanelManager;
 		std::shared_ptr<ViewportPanel> mySceneViewport;
 		std::shared_ptr<ViewportPanel> myGameViewport;
+		std::shared_ptr<StatisticsPanel> myStatisticsPanel;
 
 		std::vector<std::function<void()>> myPostSceneUpdateQueue;
 

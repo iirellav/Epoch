@@ -380,7 +380,7 @@ namespace Epoch
 		}
 	}
 
-	void SceneRenderer::SetViewportSize(unsigned aWidth, unsigned aHeight)
+	void SceneRenderer::SetViewportSize(uint32_t aWidth, uint32_t aHeight)
 	{
 		if (myViewportWidth != aWidth || myViewportHeight != aHeight)
 		{

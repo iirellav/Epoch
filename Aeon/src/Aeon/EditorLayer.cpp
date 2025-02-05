@@ -128,7 +128,7 @@ namespace Epoch
 		myPanelManager->AddPanel<ShaderLibraryPanel>(PanelCategory::View, "Panel/Shader Library", SHADER_LIBRARY_PANEL_ID, false);
 		myPanelManager->AddPanel<AssetManagerPanel>(PanelCategory::View, "Debug/Asset Manager", ASSET_MANAGER_PANEL_ID, false);
 		myPanelManager->AddPanel<ScriptEngineDebugPanel>(PanelCategory::View, "Debug/Script Engine", SCRIPT_ENGINE_DEBUG_PANEL_ID, false);
-		std::shared_ptr<StatisticsPanel> statisticsPanel = myPanelManager->AddPanel<StatisticsPanel>(PanelCategory::View, "Debug/Statistics", STATISTICS_PANEL_ID, false);
+		myStatisticsPanel = myPanelManager->AddPanel<StatisticsPanel>(PanelCategory::View, "Debug/Statistics", STATISTICS_PANEL_ID, false);
 
 		myPanelManager->Deserialize();
 
@@ -171,8 +171,8 @@ namespace Epoch
 		myDebugRenderer->Init(sceneRenderer->GetExternalCompositingFramebuffer());
 		sceneRenderer->SetDebugRenderer(myDebugRenderer);
 
-		statisticsPanel->SetSceneRenderer(sceneRenderer);
-		statisticsPanel->SetDebugRenderer(myDebugRenderer);
+		myStatisticsPanel->SetSceneRenderer(sceneRenderer);
+		myStatisticsPanel->SetDebugRenderer(myDebugRenderer);
 	}
 
 	void EditorLayer::OnDetach()
@@ -229,10 +229,6 @@ namespace Epoch
 						}
 					}
 				}
-
-				CU::Transform worldTrans = camEntity.GetWorldSpaceTransform();
-				const CameraComponent& camComponent = camEntity.GetComponent<CameraComponent>();
-				myDebugRenderer->Render(worldTrans.GetMatrix().GetFastInverse(), camComponent.camera.GetProjectionMatrix(), myDebugRendererOnTop);
 			}
 
 			break;
@@ -275,6 +271,14 @@ namespace Epoch
 		}
 		case SceneState::Play:
 		{
+			Entity camEntity = myActiveScene->GetPrimaryCameraEntity();
+			if (camEntity)
+			{
+				CU::Transform worldTrans = camEntity.GetWorldSpaceTransform();
+				const CameraComponent& camComponent = camEntity.GetComponent<CameraComponent>();
+				myDebugRenderer->Render(worldTrans.GetMatrix().GetFastInverse(), camComponent.camera.GetProjectionMatrix(), myDebugRendererOnTop);
+			}
+
 			auto sceneUpdateQueue = myPostSceneUpdateQueue;
 			myPostSceneUpdateQueue.clear();
 			for (auto& fn : sceneUpdateQueue)
@@ -469,9 +473,10 @@ namespace Epoch
 		// We cannot preserve the docking relationship between an active window and an inactive docking, otherwise 
 		// any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 12.0f));
+		//ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 12.0f));
 		ImGui::Begin("DockSpace Editor", &dockspaceOpen, window_flags);
-		ImGui::PopStyleVar(2);
+		//ImGui::PopStyleVar(2);
+		ImGui::PopStyleVar();
 
 		if (opt_fullscreen)
 		{
@@ -503,7 +508,7 @@ namespace Epoch
 	void EditorLayer::OnRenderMenuBar()
 	{
 		ImVec2 framePadding = ImGui::GetStyle().FramePadding;
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 12.0f));
+		//ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 12.0f));
 		if (ImGui::BeginMainMenuBar())
 		{
 			ImVec2 pos = ImGui::GetCursorPos();
@@ -688,6 +693,7 @@ namespace Epoch
 				ImGui::EndMenu();
 			}
 
+			if (false)
 			{
 				ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
@@ -704,12 +710,10 @@ namespace Epoch
 					if (mySceneState == SceneState::Edit)
 					{
 						OnScenePlay();
-						myGameViewport->SetFocus();
 					}
 					else if (mySceneState == SceneState::Play)
 					{
 						OnSceneStop();
-						mySceneViewport->SetFocus();
 					}
 				}
 				if (ImGui::BeginItemTooltip())
@@ -724,7 +728,7 @@ namespace Epoch
 
 			ImGui::EndMainMenuBar();
 		}
-		ImGui::PopStyleVar();
+		//ImGui::PopStyleVar();
 	}
 
 	void EditorLayer::RecursivePanelMenuItem(const std::vector<std::string>& aNameParts, uint32_t aDepth, bool& aIsOpen)
@@ -2010,12 +2014,10 @@ namespace Epoch
 				if (mySceneState == SceneState::Edit)
 				{
 					OnScenePlay();
-					myGameViewport->SetFocus();
 				}
 				else if (mySceneState == SceneState::Play)
 				{
 					OnSceneStop();
-					mySceneViewport->SetFocus();
 				}
 			}
 			if (ImGui::BeginItemTooltip())
@@ -2130,6 +2132,9 @@ namespace Epoch
 		Application::Get().DispatchEvent<ScenePreStartEvent, true>(myActiveScene);
 		myActiveScene->OnRuntimeStart();
 		Application::Get().DispatchEvent<ScenePostStartEvent, true>(myActiveScene);
+
+		myGameViewport->SetFocus();
+		myStatisticsPanel->SetSceneRenderer(myGameViewport->GetSceneRenderer());
 	}
 
 	void EditorLayer::OnSceneSimulate()
@@ -2150,11 +2155,14 @@ namespace Epoch
 
 	void EditorLayer::OnSceneStop()
 	{
+		bool stoppedPlay = false;
 		if (mySceneState == SceneState::Play)
 		{
 			Application::Get().DispatchEvent<ScenePreStopEvent, true>(myActiveScene);
 			myActiveScene->OnRuntimeStop();
 			Application::Get().DispatchEvent<ScenePostStopEvent, true>(myActiveScene);
+			
+			stoppedPlay = true;
 		}
 		else if (mySceneState == SceneState::Simulate)
 		{
@@ -2179,6 +2187,12 @@ namespace Epoch
 		myPanelManager->OnSceneChanged(myActiveScene);
 
 		Input::SetCursorMode(CursorMode::Normal);
+
+		if (stoppedPlay)
+		{
+			mySceneViewport->SetFocus();
+			myStatisticsPanel->SetSceneRenderer(mySceneViewport->GetSceneRenderer());
+		}
 	}
 
 	void EditorLayer::OnSceneTransition(AssetHandle aScene)
@@ -2334,12 +2348,10 @@ namespace Epoch
 			if (mySceneState == SceneState::Play)
 			{
 				OnSceneStop();
-				mySceneViewport->SetFocus();
 			}
 			else
 			{
 				OnScenePlay();
-				myGameViewport->SetFocus();
 			}
 		}
 
