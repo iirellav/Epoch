@@ -4,10 +4,10 @@
 
 namespace Epoch
 {
-#define SCENE_PANEL_ID					std::format("{}  Scene", EP_ICON_DESKTOP).c_str()
-#define GAME_PANEL_ID					std::format("{}  Game", EP_ICON_DESKTOP).c_str()
+#define SCENE_PANEL_ID					std::format("{}  Scene", EP_ICON_TELEVISION).c_str() //EP_ICON_TELEVISION
+#define GAME_PANEL_ID					std::format("{}  Game", EP_ICON_GAMEPAD).c_str()
 #define SCENE_HIERARCHY_PANEL_ID		std::format("{}  Scene Hierarchy", EP_ICON_LIST).c_str()
-#define CONTENT_BROWSER_PANEL_ID		std::format("{}  Content Browser", EP_ICON_INBOX).c_str()
+#define CONTENT_BROWSER_PANEL_ID		std::format("{}  Content Browser", EP_ICON_DROPBOX).c_str() //EP_ICON_INBOX
 #define INSPECTOR_PANEL_ID				std::format("{}  Inspector", EP_ICON_INFO_CIRCLE).c_str()
 #define STATISTICS_PANEL_ID				std::format("{}  Statistics", EP_ICON_SIGNAL).c_str()
 #define PREFERENCES_PANEL_ID			std::format("{}  Preferences", EP_ICON_COG).c_str()
