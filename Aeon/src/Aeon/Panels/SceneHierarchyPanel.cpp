@@ -11,7 +11,6 @@
 #include <Epoch/Rendering/Environment.h>
 #include <Epoch/Script/ScriptEngine.h>
 #include <Epoch/Script/ScriptAsset.h>
-#include <Epoch/Editor/PanelIDs.h>
 
 namespace Epoch
 {
@@ -23,7 +22,7 @@ namespace Epoch
 
 	static int staticRowIndex = -1; //TODO: Remove
 
-	SceneHierarchyPanel::SceneHierarchyPanel()
+	SceneHierarchyPanel::SceneHierarchyPanel(const std::string& aName) : EditorPanel(aName)
 	{
 		myComponentCopyScene = std::make_shared<Scene>();
 		myComponentCopyEntity = myComponentCopyScene->CreateEntity();
@@ -33,7 +32,14 @@ namespace Epoch
 	{
 		EPOCH_PROFILE_FUNC();
 
-		ImGui::Begin(SCENE_HIERARCHY_PANEL_ID);
+		bool open = ImGui::Begin(myName.c_str());
+		
+		if (!open)
+		{
+			ImGui::End();
+			return;
+		}
+
 		ImRect windowRect = { ImGui::GetWindowContentRegionMin(), ImGui::GetWindowContentRegionMax() };
 
 		if (myContext)
@@ -2334,6 +2340,27 @@ namespace Epoch
 		if (ImGui::MenuItem("Create Empty"))
 		{
 			createdEntity = myContext->CreateEntity("New Entity");
+		}
+
+		if (ImGui::MenuItem("Create Empty Parent", 0, false, entitySelected))
+		{
+			Entity newParent;
+			if (entityChilded)
+			{
+				Entity oldParent = selection.GetParent();
+				newParent = myContext->CreateChildEntity(oldParent, "New Parent");
+			}
+			else
+			{
+				newParent = myContext->CreateEntity("New Parent");
+			}
+
+			auto selectedEntities = SelectionManager::GetSelections(SelectionContext::Scene);
+			for (UUID entityID : selectedEntities)
+			{
+				Entity entity = myContext->GetEntityWithUUID(entityID);
+				entity.SetParent(newParent);
+			}
 		}
 
 		if (ImGui::BeginMenu("3D Object"))

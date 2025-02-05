@@ -4,44 +4,51 @@
 
 namespace Epoch
 {
+	PagePanel::PagePanel(const std::string& aName) : EditorPanel(aName)
+	{
+	}
+
 	void PagePanel::OnImGuiRender(bool& aIsOpen)
 	{
-		if (!aIsOpen) return;
-
-		if (ImGui::Begin(myName.c_str(), &aIsOpen))
+		bool open = ImGui::Begin(myName.c_str(), &aIsOpen);
+		
+		if (!open)
 		{
-			UI::ScopedStyle spacing(ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 8.0f));
-			UI::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 4.0f));
+			ImGui::End();
+			return;
+		}
 
-			ImGuiTableFlags tableFlags = ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersInnerV;
+		UI::ScopedStyle spacing(ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 8.0f));
+		UI::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 4.0f));
 
-			UI::PushID();
-			if (ImGui::BeginTable("", 2, tableFlags, ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y)))
+		ImGuiTableFlags tableFlags = ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersInnerV;
+
+		UI::PushID();
+		if (ImGui::BeginTable("", 2, tableFlags, ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y)))
+		{
+			ImGui::TableSetupColumn("Page List", 0, 200.0f);
+			ImGui::TableSetupColumn("Page Contents", ImGuiTableColumnFlags_WidthStretch);
+
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			DrawPageList();
+
+			ImGui::TableSetColumnIndex(1);
+			if (myCurrentPage < myPages.size())
 			{
-				ImGui::TableSetupColumn("Page List", 0, 200.0f);
-				ImGui::TableSetupColumn("Page Contents", ImGuiTableColumnFlags_WidthStretch);
-
-				ImGui::TableNextRow();
-				ImGui::TableSetColumnIndex(0);
-				DrawPageList();
-
-				ImGui::TableSetColumnIndex(1);
-				if (myCurrentPage < myPages.size())
-				{
-					ImGui::BeginChild("##page_contents", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y));
-					myPages[myCurrentPage].renderFunction();
-					ImGui::EndChild();
-				}
-				else
-				{
-					LOG_ERROR("Invalid preferences page selected!");
-				}
-
-				ImGui::EndTable();
+				ImGui::BeginChild("##page_contents", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y));
+				myPages[myCurrentPage].renderFunction();
+				ImGui::EndChild();
+			}
+			else
+			{
+				LOG_ERROR("Invalid preferences page selected!");
 			}
 
-			UI::PopID();
+			ImGui::EndTable();
 		}
+
+		UI::PopID();
 
 		ImGui::End();
 	}

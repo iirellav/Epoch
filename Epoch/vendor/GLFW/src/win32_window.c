@@ -1295,7 +1295,7 @@ static int createNativeWindow(_GLFWwindow* window,
 #endif
         // Load user-provided icon if available
         wc.hIcon = LoadImageW(GetModuleHandleW(NULL),
-                              L"GLFW_ICON", IMAGE_ICON,
+                              MAKEINTRESOURCE(101), IMAGE_ICON,
                               0, 0, LR_DEFAULTSIZE | LR_SHARED);
         if (!wc.hIcon)
         {

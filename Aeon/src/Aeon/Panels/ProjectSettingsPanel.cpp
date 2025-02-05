@@ -8,30 +8,36 @@
 
 namespace Epoch
 {
-	ProjectSettingsPanel::ProjectSettingsPanel() : PagePanel(PROJECT_SETTINGS_PANEL_ID)
+	ProjectSettingsPanel::ProjectSettingsPanel(const std::string& aName) : PagePanel(aName)
 	{
-		myPages.push_back({ "General", [this](){ DrawGeneralPage(); }});
+		myPages.push_back({ "Build", [this](){ DrawBuildPage(); }});
 		myPages.push_back({ "Renderer", [this](){ DrawRendererPage(); }});
 		myPages.push_back({ "Physics", [this](){ DrawPhysicsPage(); }});
+		myPages.push_back({ "Scripting", [this](){ DrawScriptingPage(); }});
 	}
 
-	void ProjectSettingsPanel::DrawGeneralPage()
+	void ProjectSettingsPanel::DrawBuildPage()
 	{
 		ProjectConfig& config = Project::GetActive()->GetConfig();
 		
 		bool modified = false;
 
 		UI::BeginPropertyGrid();
-
+		
 		modified |= UI::Property_InputText("Product Name", config.productName);
-		modified |= UI::Property_InputText("Company Name", config.companyName);
-		modified |= UI::Property_InputText("Version", config.version);
+		modified |= UI::Property_AssetReference<Texture2D>("Icon Path", config.appIcon);
 
+		//modified |= UI::Property_InputText("Company Name", config.companyName);
+		//modified |= UI::Property_InputText("Version", config.version);
+
+		UI::EndPropertyGrid();
+
+		ImGui::Spacing();
+		ImGui::Separator();
+
+		UI::BeginPropertyGrid();
+		
 		modified |= UI::Property_AssetReference<Scene>("Runtime Start Scene", config.startScene);
-
-		UI::Spacing();
-
-		modified |= UI::Property_InputText("Default Namespace", config.defaultScriptNamespace);
 
 		UI::EndPropertyGrid();
 
@@ -75,7 +81,6 @@ namespace Epoch
 
 		UI::Spacing();
 		ImGui::Separator();
-		UI::Spacing();
 
 		if (ImGui::TreeNodeEx("Layers", ImGuiTreeNodeFlags_SpanAvailWidth))
 		{
@@ -145,6 +150,25 @@ namespace Epoch
 
 			ImGui::TreePop();
 		}
+
+		if (modified)
+		{
+			ProjectSerializer serializer(Project::GetActive());
+			serializer.Serialize(Project::GetProjectPath());
+		}
+	}
+	
+	void ProjectSettingsPanel::DrawScriptingPage()
+	{
+		ProjectConfig& config = Project::GetActive()->GetConfig();
+		
+		bool modified = false;
+
+		UI::BeginPropertyGrid();
+		
+		modified |= UI::Property_InputText("Default Namespace", config.defaultScriptNamespace);
+
+		UI::EndPropertyGrid();
 
 		if (modified)
 		{

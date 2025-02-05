@@ -11,6 +11,8 @@ namespace Epoch
 
 	void Log::Init()
 	{
+#if EPOCH_ENABLE_LOGGING
+
 		if (staticIsInitialized)
 		{
 			LOG_WARNING("Attempting to initialize logger twice!");
@@ -40,17 +42,24 @@ namespace Epoch
 		staticLogger->set_level(spdlog::level::trace);
 
 		staticIsInitialized = true;
-		return;
+
+#endif
 	}
 
 	void Log::Shutdown()
 	{
+#if EPOCH_ENABLE_LOGGING
+
 		staticLogger.reset();
 		spdlog::drop("EPOCH");
+
+#endif
 	}
 
 	void Log::InitAppConsole(bool aWithConsole)
 	{
+#if EPOCH_ENABLE_LOGGING
+
 		std::vector<spdlog::sink_ptr> editorConsoleSinks;
 
 		if (aWithConsole)
@@ -76,11 +85,17 @@ namespace Epoch
 
 		staticEditorConsoleLogger = std::make_shared<spdlog::logger>("CONSOLE", editorConsoleSinks.begin(), editorConsoleSinks.end());
 		staticEditorConsoleLogger->set_level(spdlog::level::trace);
+
+#endif
 	}
 
 	void Log::ShutdownAppConsole()
 	{
+#if EPOCH_ENABLE_LOGGING
+
 		staticEditorConsoleLogger.reset();
 		spdlog::drop("CONSOLE");
+
+#endif
 	}
 }

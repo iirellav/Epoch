@@ -84,7 +84,7 @@ namespace Epoch
 	class ContentBrowserPanel : public EditorPanel
 	{
 	public:
-		ContentBrowserPanel();
+		ContentBrowserPanel(const std::string& aName);
 		~ContentBrowserPanel() = default;
 
 		static ContentBrowserPanel& Get() { return *staticInstance; }
@@ -102,7 +102,7 @@ namespace Epoch
 		void RegisterItemActivateCallbackForType(AssetType aType, const std::function<void(const AssetMetadata&)>& aCallback) { myItemActivationCallbacks[aType] = aCallback; }
 		void RegisterNewAssetCreatedCallbackForType(AssetType aType, const std::function<void(const AssetMetadata&)>& aCallback) { myNewAssetCreatedCallbacks[aType] = aCallback; }
 		void RegisterAssetDeletedCallbackForType(AssetType aType, const std::function<void(const AssetMetadata&)>& aCallback) { myAssetDeletedCallbacks[aType] = aCallback; }
-		void RegistryCurrentSceneRenamedCallback(const std::function<void(const AssetMetadata&)>& aCallback) { myCurrentSceneRenamedCallback = aCallback; }
+		void RegisterAssetRenamedCallbackForType(AssetType aType, const std::function<void(const AssetMetadata&)>& aCallback) { myAssetRenamedCallbacks[aType] = aCallback; }
 
 	private:
 		void UpdateInput();
@@ -194,7 +194,7 @@ namespace Epoch
 		std::unordered_map<AssetType, std::function<void(const AssetMetadata&)>> myItemActivationCallbacks;
 		std::unordered_map<AssetType, std::function<void(const AssetMetadata&)>> myNewAssetCreatedCallbacks;
 		std::unordered_map<AssetType, std::function<void(const AssetMetadata&)>> myAssetDeletedCallbacks;
-		std::function<void(const AssetMetadata&)> myCurrentSceneRenamedCallback;
+		std::unordered_map<AssetType, std::function<void(const AssetMetadata&)>> myAssetRenamedCallbacks;
 
 		char mySearchBuffer[MAX_INPUT_BUFFER_LENGTH];
 

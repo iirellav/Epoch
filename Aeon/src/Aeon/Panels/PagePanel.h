@@ -18,7 +18,7 @@ namespace Epoch
 	{
 	public:
 		PagePanel() = delete;
-		PagePanel(const std::string& aName) : myName(aName) {}
+		PagePanel(const std::string& aName);
 		virtual ~PagePanel() override = default;
 
 		void OnImGuiRender(bool& aIsOpen) override;
@@ -29,8 +29,5 @@ namespace Epoch
 	protected:
 		int myCurrentPage = 0;
 		std::vector<PanelPage> myPages;
-
-	private:
-		const std::string myName = "";
 	};
 }

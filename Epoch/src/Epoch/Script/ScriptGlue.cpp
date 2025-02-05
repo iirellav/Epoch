@@ -378,7 +378,7 @@ namespace Epoch
 			if (outValue && enableImGui && GImGui->HoveredWindow != nullptr)
 			{
 				// Make sure we're in the viewport panel
-				ImGuiWindow* viewportWindow = ImGui::FindWindowByName(VIEWPORT_PANEL_ID);
+				ImGuiWindow* viewportWindow = ImGui::FindWindowByName(GAME_PANEL_ID);
 				if (viewportWindow != nullptr)
 				{
 					outValue = GImGui->HoveredWindow->ID == viewportWindow->ID;
@@ -1582,35 +1582,58 @@ namespace Epoch
 
 #pragma region Input
 
-		bool Input_IsKeyPressed(KeyCode aKeyCode) { return Input::IsKeyPressed(aKeyCode); }
-		bool Input_IsKeyHeld(KeyCode aKeyCode) { return Input::IsKeyHeld(aKeyCode); }
-		bool Input_IsKeyReleased(KeyCode aKeyCode) { return Input::IsKeyReleased(aKeyCode); }
+		bool Input_IsKeyPressed(KeyCode aKeyCode)
+		{
+			bool state = Input::IsKeyPressed(aKeyCode);
+
+			ViewportHovered(state);
+
+			return state;
+		}
+
+		bool Input_IsKeyHeld(KeyCode aKeyCode)
+		{
+			bool state = Input::IsKeyHeld(aKeyCode);
+
+			ViewportHovered(state);
+
+			return state;
+		}
+
+		bool Input_IsKeyReleased(KeyCode aKeyCode)
+		{
+			bool state = Input::IsKeyReleased(aKeyCode);
+
+			ViewportHovered(state);
+
+			return state;
+		}
 
 		bool Input_IsMouseButtonPressed(MouseButton aButton)
 		{
-			bool isPressed = Input::IsMouseButtonPressed(aButton);
+			bool state = Input::IsMouseButtonPressed(aButton);
 
-			ViewportHovered(isPressed);
+			ViewportHovered(state);
 
-			return isPressed;
+			return state;
 		}
 
 		bool Input_IsMouseButtonHeld(MouseButton aButton)
 		{
-			bool isHeld = Input::IsMouseButtonHeld(aButton);
+			bool state = Input::IsMouseButtonHeld(aButton);
 
-			ViewportHovered(isHeld);
+			ViewportHovered(state);
 
-			return isHeld;
+			return state;
 		}
 
 		bool Input_IsMouseButtonReleased(MouseButton aButton)
 		{
-			bool released = Input::IsMouseButtonReleased(aButton);
+			bool state = Input::IsMouseButtonReleased(aButton);
 
-			ViewportHovered(released);
+			ViewportHovered(state);
 
-			return released;
+			return state;
 		}
 
 		void Input_GetMousePosition(CU::Vector2f* outPosition)

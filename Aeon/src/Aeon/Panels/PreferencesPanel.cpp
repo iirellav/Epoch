@@ -6,7 +6,7 @@
 
 namespace Epoch
 {
-	PreferencesPanel::PreferencesPanel() : PagePanel(PREFERENCES_PANEL_ID)
+	PreferencesPanel::PreferencesPanel(const std::string& aName) : PagePanel(aName)
 	{
 		myPages.push_back({ "General", [this](){ DrawGeneralPage(); }});
 		myPages.push_back({ "Level Editor", [this](){ DrawLevelEditorPage(); }});
@@ -40,18 +40,6 @@ namespace Epoch
 
 			modified |= UI::Property_Checkbox("Autosave Scene on Play", settings.autoSaveSceneBeforePlay);
 
-			UI::EndPropertyGrid();
-
-			ImGui::TreePop();
-		}
-
-		if (UI::PropertyGridHeader("Console"))
-		{
-			UI::BeginPropertyGrid();
-
-			modified |= UI::Property_Checkbox("Clear Console on Play", settings.clearConsoleOnPlay);
-			modified |= UI::Property_Checkbox("Collapse Console Messages", settings.collapseConsoleMessages);
-			
 			UI::EndPropertyGrid();
 
 			ImGui::TreePop();

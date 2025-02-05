@@ -30,7 +30,7 @@ namespace Epoch
 	static char staticDeleteModalName[] = " Delete selected asset(s)?";
 	static char staticNewScriptModalName[] = " New Script";
 
-	ContentBrowserPanel::ContentBrowserPanel()
+	ContentBrowserPanel::ContentBrowserPanel(const std::string& aName) : EditorPanel(aName)
 	{
 		staticInstance = this;
 		memset(mySearchBuffer, 0, MAX_INPUT_BUFFER_LENGTH);
@@ -49,7 +49,14 @@ namespace Epoch
 	{
 		EPOCH_PROFILE_FUNC();
 
-		ImGui::Begin(CONTENT_BROWSER_PANEL_ID, 0, ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar);
+		bool open = ImGui::Begin(CONTENT_BROWSER_PANEL_ID, 0, ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar);
+
+		if (!open)
+		{
+			ImGui::End();
+			return;
+		}
+
 		{
 			if (myShouldRefresh)
 			{
@@ -776,11 +783,12 @@ namespace Epoch
 				Refresh();
 				SortItemList();
 
-				if (item->GetID() == mySceneContext->GetHandle() && myCurrentSceneRenamedCallback)
+				auto assetItem = std::static_pointer_cast<ContentBrowserAsset>(item);
+				const auto& assetMetadata = assetItem->GetAssetInfo();
+
+				if (myAssetRenamedCallbacks.find(assetMetadata.type) != myAssetRenamedCallbacks.end())
 				{
-					auto assetItem = std::static_pointer_cast<ContentBrowserAsset>(item);
-					const auto& assetMetadata = assetItem->GetAssetInfo();
-					myCurrentSceneRenamedCallback(assetMetadata);
+					myAssetRenamedCallbacks[assetMetadata.type](assetMetadata);
 				}
 
 				break;

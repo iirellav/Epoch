@@ -345,7 +345,7 @@ namespace Epoch
 		{
 			for (auto [_, vb] : myQuadVertices)
 			{
-				auto quadCount = vb.size() / 4;
+				auto quadCount = (uint32_t)vb.size() / 4;
 
 				myStats.drawCalls += CU::Math::CeilToUInt((float)quadCount / MaxQuads);
 				myStats.batched += quadCount;
@@ -359,7 +359,7 @@ namespace Epoch
 		{
 			for (auto [_, vb] : myTextVertices)
 			{
-				auto quadCount = vb.size() / 4;
+				auto quadCount = (uint32_t)vb.size() / 4;
 
 				myStats.drawCalls += CU::Math::CeilToUInt((float)quadCount / MaxQuads);
 				myStats.batched += quadCount;
@@ -379,7 +379,7 @@ namespace Epoch
 		}
 	}
 
-	void SceneRenderer::SetViewportSize(unsigned aWidth, unsigned aHeight)
+	void SceneRenderer::SetViewportSize(uint32_t aWidth, uint32_t aHeight)
 	{
 		if (myViewportWidth != aWidth || myViewportHeight != aHeight)
 		{
