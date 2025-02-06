@@ -23,9 +23,8 @@ namespace Epoch
 		myClearColor = aClearColor;
 
 		myBackBuffer = std::make_shared<DX11Texture2D>();
-		myDepthBuffer = std::make_shared<DX11Texture2D>();
 
-		if (!RHI::Init((DX11Texture2D*)myBackBuffer.get(), (DX11Texture2D*)myDepthBuffer.get(), dxDebug))
+		if (!RHI::Init((DX11Texture2D*)myBackBuffer.get(), dxDebug))
 		{
 			EPOCH_ASSERT(false, "Failed to initialize RHI!");
 			return false;
@@ -39,8 +38,7 @@ namespace Epoch
 	{
 		EPOCH_PROFILE_FUNC();
 		
-		RHI::ClearRenderTarget((DX11Texture2D*)myBackBuffer.get(), { myClearColor.r, myClearColor.g, myClearColor.b, 1.0f });
-		RHI::ClearDepthStencil((DX11Texture2D*)myDepthBuffer.get());
+		RHI::Clear((DX11Texture2D*)myBackBuffer.get(), { myClearColor.r, myClearColor.g, myClearColor.b, 1.0f });
 	}
 
 	void GraphicsEngine::EndFrame()
@@ -55,13 +53,10 @@ namespace Epoch
 		EPOCH_PROFILE_FUNC();
 
 		EPOCH_ASSERT(myBackBuffer.use_count() == 1);
-		EPOCH_ASSERT(myDepthBuffer.use_count() == 1);
 
 		myBackBuffer.reset();
-		myDepthBuffer.reset();
 		myBackBuffer = std::make_shared<DX11Texture2D>();
-		myDepthBuffer = std::make_shared<DX11Texture2D>();
 
-		return RHI::ResizeDevice((DX11Texture2D*)myBackBuffer.get(), (DX11Texture2D*)myDepthBuffer.get());
+		return RHI::Resize((DX11Texture2D*)myBackBuffer.get());
 	}
 }

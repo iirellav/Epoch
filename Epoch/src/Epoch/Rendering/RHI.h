@@ -27,20 +27,15 @@ namespace Epoch
 		RHI() = delete;
 		~RHI() = delete;
 
-		static bool Init(DX11Texture2D* outBackBuffer, DX11Texture2D* outDepthBuffer, bool aEnableDeviceDebug = false);
+		static bool Init(DX11Texture2D* outBackBuffer, bool aEnableDeviceDebug = false);
 
-		static bool CreateTexture(DX11Texture2D* outTexture, const std::string& aName, UINT aWidth, UINT aHeight, UINT aFormat,
-			D3D11_USAGE aUsageFlags = D3D11_USAGE_DEFAULT, UINT aBindFlags = D3D11_BIND_SHADER_RESOURCE, UINT aCpuAccessFlags = 0);
+		static void SetAsRenderTarget(const DX11Texture2D* aTarget);
 
-		static void SetRenderTarget(const DX11Texture2D* aTarget, const DX11Texture2D* aDepthStencil);
+		static void Clear(const DX11Texture2D* aTexture, std::array<float, 4> aClearColor = { 0.0f, 0.0f, 0.0f, 0.0f });
 
-		static void ClearRenderTarget(const DX11Texture2D* aTexture, std::array<float, 4> aClearColor = { 0.0f, 0.0f, 0.0f, 0.0f });
-		static void ClearDepthStencil(const DX11Texture2D* aTexture);
-
-		static bool ResizeDevice(DX11Texture2D* outBackBuffer, DX11Texture2D* outDepthBuffer);
+		static bool Resize(DX11Texture2D* outBackBuffer);
 
 		static void Present(bool aVSync = true);
-
 
 		static ComPtr<ID3D11Device>& GetDevice() { return myDevice; }
 		static ComPtr<ID3D11DeviceContext>& GetContext() { return myContext; }

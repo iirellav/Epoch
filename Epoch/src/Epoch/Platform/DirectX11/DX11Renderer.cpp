@@ -170,7 +170,6 @@ namespace Epoch
 		if (frameBuffer->GetSpecification().swapChainTarget)
 		{
 			colorAttachments.push_back(std::dynamic_pointer_cast<DX11Texture2D>(GraphicsEngine::Get().GetBackBuffer()));
-			depthAttachment = std::dynamic_pointer_cast<DX11Texture2D>(GraphicsEngine::Get().GetDepthBuffer());
 
 			width = colorAttachments[0]->GetWidth();
 			height = colorAttachments[0]->GetHeight();

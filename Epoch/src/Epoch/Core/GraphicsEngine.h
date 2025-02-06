@@ -15,7 +15,6 @@ namespace Epoch
 		static GraphicsEngine& Get() { static GraphicsEngine instance; return instance; }
 
 		std::shared_ptr<Texture2D> GetBackBuffer() const { return myBackBuffer; }
-		std::shared_ptr<Texture2D> GetDepthBuffer() const { return myDepthBuffer; }
 
 		void SetClearColor(const CU::Color& aColor) { myClearColor = aColor; }
 		bool& GetVSyncBool() { return myVSync; }
@@ -35,6 +34,5 @@ namespace Epoch
 		bool myVSync = false;
 
 		std::shared_ptr<Texture2D> myBackBuffer; 
-		std::shared_ptr<Texture2D> myDepthBuffer;
 	};
 }

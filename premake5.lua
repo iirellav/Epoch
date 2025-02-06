@@ -60,8 +60,6 @@ group ""
 
 group "Tools"
 include "Aeon"
---include "Basic Raytracer"
---include "SSOHorseRegistry"
 group ""
 
 group "Runtime"

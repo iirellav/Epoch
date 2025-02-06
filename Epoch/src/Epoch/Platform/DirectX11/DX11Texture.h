@@ -58,8 +58,6 @@ namespace Epoch
 		ComPtr<ID3D11RenderTargetView> myRTV = nullptr;
 		ComPtr<ID3D11UnorderedAccessView> myUAV = nullptr;
 		ComPtr<ID3D11DepthStencilView> myDSV = nullptr;
-		
-		D3D11_VIEWPORT myViewport{};
 
 		unsigned myBindFlags{};
 		unsigned myUsageFlags{};
