@@ -1977,8 +1977,8 @@ namespace Epoch
 			//ImGui::Text("%u x %u", (uint32_t)mx, (uint32_t)my);
 			//ImGui::Text("%.3f x %.3f", mpos.x, mpos.y);
 
-			ImGui::End();
 		}
+		ImGui::End();
 	}
 
 	void EditorLayer::DisplayColorGradingLUT()
@@ -2026,129 +2026,130 @@ namespace Epoch
 		const auto& buttonActive = colors[ImGuiCol_ButtonActive];
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(buttonActive.x, buttonActive.y, buttonActive.z, 0.5f));
 
-		ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollWithMouse);
-
-		bool toolbarEnabled = (bool)myActiveScene;
-
-		ImVec4 tintColor = ImVec4(1, 1, 1, 1);
-		if (!toolbarEnabled)
+		if (ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollWithMouse))
 		{
-			tintColor.w = 0.5f;
-		}
+			bool toolbarEnabled = (bool)myActiveScene;
 
-		float size = ImGui::GetWindowHeight() - 4.0f;
-		ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
-
-
-		bool hasPlayButton = mySceneState == SceneState::Edit || mySceneState == SceneState::Play;
-		bool hasSimulateButton = mySceneState == SceneState::Edit || mySceneState == SceneState::Simulate;
-		bool hasPauseButton = mySceneState != SceneState::Edit;
-
-		if (hasPlayButton)
-		{
-			auto icon = (mySceneState == SceneState::Edit) ? EditorResources::PlayButton : EditorResources::StopButton;
-			if (ImGui::ImageButton((ImTextureID)icon->GetView(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled)
+			ImVec4 tintColor = ImVec4(1, 1, 1, 1);
+			if (!toolbarEnabled)
 			{
-				if (mySceneState == SceneState::Edit)
-				{
-					OnScenePlay();
-				}
-				else if (mySceneState == SceneState::Play)
-				{
-					OnSceneStop();
-				}
+				tintColor.w = 0.5f;
 			}
-			if (ImGui::BeginItemTooltip())
-			{
-				(mySceneState == SceneState::Edit) ? ImGui::Text(" Play ") : ImGui::Text(" Stop ");
-				ImGui::EndTooltip();
-			}
-		}
 
-		if (hasSimulateButton)
-		{
+			float size = ImGui::GetWindowHeight() - 4.0f;
+			ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
+
+
+			bool hasPlayButton = mySceneState == SceneState::Edit || mySceneState == SceneState::Play;
+			bool hasSimulateButton = mySceneState == SceneState::Edit || mySceneState == SceneState::Simulate;
+			bool hasPauseButton = mySceneState != SceneState::Edit;
+
 			if (hasPlayButton)
 			{
-				ImGui::SameLine();
-			}
-		
-			auto icon = (mySceneState == SceneState::Edit) ? EditorResources::SimulateButton : EditorResources::StopButton;
-			if (ImGui::ImageButton((ImTextureID)icon->GetView(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled)
-			{
-				if (mySceneState == SceneState::Edit)
-				{
-					OnSceneSimulate();
-				}
-				else if (mySceneState == SceneState::Simulate)
-				{
-					OnSceneStop();
-				}
-		
-			}
-			if (ImGui::BeginItemTooltip())
-			{
-				(mySceneState == SceneState::Edit) ? ImGui::Text(" Simulate ") : ImGui::Text(" Stop ");
-				ImGui::EndTooltip();
-			}
-		}
-
-		if (hasPauseButton)
-		{
-			bool isPaused = myActiveScene->IsPaused();
-			ImGui::SameLine();
-			{
-				auto icon = isPaused ? EditorResources::PlayButton : EditorResources::PauseButton;
+				auto icon = (mySceneState == SceneState::Edit) ? EditorResources::PlayButton : EditorResources::StopButton;
 				if (ImGui::ImageButton((ImTextureID)icon->GetView(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled)
 				{
-					myActiveScene->SetPaused(!isPaused);
-					if (!myActiveScene->IsPaused() && mySceneState == SceneState::Play)
+					if (mySceneState == SceneState::Edit)
 					{
-						myGameViewport->SetFocus();
+						OnScenePlay();
+					}
+					else if (mySceneState == SceneState::Play)
+					{
+						OnSceneStop();
 					}
 				}
 				if (ImGui::BeginItemTooltip())
 				{
-					isPaused ? ImGui::Text(" Play ") : ImGui::Text(" Pause ");
+					(mySceneState == SceneState::Edit) ? ImGui::Text(" Play ") : ImGui::Text(" Stop ");
 					ImGui::EndTooltip();
 				}
 			}
 
-			// Step button
-			if (isPaused)
+			if (hasSimulateButton)
 			{
+				if (hasPlayButton)
+				{
+					ImGui::SameLine();
+				}
+
+				auto icon = (mySceneState == SceneState::Edit) ? EditorResources::SimulateButton : EditorResources::StopButton;
+				if (ImGui::ImageButton((ImTextureID)icon->GetView(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled)
+				{
+					if (mySceneState == SceneState::Edit)
+					{
+						OnSceneSimulate();
+					}
+					else if (mySceneState == SceneState::Simulate)
+					{
+						OnSceneStop();
+					}
+
+				}
+				if (ImGui::BeginItemTooltip())
+				{
+					(mySceneState == SceneState::Edit) ? ImGui::Text(" Simulate ") : ImGui::Text(" Stop ");
+					ImGui::EndTooltip();
+				}
+			}
+
+			if (hasPauseButton)
+			{
+				bool isPaused = myActiveScene->IsPaused();
 				ImGui::SameLine();
 				{
-					auto icon = EditorResources::StepButton;
-					ImGui::ImageButton((ImTextureID)icon->GetView(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled;
-			
-					static float stepHeldTime = 0.0f;
-					if (ImGui::IsItemActive())
+					auto icon = isPaused ? EditorResources::PlayButton : EditorResources::PauseButton;
+					if (ImGui::ImageButton((ImTextureID)icon->GetView(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled)
 					{
-						stepHeldTime -= CU::Timer::GetDeltaTime();
-						if (stepHeldTime <= 0.0f)
+						myActiveScene->SetPaused(!isPaused);
+						if (!myActiveScene->IsPaused() && mySceneState == SceneState::Play)
 						{
-							stepHeldTime = 0.1f;
-							myActiveScene->Step(5);
+							myGameViewport->SetFocus();
 						}
 					}
-			
-					if (ImGui::IsItemDeactivated())
-					{
-						stepHeldTime = 0.0f;
-					}
-			
 					if (ImGui::BeginItemTooltip())
 					{
-						ImGui::Text("Step");
+						isPaused ? ImGui::Text(" Play ") : ImGui::Text(" Pause ");
 						ImGui::EndTooltip();
+					}
+				}
+
+				// Step button
+				if (isPaused)
+				{
+					ImGui::SameLine();
+					{
+						auto icon = EditorResources::StepButton;
+						ImGui::ImageButton((ImTextureID)icon->GetView(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor) && toolbarEnabled;
+
+						static float stepHeldTime = 0.0f;
+						if (ImGui::IsItemActive())
+						{
+							stepHeldTime -= CU::Timer::GetDeltaTime();
+							if (stepHeldTime <= 0.0f)
+							{
+								stepHeldTime = 0.1f;
+								myActiveScene->Step(5);
+							}
+						}
+
+						if (ImGui::IsItemDeactivated())
+						{
+							stepHeldTime = 0.0f;
+						}
+
+						if (ImGui::BeginItemTooltip())
+						{
+							ImGui::Text("Step");
+							ImGui::EndTooltip();
+						}
 					}
 				}
 			}
 		}
 
+		ImGui::End();
 		ImGui::PopStyleVar(2);
 		ImGui::PopStyleColor(3);
-		ImGui::End();
 	}
 
 	void EditorLayer::OnScenePlay()
