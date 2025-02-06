@@ -88,6 +88,7 @@ namespace Epoch
 		mySceneViewport->AddAdditionalFunction([this]() { UpdateViewportBoxSelection(); });
 		mySceneViewport->AddAdditionalFunction([this]() { DrawGizmos(); });
 		mySceneViewport->AddAdditionalFunction([this]() { HandleAssetDrop(); });
+		mySceneViewport->AddAdditionalFunction([this]() { DisplayColorGradingLUT(); });
 
 		std::shared_ptr<SceneHierarchyPanel> sceneHierarchyPanel = myPanelManager->AddPanel<SceneHierarchyPanel>(PanelCategory::View, "Panel/Scene Hierarchy", SCENE_HIERARCHY_PANEL_ID, true);
 		sceneHierarchyPanel->SetEntityCreationCallback([this](Entity aEntity) { return OnEntityCreated(aEntity); });
@@ -1980,6 +1981,40 @@ namespace Epoch
 		}
 	}
 
+	void EditorLayer::DisplayColorGradingLUT()
+	{
+		if (myDisplayCurrentColorGradingLUT)
+		{
+			AssetHandle lutHandle(0);
+		
+			auto entities = myActiveScene->GetAllEntitiesWith<VolumeComponent>();
+			for (auto entityID : entities)
+			{
+				Entity entity = Entity(entityID, myActiveScene.get());
+				if (!entity.IsActive()) continue;
+		
+				const auto& vc = entities.get<VolumeComponent>(entityID);
+				if (!vc.isActive || !vc.colorGrading.enabled) continue;
+		
+				lutHandle = vc.colorGrading.lut;
+		
+				break;
+			}
+		
+			ImGui::SetCursorScreenPos(mySceneViewport->MinBounds());
+			UI::ShiftCursor(5, 5);
+			if (mySceneViewport->GetSceneRenderer()->ColorGrading() && lutHandle != 0)
+			{
+				auto lut = AssetManager::GetAsset<Texture>(lutHandle);
+				ImGui::Image((ImTextureID)lut->GetView(), { 256, 16 });
+			}
+			else
+			{
+				ImGui::Image((ImTextureID)Renderer::GetDefaultColorGradingLut()->GetView(), { 256, 16 });
+			}
+		}
+	}
+
 	void EditorLayer::ToolbarPanel()
 	{
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
@@ -2356,6 +2391,11 @@ namespace Epoch
 			{
 				OnScenePlay();
 			}
+		}
+
+		if (aEvent.GetKeyCode() == KeyCode::F9)
+		{
+			myDisplayCurrentColorGradingLUT = !myDisplayCurrentColorGradingLUT;
 		}
 
 		return false;

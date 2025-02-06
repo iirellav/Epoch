@@ -81,6 +81,7 @@ namespace Epoch
 		void QueueSceneTransition(AssetHandle aScene);
 
 		void EditorOptionsPanel();
+		void DisplayColorGradingLUT();
 		void ToolbarPanel();
 
 		void OnScenePlay();
