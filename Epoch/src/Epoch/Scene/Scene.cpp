@@ -1497,7 +1497,6 @@ namespace Epoch
 				}
 
 				SceneRenderer::TextSettings settings;
-				settings.centered = trc.centered;
 				settings.maxWidth = trc.maxWidth;
 				settings.color = trc.color;
 				settings.lineHeightOffset = trc.lineSpacing;

@@ -433,7 +433,7 @@ namespace Epoch
 				aOut << YAML::Key << "Text" << YAML::Value << tr.text;
 				aOut << YAML::Key << "Font" << YAML::Value << tr.font;
 				aOut << YAML::Key << "Color" << YAML::Value << tr.color.GetVector4();
-				aOut << YAML::Key << "Centered" << YAML::Value << tr.centered;
+
 				aOut << YAML::Key << "LetterSpacing" << YAML::Value << tr.letterSpacing;
 				aOut << YAML::Key << "LineSpacing" << YAML::Value << tr.lineSpacing;
 				aOut << YAML::Key << "LineWidth" << YAML::Value << tr.maxWidth;
@@ -1145,7 +1145,7 @@ namespace Epoch
 				tr.text = textRendererComponent["Text"].as<std::string>();
 				tr.font = textRendererComponent["Font"].as<UUID>(UUID(0));
 				tr.color = CU::Color(textRendererComponent["Color"].as<CU::Vector4f>());
-				tr.centered = textRendererComponent["Centered"].as<bool>(false);
+
 				tr.letterSpacing = textRendererComponent["LetterSpacing"].as<float>();
 				tr.lineSpacing = textRendererComponent["LineSpacing"].as<float>();
 				tr.maxWidth = textRendererComponent["LineWidth"].as<float>(10.0f);

@@ -1380,7 +1380,7 @@ namespace Epoch
 				{
 					UI::BeginPropertyGrid();
 
-					UI::Property_InputTextMultiline("Text", aFirstComponent.text, CU::Vector2f::Zero, ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_CtrlEnterForNewLine);
+					UI::Property_InputTextMultiline("Text", aFirstComponent.text, CU::Vector2f(0, 128.0f), ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_CtrlEnterForNewLine);
 					
 					AssetHandle assetHandle = aFirstComponent.font;
 					if (UI::Property_AssetReference<Font>("Font", assetHandle))
@@ -1396,7 +1396,6 @@ namespace Epoch
 					//{
 					//	aFirstComponent.alignment = (Alignment)currentAlignment;
 					//}
-					UI::Property_Checkbox("Centered", aFirstComponent.centered);
 
 					UI::Property_DragFloat("Letter Spacing", aFirstComponent.letterSpacing, 0.02f);
 					UI::Property_DragFloat("Line Spacing", aFirstComponent.lineSpacing, 0.02f);

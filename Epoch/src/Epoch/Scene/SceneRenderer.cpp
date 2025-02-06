@@ -827,8 +827,8 @@ namespace Epoch
 
 	void SceneRenderer::SubmitQuad(const CU::Matrix4x4f aTransform, std::shared_ptr<Texture2D> aTexture, const CU::Color& aTint, bool aFlipX, bool aFlipY, uint32_t aEntityID)
 	{
-		auto& vertexList = myQuadVertices[aTexture->GetHandle()];
 		if (!aTexture) aTexture = Renderer::GetWhiteTexture();
+		auto& vertexList = myQuadVertices[aTexture->GetHandle()];
 		myTextures[aTexture->GetHandle()] = aTexture;
 
 		CU::Vector4f sizeMultiplier = CU::Vector4f::One;
@@ -882,56 +882,6 @@ namespace Epoch
 
 #pragma warning(default : 4996)
 
-	enum class VerticalAlignment { Upper, Middle, Lower };
-	enum class HorizontalAlignment { Left, Center, Right };
-
-	static void VerticallyOffsetBasedOnAlignment(VerticalAlignment aAlligment, double& aVal, double aHeight, double aAddHeight)
-	{
-		switch (aAlligment)
-		{
-		case VerticalAlignment::Upper:
-		{
-			aVal -= aHeight - aAddHeight;
-			break;
-		}
-		case VerticalAlignment::Middle:
-		{
-			aVal -= aHeight * 0.5f;
-			break;
-		}
-		case VerticalAlignment::Lower:
-		{
-			aVal -= aAddHeight;
-			break;
-		}
-		}
-	}
-
-	static void HorizontalyOffsetBasedOnAlignment(HorizontalAlignment aAlligment, double& aVal, double aWidth, double aMaxWidth)
-	{
-		switch (aAlligment)
-		{
-		case HorizontalAlignment::Left:
-		{
-			aVal -= aMaxWidth;
-			break;
-		}
-		case HorizontalAlignment::Center:
-		{
-			aVal -= aWidth * 0.5f;
-			break;
-		}
-		case HorizontalAlignment::Right:
-		{
-			if (aWidth != aMaxWidth)
-			{
-				aVal += (aMaxWidth - aWidth * 0.5f) * 0.5f;
-			}
-			break;
-		}
-		}
-	}
-
 	void SceneRenderer::SubmitText(const std::string& aString, const std::shared_ptr<Font>& aFont, const CU::Matrix4x4f& aTransform, const TextSettings& aSettings, uint32_t aEntityID)
 	{
 		if (aString.empty()) return;
@@ -947,10 +897,7 @@ namespace Epoch
 
 		std::u32string utf32string = To_UTF32(aString);
 
-		double totalHeight;
-		double maxWidth = 0.0f;
 		std::vector<int> nextLines;
-		std::vector<double> lineWidths;
 		{
 			double x = 0.0;
 			double fsScale = 1 / (metrics.ascenderY - metrics.descenderY);
@@ -962,8 +909,6 @@ namespace Epoch
 				char32_t character = utf32string[i];
 				if (character == '\n')
 				{
-					if (x > maxWidth) maxWidth = x;
-					lineWidths.push_back(x);
 					x = 0;
 					y -= fsScale * metrics.lineHeight + aSettings.lineHeightOffset;
 					continue;
@@ -1002,7 +947,6 @@ namespace Epoch
 					if (quadMax.x > aSettings.maxWidth && lastSpace != -1)
 					{
 						i = lastSpace;
-						lineWidths.push_back(x);
 						nextLines.emplace_back(lastSpace);
 						lastSpace = -1;
 						x = 0;
@@ -1018,21 +962,13 @@ namespace Epoch
 				fontGeometry.getAdvance(advance, character, utf32string[i + 1]);
 				x += (fsScale * advance + aSettings.letterSpacing) * (isTab ? 4 : 1);
 			}
-			if (x > maxWidth) maxWidth = x;
-			lineWidths.push_back(x);
-			totalHeight = startHeight - y;
 		}
-
-		//VerticalAlignment verticalAlignment = (VerticalAlignment)((int)aAlignment / 3);
-		//HorizontalAlignment horizontalAlignment = (HorizontalAlignment)((int)aAlignment % 3);
 
 		{
 			unsigned line = 0;
 			double x = 0.0f;
-			if (aSettings.centered) HorizontalyOffsetBasedOnAlignment(HorizontalAlignment::Center, x, lineWidths[line], maxWidth);
 			double fsScale = 1 / (metrics.ascenderY - metrics.descenderY);
 			double y = 0.0;
-			if (aSettings.centered) VerticallyOffsetBasedOnAlignment(VerticalAlignment::Middle, y, -totalHeight, (fsScale * metrics.lineHeight + aSettings.lineHeightOffset) * 0.5f);
 			for (int i = 0; i < utf32string.size(); i++)
 			{
 				char32_t character = utf32string[i];
@@ -1040,7 +976,6 @@ namespace Epoch
 				{
 					++line;
 					x = 0.0;
-					if (aSettings.centered) HorizontalyOffsetBasedOnAlignment(HorizontalAlignment::Center, x, lineWidths[line], maxWidth);
 					y -= fsScale * metrics.lineHeight + aSettings.lineHeightOffset;
 					continue;
 				}
@@ -1066,11 +1001,6 @@ namespace Epoch
 
 				pl *= fsScale, pb *= fsScale, pr *= fsScale, pt *= fsScale;
 				pl += x, pb += y, pr += x, pt += y;
-
-
-				VerticalAlignment vertAlign = aSettings.centered ? VerticalAlignment::Middle : VerticalAlignment::Upper;
-				VerticallyOffsetBasedOnAlignment(vertAlign, pb, (fsScale * metrics.lineHeight + aSettings.lineHeightOffset) * 0.5f, 0);
-				VerticallyOffsetBasedOnAlignment(vertAlign, pt, (fsScale * metrics.lineHeight + aSettings.lineHeightOffset) * 0.5f, 0);
 
 				double texelWidth = 1. / fontAtlas->GetWidth();
 				double texelHeight = 1. / fontAtlas->GetHeight();

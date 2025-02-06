@@ -101,7 +101,6 @@ namespace Epoch
 
 		struct TextSettings
 		{
-			bool centered = false;
 			float maxWidth = 10.0f;
 			CU::Color color = CU::Color::White;
 			float lineHeightOffset = 0.0f;

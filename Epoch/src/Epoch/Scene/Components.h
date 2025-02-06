@@ -216,7 +216,6 @@ namespace Epoch
 		CU::Color color = CU::Color::White;
 
 		//Alignment alignment = Alignment::MiddleCenter;
-		bool centered = false;
 		float letterSpacing = 0.0f; // Kerning
 		float lineSpacing = 0.0f;
 		float maxWidth = 10.0f;
