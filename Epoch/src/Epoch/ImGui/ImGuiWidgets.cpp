@@ -232,6 +232,7 @@ namespace Epoch::UI::Widgets
 
 			if (ImGui::GetCurrentWindow()->Appearing)
 			{
+				ImGui::SetWindowPos(ImGui::FindBestWindowPosForPopup(ImGui::GetCurrentWindow()));
 				grabFocus = true;
 				searchString.clear();
 			}
@@ -361,6 +362,7 @@ namespace Epoch::UI::Widgets
 
 			if (ImGui::GetCurrentWindow()->Appearing)
 			{
+				ImGui::SetWindowPos(ImGui::FindBestWindowPosForPopup(ImGui::GetCurrentWindow()));
 				grabFocus = true;
 				searchString.clear();
 			}
