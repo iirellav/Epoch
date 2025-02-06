@@ -27,7 +27,6 @@ namespace Epoch
 		static std::shared_ptr<ShaderLibrary> GetShaderLibrary();
 
 		static void BeginFrame();
-		static void RenderFrame();
 		static void EndFrame();
 		
 		static void SetComputePipeline(std::shared_ptr<ComputePipeline> aComputePipeline);

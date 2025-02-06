@@ -170,10 +170,6 @@ namespace Epoch
 	{
 	}
 
-	void Renderer::RenderFrame()
-	{
-	}
-
 	void Renderer::EndFrame()
 	{
 	}

@@ -160,7 +160,6 @@ namespace Epoch
 				}
 
 				GraphicsEngine::Get().RenderFrame();
-				Renderer::RenderFrame();
 
 				if (myApplicationSpecification.enableImGui)
 				{
