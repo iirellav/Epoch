@@ -11,6 +11,7 @@
 #include "Epoch/Core/Application.h"
 #include "Epoch/Core/Window.h"
 #include "Epoch/Rendering/RHI.h"
+#include "Epoch/Core/GraphicsEngine.h"
 #include "Epoch/Debug/Profiler.h"
 
 namespace Epoch
@@ -60,6 +61,9 @@ namespace Epoch
 		EPOCH_PROFILE_FUNC();
 
 		ImGui::Render();
+
+		RHI::SetRenderTarget((DX11Texture2D*)GraphicsEngine::Get().GetBackBuffer().get(), (DX11Texture2D*)GraphicsEngine::Get().GetDepthBuffer().get());
+
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 		ImGuiIO& io = ImGui::GetIO();

@@ -159,23 +159,24 @@ namespace Epoch
 					}
 				}
 
-				GraphicsEngine::Get().RenderFrame();
-
 				if (myApplicationSpecification.enableImGui)
 				{
-					myImGuiLayer->Begin();
-					{
-						EPOCH_PROFILE_SCOPE("Application::Run: Layer stack ImGui render");
-						for (int i = 0; i < myLayerStack.Size(); i++)
+					Renderer::Submit([&]()
 						{
-							myLayerStack[i]->OnImGuiRender();
-						}
-					}
-					myImGuiLayer->End();
+							myImGuiLayer->Begin();
+							{
+								EPOCH_PROFILE_SCOPE("Application::Run: Layer stack ImGui render");
+								for (int i = 0; i < myLayerStack.Size(); i++)
+								{
+									myLayerStack[i]->OnImGuiRender();
+								}
+							}
+							myImGuiLayer->End();
+						});
 				}
 
-				GraphicsEngine::Get().EndFrame();
 				Renderer::EndFrame();
+				GraphicsEngine::Get().EndFrame();
 			}
 
 			CU::Timer::Update();

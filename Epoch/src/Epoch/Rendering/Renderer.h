@@ -3,6 +3,7 @@
 #include <CommonUtilities/Math/Matrix/Matrix4x4.hpp>
 #include "RendererConfig.h"
 #include "Epoch/Utils/FileSystem.h"
+#include "RenderCommandQueue.h"
 
 namespace Epoch
 {
@@ -23,12 +24,26 @@ namespace Epoch
 
 		static void Init(const RendererConfig& aRendererConfig);
 		static void Shutdown();
-		
+
 		static std::shared_ptr<ShaderLibrary> GetShaderLibrary();
+
+		template<typename FuncT>
+		static void Submit(FuncT&& func)
+		{
+			auto renderCmd = [](void* ptr)
+				{
+					auto pFunc = (FuncT*)ptr;
+					(*pFunc)();
+
+					pFunc->~FuncT();
+				};
+			auto storageBuffer = GetRenderCommandQueue().Allocate(renderCmd, sizeof(func));
+			new (storageBuffer) FuncT(std::forward<FuncT>(func));
+		}
 
 		static void BeginFrame();
 		static void EndFrame();
-		
+
 		static void SetComputePipeline(std::shared_ptr<ComputePipeline> aComputePipeline);
 		static void RemoveComputePipeline(std::shared_ptr<ComputePipeline> aComputePipeline);
 		static void DispatchCompute(const CU::Vector3ui& aWorkGroups);
@@ -53,6 +68,6 @@ namespace Epoch
 		static std::shared_ptr<Texture2D> GetBRDFLut();
 
 	private:
-		static void OnShaderFileChanged(const std::filesystem::path& aFilepath, FilewatchEvent aEventType);
+		static RenderCommandQueue& GetRenderCommandQueue();
 	};
 }

@@ -21,7 +21,6 @@ namespace Epoch
 		bool& GetVSyncBool() { return myVSync; }
 
 		void BeginFrame();
-		void RenderFrame();
 		void EndFrame();
 
 		bool OnWindowResize();

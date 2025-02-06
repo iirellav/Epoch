@@ -43,13 +43,6 @@ namespace Epoch
 		RHI::ClearDepthStencil((DX11Texture2D*)myDepthBuffer.get());
 	}
 
-	void GraphicsEngine::RenderFrame()
-	{
-		EPOCH_PROFILE_FUNC();
-		
-		RHI::SetRenderTarget((DX11Texture2D*)myBackBuffer.get(), (DX11Texture2D*)myDepthBuffer.get());
-	}
-
 	void GraphicsEngine::EndFrame()
 	{
 		EPOCH_PROFILE_FUNC();

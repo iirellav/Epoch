@@ -34,6 +34,8 @@ namespace Epoch
 	static RendererData staticRendererData;
 	static RendererAPI* staticRendererAPI = nullptr;
 
+	static RenderCommandQueue* staticCommandQueue;
+
 	static RendererAPI* InitRendererAPI()
 	{
 		switch (RendererAPI::Current())
@@ -49,6 +51,8 @@ namespace Epoch
 		EPOCH_PROFILE_FUNC();
 
 		staticConfig = aRendererConfig;
+		
+		staticCommandQueue = new RenderCommandQueue();
 
 		staticRendererAPI = InitRendererAPI();
 		staticRendererAPI->Init();
@@ -94,7 +98,20 @@ namespace Epoch
 			{
 				staticRendererData.shaderWatcherHandle = std::make_unique<filewatch::FileWatch<std::wstring>>(std::filesystem::path("Resources/Shaders"), [](const auto& aFile, filewatch::Event aEventType)
 					{
-						Renderer::OnShaderFileChanged(aFile, (FilewatchEvent)aEventType);
+						if (!EditorSettings::Get().automaticallyReloadShaders) return;
+
+						if (aEventType != filewatch::Event::modified) return;
+
+						std::filesystem::path filepath = std::filesystem::path(aFile);
+						if (filepath.extension().string() != ".hlsl") return;
+
+						const std::string shaderName = filepath.stem().string();
+						if (!staticRendererData.shaderLibrary->Exists(shaderName)) return;
+
+						Application::Get().QueueEvent([shaderName]()
+							{
+								staticRendererData.shaderLibrary->Reload(shaderName);
+							});
 					});
 			}
 		}
@@ -172,6 +189,7 @@ namespace Epoch
 
 	void Renderer::EndFrame()
 	{
+		staticCommandQueue->Execute();
 	}
 
 	void Renderer::SetComputePipeline(std::shared_ptr<ComputePipeline> aComputePipeline)
@@ -263,20 +281,9 @@ namespace Epoch
 	{
 		return staticRendererData.BRDFLUTTexture;
 	}
-	
-	void Renderer::OnShaderFileChanged(const std::filesystem::path& aFilepath, FilewatchEvent aEventType)
+
+	RenderCommandQueue& Renderer::GetRenderCommandQueue()
 	{
-		if (!EditorSettings::Get().automaticallyReloadShaders) return;
-
-		if (aEventType != FilewatchEvent::Modified) return;
-		if (aFilepath.extension().string() != ".hlsl") return;
-
-		const std::string shaderName = aFilepath.stem().string();
-		if (!staticRendererData.shaderLibrary->Exists(shaderName)) return;
-
-		Application::Get().QueueEvent([shaderName]()
-			{
-				staticRendererData.shaderLibrary->Reload(shaderName);
-			});
+		return *staticCommandQueue;
 	}
 }
