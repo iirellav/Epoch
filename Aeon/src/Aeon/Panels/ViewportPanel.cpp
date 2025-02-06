@@ -36,9 +36,6 @@ namespace Epoch
 		auto viewportOffset = ImGui::GetWindowPos();
 		myBounds.min = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
 		myBounds.max = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
-		
-		ImGuiWindow* win1 = ImGui::GetCurrentWindow();
-		ImGuiWindow* win2 = nullptr;
 
 		myIsHovered = ImGui::IsWindowHovered();
 		myIsFocused = ImGui::IsWindowFocused();
@@ -49,45 +46,12 @@ namespace Epoch
 		
 		mySceneRenderer->SetViewportSize(mySize.x, mySize.y);
 
-		auto curPos = ImGui::GetCursorPos();
-
 		ImGui::Image((ImTextureID)mySceneRenderer->GetFinalPassTexture()->GetView(), viewportPanelSize);
 
 		for (const auto& function : myAdditionalFunctions)
 		{
 			function();
 		}
-
-		//if (myDisplayCurrentColorGradingLUT)
-		//{
-		//	AssetHandle lutHandle(0);
-		//
-		//	auto entities = myActiveScene->GetAllEntitiesWith<VolumeComponent>();
-		//	for (auto entityID : entities)
-		//	{
-		//		Entity entity = Entity(entityID, myActiveScene.get());
-		//		if (!entity.IsActive()) continue;
-		//
-		//		const auto& vc = entities.get<VolumeComponent>(entityID);
-		//		if (!vc.isActive || !vc.colorGrading.enabled) continue;
-		//
-		//		lutHandle = vc.colorGrading.lut;
-		//
-		//		break;
-		//	}
-		//
-		//	ImGui::SetCursorPos(curPos);
-		//	UI::ShiftCursor(3, 2);
-		//	if (mySceneRenderer->ColorGrading() && lutHandle != 0)
-		//	{
-		//		auto lut = AssetManager::GetAsset<Texture>(lutHandle);
-		//		ImGui::Image((ImTextureID)lut->GetView(), { 256, 16 });
-		//	}
-		//	else
-		//	{
-		//		ImGui::Image((ImTextureID)Renderer::GetDefaultColorGradingLut()->GetView(), { 256, 16 });
-		//	}
-		//}
 
 		ImGui::End();
 		ImGui::PopStyleVar();
