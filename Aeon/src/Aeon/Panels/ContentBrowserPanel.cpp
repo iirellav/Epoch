@@ -282,6 +282,18 @@ namespace Epoch
 		dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent& aEvent) { return OnKeyPressedEvent(aEvent); });
 		dispatcher.Dispatch<MouseButtonPressedEvent>([this](MouseButtonPressedEvent& aEvent) { return OnMouseButtonPressed(aEvent); });
 		dispatcher.Dispatch<EditorFileDroppedEvent>([this](EditorFileDroppedEvent& aEvent) { return OnFileDrop(aEvent); });
+		dispatcher.Dispatch<MouseScrolledEvent>([this](MouseScrolledEvent& aEvent)
+			{
+				if (!myIsContentBrowserHovered || !Input::IsKeyHeld(KeyCode::LeftControl))
+				{
+					return false;
+				}
+
+				EditorSettings::Get().contentBrowserThumbnailSize += aEvent.GetYOffset() * 2.0f;
+				EditorSettings::Get().contentBrowserThumbnailSize = CU::Math::Clamp(EditorSettings::Get().contentBrowserThumbnailSize, 64.0f, 256.0f);
+
+				return true;
+			});
 	}
 
 	void ContentBrowserPanel::OnProjectChanged(const std::shared_ptr<Project>& aProject)
