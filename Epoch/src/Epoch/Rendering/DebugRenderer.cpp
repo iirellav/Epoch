@@ -620,7 +620,7 @@ namespace Epoch
 	{
 		const AABB aabb = aAABB.GetGlobal(aTransform);
 		DrawWireBox(aabb.GetCenter(), CU::Vector3f::Zero, aabb.GetExtents(), aColor);
-		DrawWireSphere(aabb.GetCenter(), CU::Vector3f::Zero, aabb.GetExtents().Length(), aColor);
+		//DrawWireSphere(aabb.GetCenter(), CU::Vector3f::Zero, aabb.GetExtents().Length(), aColor);
 	}
 
 	void DebugRenderer::DrawGrid(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, const CU::Vector2i& aSize, float aAlpha)
