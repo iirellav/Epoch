@@ -136,7 +136,15 @@ namespace Epoch
 		void Init();
 		void Shutdown();
 
-		void PreRender();
+		void GBufferPass();
+		void EnvironmentPass();
+		void PointLightPass();
+		void SpotlightPass();
+
+		void PostProcessingPass();
+
+		void SpritesPass();
+		void TextPass();
 
 		void UpdateStatistics();
 
