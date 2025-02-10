@@ -70,7 +70,8 @@ struct GBufferOutput
     float4 albedo : SV_TARGET0;
     float4 material : SV_TARGET1;
     float4 normals : SV_TARGET2;
-    uint entityID : SV_TARGET3;
+    float4 emission : SV_TARGET3;
+    uint entityID : SV_TARGET4;
 };
 
 SamplerState wrapSampler : register(s0);
@@ -102,9 +103,10 @@ GBufferOutput main(VertexOutput input)
     
     const float4 materialValues = materialTexture.Sample(wrapSampler, uv);
     
-    output.albedo = float4(albedoColor, 1.0f) + float4(MB_EmissionColor * MB_EmissionStrength * materialValues.a, 1.0f);
+    output.albedo = float4(albedoColor, 1.0f);
     output.material = materialValues * float4(1.0f, MB_Roughness, MB_Metalness, 1.0f);
     output.normals = float4(EncodeOct(pixelNormal), 0.0f, 1.0f);
+    output.emission = float4(MB_EmissionColor * MB_EmissionStrength * materialValues.a, 1.0f);
     output.entityID = input.entityID + 1;
     
     return output;

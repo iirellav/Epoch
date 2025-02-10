@@ -139,9 +139,10 @@ namespace Epoch
 			specs.clearColor = CU::Color::Zero;
 
 			specs.attachments = {
-			{ TextureFormat::R11G11B10F,	"Albedo" },
+			{ TextureFormat::RGBA,			"Albedo" },
 			{ TextureFormat::RGBA,			"Material" },
 			{ TextureFormat::RG16F,			"Normal" },
+			{ TextureFormat::R11G11B10F,	"Emission" },
 			{ TextureFormat::R32UI,			"EntityID" },
 			{ TextureFormat::DEPTH32,		"Depth" } };
 
@@ -672,11 +673,12 @@ namespace Epoch
 
 			//Lights
 			{
+				uint32_t resourceCount = 5;
 				//Set GBuffer as resource
 				{
 					auto gBuffer = myGBufferPipeline->GetSpecification().targetFramebuffer;
 
-					std::vector<ID3D11ShaderResourceView*> SRVs(4);
+					std::vector<ID3D11ShaderResourceView*> SRVs(resourceCount);
 
 					auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(gBuffer->GetTarget("Albedo"));
 					SRVs[0] = dxTexture->GetSRV().Get();
@@ -687,10 +689,13 @@ namespace Epoch
 					dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(gBuffer->GetTarget("Normal"));
 					SRVs[2] = dxTexture->GetSRV().Get();
 
-					dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(gBuffer->GetDepthAttachment());
+					dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(gBuffer->GetTarget("Emission"));
 					SRVs[3] = dxTexture->GetSRV().Get();
 
-					RHI::GetContext()->PSSetShaderResources(0, 4, SRVs.data());
+					dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(gBuffer->GetDepthAttachment());
+					SRVs[4] = dxTexture->GetSRV().Get();
+
+					RHI::GetContext()->PSSetShaderResources(0, resourceCount, SRVs.data());
 				}
 
 				EnvironmentPass();
@@ -699,8 +704,8 @@ namespace Epoch
 
 				//Remove GBuffer as resource
 				{
-					std::vector<ID3D11ShaderResourceView*> emptySRVs(4);
-					RHI::GetContext()->PSSetShaderResources(0, 4, emptySRVs.data());
+					std::vector<ID3D11ShaderResourceView*> emptySRVs(resourceCount);
+					RHI::GetContext()->PSSetShaderResources(0, resourceCount, emptySRVs.data());
 				}
 			}
 
