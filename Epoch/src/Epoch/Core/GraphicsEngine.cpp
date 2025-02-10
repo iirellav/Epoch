@@ -43,7 +43,7 @@ namespace Epoch
 
 	void GraphicsEngine::EndFrame()
 	{
-		EPOCH_PROFILE_FUNC();
+		EPOCH_PROFILE_SCOPE("Present");
 
 		RHI::Present(myVSync);
 	}

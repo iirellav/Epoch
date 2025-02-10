@@ -15,6 +15,8 @@ namespace Epoch
 
 		void Execute();
 
+		uint32_t GetCommandCount() const { return myCommandCount; }
+
 	private:
 		uint8_t* myCommandBuffer;
 		uint8_t* myCommandBufferPtr;

@@ -62,6 +62,7 @@ namespace Epoch
 
 		ImGui::Render();
 
+		RHI::Clear((DX11Texture2D*)GraphicsEngine::Get().GetBackBuffer().get());
 		RHI::SetAsRenderTarget((DX11Texture2D*)GraphicsEngine::Get().GetBackBuffer().get());
 
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());

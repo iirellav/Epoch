@@ -40,6 +40,7 @@ namespace Epoch
 			auto storageBuffer = GetRenderCommandQueue().Allocate(renderCmd, sizeof(func));
 			new (storageBuffer) FuncT(std::forward<FuncT>(func));
 		}
+		static uint32_t GetRenderCommandCount();
 
 		static void BeginFrame();
 		static void EndFrame();

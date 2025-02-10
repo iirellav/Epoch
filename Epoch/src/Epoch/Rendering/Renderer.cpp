@@ -183,6 +183,11 @@ namespace Epoch
 		return staticRendererData.shaderLibrary;
 	}
 
+	uint32_t Renderer::GetRenderCommandCount()
+	{
+		return GetRenderCommandQueue().GetCommandCount();
+	}
+
 	void Renderer::BeginFrame()
 	{
 	}

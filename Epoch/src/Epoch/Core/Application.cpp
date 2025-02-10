@@ -175,8 +175,12 @@ namespace Epoch
 						});
 				}
 
+				Renderer::Submit([&]()
+						{
+							GraphicsEngine::Get().EndFrame();
+						});
+
 				Renderer::EndFrame();
-				GraphicsEngine::Get().EndFrame();
 			}
 
 			CU::Timer::Update();

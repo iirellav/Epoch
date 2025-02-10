@@ -22,7 +22,7 @@ namespace Epoch
 		return std::less_equal<uint8_t*>{}(aBegin, aPtr) && std::less<uint8_t*>{}(aPtr, aEnd);
 	}
 
-	void* Epoch::RenderCommandQueue::Allocate(RenderCommandFn aFunc, uint32_t aSize)
+	void* RenderCommandQueue::Allocate(RenderCommandFn aFunc, uint32_t aSize)
 	{
 		const uint32_t cmdTotalSize = sizeof(RenderCommandFn) + sizeof(uint32_t) + aSize;
 
@@ -41,8 +41,10 @@ namespace Epoch
 		return memory;
 	}
 	
-	void Epoch::RenderCommandQueue::Execute()
+	void RenderCommandQueue::Execute()
 	{
+		EPOCH_PROFILE_FUNC();
+
 		byte* buffer = myCommandBuffer;
 
 		for (uint32_t i = 0; i < myCommandCount; i++)

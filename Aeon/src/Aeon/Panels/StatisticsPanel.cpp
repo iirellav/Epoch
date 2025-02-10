@@ -5,6 +5,7 @@
 #include <Epoch/Core/GraphicsEngine.h> //TODO: Remove
 #include <Epoch/Debug/Timer.h>
 #include <Epoch/Scene/SceneRenderer.h>
+#include <Epoch/Rendering/Renderer.h>
 #include <Epoch/Rendering/DebugRenderer.h>
 #include <Epoch/Rendering/Font.h>
 #include "../EditorResources.h"
@@ -243,24 +244,33 @@ namespace Epoch
 		{
 			const auto& stats = mySceneRendererReference.lock()->GetStats();
 
+			ImGui::Text(("Render Commands: " + CU::NumberFormat(Renderer::GetRenderCommandCount())).c_str());
+
+			UI::Spacing();
+			
 			ImGui::Text(("Draw Calls: " + CU::NumberFormat(stats.drawCalls)).c_str());
 			ImGui::Text(("Saved Draws: " + CU::NumberFormat(stats.savedDraws)).c_str());
 
 			UI::Spacing();
-			
-			ImGui::Text(("Instances: " + CU::NumberFormat(stats.instances)).c_str());
-			ImGui::Text(("Batched: " + CU::NumberFormat(stats.batched)).c_str());
 
-			UI::Spacing();
+			if (UI::PropertyGridHeader("Detailed", true))
+			{
+				ImGui::Text(("Instances: " + CU::NumberFormat(stats.instances)).c_str());
+				ImGui::Text(("Batched: " + CU::NumberFormat(stats.batched)).c_str());
 
-			ImGui::Text(("Vertices: " + CU::NumberFormat(stats.vertices)).c_str());
-			ImGui::Text(("Indices: " + CU::NumberFormat(stats.indices)).c_str());
-			ImGui::Text(("Triangles: " + CU::NumberFormat(stats.triangles)).c_str());
+				UI::Spacing();
 
-			UI::Spacing();
-			
-			ImGui::Text(("Meshes: " + CU::NumberFormat(stats.meshes)).c_str());
-			ImGui::Text(("Sub meshes: " + CU::NumberFormat(stats.submeshes)).c_str());
+				ImGui::Text(("Vertices: " + CU::NumberFormat(stats.vertices)).c_str());
+				ImGui::Text(("Indices: " + CU::NumberFormat(stats.indices)).c_str());
+				ImGui::Text(("Triangles: " + CU::NumberFormat(stats.triangles)).c_str());
+
+				UI::Spacing();
+				
+				ImGui::Text(("Meshes: " + CU::NumberFormat(stats.meshes)).c_str());
+				ImGui::Text(("Sub meshes: " + CU::NumberFormat(stats.submeshes)).c_str());
+
+				ImGui::TreePop();
+			}
 
 			//UI::Spacing(2);
 
