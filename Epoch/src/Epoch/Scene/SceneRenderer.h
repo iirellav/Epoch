@@ -186,44 +186,25 @@ namespace Epoch
 			AssetHandle meshHandle = 0;
 			AssetHandle materialHandle = 0;
 			unsigned submeshIndex = 0;
-			bool castsShadows = false;
-			//bool isSelected = false;
 
-			MeshKey(AssetHandle aMeshHandle, AssetHandle aMaterialHandle, unsigned aSubmeshIndex, bool aCastsShadows/*, bool aIsSelected*/)
-				: meshHandle(aMeshHandle), materialHandle(aMaterialHandle), submeshIndex(aSubmeshIndex), castsShadows(aCastsShadows)/*, isSelected(aIsSelected)*/
-			{
-			}
+			MeshKey(AssetHandle aMeshHandle, AssetHandle aMaterialHandle, unsigned aSubmeshIndex)
+				: meshHandle(aMeshHandle), materialHandle(aMaterialHandle), submeshIndex(aSubmeshIndex) {}
 
 			bool operator<(const MeshKey& other) const
 			{
-				if (meshHandle < other.meshHandle)
-					return true;
-
-				if (meshHandle > other.meshHandle)
-					return false;
-
-				if (submeshIndex < other.submeshIndex)
-					return true;
-
-				if (submeshIndex > other.submeshIndex)
-					return false;
-
 				if (materialHandle < other.materialHandle)
 					return true;
 
 				if (materialHandle > other.materialHandle)
 					return false;
 
-				//if (castsShadows < other.castsShadows)
-				//	return true;
+				if (meshHandle < other.meshHandle)
+					return true;
 
-				//if (castsShadows > other.castsShadows)
-				//	return false;
+				if (meshHandle > other.meshHandle)
+					return false;
 
-				return castsShadows > other.castsShadows;
-
-				//return isSelected < other.isSelected;
-
+				return submeshIndex < other.submeshIndex;
 			}
 		};
 

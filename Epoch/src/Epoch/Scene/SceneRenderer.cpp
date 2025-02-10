@@ -791,7 +791,7 @@ namespace Epoch
 
 			EPOCH_ASSERT(material, "No material found for rendering!");
 
-			MeshKey meshKey = { aMesh->GetHandle(), materialHandle, submeshIndex, false };
+			MeshKey meshKey = { aMesh->GetHandle(), materialHandle, submeshIndex };
 
 			auto& transformStorage = myMeshTransformMap[meshKey].emplace_back();
 			transformStorage.row[0] = { submeshTransform(1, 1), submeshTransform(1, 2), submeshTransform(1, 3), submeshTransform(4, 1) };
