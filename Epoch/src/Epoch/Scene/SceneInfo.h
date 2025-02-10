@@ -29,7 +29,7 @@ namespace Epoch
 		CU::Vector3f color;
 		float range = 0.0f;
 
-		AssetHandle cookie;
+		std::shared_ptr<Texture2D> cookie;
 	};
 
 	struct Spotlight
@@ -48,7 +48,7 @@ namespace Epoch
 		float coneAngleDiff = 0.0f;
 		CU::Vector3f padding;
 
-		AssetHandle cookie;
+		std::shared_ptr<Texture2D> cookie;
 	};
 
 	struct LightEnvironment
