@@ -3,13 +3,13 @@
 
 namespace Epoch
 {
+	constexpr size_t BufferSize = 10 * 1024 * 1024; // 10mb buffer
+
 	RenderCommandQueue::RenderCommandQueue()
 	{
-		size_t bufferSize = 10 * 1024 * 1024; // 10mb buffer
-
-		myCommandBuffer = new uint8_t[bufferSize];
+		myCommandBuffer = new uint8_t[BufferSize];
 		myCommandBufferPtr = myCommandBuffer;
-		memset(myCommandBuffer, 0, bufferSize);
+		memset(myCommandBuffer, 0, BufferSize);
 	}
 
 	RenderCommandQueue::~RenderCommandQueue()
@@ -17,8 +17,17 @@ namespace Epoch
 		delete[] myCommandBuffer;
 	}
 
+	bool Check(uint8_t* aPtr, uint8_t* aBegin, uint8_t* aEnd)
+	{
+		return std::less_equal<uint8_t*>{}(aBegin, aPtr) && std::less<uint8_t*>{}(aPtr, aEnd);
+	}
+
 	void* Epoch::RenderCommandQueue::Allocate(RenderCommandFn aFunc, uint32_t aSize)
 	{
+		const uint32_t cmdTotalSize = sizeof(RenderCommandFn) + sizeof(uint32_t) + aSize;
+
+		EPOCH_ASSERT(Check(myCommandBufferPtr + cmdTotalSize, myCommandBuffer, myCommandBuffer + BufferSize), "RenderCommandQueue to small!");
+
 		*(RenderCommandFn*)myCommandBufferPtr = aFunc;
 		myCommandBufferPtr += sizeof(RenderCommandFn);
 
