@@ -15,6 +15,8 @@ namespace Epoch
 		void OnImGuiRender(bool& aIsOpen) override;
 
 	private:
+		void WriteHeader(UUID aAssetID);
+
 		void DrawMaterialInspector(UUID aAssetID);
 		void DrawPhysicsMaterialInspector(UUID aAssetID);
 		void DrawMeshInspector(UUID aAssetID);
@@ -23,5 +25,7 @@ namespace Epoch
 		
 	private:
 		std::unordered_map<AssetType, std::function<void(UUID aAssetID)>> myDrawFunctions;
+
+		std::unordered_map<AssetType, std::shared_ptr<Texture2D>> myAssetIconMap;
 	};
 }

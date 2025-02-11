@@ -4,6 +4,7 @@
 #include <Epoch/Editor/SelectionManager.h>
 #include <Epoch/Rendering/Material.h>
 #include <Epoch/Rendering/Texture.h>
+#include "Aeon/EditorResources.h"
 
 namespace Epoch
 {
@@ -14,6 +15,16 @@ namespace Epoch
 		myDrawFunctions[AssetType::Mesh] = [this](UUID aAssetID) { DrawMeshInspector(aAssetID); };
 		myDrawFunctions[AssetType::Prefab] = [this](UUID aAssetID) { DrawPrefabInspector(aAssetID); };
 		myDrawFunctions[AssetType::Texture] = [this](UUID aAssetID) { DrawTextureInspector(aAssetID); };
+		
+		myAssetIconMap[AssetType::Mesh]				= EditorResources::ModelIcon;
+		myAssetIconMap[AssetType::Texture]			= EditorResources::TextureIcon;
+		myAssetIconMap[AssetType::Scene]			= EditorResources::SceneIcon;
+		myAssetIconMap[AssetType::ScriptFile]		= EditorResources::ScriptFileIcon;
+		myAssetIconMap[AssetType::Prefab]			= EditorResources::PrefabIcon;
+		myAssetIconMap[AssetType::Material]			= EditorResources::MaterialIcon;
+		myAssetIconMap[AssetType::PhysicsMaterial]	= EditorResources::MaterialIcon;
+		myAssetIconMap[AssetType::Video]			= EditorResources::VideoIcon;
+		myAssetIconMap[AssetType::Font]				= EditorResources::FontIcon;
 	}
 
 	void InspectorPanel::OnImGuiRender(bool& aIsOpen)
@@ -54,36 +65,51 @@ namespace Epoch
 		ImGui::End();
 	}
 
-	void WriteHeader(UUID aAssetID)
+	void InspectorPanel::WriteHeader(UUID aAssetID)
 	{
+		const ImVec2 iconSize = { 20.0f, 20.0f };
+
 		const auto& metadata = Project::GetEditorAssetManager()->GetMetadata(aAssetID);
 		const std::string name = std::format("{} ({})", metadata.filePath.stem().string(), AssetTypeToString(metadata.type));
+		const auto& icon = myAssetIconMap[metadata.type];
 
-		ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_Framed
-			| ImGuiTreeNodeFlags_SpanAvailWidth
-			| ImGuiTreeNodeFlags_AllowItemOverlap
+		ImGuiTreeNodeFlags treeNodeFlags = 
+			ImGuiTreeNodeFlags_Framed
 			| ImGuiTreeNodeFlags_FramePadding
-			| ImGuiTreeNodeFlags_Leaf;
+			| ImGuiTreeNodeFlags_Leaf
+			| ImGuiTreeNodeFlags_NoTreePushOnOpen;
 
-		const float framePaddingX = 4.0f;
+		const float framePaddingX = 0.0f;
 		const float framePaddingY = 4.0f; // affects height of the header
 
 		UI::ScopedStyle headerRounding(ImGuiStyleVar_FrameRounding, 0.0f);
 		UI::ScopedStyle headerPaddingAndHeight(ImGuiStyleVar_FramePadding, ImVec2{ framePaddingX, framePaddingY });
 
-		ImColor defaultTreeNodeCol = ImGui::GetStyle().Colors[ImGuiCol_Header];
+		ImGui::PushID(name.c_str());
 
-		UI::ScopedColorStack colors =
 		{
-			ImGuiCol_Header, defaultTreeNodeCol,
-			ImGuiCol_HeaderHovered, defaultTreeNodeCol,
-			ImGuiCol_HeaderActive, defaultTreeNodeCol,
-		};
+			ImColor defaultTreeNodeCol = ImGui::GetStyle().Colors[ImGuiCol_Header];
+			UI::ScopedColorStack colors =
+			{
+				ImGuiCol_Header, defaultTreeNodeCol,
+				ImGuiCol_HeaderHovered, defaultTreeNodeCol,
+				ImGuiCol_HeaderActive, defaultTreeNodeCol,
+			};
 
+			ImGui::TreeNodeEx("##dummy_id", treeNodeFlags, "");
+		}
+
+		const float lineHeight = ImGui::GetItemRectMax().y - ImGui::GetItemRectMin().y;
+
+		ImGui::SameLine();
+		UI::ShiftCursor(-20.0f, lineHeight * 0.5f - iconSize.y * 0.5f);
+		ImGui::Image((ImTextureID)icon->GetView(), iconSize, ImVec2(0, 0), ImVec2(1, 1), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 0));
+		ImGui::SameLine();
 		UI::Fonts::PushFont("Bold");
-		ImGui::TreeNodeEx(name.c_str(), treeNodeFlags, name.c_str());
-		ImGui::TreePop();
+		ImGui::TextUnformatted(name.c_str());
 		UI::Fonts::PopFont();
+
+		ImGui::PopID();
 
 		UI::Spacing();
 	}
@@ -103,6 +129,8 @@ namespace Epoch
 
 		UI::BeginPropertyGrid();
 
+		modified |= UI::Property_AssetReference<Texture2D>("Albedo Texture", material->GetAlbedoTexture());
+
 		CU::Color albedoColor = material->GetAlbedoColor();
 		if (UI::Property_ColorEdit3("Albedo Color", albedoColor))
 		{
@@ -110,27 +138,17 @@ namespace Epoch
 			modified = true;
 		}
 
+		UI::EndPropertyGrid();
+		UI::Spacing();
+		UI::BeginPropertyGrid();
+
+		modified |= UI::Property_AssetReference<Texture2D>("Material Texture", material->GetMaterialTexture());
 		modified |= UI::Property_DragFloat("Roughness", material->GetRoughness(), 0.02f, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
 		modified |= UI::Property_DragFloat("Metalness", material->GetMetalness(), 0.02f, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
-
-		{
-			UI::ScopedID id("Albedo");
-			modified |= UI::Property_AssetReference<Texture2D>("Albedo Texture", material->GetAlbedoTexture());
-		}
-
-		{
-			UI::ScopedID id("Normal");
-			modified |= UI::Property_AssetReference<Texture2D>("Normal Texture", material->GetNormalTexture());
-		}
-
-		{
-			UI::ScopedID id("Material");
-			modified |= UI::Property_AssetReference<Texture2D>("Material Texture", material->GetMaterialTexture());
-		}
 		
-		modified |= UI::Property_DragFloat2("UV Tiling", material->GetUVTiling(), 0.02f);
-		modified |= UI::Property_DragFloat2("UV Offset", material->GetUVOffset(), 0.01f);
-		modified |= UI::Property_DragFloat("Normal Strength", material->GetNormalStrength(), 0.02f);
+		UI::EndPropertyGrid();
+		UI::Spacing();
+		UI::BeginPropertyGrid();
 
 		CU::Color emissionColor = material->GetEmissionColor();
 		if (UI::Property_ColorEdit3("Emission Color", emissionColor))
@@ -139,6 +157,20 @@ namespace Epoch
 			modified = true;
 		}
 		modified |= UI::Property_DragFloat("Emission Strength", material->GetEmissionStrength(), 0.02f, 0.0f, 255.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+		
+		UI::EndPropertyGrid();
+		UI::Spacing();
+		UI::BeginPropertyGrid();
+
+		modified |= UI::Property_AssetReference<Texture2D>("Normal Texture", material->GetNormalTexture());
+		modified |= UI::Property_DragFloat("Normal Strength", material->GetNormalStrength(), 0.02f);
+		
+		UI::EndPropertyGrid();
+		UI::Spacing();
+		UI::BeginPropertyGrid();
+
+		modified |= UI::Property_DragFloat2("UV Tiling", material->GetUVTiling(), 0.02f);
+		modified |= UI::Property_DragFloat2("UV Offset", material->GetUVOffset(), 0.01f);
 
 		UI::EndPropertyGrid();
 
