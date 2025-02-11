@@ -389,7 +389,7 @@ namespace Epoch
 			//Set cookie
 			{
 				std::vector<ID3D11ShaderResourceView*> SRVs(1);
-				auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(spotlight.cookie);
+				auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(spotlight.cookie.lock());
 				SRVs[0] = dxTexture->GetSRV().Get();
 				RHI::GetContext()->PSSetShaderResources(5, 1, SRVs.data());
 			}
@@ -421,18 +421,9 @@ namespace Epoch
 			dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
 			SRVs[1] = dxTexture->GetSRV().Get();
 
-			auto lut = AssetManager::GetAsset<Texture>(mySceneData.postProcessingData.colorGradingLUT);
-			if (myColorGradingEnabled && lut)
-			{
-				dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(lut);
-				SRVs[2] = dxTexture->GetSRV().Get();
-			}
-				else
-			{
-				dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(Renderer::GetDefaultColorGradingLut());
-				SRVs[2] = dxTexture->GetSRV().Get();
-			};
-
+			dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(mySceneData.postProcessingData.colorGradingLUT.lock());
+			SRVs[2] = dxTexture->GetSRV().Get();
+			
 			RHI::GetContext()->PSSetShaderResources(0, 3, SRVs.data());
 		}
 

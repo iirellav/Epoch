@@ -1334,7 +1334,16 @@ namespace Epoch
 					{
 						myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::ColorGradingEnabled;
 
-						myPostProcessingData.colorGradingLUT = vc.colorGrading.lut;
+						auto lut = AssetManager::GetAsset<Texture2D>(vc.colorGrading.lut);
+						if (!lut)
+						{
+							lut = Renderer::GetDefaultColorGradingLut();
+						}
+						myPostProcessingData.colorGradingLUT = lut;
+					}
+					else
+					{
+						myPostProcessingData.colorGradingLUT = Renderer::GetDefaultColorGradingLut();
 					}
 					
 					if (vc.vignette.enabled)

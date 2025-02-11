@@ -29,7 +29,7 @@ namespace Epoch
 		CU::Vector3f color;
 		float range = 0.0f;
 
-		std::shared_ptr<Texture2D> cookie;
+		std::weak_ptr<Texture2D> cookie;
 	};
 
 	struct Spotlight
@@ -48,7 +48,7 @@ namespace Epoch
 		float coneAngleDiff = 0.0f;
 		CU::Vector3f padding;
 
-		std::shared_ptr<Texture2D> cookie;
+		std::weak_ptr<Texture2D> cookie;
 	};
 
 	struct LightEnvironment
@@ -71,8 +71,8 @@ namespace Epoch
 			DistanceFogEnabled		= BIT(2),
 			PosterizationEnabled	= BIT(3),
 		};
-
-		AssetHandle colorGradingLUT = 0;
+		
+		std::weak_ptr<Texture2D> colorGradingLUT;
 		struct BufferData
 		{
 			CU::Vector3f vignetteColor = CU::Color::Black.GetVector3();
