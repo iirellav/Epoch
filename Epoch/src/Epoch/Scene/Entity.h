@@ -45,8 +45,10 @@ namespace Epoch
 
 		UUID GetUUID() { return GetComponent<IDComponent>().id; }
 		const std::string& GetName() { return GetComponent<NameComponent>().name; }
-		bool IsActive() { return GetComponent<ActiveComponent>().isActive; }
-		void SetIsActive(bool aState, bool aIgnoreChildren = false);
+
+		bool IsActive(bool aCheckAncestor = true) const;
+		void SetIsActive(bool aState) { GetComponent<ActiveComponent>().isActive = aState; }
+		bool IsAncestorActive() const;
 
 		Entity GetParent() const;
 		void SetParent(Entity aParent);

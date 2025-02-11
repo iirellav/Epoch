@@ -498,7 +498,7 @@ namespace Epoch
 		// Name Field
 		{
 			const bool inconsistentActiveState = IsInconsistentPrimitive<bool, ActiveComponent>([](const ActiveComponent& aActiveComponent) { return aActiveComponent.isActive; });
-			bool state = (isMultiSelect && inconsistentActiveState) ? false : firstEntity.IsActive();
+			bool state = (isMultiSelect && inconsistentActiveState) ? false : firstEntity.IsActive(false);
 			if (isMultiSelect && inconsistentActiveState) ImGui::BeginDisabled();
 			if (ImGui::Checkbox("##ActiveState", &state))
 			{
@@ -1381,9 +1381,10 @@ namespace Epoch
 					UI::BeginPropertyGrid();
 
 					float textLineHeight = ImGui::GetTextLineHeight();
-					float textHeight = ImGui::CalcTextSize(aFirstComponent.text.c_str(), 0, false, ImGui::GetContentRegionAvail().x).y;
-					float rows = textHeight / textLineHeight;
+					float textHeight = ImGui::CalcTextSize(aFirstComponent.text.c_str()).y;
+					uint32_t rows = (uint32_t)(textHeight / textLineHeight);
 					if (CU::EndsWith(aFirstComponent.text, "\n")) ++rows;
+					rows = CU::Math::Min(rows, 5u);
 					float textFieldHeight = rows * textLineHeight + ImGui::GetStyle().FramePadding.x * 2;
 
 					UI::Property_InputTextMultiline("Text", aFirstComponent.text, CU::Vector2f(0, textFieldHeight), ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_CtrlEnterForNewLine);
