@@ -23,5 +23,7 @@ namespace Epoch
 		std::shared_ptr<Scene> mySceneContext;
 		std::weak_ptr<SceneRenderer> mySceneRendererReference;
 		std::weak_ptr<DebugRenderer> myDebugRendererReference;
+
+		bool myShowAdvanced = false;
 	};
 }

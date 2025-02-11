@@ -63,102 +63,114 @@ namespace Epoch
 			ImGui::SameLine();
 			ImGui::Checkbox("##VSync Enabled", &GraphicsEngine::Get().GetVSyncBool());
 		}
-
-		ImGui::Spacing();
-		ImGui::Separator();
-		ImGui::Spacing();
-
-		//Scripts
-		{
-			static double time = 0.0;
-			static double scriptUpdateTime = 0.0;
-			static double scriptLateUpdateTime = 0.0;
-			static double scriptFixedUpdateTime = 0.0;
-			static unsigned frames = 0;
-
-			time += CU::Timer::GetDeltaTime();
-			frames++;
-
-			scriptUpdateTime += mySceneContext->GetPerformanceTimers().scriptUpdate;
-			scriptLateUpdateTime += mySceneContext->GetPerformanceTimers().scriptLateUpdate;
-			scriptFixedUpdateTime += mySceneContext->GetPerformanceTimers().scriptFixedUpdate;
-
-			static float scriptUpdateTimeMs = 0.0f;
-			static float scriptLateUpdateTimeMs = 0.0f;
-			static float scriptFixedUpdateTimeMs = 0.0f;
-
-			if (time > 0.2)
-			{
-				scriptUpdateTimeMs = (float)(scriptUpdateTime / frames);
-				scriptLateUpdateTimeMs = (float)(scriptLateUpdateTime / frames);
-				scriptFixedUpdateTimeMs = (float)(scriptFixedUpdateTime / frames);
-
-				time = 0.0;
-				frames = 0;
-
-				scriptUpdateTime = 0.0f;
-				scriptLateUpdateTime = 0.0f;
-				scriptFixedUpdateTime = 0.0f;
-			}
-
-			ImGui::Text(("Script Entities: " + CU::NumberFormat(mySceneContext->GetAllEntitiesWith<ScriptComponent>().size())).c_str());
-			ImGui::Spacing();
-			ImGui::Text("C# Update: %.3fms", scriptUpdateTimeMs);
-			ImGui::Text("C# Late Update: %.3fms", scriptLateUpdateTimeMs);
-			ImGui::Text("C# Fixed Update: %.3fms", scriptFixedUpdateTimeMs);
-		}
 		
 		ImGui::Spacing();
 		ImGui::Separator();
 		ImGui::Spacing();
+		
+		ImGui::TextUnformatted("Show Advanced:");
+		ImGui::SameLine();
+		ImGui::Checkbox("##Advanced", &myShowAdvanced);
 
-		//Physics
+		if (myShowAdvanced)
 		{
-			static double time = 0.0;
-			static std::vector<float> simTimes;
-
-			time += CU::Timer::GetDeltaTime();
-
-			if (mySceneContext->GetPerformanceTimers().physicsSimulation > 0.0f)
-			{
-				simTimes.emplace_back(mySceneContext->GetPerformanceTimers().physicsSimulation);
-			}
-
-			static float frameTimeMs = 0.0f;
-			if (time > 0.2)
-			{
-				frameTimeMs = 0.0f;
-				for (float simTime : simTimes)
-				{
-					frameTimeMs += simTime;
-				}
-				if (frameTimeMs > 0.0f)
-				{
-					frameTimeMs /= simTimes.size();
-				}
-
-				simTimes.clear();
-				time = 0.0;
-				//simTime = 0.0;
-				//frames = 0;
-			}
-
-			auto [staticCount, dynamicCount] = mySceneContext->GetPhysicsBodyCount();
-			ImGui::Text(("Static Physics Bodies: " + CU::NumberFormat(staticCount)).c_str());
-			ImGui::Text(("Dynamic Physics Bodies: " + CU::NumberFormat(dynamicCount)).c_str());
 			ImGui::Spacing();
-			//ImGui::Text("Physics Simulation: %.3fms", mySceneContext->GetPerformanceTimers().physicsSimulation);
-			ImGui::Text("Physics Simulation: %.3fms", frameTimeMs);
-		}
+			ImGui::Separator();
+			ImGui::Spacing();
 
-		ImGui::Spacing();
-		ImGui::Separator();
-		ImGui::Spacing();
-
-		//Scene
-		{
-			//Mesh
+			//Scripts
 			{
+				static double time = 0.0;
+				static double scriptUpdateTime = 0.0;
+				static double scriptLateUpdateTime = 0.0;
+				static double scriptFixedUpdateTime = 0.0;
+				static unsigned frames = 0;
+
+				time += CU::Timer::GetDeltaTime();
+				frames++;
+
+				scriptUpdateTime += mySceneContext->GetPerformanceTimers().scriptUpdate;
+				scriptLateUpdateTime += mySceneContext->GetPerformanceTimers().scriptLateUpdate;
+				scriptFixedUpdateTime += mySceneContext->GetPerformanceTimers().scriptFixedUpdate;
+
+				static float scriptUpdateTimeMs = 0.0f;
+				static float scriptLateUpdateTimeMs = 0.0f;
+				static float scriptFixedUpdateTimeMs = 0.0f;
+
+				if (time > 0.2)
+				{
+					scriptUpdateTimeMs = (float)(scriptUpdateTime / frames);
+					scriptLateUpdateTimeMs = (float)(scriptLateUpdateTime / frames);
+					scriptFixedUpdateTimeMs = (float)(scriptFixedUpdateTime / frames);
+
+					time = 0.0;
+					frames = 0;
+
+					scriptUpdateTime = 0.0f;
+					scriptLateUpdateTime = 0.0f;
+					scriptFixedUpdateTime = 0.0f;
+				}
+
+				ImGui::Text(("Script Entities: " + CU::NumberFormat(mySceneContext->GetAllEntitiesWith<ScriptComponent>().size())).c_str());
+				ImGui::Spacing();
+				ImGui::Text("C# Update: %.3fms", scriptUpdateTimeMs);
+				ImGui::Text("C# Late Update: %.3fms", scriptLateUpdateTimeMs);
+				ImGui::Text("C# Fixed Update: %.3fms", scriptFixedUpdateTimeMs);
+			}
+			
+			ImGui::Spacing();
+			ImGui::Separator();
+			ImGui::Spacing();
+
+			//Physics
+			{
+				static double time = 0.0;
+				static std::vector<float> simTimes;
+
+				time += CU::Timer::GetDeltaTime();
+
+				if (mySceneContext->GetPerformanceTimers().physicsSimulation > 0.0f)
+				{
+					simTimes.emplace_back(mySceneContext->GetPerformanceTimers().physicsSimulation);
+				}
+
+				static float frameTimeMs = 0.0f;
+				if (time > 0.2)
+				{
+					frameTimeMs = 0.0f;
+					for (float simTime : simTimes)
+					{
+						frameTimeMs += simTime;
+					}
+					if (frameTimeMs > 0.0f)
+					{
+						frameTimeMs /= simTimes.size();
+					}
+
+					simTimes.clear();
+					time = 0.0;
+					//simTime = 0.0;
+					//frames = 0;
+				}
+
+				auto [staticCount, dynamicCount] = mySceneContext->GetPhysicsBodyCount();
+				ImGui::Text(("Static Physics Bodies: " + CU::NumberFormat(staticCount)).c_str());
+				ImGui::Text(("Dynamic Physics Bodies: " + CU::NumberFormat(dynamicCount)).c_str());
+				ImGui::Spacing();
+				//ImGui::Text("Physics Simulation: %.3fms", mySceneContext->GetPerformanceTimers().physicsSimulation);
+				ImGui::Text("Physics Simulation: %.3fms", frameTimeMs);
+			}
+
+			ImGui::Spacing();
+			ImGui::Separator();
+			ImGui::Spacing();
+
+			//Scene
+			{
+				EPOCH_PROFILE_SCOPE("Epoch::StatisticsPanel::OnImGuiRender::SceneStats");
+
+				//Mesh
+				{
 				uint32_t counter = 0;
 				uint32_t casterCounter = 0;
 				auto entities = mySceneContext->GetAllEntitiesWith<MeshRendererComponent>();
@@ -179,10 +191,10 @@ namespace Epoch
 				ImGui::Text(("Active Shadow Casting Mesh Entities: " + CU::NumberFormat(casterCounter)).c_str());
 			}
 
-			ImGui::Spacing();
+				ImGui::Spacing();
 
-			//Point Light
-			{
+				//Point Light
+				{
 				uint32_t counter = 0;
 				auto entities = mySceneContext->GetAllEntitiesWith<PointLightComponent>();
 				for (auto id : entities)
@@ -198,89 +210,90 @@ namespace Epoch
 				ImGui::Text(("Active Shadow Casters (Point Light): " + CU::NumberFormat(counter)).c_str());
 			}
 
-			//Spotlight
-			{
-				uint32_t counter = 0;
-				auto entities = mySceneContext->GetAllEntitiesWith<SpotlightComponent>();
-				for (auto id : entities)
+				//Spotlight
 				{
-					Entity entity = Entity(id, mySceneContext.get());
-					if (!entity.IsActive()) continue;
+					uint32_t counter = 0;
+					auto entities = mySceneContext->GetAllEntitiesWith<SpotlightComponent>();
+					for (auto id : entities)
+					{
+						Entity entity = Entity(id, mySceneContext.get());
+						if (!entity.IsActive()) continue;
 
-					const auto& component = entities.get<SpotlightComponent>(id);
-					if (!component.isActive || !component.castsShadows) continue;
+						const auto& component = entities.get<SpotlightComponent>(id);
+						if (!component.isActive || !component.castsShadows) continue;
 
-					counter++;
+						counter++;
+					}
+					ImGui::Text(("Active Shadow Casters (Spotlight): " + CU::NumberFormat(counter)).c_str());
 				}
-				ImGui::Text(("Active Shadow Casters (Spotlight): " + CU::NumberFormat(counter)).c_str());
+
+				ImGui::Spacing();
+
+				//Text
+				{
+					uint32_t counter = 0;
+					auto entities = mySceneContext->GetAllEntitiesWith<TextRendererComponent>();
+					for (auto id : entities)
+					{
+						Entity entity = Entity(id, mySceneContext.get());
+						if (!entity.IsActive()) continue;
+
+						const auto& component = entities.get<TextRendererComponent>(id);
+						if (!component.isActive) continue;
+
+						counter++;
+					}
+					ImGui::Text(("Active Text Entities: " + CU::NumberFormat(counter)).c_str());
+				}
 			}
 
 			ImGui::Spacing();
+			ImGui::Separator();
+			ImGui::Spacing();
 
-			//Text
+			//Renderer Stats
 			{
-				uint32_t counter = 0;
-				auto entities = mySceneContext->GetAllEntitiesWith<TextRendererComponent>();
-				for (auto id : entities)
-				{
-					Entity entity = Entity(id, mySceneContext.get());
-					if (!entity.IsActive()) continue;
+				const auto& stats = mySceneRendererReference.lock()->GetStats();
 
-					const auto& component = entities.get<TextRendererComponent>(id);
-					if (!component.isActive) continue;
+				ImGui::Text(("Draw Calls: " + CU::NumberFormat(stats.drawCalls)).c_str());
+				ImGui::Text(("Saved Draws: " + CU::NumberFormat(stats.savedDraws)).c_str());
 
-					counter++;
-				}
-				ImGui::Text(("Active Text Entities: " + CU::NumberFormat(counter)).c_str());
+				UI::Spacing();
+				
+				ImGui::Text(("Instances: " + CU::NumberFormat(stats.instances)).c_str());
+				ImGui::Text(("Batched: " + CU::NumberFormat(stats.batched)).c_str());
+
+				UI::Spacing();
+
+				ImGui::Text(("Vertices: " + CU::NumberFormat(stats.vertices)).c_str());
+				ImGui::Text(("Indices: " + CU::NumberFormat(stats.indices)).c_str());
+				ImGui::Text(("Triangles: " + CU::NumberFormat(stats.triangles)).c_str());
+
+				UI::Spacing();
+				
+				ImGui::Text(("Meshes: " + CU::NumberFormat(stats.meshes)).c_str());
+				ImGui::Text(("Sub meshes: " + CU::NumberFormat(stats.submeshes)).c_str());
+
+				//UI::Spacing(2);
+
+				//if (UI::PropertyGridHeader("Render Statistics", true))
+				//{
+				//	//TODO: Get GPU times
+				//
+				//	ImGui::TreePop();
+				//}
+
+				//if (UI::PropertyGridHeader("Debug Renderer", false))
+				//{
+				//	const auto& debugStats = myDebugRendererReference.lock()->GetStats();
+				//
+				//	ImGui::Text("Draw Calls: %u", debugStats.drawCalls);
+				//	ImGui::Text("Vertices: %u", debugStats.vertices);
+				//	ImGui::Text("Indices: %u", debugStats.indices);
+				//
+				//	ImGui::TreePop();
+				//}
 			}
-		}
-
-		ImGui::Spacing();
-		ImGui::Separator();
-		ImGui::Spacing();
-
-		//Renderer Stats
-		{
-			const auto& stats = mySceneRendererReference.lock()->GetStats();
-
-			ImGui::Text(("Draw Calls: " + CU::NumberFormat(stats.drawCalls)).c_str());
-			ImGui::Text(("Saved Draws: " + CU::NumberFormat(stats.savedDraws)).c_str());
-
-			UI::Spacing();
-			
-			ImGui::Text(("Instances: " + CU::NumberFormat(stats.instances)).c_str());
-			ImGui::Text(("Batched: " + CU::NumberFormat(stats.batched)).c_str());
-
-			UI::Spacing();
-
-			ImGui::Text(("Vertices: " + CU::NumberFormat(stats.vertices)).c_str());
-			ImGui::Text(("Indices: " + CU::NumberFormat(stats.indices)).c_str());
-			ImGui::Text(("Triangles: " + CU::NumberFormat(stats.triangles)).c_str());
-
-			UI::Spacing();
-			
-			ImGui::Text(("Meshes: " + CU::NumberFormat(stats.meshes)).c_str());
-			ImGui::Text(("Sub meshes: " + CU::NumberFormat(stats.submeshes)).c_str());
-
-			//UI::Spacing(2);
-
-			//if (UI::PropertyGridHeader("Render Statistics", true))
-			//{
-			//	//TODO: Get GPU times
-			//
-			//	ImGui::TreePop();
-			//}
-
-			//if (UI::PropertyGridHeader("Debug Renderer", false))
-			//{
-			//	const auto& debugStats = myDebugRendererReference.lock()->GetStats();
-			//
-			//	ImGui::Text("Draw Calls: %u", debugStats.drawCalls);
-			//	ImGui::Text("Vertices: %u", debugStats.vertices);
-			//	ImGui::Text("Indices: %u", debugStats.indices);
-			//
-			//	ImGui::TreePop();
-			//}
 		}
 
 #if 0
