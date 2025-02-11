@@ -324,7 +324,7 @@ namespace Epoch
 			lightBuffer.environmentIntensity = mySceneData.lightEnvironment.environmentIntensity;
 
 			myLightBuffer->SetData(&lightBuffer);
-			myLightBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 2);
+			myLightBuffer->Bind(ShaderStage::Pixel, 2);
 
 			auto env = mySceneData.lightEnvironment.environment.lock();
 			std::shared_ptr<TextureCube> cubeMap;
@@ -374,7 +374,7 @@ namespace Epoch
 		for (PointLight& pointLight : mySceneData.lightEnvironment.pointLights)
 		{
 			myPointLightBuffer->SetData(&pointLight);
-			myPointLightBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 2);
+			myPointLightBuffer->Bind(ShaderStage::Pixel, 2);
 
 			Renderer::RenderQuad();
 		}
@@ -395,7 +395,7 @@ namespace Epoch
 			}
 
 			mySpotlightBuffer->SetData(&spotlight);
-			mySpotlightBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 2);
+			mySpotlightBuffer->Bind(ShaderStage::Pixel, 2);
 		
 			Renderer::RenderQuad();
 
@@ -428,7 +428,7 @@ namespace Epoch
 		}
 
 		myPostProcessingBuffer->SetData(&mySceneData.postProcessingData.bufferData);
-		myPostProcessingBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 1);
+		myPostProcessingBuffer->Bind(ShaderStage::Pixel, 1);
 		
 		Renderer::SetRenderPipeline(myUberPipeline);
 		Renderer::RenderQuad();
