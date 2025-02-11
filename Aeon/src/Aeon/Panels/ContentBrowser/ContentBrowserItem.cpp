@@ -9,7 +9,7 @@
 
 namespace Epoch
 {
-	static char s_RenameBuffer[MAX_INPUT_BUFFER_LENGTH];
+	static char staticRenameBuffer[MAX_INPUT_BUFFER_LENGTH];
 
 	//ContentBrowserItem
 	ContentBrowserItem::ContentBrowserItem(ItemType aType, AssetHandle aId, const std::string& aName, const std::shared_ptr<Texture2D>& aIcon) :
@@ -64,11 +64,11 @@ namespace Epoch
 		auto renamingWidget = [&]()
 			{
 				ImGui::SetKeyboardFocusHere();
-				ImGui::InputText("##rename", s_RenameBuffer, MAX_INPUT_BUFFER_LENGTH);
+				ImGui::InputText("##rename", staticRenameBuffer, MAX_INPUT_BUFFER_LENGTH);
 
 				if (ImGui::IsItemDeactivatedAfterEdit() || Input::IsKeyPressed(KeyCode::Enter))
 				{
-					Rename(s_RenameBuffer);
+					Rename(staticRenameBuffer);
 					myIsRenaming = false;
 					SetDisplayNameFromFileName();
 					result.Set(ContentBrowserAction::Renamed, true);
@@ -238,8 +238,8 @@ namespace Epoch
 			return;
 		}
 
-		memset(s_RenameBuffer, 0, MAX_INPUT_BUFFER_LENGTH);
-		memcpy(s_RenameBuffer, myFileName.c_str(), myFileName.size());
+		memset(staticRenameBuffer, 0, MAX_INPUT_BUFFER_LENGTH);
+		memcpy(staticRenameBuffer, myFileName.c_str(), myFileName.size());
 		myIsRenaming = true;
 	}
 
@@ -247,7 +247,7 @@ namespace Epoch
 	{
 		myIsRenaming = false;
 		SetDisplayNameFromFileName();
-		memset(s_RenameBuffer, 0, MAX_INPUT_BUFFER_LENGTH);
+		memset(staticRenameBuffer, 0, MAX_INPUT_BUFFER_LENGTH);
 	}
 
 	void ContentBrowserItem::Rename(const std::string& aNewName)
