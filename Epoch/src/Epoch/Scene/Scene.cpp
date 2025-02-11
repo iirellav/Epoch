@@ -1313,7 +1313,8 @@ namespace Epoch
 			EPOCH_PROFILE_SCOPE("Scene::RenderScene::UpdatePostProcessingData");
 
 			myPostProcessingData = PostProcessingData();
-			
+			myPostProcessingData.colorGradingLUT = Renderer::GetDefaultColorGradingLut();
+
 			if (aWithPostProccessing)
 			{
 				auto volumes = GetAllEntitiesWith<VolumeComponent>();
@@ -1340,10 +1341,6 @@ namespace Epoch
 							lut = Renderer::GetDefaultColorGradingLut();
 						}
 						myPostProcessingData.colorGradingLUT = lut;
-					}
-					else
-					{
-						myPostProcessingData.colorGradingLUT = Renderer::GetDefaultColorGradingLut();
 					}
 					
 					if (vc.vignette.enabled)
