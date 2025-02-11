@@ -11,6 +11,7 @@ namespace Epoch
 		{ ".mat",		AssetType::Material },
 		{ ".anim",		AssetType::Animation },
 		{ ".prefab",	AssetType::Prefab },
+		{ ".physmat",	AssetType::PhysicsMaterial },
 		
 		// Script file
 		{ ".cs",		AssetType::ScriptFile },
