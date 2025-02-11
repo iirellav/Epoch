@@ -64,6 +64,7 @@ namespace Epoch
 		friend class PrefabSerializer;
 		friend class MeshSerializer;
 		friend class MaterialSerializer;
+		friend class PhysicsMaterialSerializer;
 		friend class ScriptFileSerializer;
 	};
 }

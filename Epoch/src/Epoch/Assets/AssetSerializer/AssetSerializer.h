@@ -4,6 +4,7 @@
 #include "Epoch/Serialization/FileStream.h"
 #include "Epoch/Assets/AssetMetadata.h"
 #include "Epoch/Assets/AssetPack/AssetPackFile.h"
+#include "Epoch/Physics/PhysicsMaterial.h"
 
 namespace Epoch
 {
@@ -104,6 +105,20 @@ namespace Epoch
 	private:
 		std::string SerializeToYAML(std::shared_ptr<Material> aMaterial) const;
 		bool DeserializeFromYAML(const std::string& yamlString, std::shared_ptr<Material>& aMaterial) const;
+	};
+
+	class PhysicsMaterialSerializer : public AssetSerializer
+	{
+	public:
+		void Serialize(const AssetMetadata& aMetadata, const std::shared_ptr<Asset>& aAsset) const override;
+		bool TryLoadData(const AssetMetadata& aMetadata, std::shared_ptr<Asset>& aAsset) const override;
+
+		bool SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo) const override;
+		std::shared_ptr<Asset> DeserializeFromAssetPack(FileStreamReader& aStream, const AssetPackFile::AssetInfo& aAssetInfo) const override;
+
+	private:
+		std::string SerializeToYAML(std::shared_ptr<PhysicsMaterial> aMaterial) const;
+		bool DeserializeFromYAML(const std::string& yamlString, std::shared_ptr<PhysicsMaterial>& aMaterial) const;
 	};
 
 	class ScriptFileSerializer : public AssetSerializer

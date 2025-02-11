@@ -9,14 +9,15 @@ namespace Epoch
 	void Epoch::AssetImporter::Init()
 	{
 		staticSerializers.clear();
-		staticSerializers[AssetType::Scene]			= std::make_unique<SceneAssetSerializer>();
-		staticSerializers[AssetType::Prefab]		= std::make_unique<PrefabSerializer>();
-		staticSerializers[AssetType::Texture]		= std::make_unique<TextureSerializer>();
-		staticSerializers[AssetType::Font]			= std::make_unique<FontSerializer>();
-		staticSerializers[AssetType::EnvTexture]	= std::make_unique<EnvironmentSerializer>();
-		staticSerializers[AssetType::Mesh]			= std::make_unique<MeshSerializer>();
-		staticSerializers[AssetType::Material]		= std::make_unique<MaterialSerializer>();
-		staticSerializers[AssetType::ScriptFile]	= std::make_unique<ScriptFileSerializer>();
+		staticSerializers[AssetType::Scene]				= std::make_unique<SceneAssetSerializer>();
+		staticSerializers[AssetType::Prefab]			= std::make_unique<PrefabSerializer>();
+		staticSerializers[AssetType::Texture]			= std::make_unique<TextureSerializer>();
+		staticSerializers[AssetType::Font]				= std::make_unique<FontSerializer>();
+		staticSerializers[AssetType::EnvTexture]		= std::make_unique<EnvironmentSerializer>();
+		staticSerializers[AssetType::Mesh]				= std::make_unique<MeshSerializer>();
+		staticSerializers[AssetType::Material]			= std::make_unique<MaterialSerializer>();
+		staticSerializers[AssetType::PhysicsMaterial]	= std::make_unique<PhysicsMaterialSerializer>();
+		staticSerializers[AssetType::ScriptFile]		= std::make_unique<ScriptFileSerializer>();
 	}
 
 	void Epoch::AssetImporter::Serialize(const AssetMetadata& aMetadata, const std::shared_ptr<Asset>& aAsset)

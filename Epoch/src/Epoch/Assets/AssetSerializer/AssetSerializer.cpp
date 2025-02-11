@@ -425,6 +425,98 @@ namespace Epoch
 	}
 
 
+	void PhysicsMaterialSerializer::Serialize(const AssetMetadata& aMetadata, const std::shared_ptr<Asset>& aAsset) const
+	{
+		std::shared_ptr<PhysicsMaterial> material = std::static_pointer_cast<PhysicsMaterial>(aAsset);
+
+		std::string yamlString = SerializeToYAML(material);
+
+		std::ofstream fout(Project::GetEditorAssetManager()->GetFileSystemPath(aMetadata));
+		fout << yamlString;
+		fout.close();
+	}
+
+	bool PhysicsMaterialSerializer::TryLoadData(const AssetMetadata& aMetadata, std::shared_ptr<Asset>& aAsset) const
+	{
+		aAsset = std::make_shared<PhysicsMaterial>();
+		aAsset->myHandle = aMetadata.handle;
+
+		std::shared_ptr<PhysicsMaterial> material = std::static_pointer_cast<PhysicsMaterial>(aAsset);
+
+		std::ifstream stream(Project::GetEditorAssetManager()->GetFileSystemPath(aMetadata));
+		if (!stream.is_open())
+		{
+			aAsset->SetFlag(AssetFlag::Invalid);
+			return false;
+		}
+
+		std::stringstream strStream;
+		strStream << stream.rdbuf();
+
+		bool success = DeserializeFromYAML(strStream.str(), material);
+		if (!success)
+		{
+			aAsset->SetFlag(AssetFlag::Invalid);
+			return false;
+		}
+		
+		return true;
+	}
+
+	bool PhysicsMaterialSerializer::SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo) const
+	{
+		std::shared_ptr<PhysicsMaterial> materialAsset = AssetManager::GetAsset<PhysicsMaterial>(aHandle);
+
+		std::string yamlString = SerializeToYAML(materialAsset);
+		outInfo.offset = aStream.GetStreamPosition();
+		aStream.WriteString(yamlString);
+		outInfo.size = aStream.GetStreamPosition() - outInfo.offset;
+		return outInfo.size > 0;
+	}
+
+	std::shared_ptr<Asset> PhysicsMaterialSerializer::DeserializeFromAssetPack(FileStreamReader& aStream, const AssetPackFile::AssetInfo& aAssetInfo) const
+	{
+		aStream.SetStreamPosition(aAssetInfo.packedOffset);
+		std::string yamlString;
+		aStream.ReadString(yamlString);
+
+		std::shared_ptr<PhysicsMaterial> materialAsset = std::make_shared<PhysicsMaterial>();
+		bool result = DeserializeFromYAML(yamlString, materialAsset);
+		if (!result)
+		{
+			return nullptr;
+		}
+
+		return materialAsset;
+	}
+
+	std::string PhysicsMaterialSerializer::SerializeToYAML(std::shared_ptr<PhysicsMaterial> aMaterial) const
+	{
+		YAML::Emitter out;
+
+		out << YAML::BeginMap;
+
+		out << YAML::Key << "StaticFriction" << YAML::Value << aMaterial->StaticFriction();
+		out << YAML::Key << "DynamicFriction" << YAML::Value << aMaterial->DynamicFriction();
+		out << YAML::Key << "Restitution" << YAML::Value << aMaterial->Restitution();
+
+		out << YAML::EndMap;
+
+		return std::string(out.c_str());
+	}
+
+	bool PhysicsMaterialSerializer::DeserializeFromYAML(const std::string& yamlString, std::shared_ptr<PhysicsMaterial>& aMaterial) const
+	{
+		YAML::Node data = YAML::Load(yamlString);
+
+		aMaterial->StaticFriction(data["StaticFriction"].as<float>(aMaterial->StaticFriction()));
+		aMaterial->DynamicFriction(data["DynamicFriction"].as<float>(aMaterial->DynamicFriction()));
+		aMaterial->Restitution(data["Restitution"].as<float>(aMaterial->Restitution()));
+
+		return true;
+	}
+
+
 	void ScriptFileSerializer::Serialize(const AssetMetadata& aMetadata, const std::shared_ptr<Asset>& aAsset) const
 	{
 		std::ofstream stream(Project::GetEditorAssetManager()->GetFileSystemPath(aMetadata));
