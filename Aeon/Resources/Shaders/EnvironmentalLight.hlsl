@@ -58,6 +58,7 @@ float3 main(VertexOutput input) : SV_TARGET
     const float3 albedo = albedoTexture.Sample(clampSampler, input.uv).rgb;
     const float3 material = materialTexture.Sample(clampSampler, input.uv).rgb;
     const float3 normal = DecodeOct(normalTexture.Sample(clampSampler, input.uv).rg);
+    const float3 emission = emissionTexture.Sample(clampSampler, input.uv).rgb;
     
     const float depth = depthTexture.Sample(clampSampler, input.uv).x;
     float3 worldPos = ClipToWorldSpace(input.uv, depth, CB_InvViewProj);
@@ -85,6 +86,6 @@ float3 main(VertexOutput input) : SV_TARGET
     
     const float3 directLightContribution = CalculateLight(CB_CameraPos, worldPos, normal, LB_Direction, diffuseColor, specularColor, LB_Color.rgb, LB_Intensity, roughness);
     
-    const float3 result = ambience * LB_EnvironmentIntensity + directLightContribution;
+    const float3 result = ambience * LB_EnvironmentIntensity + directLightContribution + emission;
     return float4(result, 1.0f);
 }

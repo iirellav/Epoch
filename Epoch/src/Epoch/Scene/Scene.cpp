@@ -6,6 +6,7 @@
 #include "Epoch/Rendering/Font.h"
 #include "Epoch/Assets/AssetManager.h"
 #include "Epoch/Script/ScriptEngine.h"
+#include "Epoch/Rendering/Renderer.h"
 #include "Epoch/Rendering/DebugRenderer.h"
 
 namespace Epoch
@@ -1248,8 +1249,7 @@ namespace Epoch
 			}
 
 			auto pointLights = GetAllEntitiesWith<PointLightComponent>();
-			myLightEnvironment.pointLights.resize(pointLights.size());
-			uint32_t pointLightIndex = 0;
+			myLightEnvironment.pointLights.reserve(pointLights.size());
 			for (auto entityID : pointLights)
 			{
 				Entity entity = Entity(entityID, this);
@@ -1260,19 +1260,24 @@ namespace Epoch
 
 				CU::Transform transform = GetWorldSpaceTransform(entity);
 
-				PointLight& pl = myLightEnvironment.pointLights[pointLightIndex++];
+				PointLight& pl = myLightEnvironment.pointLights.emplace_back();
 				const auto projMatrix = CU::Matrix4x4f::CreatePerspectiveProjection(90.f * CU::Math::ToRad, 10.f, pl.range, 1.0f);
 				pl.viewProjection = transform.GetMatrix().GetFastInverse() * projMatrix;
 				pl.position = transform.GetTranslation();
 				pl.color = plc.color.GetVector3();
 				pl.intensity = plc.intensity;
 				pl.range = CU::Math::Max(plc.range, 0.0001f);
-				pl.cookie = plc.cookieTexture;
+				
+				auto cookie = AssetManager::GetAsset<Texture2D>(plc.cookieTexture);
+				if (!cookie)
+				{
+					cookie = Renderer::GetWhiteTexture();
+				}
+				pl.cookie = cookie;
 			}
 
 			auto spotlights = GetAllEntitiesWith<SpotlightComponent>();
-			myLightEnvironment.spotlights.resize(spotlights.size());
-			uint32_t spotlightIndex = 0;
+			myLightEnvironment.spotlights.reserve(spotlights.size());
 			for (auto entityID : spotlights)
 			{
 				Entity entity = Entity(entityID, this);
@@ -1283,7 +1288,7 @@ namespace Epoch
 
 				CU::Transform transform = GetWorldSpaceTransform(entity);
 
-				Spotlight& sl = myLightEnvironment.spotlights[spotlightIndex++];
+				Spotlight& sl = myLightEnvironment.spotlights.emplace_back();
 				const auto projMatrix = CU::Matrix4x4f::CreatePerspectiveProjection(slc.outerSpotAngle * 2.0f, 10.f, slc.range, 1.0f);
 				sl.viewProjection = transform.GetMatrix().GetFastInverse() * projMatrix;
 				sl.position = transform.GetTranslation();
@@ -1293,7 +1298,13 @@ namespace Epoch
 				sl.range = CU::Math::Max(slc.range, 0.0001f);
 				sl.coneAngle = std::cos(slc.outerSpotAngle);
 				sl.coneAngleDiff = std::cos(slc.innerSpotAngle) - sl.coneAngle;
-				sl.cookie = slc.cookieTexture;
+				
+				auto cookie = AssetManager::GetAsset<Texture2D>(slc.cookieTexture);
+				if (!cookie)
+				{
+					cookie = Renderer::GetWhiteTexture();
+				}
+				sl.cookie = cookie;
 			}
 		}
 		
@@ -1323,7 +1334,16 @@ namespace Epoch
 					{
 						myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::ColorGradingEnabled;
 
-						myPostProcessingData.colorGradingLUT = vc.colorGrading.lut;
+						auto lut = AssetManager::GetAsset<Texture2D>(vc.colorGrading.lut);
+						if (!lut)
+						{
+							lut = Renderer::GetDefaultColorGradingLut();
+						}
+						myPostProcessingData.colorGradingLUT = lut;
+					}
+					else
+					{
+						myPostProcessingData.colorGradingLUT = Renderer::GetDefaultColorGradingLut();
 					}
 					
 					if (vc.vignette.enabled)

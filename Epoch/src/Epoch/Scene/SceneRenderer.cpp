@@ -125,8 +125,8 @@ namespace Epoch
 		myMaterialBuffer = ConstantBuffer::Create(sizeof(Material::Data));
 		myBoneBuffer = ConstantBuffer::Create(sizeof(BoneBuffer));
 		myLightBuffer = ConstantBuffer::Create(sizeof(LightBuffer));
-		myPointLightBuffer = ConstantBuffer::Create(sizeof(PointLight) - sizeof(AssetHandle));
-		mySpotlightBuffer = ConstantBuffer::Create(sizeof(Spotlight) - sizeof(AssetHandle));
+		myPointLightBuffer = ConstantBuffer::Create(sizeof(PointLight) - sizeof(std::shared_ptr<Texture2D>));
+		mySpotlightBuffer = ConstantBuffer::Create(sizeof(Spotlight) - sizeof(std::shared_ptr<Texture2D>));
 		myDebugDrawModeBuffer = ConstantBuffer::Create(sizeof(CU::Vector4f));
 		myPostProcessingBuffer = ConstantBuffer::Create(sizeof(PostProcessingData::BufferData));
 
@@ -139,9 +139,10 @@ namespace Epoch
 			specs.clearColor = CU::Color::Zero;
 
 			specs.attachments = {
-			{ TextureFormat::R11G11B10F,	"Albedo" },
+			{ TextureFormat::RGBA,			"Albedo" },
 			{ TextureFormat::RGBA,			"Material" },
 			{ TextureFormat::RG16F,			"Normal" },
+			{ TextureFormat::R11G11B10F,	"Emission" },
 			{ TextureFormat::R32UI,			"EntityID" },
 			{ TextureFormat::DEPTH32,		"Depth" } };
 
@@ -218,8 +219,9 @@ namespace Epoch
 			};
 
 			FramebufferSpecification specs;
-			specs.existingAttachments.push_back(myUberPipeline->GetSpecification().targetFramebuffer->GetTarget());
-			specs.existingAttachments.push_back(myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(3));
+			specs.attachments = { { TextureFormat::RGBA, "Color" }, { TextureFormat::R32UI, "EntityID" }, { TextureFormat::DEPTH32, "Depth" } };
+			specs.existingColorAttachments.emplace(0, myUberPipeline->GetSpecification().targetFramebuffer->GetTarget("Color"));
+			specs.existingColorAttachments.emplace(1, myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget("EntityID"));
 			specs.existingDepthAttachment = myGBufferPipeline->GetSpecification().targetFramebuffer->GetDepthAttachment();
 			specs.clearColorOnLoad = false;
 			specs.clearDepthOnLoad = false;
@@ -243,9 +245,7 @@ namespace Epoch
 			};
 
 			FramebufferSpecification specs;
-			specs.existingAttachments.push_back(myUberPipeline->GetSpecification().targetFramebuffer->GetTarget());
-			specs.existingAttachments.push_back(myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(3));
-			specs.existingDepthAttachment = myGBufferPipeline->GetSpecification().targetFramebuffer->GetDepthAttachment();
+			specs.existingFramebuffer = mySpritePipeline->GetSpecification().targetFramebuffer;
 			specs.clearColorOnLoad = false;
 			specs.clearDepthOnLoad = false;
 
@@ -275,9 +275,7 @@ namespace Epoch
 		//External Compositing Framebuffer
 		{
 			FramebufferSpecification specs;
-			specs.existingAttachments.push_back(myUberPipeline->GetSpecification().targetFramebuffer->GetTarget());
-			specs.existingAttachments.push_back(myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(3));
-			specs.existingDepthAttachment = myGBufferPipeline->GetSpecification().targetFramebuffer->GetDepthAttachment();
+			specs.existingFramebuffer = mySpritePipeline->GetSpecification().targetFramebuffer;
 			specs.clearColorOnLoad = false;
 			specs.clearDepthOnLoad = false;
 
@@ -289,8 +287,221 @@ namespace Epoch
 	{
 	}
 
-	void SceneRenderer::PreRender()
+	void SceneRenderer::GBufferPass()
 	{
+		Renderer::SetRenderPipeline(myGBufferPipeline);
+
+		AssetHandle currentMaterial = 0;
+		for (auto [k, dc] : myDrawList)
+		{
+			if (currentMaterial != dc.material->GetHandle())
+			{
+				SetMaterial(dc.material);
+				currentMaterial = dc.material->GetHandle();
+			}
+
+			auto& transformStorage = myMeshTransformMap[k];
+			for (uint32_t i = 0; i < dc.instanceCount; i += MaxInstanceCount)
+			{
+				uint32_t instanceCount = CU::Math::Min(dc.instanceCount - i, MaxInstanceCount);
+
+				myInstanceTransformBuffer->SetData(transformStorage.data(), instanceCount, i * sizeof(MeshInstanceData));
+				Renderer::RenderInstancedMesh(dc.mesh, dc.submeshIndex, myInstanceTransformBuffer, instanceCount);
+			}
+		}
+
+		Renderer::RemoveRenderPipeline(myGBufferPipeline);
+	}
+
+	void SceneRenderer::EnvironmentPass()
+	{
+		{
+			LightBuffer lightBuffer;
+
+			lightBuffer.direction = mySceneData.lightEnvironment.directionalLight.direction;
+			lightBuffer.color = mySceneData.lightEnvironment.directionalLight.color;
+			lightBuffer.intensity = mySceneData.lightEnvironment.directionalLight.intensity;
+			lightBuffer.environmentIntensity = mySceneData.lightEnvironment.environmentIntensity;
+
+			myLightBuffer->SetData(&lightBuffer);
+			myLightBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 2);
+
+			auto env = mySceneData.lightEnvironment.environment.lock();
+			std::shared_ptr<TextureCube> cubeMap;
+
+			if (env)
+			{
+				cubeMap = env->GetRadianceMap();
+			}
+			else
+			{
+				cubeMap = Renderer::GetDefaultBlackCubemap();
+			}
+
+			std::vector<ID3D11ShaderResourceView*> SRVs(2);
+
+			auto dxTextureCube = std::dynamic_pointer_cast<DX11TextureCube>(cubeMap);
+			SRVs[0] = dxTextureCube->GetSRV().Get();
+
+			auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(Renderer::GetBRDFLut());
+			SRVs[1] = dxTexture->GetSRV().Get();
+
+			RHI::GetContext()->PSSetShaderResources(10, 2, SRVs.data());
+		}
+
+		Renderer::SetRenderPipeline(myEnvironmentalLightPipeline);
+		Renderer::RenderQuad();
+		Renderer::RemoveRenderPipeline(myEnvironmentalLightPipeline);
+
+		{
+			auto env = mySceneData.lightEnvironment.environment.lock();
+			if (env)
+			{
+				std::vector<ID3D11ShaderResourceView*> emptySRVs(2);
+				RHI::GetContext()->PSSetShaderResources(10, 2, emptySRVs.data());
+			}
+			else
+			{
+				std::vector<ID3D11ShaderResourceView*> emptySRVs(1);
+				RHI::GetContext()->PSSetShaderResources(11, 1, emptySRVs.data());
+			}
+		}
+	}
+
+	void SceneRenderer::PointLightPass()
+	{
+		Renderer::SetRenderPipeline(myPointLightPipeline);
+		for (PointLight& pointLight : mySceneData.lightEnvironment.pointLights)
+		{
+			myPointLightBuffer->SetData(&pointLight);
+			myPointLightBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 2);
+
+			Renderer::RenderQuad();
+		}
+		Renderer::RemoveRenderPipeline(myPointLightPipeline);
+	}
+
+	void SceneRenderer::SpotlightPass()
+	{
+		Renderer::SetRenderPipeline(mySpotlightPipeline);
+		for (Spotlight& spotlight : mySceneData.lightEnvironment.spotlights)
+		{
+			//Set cookie
+			{
+				std::vector<ID3D11ShaderResourceView*> SRVs(1);
+				auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(spotlight.cookie.lock());
+				SRVs[0] = dxTexture->GetSRV().Get();
+				RHI::GetContext()->PSSetShaderResources(5, 1, SRVs.data());
+			}
+
+			mySpotlightBuffer->SetData(&spotlight);
+			mySpotlightBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 2);
+		
+			Renderer::RenderQuad();
+
+			//Remove cookie
+			{
+				std::vector<ID3D11ShaderResourceView*> SRVs(1);
+				RHI::GetContext()->PSSetShaderResources(5, 1, SRVs.data());
+			}
+		}
+		Renderer::RemoveRenderPipeline(mySpotlightPipeline);
+	}
+
+	void SceneRenderer::PostProcessingPass()
+	{
+		{
+			std::vector<ID3D11ShaderResourceView*> SRVs(3);
+
+			auto texture = myEnvironmentalLightPipeline->GetSpecification().targetFramebuffer->GetTarget();
+			auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
+			SRVs[0] = dxTexture->GetSRV().Get();
+			
+			texture = myGBufferPipeline->GetSpecification().targetFramebuffer->GetDepthAttachment();
+			dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
+			SRVs[1] = dxTexture->GetSRV().Get();
+
+			dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(mySceneData.postProcessingData.colorGradingLUT.lock());
+			SRVs[2] = dxTexture->GetSRV().Get();
+			
+			RHI::GetContext()->PSSetShaderResources(0, 3, SRVs.data());
+		}
+
+		myPostProcessingBuffer->SetData(&mySceneData.postProcessingData.bufferData);
+		myPostProcessingBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 1);
+		
+		Renderer::SetRenderPipeline(myUberPipeline);
+		Renderer::RenderQuad();
+		Renderer::RemoveRenderPipeline(myUberPipeline);
+
+		{
+			std::vector<ID3D11ShaderResourceView*> emptySRVs(3);
+			RHI::GetContext()->PSSetShaderResources(0, 3, emptySRVs.data());
+		}
+	}
+
+	void SceneRenderer::SpritesPass()
+	{
+		Renderer::SetRenderPipeline(mySpritePipeline);
+
+		for (const auto& [texture, vertexList] : myQuadVertices)
+		{
+			if (!myTextures[texture])
+			{
+				continue;
+			}
+
+			std::vector<ID3D11ShaderResourceView*> SRVs(1);
+			auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(myTextures[texture]);
+			SRVs[0] = dxTexture->GetSRV().Get();
+			RHI::GetContext()->PSSetShaderResources(0, 1, SRVs.data());
+
+			const uint32_t quadCount = (uint32_t)vertexList.size() / 4;
+			for (uint32_t i = 0; i < quadCount; i += MaxQuads)
+			{
+				uint32_t count = CU::Math::Min(quadCount - i, MaxQuads);
+
+				myQuadVertexBuffer->SetData((void*)vertexList.data(), count * 4, i * 4 * sizeof(QuadVertex));
+				Renderer::RenderGeometry(myQuadVertexBuffer, myQuadIndexBuffer, count * 6);
+			}
+
+			std::vector<ID3D11ShaderResourceView*> emptySRVs(1);
+			RHI::GetContext()->PSSetShaderResources(0, 1, emptySRVs.data());
+		}
+
+		Renderer::RemoveRenderPipeline(mySpritePipeline);
+	}
+
+	void SceneRenderer::TextPass()
+	{
+		Renderer::SetRenderPipeline(myTextPipeline);
+
+		for (const auto& [font, vertexList] : myTextVertices)
+		{
+			if (!myFontAtlases[font])
+			{
+				continue;
+			}
+
+			std::vector<ID3D11ShaderResourceView*> SRVs(1);
+			auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(myFontAtlases[font]);
+			SRVs[0] = dxTexture->GetSRV().Get();
+			RHI::GetContext()->PSSetShaderResources(0, 1, SRVs.data());
+
+			const uint32_t quadCount = (uint32_t)vertexList.size() / 4;
+			for (uint32_t i = 0; i < quadCount; i += MaxQuads)
+			{
+				uint32_t count = CU::Math::Min(quadCount - i, MaxQuads);
+
+				myTextVertexBuffer->SetData((void*)vertexList.data(), count * 4, i * 4 * sizeof(TextVertex));
+				Renderer::RenderGeometry(myTextVertexBuffer, myTextIndexBuffer, count * 6);
+			}
+
+			std::vector<ID3D11ShaderResourceView*> emptySRVs(1);
+			RHI::GetContext()->PSSetShaderResources(0, 1, emptySRVs.data());
+		}
+
+		Renderer::RemoveRenderPipeline(myTextPipeline);
 	}
 
 	void SceneRenderer::UpdateStatistics()
@@ -449,272 +660,52 @@ namespace Epoch
 
 		if (myDrawMode == DrawMode::Shaded)
 		{
-			//GBuffer
-			{
-				Renderer::SetRenderPipeline(myGBufferPipeline);
-
-				for (auto [k, dc] : myDrawList)
-				{
-					SetMaterial(dc.material);
-
-					auto& transformStorage = myMeshTransformMap[k];
-					for (uint32_t i = 0; i < dc.instanceCount; i += MaxInstanceCount)
-					{
-						uint32_t instanceCount = CU::Math::Min(dc.instanceCount - i, MaxInstanceCount);
-
-						myInstanceTransformBuffer->SetData(transformStorage.data(), instanceCount, i * sizeof(MeshInstanceData));
-						Renderer::RenderInstancedMesh(dc.mesh, dc.submeshIndex, myInstanceTransformBuffer, instanceCount);
-					}
-				}
-
-				Renderer::RemoveRenderPipeline(myGBufferPipeline);
-			}
+			GBufferPass();
 
 			//Lights
 			{
-				//Update & set light data and brdf
-				{
-					LightBuffer lightBuffer;
-
-					lightBuffer.direction = mySceneData.lightEnvironment.directionalLight.direction;
-					lightBuffer.color = mySceneData.lightEnvironment.directionalLight.color;
-					lightBuffer.intensity = mySceneData.lightEnvironment.directionalLight.intensity;
-					lightBuffer.environmentIntensity = mySceneData.lightEnvironment.environmentIntensity;
-
-					myLightBuffer->SetData(&lightBuffer);
-					myLightBuffer->Bind(ShaderStage::Pixel, 2);
-
-					auto env = mySceneData.lightEnvironment.environment.lock();
-					std::shared_ptr<TextureCube> cubeMap;
-
-					if (env)
-					{
-						cubeMap = env->GetRadianceMap();
-					}
-					else
-					{
-						cubeMap = Renderer::GetDefaultBlackCubemap();
-					}
-
-					std::vector<ID3D11ShaderResourceView*> SRVs(2);
-
-					auto dxTextureCube = std::dynamic_pointer_cast<DX11TextureCube>(cubeMap);
-					SRVs[0] = dxTextureCube->GetSRV().Get();
-
-					auto texture = Renderer::GetBRDFLut();
-					auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
-					SRVs[1] = dxTexture->GetSRV().Get();
-
-					RHI::GetContext()->PSSetShaderResources(10, 2, SRVs.data());
-				}
-
+				uint32_t resourceCount = 5;
 				//Set GBuffer as resource
 				{
 					auto gBuffer = myGBufferPipeline->GetSpecification().targetFramebuffer;
 
-					std::vector<ID3D11ShaderResourceView*> SRVs(4);
+					std::vector<ID3D11ShaderResourceView*> SRVs(resourceCount);
 
-					{
-						auto texture = gBuffer->GetTarget(0);
-						auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
-						SRVs[0] = dxTexture->GetSRV().Get();
-					}
+					auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(gBuffer->GetTarget("Albedo"));
+					SRVs[0] = dxTexture->GetSRV().Get();
 
-					{
-						auto texture = gBuffer->GetTarget(1);
-						auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
-						SRVs[1] = dxTexture->GetSRV().Get();
-					}
+					dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(gBuffer->GetTarget("Material"));
+					SRVs[1] = dxTexture->GetSRV().Get();
 
-					{
-						auto texture = gBuffer->GetTarget(2);
-						auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
-						SRVs[2] = dxTexture->GetSRV().Get();
-					}
+					dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(gBuffer->GetTarget("Normal"));
+					SRVs[2] = dxTexture->GetSRV().Get();
 
-					{
-						auto texture = gBuffer->GetDepthAttachment();
-						auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
-						SRVs[3] = dxTexture->GetSRV().Get();
-					}
+					dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(gBuffer->GetTarget("Emission"));
+					SRVs[3] = dxTexture->GetSRV().Get();
 
-					RHI::GetContext()->PSSetShaderResources(0, (UINT)4, SRVs.data());
+					dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(gBuffer->GetDepthAttachment());
+					SRVs[4] = dxTexture->GetSRV().Get();
+
+					RHI::GetContext()->PSSetShaderResources(0, resourceCount, SRVs.data());
 				}
 
-				Renderer::SetRenderPipeline(myEnvironmentalLightPipeline);
-				Renderer::RenderQuad();
-				Renderer::RemoveRenderPipeline(myEnvironmentalLightPipeline);
-
-				Renderer::SetRenderPipeline(myPointLightPipeline);
-				for (PointLight& pointLight : mySceneData.lightEnvironment.pointLights)
-				{
-					myPointLightBuffer->SetData(&pointLight);
-					myPointLightBuffer->Bind(ShaderStage::Pixel, 2);
-				
-					Renderer::RenderQuad();
-				}
-				Renderer::RemoveRenderPipeline(myPointLightPipeline);
-
-				Renderer::SetRenderPipeline(mySpotlightPipeline);
-				for (Spotlight& spotlight : mySceneData.lightEnvironment.spotlights)
-				{
-					//Set cookie
-					{
-						std::vector<ID3D11ShaderResourceView*> SRVs(1);
-						auto cookie = AssetManager::GetAsset<Texture2D>(spotlight.cookie);
-						if (cookie)
-						{
-							auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(cookie);
-							SRVs[0] = dxTexture->GetSRV().Get();
-						}
-						else
-						{
-							auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(Renderer::GetWhiteTexture());
-							SRVs[0] = dxTexture->GetSRV().Get();
-						}
-						RHI::GetContext()->PSSetShaderResources(5, 1, SRVs.data());
-					}
-				
-					mySpotlightBuffer->SetData(&spotlight);
-					mySpotlightBuffer->Bind(ShaderStage::Pixel, 2);
-				
-					Renderer::RenderQuad();
-				
-					//Remove cookie
-					{
-						std::vector<ID3D11ShaderResourceView*> SRVs(1);
-						RHI::GetContext()->PSSetShaderResources(5, 1, SRVs.data());
-					}
-				}
-				Renderer::RemoveRenderPipeline(mySpotlightPipeline);
+				EnvironmentPass();
+				PointLightPass();
+				SpotlightPass();
 
 				//Remove GBuffer as resource
 				{
-					std::vector<ID3D11ShaderResourceView*> emptySRVs(4);
-					RHI::GetContext()->PSSetShaderResources(0, (UINT)4, emptySRVs.data());
-				}
-
-				//Remove light data and brdf
-				{
-					auto env = mySceneData.lightEnvironment.environment.lock();
-					if (env)
-					{
-						std::vector<ID3D11ShaderResourceView*> emptySRVs(2);
-						RHI::GetContext()->PSSetShaderResources(10, 2, emptySRVs.data());
-					}
-					else
-					{
-						std::vector<ID3D11ShaderResourceView*> emptySRVs(1);
-						RHI::GetContext()->PSSetShaderResources(11, 1, emptySRVs.data());
-					}
+					std::vector<ID3D11ShaderResourceView*> emptySRVs(resourceCount);
+					RHI::GetContext()->PSSetShaderResources(0, resourceCount, emptySRVs.data());
 				}
 			}
 
-			//Uber
-			{
-				{
-					std::vector<ID3D11ShaderResourceView*> SRVs(3);
-			
-					auto texture = myEnvironmentalLightPipeline->GetSpecification().targetFramebuffer->GetTarget();
-					auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
-					SRVs[0] = dxTexture->GetSRV().Get();
-					
-					texture = myGBufferPipeline->GetSpecification().targetFramebuffer->GetDepthAttachment();
-					dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
-					SRVs[1] = dxTexture->GetSRV().Get();
+			PostProcessingPass();
 
-					auto lut = AssetManager::GetAsset<Texture>(mySceneData.postProcessingData.colorGradingLUT);
-					if (myColorGradingEnabled && lut)
-					{
-						dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(lut);
-						SRVs[2] = dxTexture->GetSRV().Get();
-					}
-						else
-					{
-						dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(Renderer::GetDefaultColorGradingLut());
-						SRVs[2] = dxTexture->GetSRV().Get();
-					};
+			//TODO: Fix order independent transparency https://interplayoflight.wordpress.com/2022/06/25/order-independent-transparency-part-1/
+			SpritesPass();
 
-					RHI::GetContext()->PSSetShaderResources(0, 3, SRVs.data());
-				}
-				
-				myPostProcessingBuffer->SetData(&mySceneData.postProcessingData.bufferData);
-				myPostProcessingBuffer->Bind(ShaderStage::Pixel, 1);
-			
-				Renderer::SetRenderPipeline(myUberPipeline);
-				Renderer::RenderQuad();
-				Renderer::RemoveRenderPipeline(myUberPipeline);
-			
-				
-				{
-					std::vector<ID3D11ShaderResourceView*> emptySRVs(3);
-					RHI::GetContext()->PSSetShaderResources(0, 3, emptySRVs.data());
-				}
-			}
-
-			//Sprites - TODO: Fix order independent transparency https://interplayoflight.wordpress.com/2022/06/25/order-independent-transparency-part-1/
-			{
-				Renderer::SetRenderPipeline(mySpritePipeline);
-
-				for (const auto& [texture, vertexList] : myQuadVertices)
-				{
-					if (!myTextures[texture])
-					{
-						continue;
-					}
-
-					std::vector<ID3D11ShaderResourceView*> SRVs(1);
-					auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(myTextures[texture]);
-					SRVs[0] = dxTexture->GetSRV().Get();
-					RHI::GetContext()->PSSetShaderResources(0, 1, SRVs.data());
-
-					const uint32_t quadCount = (uint32_t)vertexList.size() / 4;
-					for (uint32_t i = 0; i < quadCount; i += MaxQuads)
-					{
-						uint32_t count = CU::Math::Min(quadCount - i, MaxQuads);
-
-						myQuadVertexBuffer->SetData((void*)vertexList.data(), count * 4, i * 4 * sizeof(QuadVertex));
-						Renderer::RenderGeometry(myQuadVertexBuffer, myQuadIndexBuffer, count * 6);
-					}
-
-					std::vector<ID3D11ShaderResourceView*> emptySRVs(1);
-					RHI::GetContext()->PSSetShaderResources(0, 1, emptySRVs.data());
-				}
-				
-				Renderer::RemoveRenderPipeline(mySpritePipeline);
-			}
-
-			//Text
-			{
-				Renderer::SetRenderPipeline(myTextPipeline);
-
-				for (const auto& [font, vertexList] : myTextVertices)
-				{
-					if (!myFontAtlases[font])
-					{
-						continue;
-					}
-
-					std::vector<ID3D11ShaderResourceView*> SRVs(1);
-					auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(myFontAtlases[font]);
-					SRVs[0] = dxTexture->GetSRV().Get();
-					RHI::GetContext()->PSSetShaderResources(0, 1, SRVs.data());
-
-					const uint32_t quadCount = (uint32_t)vertexList.size() / 4;
-					for (uint32_t i = 0; i < quadCount; i += MaxQuads)
-					{
-						uint32_t count = CU::Math::Min(quadCount - i, MaxQuads);
-
-						myTextVertexBuffer->SetData((void*)vertexList.data(), count * 4, i * 4 * sizeof(TextVertex));
-						Renderer::RenderGeometry(myTextVertexBuffer, myTextIndexBuffer, count * 6);
-					}
-
-					std::vector<ID3D11ShaderResourceView*> emptySRVs(1);
-					RHI::GetContext()->PSSetShaderResources(0, 1, emptySRVs.data());
-				}
-
-				Renderer::RemoveRenderPipeline(myTextPipeline);
-			}
+			TextPass();
 		}
 		else
 		{
@@ -743,6 +734,8 @@ namespace Epoch
 #ifndef _RUNTIME
 		UpdateStatistics();
 #endif
+		
+		mySceneData = SceneInfo();
 
 		myDrawList.clear();
 		myMeshTransformMap.clear();
@@ -791,7 +784,7 @@ namespace Epoch
 
 			EPOCH_ASSERT(material, "No material found for rendering!");
 
-			MeshKey meshKey = { aMesh->GetHandle(), materialHandle, submeshIndex, false };
+			MeshKey meshKey = { aMesh->GetHandle(), materialHandle, submeshIndex };
 
 			auto& transformStorage = myMeshTransformMap[meshKey].emplace_back();
 			transformStorage.row[0] = { submeshTransform(1, 1), submeshTransform(1, 2), submeshTransform(1, 3), submeshTransform(4, 1) };
@@ -1109,7 +1102,7 @@ namespace Epoch
 	{
 		if (myDrawMode == DrawMode::Shaded)
 		{
-			return myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(3);
+			return myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget("EntityID");
 		}
 		else
 		{

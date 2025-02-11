@@ -1,4 +1,6 @@
 #pragma once
+#include <map>
+#include <unordered_map>
 #include <CommonUtilities/Color.h>
 #include "Texture.h"
 
@@ -9,9 +11,9 @@ namespace Epoch
 	struct FramebufferTextureSpecification
 	{
 		TextureFormat format = TextureFormat::None;
-		std::string debugName = "";
+		std::string name = "";
 
-		FramebufferTextureSpecification(TextureFormat aFormat, const std::string& aName = "") : format(aFormat), debugName(aName) {}
+		FramebufferTextureSpecification(TextureFormat aFormat, const std::string& aName = "") : format(aFormat), name(aName) {}
 	};
 
 	struct FramebufferAttachmentSpecification
@@ -32,9 +34,11 @@ namespace Epoch
 
 		bool swapChainTarget = false;
 
-		FramebufferAttachmentSpecification attachments;
 		std::shared_ptr<Framebuffer> existingFramebuffer;
-		std::vector<std::shared_ptr<Texture2D>> existingAttachments;
+
+		FramebufferAttachmentSpecification attachments;
+
+		std::map<uint32_t, std::shared_ptr<Texture2D>> existingColorAttachments;
 		std::shared_ptr<Texture2D> existingDepthAttachment;
 
 		CU::Color clearColor = CU::Color::Black;
@@ -55,8 +59,9 @@ namespace Epoch
 
 		static std::shared_ptr<Framebuffer> Create(const FramebufferSpecification& aSpec);
 		
-		std::shared_ptr<Texture2D> GetTarget(uint32_t aAttachmentIndex = 0) { return myAttachmentTextures[aAttachmentIndex]; }
-		size_t GetColorAttachmentCount() const { return myAttachmentTextures.size(); }
+		std::shared_ptr<Texture2D> GetTarget(uint32_t aAttachmentIndex = 0) { return myColorAttachment[aAttachmentIndex]; }
+		std::shared_ptr<Texture2D> GetTarget(const std::string& aName);
+		size_t GetColorAttachmentCount() const { return myColorAttachment.size(); }
 		bool HasDepthAttachment() const { return (bool)myDepthAttachmentTexture; }
 		std::shared_ptr<Texture2D> GetDepthAttachment() const { return myDepthAttachmentTexture; }
 
@@ -67,13 +72,17 @@ namespace Epoch
 
 		virtual void Resize(uint32_t aWidth, uint32_t aHeight) = 0;
 
+		const std::unordered_map<std::string, uint32_t>& GetColorAttachmentNameMap() const { return myColorAttachmentNameMap; }
+
 	protected:
 		FramebufferSpecification mySpecification;
 
 		uint32_t myWidth = 0;
 		uint32_t myHeight = 0;
 
-		std::vector<std::shared_ptr<Texture2D>> myAttachmentTextures;
+		std::vector<std::shared_ptr<Texture2D>> myColorAttachment;
 		std::shared_ptr<Texture2D> myDepthAttachmentTexture;
+
+		std::unordered_map<std::string, uint32_t> myColorAttachmentNameMap;
 	};
 }
