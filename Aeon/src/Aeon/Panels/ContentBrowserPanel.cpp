@@ -358,7 +358,7 @@ namespace Epoch
 		}
 
 		std::shared_ptr<DirectoryInfo> directoryInfo = std::make_shared<DirectoryInfo>();
-		directoryInfo->handle = AssetHandle();
+		directoryInfo->handle = AssetHandle(Hash::GenerateFNVHash(aDirectoryPath.string()));
 		directoryInfo->parent = aParent;
 
 		if (aDirectoryPath == Project::GetAssetDirectory())
@@ -755,7 +755,6 @@ namespace Epoch
 			if (result.IsSet(ContentBrowserAction::Copy))
 			{
 				myCopiedAssets.CopyFrom(SelectionManager::GetSelections(SelectionContext::ContentBrowser));
-				//myCopiedAssets.Select(item->GetID());
 			}
 
 			if (result.IsSet(ContentBrowserAction::Reload))
@@ -800,24 +799,29 @@ namespace Epoch
 			if (result.IsSet(ContentBrowserAction::Duplicate))
 			{
 				myCopiedAssets.CopyFrom(SelectionManager::GetSelections(SelectionContext::ContentBrowser));
-				//myCopiedAssets.Select(item->GetID());
 				PasteCopiedAssets();
 				break;
 			}
 
 			if (result.IsSet(ContentBrowserAction::Renamed))
 			{
-				SelectionManager::DeselectAll(SelectionContext::ContentBrowser);
+				if (item->GetType() == ContentBrowserItem::ItemType::Asset)
+				{
+					auto assetItem = std::static_pointer_cast<ContentBrowserAsset>(item);
+					const auto& assetMetadata = assetItem->GetAssetInfo();
+
+					if (myAssetRenamedCallbacks.find(assetMetadata.type) != myAssetRenamedCallbacks.end())
+					{
+						myAssetRenamedCallbacks[assetMetadata.type](assetMetadata);
+					}
+				}
+				else
+				{
+					SelectionManager::Deselect(SelectionContext::ContentBrowser, item->GetID());
+				}
+
 				Refresh();
 				SortItemList();
-
-				auto assetItem = std::static_pointer_cast<ContentBrowserAsset>(item);
-				const auto& assetMetadata = assetItem->GetAssetInfo();
-
-				if (myAssetRenamedCallbacks.find(assetMetadata.type) != myAssetRenamedCallbacks.end())
-				{
-					myAssetRenamedCallbacks[assetMetadata.type](assetMetadata);
-				}
 
 				break;
 			}
