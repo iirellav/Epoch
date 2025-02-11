@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <Epoch/Core/Buffer.h>
+#include "Epoch/Rendering/Shader.h"
 
 namespace Epoch
 {
@@ -15,7 +16,7 @@ namespace Epoch
 		virtual void SetData(void* aBuffer, uint64_t aSize = 0, uint64_t aOffset = 0) = 0;
 		uint64_t GetSize() const { return mySize; }
 		
-		virtual void Bind(UINT aPipelineStages, unsigned aSlot) = 0;
+		virtual void Bind(ShaderStage aStages, unsigned aSlot) = 0;
 
 	protected:
 		Buffer myLocalData;

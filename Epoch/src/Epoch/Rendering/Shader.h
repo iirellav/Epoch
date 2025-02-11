@@ -15,7 +15,11 @@ namespace Epoch
 {
 	enum class ShaderStage : uint8_t
 	{
-		None, Vertex, Geometry, Pixel, Compute
+		None = 0,
+		Vertex = BIT(0),
+		Geometry = BIT(1),
+		Pixel = BIT(2),
+		Compute = BIT(3)
 	};
 
 	inline static ShaderStage ShaderTypeFromString(const std::string_view aType)

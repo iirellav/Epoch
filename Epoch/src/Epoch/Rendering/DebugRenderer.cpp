@@ -157,7 +157,7 @@ namespace Epoch
 
 		CameraBuffer camBuffer(aView * aProjection);
 		myCameraBuffer->SetData(&camBuffer);
-		myCameraBuffer->Bind(PIPELINE_STAGE_VERTEX_SHADER, 0);
+		myCameraBuffer->Bind(ShaderStage::Vertex, 0);
 
 		size_t renderPasses = aOnTop ? 2 : 1;
 		for (size_t i = 0; i < renderPasses; i++)
@@ -166,7 +166,7 @@ namespace Epoch
 			{
 				CU::Color tint = CU::Color::White;
 				myDebugLineBuffer->SetData(&tint);
-				myDebugLineBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 0);
+				myDebugLineBuffer->Bind(ShaderStage::Pixel, 0);
 				Renderer::SetRenderPipeline(myLinePipelineState);
 			}
 			else
@@ -174,7 +174,7 @@ namespace Epoch
 				CU::Color tint = CU::Color::White * 0.3f;
 				tint.a = 1.0f;
 				myDebugLineBuffer->SetData(&tint);
-				myDebugLineBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 0);
+				myDebugLineBuffer->Bind(ShaderStage::Pixel, 0);
 				Renderer::SetRenderPipeline(myOccludedLinePipelineState);
 			}
 
@@ -630,7 +630,7 @@ namespace Epoch
 		CU::Transform trans(aPosition, aRotation * CU::Math::ToRad);
 		GridBuffer gridBuffer(trans.GetMatrix(), { (float)aSize.x, (float)aSize.y }, aAlpha);
 		myGridBuffer->SetData(&gridBuffer);
-		myGridBuffer->Bind(PIPELINE_STAGE_VERTEX_SHADER | PIPELINE_STAGE_PIXEL_SHADER, 1);
+		myGridBuffer->Bind(ShaderStage::Vertex | ShaderStage::Pixel, 1);
 
 		Renderer::SetRenderPipeline(myGridPipelineState);
 		Renderer::RenderQuad();

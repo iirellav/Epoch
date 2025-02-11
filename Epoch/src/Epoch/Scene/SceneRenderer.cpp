@@ -437,7 +437,7 @@ namespace Epoch
 		camBuffer.fov = aCamera.fov;
 		camBuffer.viewportSize = { (float)myViewportWidth, (float)myViewportHeight };
 		myCameraBuffer->SetData(&camBuffer);
-		myCameraBuffer->Bind(PIPELINE_STAGE_VERTEX_SHADER | PIPELINE_STAGE_PIXEL_SHADER, 0);
+		myCameraBuffer->Bind(ShaderStage::Vertex | ShaderStage::Pixel, 0);
 	}
 
 	void SceneRenderer::EndScene()
@@ -482,7 +482,7 @@ namespace Epoch
 					lightBuffer.environmentIntensity = mySceneData.lightEnvironment.environmentIntensity;
 
 					myLightBuffer->SetData(&lightBuffer);
-					myLightBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 2);
+					myLightBuffer->Bind(ShaderStage::Pixel, 2);
 
 					auto env = mySceneData.lightEnvironment.environment.lock();
 					std::shared_ptr<TextureCube> cubeMap;
@@ -549,7 +549,7 @@ namespace Epoch
 				for (PointLight& pointLight : mySceneData.lightEnvironment.pointLights)
 				{
 					myPointLightBuffer->SetData(&pointLight);
-					myPointLightBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 2);
+					myPointLightBuffer->Bind(ShaderStage::Pixel, 2);
 				
 					Renderer::RenderQuad();
 				}
@@ -576,7 +576,7 @@ namespace Epoch
 					}
 				
 					mySpotlightBuffer->SetData(&spotlight);
-					mySpotlightBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 2);
+					mySpotlightBuffer->Bind(ShaderStage::Pixel, 2);
 				
 					Renderer::RenderQuad();
 				
@@ -639,7 +639,7 @@ namespace Epoch
 				}
 				
 				myPostProcessingBuffer->SetData(&mySceneData.postProcessingData.bufferData);
-				myPostProcessingBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 1);
+				myPostProcessingBuffer->Bind(ShaderStage::Pixel, 1);
 			
 				Renderer::SetRenderPipeline(myUberPipeline);
 				Renderer::RenderQuad();
@@ -719,7 +719,7 @@ namespace Epoch
 		else
 		{
 			myDebugDrawModeBuffer->SetData(&myDrawMode, 4);
-			myDebugDrawModeBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 2);
+			myDebugDrawModeBuffer->Bind(ShaderStage::Pixel, 2);
 			
 			Renderer::SetRenderPipeline(myDebugRenderPipeline);
 
@@ -1126,7 +1126,7 @@ namespace Epoch
 	void SceneRenderer::SetMaterial(std::shared_ptr<Material> aMaterial)
 	{
 		myMaterialBuffer->SetData(&aMaterial->GetData());
-		myMaterialBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 1);
+		myMaterialBuffer->Bind(ShaderStage::Pixel, 1);
 
 		std::vector<ID3D11ShaderResourceView*> SRVs(3);
 

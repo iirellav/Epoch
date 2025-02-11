@@ -21,6 +21,8 @@
 #include <unordered_set>
 #include <vector>
 
+#include <magic_enum.hpp>
+using namespace magic_enum::bitwise_operators; // out-of-the-box bitwise operators for enums.
 
 #include <CommonUtilities/Math/Vector/Vector2.hpp>
 #include <CommonUtilities/Math/Vector/Vector3.hpp>

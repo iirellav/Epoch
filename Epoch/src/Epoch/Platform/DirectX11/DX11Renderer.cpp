@@ -376,7 +376,7 @@ namespace Epoch
 				roughness = CU::Math::Max(roughness, 0.05f);
 		
 				cb->SetData(&roughness);
-				cb->Bind(PIPELINE_STAGE_PIXEL_SHADER, 0);
+				cb->Bind(ShaderStage::Pixel, 0);
 		
 				ComPtr<ID3D11UnorderedAccessView> mipUAV = dxOutput->GetMipUAV((uint32_t)i);
 		

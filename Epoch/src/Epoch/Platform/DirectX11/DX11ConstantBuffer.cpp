@@ -88,19 +88,19 @@ namespace Epoch
 		memcpy(myLocalData.data, (uint8_t*)aBuffer + aOffset, aSize);
 	}
 
-	void DX11ConstantBuffer::Bind(UINT aPipelineStages, unsigned aSlot)
+	void DX11ConstantBuffer::Bind(ShaderStage aStages, unsigned aSlot)
 	{
-		if (aPipelineStages & PIPELINE_STAGE_VERTEX_SHADER)
+		if ((uint8_t)aStages & (uint8_t)ShaderStage::Vertex)
 		{
 			RHI::GetContext()->VSSetConstantBuffers(aSlot, 1, myBuffer.GetAddressOf());
 		}
 
-		if (aPipelineStages & PIPELINE_STAGE_PIXEL_SHADER)
+		if ((uint8_t)aStages & (uint8_t)ShaderStage::Pixel)
 		{
 			RHI::GetContext()->PSSetConstantBuffers(aSlot, 1, myBuffer.GetAddressOf());
 		}
 
-		if (aPipelineStages & PIPELINE_STAGE_COMPUTE_SHADER)
+		if ((uint8_t)aStages & (uint8_t)ShaderStage::Compute)
 		{
 			RHI::GetContext()->CSSetConstantBuffers(aSlot, 1, myBuffer.GetAddressOf());
 		}

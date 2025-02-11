@@ -7,15 +7,6 @@
 
 using namespace Microsoft::WRL;
 
-typedef
-enum PIPELINE_STAGE
-{
-	PIPELINE_STAGE_VERTEX_SHADER = 1 << 1,
-	PIPELINE_STAGE_PIXEL_SHADER = 1 << 2,
-	PIPELINE_STAGE_GEOMETRY_SHADER = 1 << 3,
-	PIPELINE_STAGE_COMPUTE_SHADER = 1 << 3,
-} 	PIPELINE_STAGE;
-
 namespace Epoch
 {
 	class Window;
