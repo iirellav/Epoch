@@ -35,14 +35,15 @@ namespace Epoch
 		staticInstance = this;
 		memset(mySearchBuffer, 0, MAX_INPUT_BUFFER_LENGTH);
 
-		myAssetIconMap[AssetType::Mesh]			= EditorResources::ModelIcon;
-		myAssetIconMap[AssetType::Texture]		= EditorResources::TextureIcon;
-		myAssetIconMap[AssetType::Scene]		= EditorResources::SceneIcon;
-		myAssetIconMap[AssetType::ScriptFile]	= EditorResources::ScriptFileIcon;
-		myAssetIconMap[AssetType::Prefab]		= EditorResources::PrefabIcon;
-		myAssetIconMap[AssetType::Material]		= EditorResources::MaterialIcon;
-		myAssetIconMap[AssetType::Video]		= EditorResources::VideoIcon;
-		myAssetIconMap[AssetType::Font]			= EditorResources::FontIcon;
+		myAssetIconMap[AssetType::Mesh]				= EditorResources::ModelIcon;
+		myAssetIconMap[AssetType::Texture]			= EditorResources::TextureIcon;
+		myAssetIconMap[AssetType::Scene]			= EditorResources::SceneIcon;
+		myAssetIconMap[AssetType::ScriptFile]		= EditorResources::ScriptFileIcon;
+		myAssetIconMap[AssetType::Prefab]			= EditorResources::PrefabIcon;
+		myAssetIconMap[AssetType::Material]			= EditorResources::MaterialIcon;
+		myAssetIconMap[AssetType::PhysicsMaterial]	= EditorResources::MaterialIcon;
+		myAssetIconMap[AssetType::Video]			= EditorResources::VideoIcon;
+		myAssetIconMap[AssetType::Font]				= EditorResources::FontIcon;
 	}
 
 	void ContentBrowserPanel::OnImGuiRender(bool& aIsOpen)
@@ -175,6 +176,21 @@ namespace Epoch
 								if (ImGui::MenuItem("Material"))
 								{
 									auto asset = CreateAsset<Material>("New Material.mat");
+									if (asset)
+									{
+										size_t index = myCurrentItems.FindItem(asset->GetHandle());
+										if (index != ContentBrowserItemList::InvalidItem)
+										{
+											SelectionManager::DeselectAll(SelectionContext::ContentBrowser);
+											SelectionManager::Select(SelectionContext::ContentBrowser, asset->GetHandle());
+											myCurrentItems[index]->StartRenaming();
+										}
+									}
+								}
+
+								if (ImGui::MenuItem("Physics Material"))
+								{
+									auto asset = CreateAsset<PhysicsMaterial>("New Physics Material.physmat");
 									if (asset)
 									{
 										size_t index = myCurrentItems.FindItem(asset->GetHandle());

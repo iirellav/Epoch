@@ -35,7 +35,7 @@ namespace Epoch
 			offset = colliderComp.offset;
 		}
 
-		myShape = api->GetPhysicsSystem()->createShape(physx::PxBoxGeometry(myExtents), *api->GetDefaultMaterial());
+		myShape = api->GetPhysicsSystem()->createShape(physx::PxBoxGeometry(myExtents), *api->GetMaterial(colliderComp.physicsMaterial));
 		myShape->setLocalPose({ PhysXUtils::ToPhysXVector(offset), PhysXUtils::ToPhysXQuat(rotationalOffset) });
 
 		myShape->setSimulationFilterData(filterData);
@@ -84,7 +84,7 @@ namespace Epoch
 			offset = colliderComp.offset;
 		}
 
-		myShape = api->GetPhysicsSystem()->createShape(physx::PxSphereGeometry(myRadius), *api->GetDefaultMaterial());
+		myShape = api->GetPhysicsSystem()->createShape(physx::PxSphereGeometry(myRadius), *api->GetMaterial(colliderComp.physicsMaterial));
 		myShape->setLocalPose({ PhysXUtils::ToPhysXVector(offset), PhysXUtils::ToPhysXQuat(rotationalOffset) });
 
 		myShape->setSimulationFilterData(filterData);
@@ -136,7 +136,7 @@ namespace Epoch
 
 		rotationalOffset *= CU::Quatf(CU::Vector3f(0.0f, 0.0f, 90.0f) * CU::Math::ToRad);
 
-		myShape = api->GetPhysicsSystem()->createShape(physx::PxCapsuleGeometry(myRadius, myHeight * 0.5f), *api->GetDefaultMaterial());
+		myShape = api->GetPhysicsSystem()->createShape(physx::PxCapsuleGeometry(myRadius, myHeight * 0.5f), *api->GetMaterial(colliderComp.physicsMaterial));
 		myShape->setLocalPose({ PhysXUtils::ToPhysXVector(offset), PhysXUtils::ToPhysXQuat(rotationalOffset) });
 
 		myShape->setSimulationFilterData(filterData);

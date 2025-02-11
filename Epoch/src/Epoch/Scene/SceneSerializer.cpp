@@ -716,6 +716,7 @@ namespace Epoch
 				aOut << YAML::Key << "HalfSize" << YAML::Value << bc.halfSize;
 				aOut << YAML::Key << "Offset" << YAML::Value << bc.offset;
 				aOut << YAML::Key << "Layer" << YAML::Value << bc.layerID;
+				aOut << YAML::Key << "PhysicsMaterial" << YAML::Value << bc.physicsMaterial;
 				aOut << YAML::Key << "IsTrigger" << YAML::Value << bc.isTrigger;
 
 				aOut << YAML::EndMap;
@@ -730,6 +731,7 @@ namespace Epoch
 				aOut << YAML::Key << "Radius" << YAML::Value << sc.radius;
 				aOut << YAML::Key << "Offset" << YAML::Value << sc.offset;
 				aOut << YAML::Key << "Layer" << YAML::Value << sc.layerID;
+				aOut << YAML::Key << "PhysicsMaterial" << YAML::Value << sc.physicsMaterial;
 				aOut << YAML::Key << "IsTrigger" << YAML::Value << sc.isTrigger;
 
 				aOut << YAML::EndMap;
@@ -745,6 +747,7 @@ namespace Epoch
 				aOut << YAML::Key << "Height" << YAML::Value << cc.height;
 				aOut << YAML::Key << "Offset" << YAML::Value << cc.offset;
 				aOut << YAML::Key << "Layer" << YAML::Value << cc.layerID;
+				aOut << YAML::Key << "PhysicsMaterial" << YAML::Value << cc.physicsMaterial;
 				aOut << YAML::Key << "IsTrigger" << YAML::Value << cc.isTrigger;
 
 				aOut << YAML::EndMap;
@@ -1365,6 +1368,7 @@ namespace Epoch
 				bc.halfSize = boxColliderComponent["HalfSize"].as<CU::Vector3f>(CU::Vector3f(50.0f));
 				bc.offset = boxColliderComponent["Offset"].as<CU::Vector3f>(CU::Vector3f::Zero);
 				bc.layerID = boxColliderComponent["Layer"].as<uint32_t>(0);
+				bc.physicsMaterial = boxColliderComponent["PhysicsMaterial"].as<AssetHandle>(AssetHandle(0));
 				bc.isTrigger = boxColliderComponent["IsTrigger"].as<bool>(false);
 			}
 
@@ -1375,6 +1379,7 @@ namespace Epoch
 				sc.radius = sphereColliderComponent["Radius"].as<float>(50.0f);
 				sc.offset = sphereColliderComponent["Offset"].as<CU::Vector3f>(CU::Vector3f::Zero);
 				sc.layerID = sphereColliderComponent["Layer"].as<uint32_t>(0);
+				sc.physicsMaterial = sphereColliderComponent["PhysicsMaterial"].as<AssetHandle>(AssetHandle(0));
 				sc.isTrigger = sphereColliderComponent["IsTrigger"].as<bool>(false);
 			}
 
@@ -1386,6 +1391,7 @@ namespace Epoch
 				cc.height = capsuleColliderComponent["Height"].as<float>(200.0f);
 				cc.offset = capsuleColliderComponent["Offset"].as<CU::Vector3f>(CU::Vector3f::Zero);
 				cc.layerID = capsuleColliderComponent["Layer"].as<uint32_t>(0);
+				cc.physicsMaterial = capsuleColliderComponent["PhysicsMaterial"].as<AssetHandle>(AssetHandle(0));
 				cc.isTrigger = capsuleColliderComponent["IsTrigger"].as<bool>(false);
 			}
 

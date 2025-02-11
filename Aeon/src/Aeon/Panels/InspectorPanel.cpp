@@ -10,6 +10,7 @@ namespace Epoch
 	InspectorPanel::InspectorPanel(const std::string& aName) : EditorPanel(aName)
 	{
 		myDrawFunctions[AssetType::Material] = [this](UUID aAssetID) { DrawMaterialInspector(aAssetID); };
+		myDrawFunctions[AssetType::PhysicsMaterial] = [this](UUID aAssetID) { DrawPhysicsMaterialInspector(aAssetID); };
 		myDrawFunctions[AssetType::Mesh] = [this](UUID aAssetID) { DrawMeshInspector(aAssetID); };
 		myDrawFunctions[AssetType::Prefab] = [this](UUID aAssetID) { DrawPrefabInspector(aAssetID); };
 		myDrawFunctions[AssetType::Texture] = [this](UUID aAssetID) { DrawTextureInspector(aAssetID); };
@@ -138,6 +139,52 @@ namespace Epoch
 			modified = true;
 		}
 		modified |= UI::Property_DragFloat("Emission Strength", material->GetEmissionStrength(), 0.02f, 0.0f, 255.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+
+		UI::EndPropertyGrid();
+
+		if (modified)
+		{
+			AssetImporter::Serialize(material);
+		}
+	}
+
+	void InspectorPanel::DrawPhysicsMaterialInspector(UUID aAssetID)
+	{
+		std::shared_ptr<PhysicsMaterial> material = AssetManager::GetAsset<PhysicsMaterial>(aAssetID);
+
+		if (!material)
+		{
+			return;
+		}
+
+		WriteHeader(aAssetID);
+
+		bool modified = false;
+
+		UI::BeginPropertyGrid();
+		
+		float value = material->StaticFriction();
+		if (UI::Property_DragFloat("Static Friction", value, 0.02f, 0.0f, FLT_MAX, "%.3f", ImGuiSliderFlags_AlwaysClamp))
+		{
+			material->StaticFriction(value);
+			modified = true;
+		}
+
+		
+		value = material->DynamicFriction();
+		if (UI::Property_DragFloat("Dynamic Friction", value, 0.02f, 0.0f, FLT_MAX, "%.3f", ImGuiSliderFlags_AlwaysClamp))
+		{
+			material->DynamicFriction(value);
+			modified = true;
+		}
+
+		
+		value = material->Restitution();
+		if (UI::Property_DragFloat("Restitution", value, 0.02f, 0.0f, FLT_MAX, "%.3f", ImGuiSliderFlags_AlwaysClamp))
+		{
+			material->Restitution(value);
+			modified = true;
+		}
 
 		UI::EndPropertyGrid();
 

@@ -52,6 +52,7 @@ namespace Epoch
 		PhysXAPI* api = (PhysXAPI*)PhysicsSystem::GetAPI();
 		api->DisconnectPVD();
 		api->ShutdownControllerManager();
+		api->ClearMaterials();
 	}
 
 	void PhysXScene::Simulate()

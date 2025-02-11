@@ -292,6 +292,8 @@ namespace Epoch
 
 		uint32_t layerID = 0;
 
+		AssetHandle physicsMaterial = 0;
+
 		bool isTrigger = false;
 
 		BoxColliderComponent() = default;
@@ -304,6 +306,8 @@ namespace Epoch
 		CU::Vector3f offset;
 
 		uint32_t layerID = 0;
+
+		AssetHandle physicsMaterial = 0;
 
 		bool isTrigger = false;
 
@@ -318,6 +322,8 @@ namespace Epoch
 		CU::Vector3f offset;
 
 		uint32_t layerID = 0;
+
+		AssetHandle physicsMaterial = 0;
 
 		bool isTrigger = false;
 

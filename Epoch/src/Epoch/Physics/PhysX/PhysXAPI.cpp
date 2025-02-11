@@ -2,6 +2,8 @@
 #include "PhysXAPI.h"
 #include "Epoch/Core/JobSystem.h" 
 #include "PhysXScene.h"
+#include "Epoch/Assets/AssetManager.h"
+#include "Epoch/Physics/PhysicsMaterial.h"
 
 namespace Epoch
 {
@@ -33,6 +35,30 @@ namespace Epoch
 		return std::make_shared<PhysXScene>(aScene);
 	}
 
+	physx::PxMaterial* PhysXAPI::GetMaterial(AssetHandle aAssetHandle)
+	{
+		if (aAssetHandle == 0)
+		{
+			return myDefaultPhysicsMat;
+		}
+
+		if (myMaterialMap.find(aAssetHandle) != myMaterialMap.end())
+		{
+			return myMaterialMap.at(aAssetHandle);
+		}
+
+		auto physMatAsset = AssetManager::GetAsset<PhysicsMaterial>(aAssetHandle);
+		if (physMatAsset)
+		{
+			auto* physicsMaterial = myPhysicsSystem->createMaterial(physMatAsset->StaticFriction(), physMatAsset->DynamicFriction(), physMatAsset->Restitution());
+			myMaterialMap.emplace(aAssetHandle, physicsMaterial);
+
+			return physicsMaterial;
+		}
+		
+		return myDefaultPhysicsMat;
+	}
+
 	void PhysXAPI::ConnectPVD()
 	{
 		physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate("127.0.0.1", 5425, 10);
@@ -56,5 +82,14 @@ namespace Epoch
 	{
 		myControllerManager->purgeControllers();
 		myControllerManager->release();
+	}
+
+	void PhysXAPI::ClearMaterials()
+	{
+		for (auto [handle, mat] : myMaterialMap)
+		{
+			mat->release();
+		}
+		myMaterialMap.clear();
 	}
 }

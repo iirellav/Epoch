@@ -1891,6 +1891,18 @@ namespace Epoch
 					}
 					ImGui::PopItemFlag();
 
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<AssetHandle, BoxColliderComponent>([](const BoxColliderComponent& aOther) { return aOther.physicsMaterial; }));
+					if (UI::Property_AssetReference<PhysicsMaterial>("Physics Material", aFirstComponent.physicsMaterial))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& bc = entity.GetComponent<BoxColliderComponent>();
+							bc.physicsMaterial = aFirstComponent.physicsMaterial;
+						}
+					}
+					ImGui::PopItemFlag();
+
 					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<bool, BoxColliderComponent>([](const BoxColliderComponent& aOther) { return aOther.isTrigger; }));
 					if (UI::Property_Checkbox("Is Triger ", aFirstComponent.isTrigger))
 					{
@@ -1940,6 +1952,18 @@ namespace Epoch
 						}
 					}
 
+					//ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<AssetHandle, SphereColliderComponent>([](const SphereColliderComponent& aOther) { return aOther.physicsMaterial; }));
+					if (UI::Property_AssetReference<PhysicsMaterial>("Physics Material", aFirstComponent.physicsMaterial))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& sc = entity.GetComponent<SphereColliderComponent>();
+							sc.physicsMaterial = aFirstComponent.physicsMaterial;
+						}
+					}
+					//ImGui::PopItemFlag();
+
 					UI::Property_Checkbox("Is Triger ", aFirstComponent.isTrigger);
 
 					UI::EndPropertyGrid();
@@ -1984,6 +2008,18 @@ namespace Epoch
 							cc.layerID = aFirstComponent.layerID;
 						}
 					}
+
+					//ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<AssetHandle, CapsuleColliderComponent>([](const CapsuleColliderComponent& aOther) { return aOther.physicsMaterial; }));
+					if (UI::Property_AssetReference<PhysicsMaterial>("Physics Material", aFirstComponent.physicsMaterial))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& cc = entity.GetComponent<CapsuleColliderComponent>();
+							cc.physicsMaterial = aFirstComponent.physicsMaterial;
+						}
+					}
+					//ImGui::PopItemFlag();
 
 					UI::Property_Checkbox("Is Triger ", aFirstComponent.isTrigger);
 
