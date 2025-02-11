@@ -376,7 +376,7 @@ namespace Epoch
 				float roughness = i * deltaRoughness;
 				roughness = CU::Math::Max(roughness, 0.05f);
 		
-				cb->SetData(&roughness);
+				cb->SetData(&roughness, sizeof(float));
 				cb->Bind(PIPELINE_STAGE_PIXEL_SHADER, 0);
 		
 				ComPtr<ID3D11UnorderedAccessView> mipUAV = dxOutput->GetMipUAV((uint32_t)i);
