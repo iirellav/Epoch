@@ -21,19 +21,18 @@ namespace Epoch
 
 	bool Entity::IsAncestorActive() const
 	{
-		Entity parent = GetParent();
-		
-		if (!parent)
+		if (!HasParent())
 		{
 			return true;
 		}
 
+		Entity parent = GetParent();
 		if (!parent.IsActive())
 		{
 			return false;
 		}
 
-		return parent.IsAncestorActive();
+		return true;
 	}
 
 	Entity Entity::GetParent() const

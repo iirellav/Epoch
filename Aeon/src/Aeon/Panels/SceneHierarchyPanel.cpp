@@ -60,19 +60,22 @@ namespace Epoch
 			//ImRect listRect = UI::GetItemRect();
 			//listRect.Max.y += ImGui::GetContentRegionAvail().y;
 
-			//ImGui::PushClipRect(listRect.Min, listRect.Max, false);
+			//ImGui::PushClipRect(ImGui::GetCursorScreenPos(), ImGui::GetCursorScreenPos() + ImVec2(ImGui::GetContentRegionAvail()), false);
 
 			{
 				EPOCH_PROFILE_SCOPE("SceneHierarchyPanel::OnImGuiRender::EntityList");
 
 				staticRowIndex = -1;
-				for (auto entityID : myContext->GetAllEntitiesWith<IDComponent, RelationshipComponent>())
+				auto view = myContext->GetAllEntitiesWith<IDComponent, RelationshipComponent>();
+				for (auto entityID : view)
 				{
-					Entity entity{ entityID, myContext.get() };
-					if (entity.GetParentUUID() == 0)
+					if (view.get<RelationshipComponent>(entityID).parentHandle != 0)
 					{
-						DrawEntityNode(entity, searchString);
+						continue;
 					}
+
+					Entity entity{ entityID, myContext.get() };
+					DrawEntityNode(entity, searchString);
 				}
 			}
 

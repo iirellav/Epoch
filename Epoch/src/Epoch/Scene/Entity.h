@@ -50,6 +50,7 @@ namespace Epoch
 		void SetIsActive(bool aState) { GetComponent<ActiveComponent>().isActive = aState; }
 		bool IsAncestorActive() const;
 
+		bool HasParent() const { return GetComponent<RelationshipComponent>().parentHandle != 0; }
 		Entity GetParent() const;
 		void SetParent(Entity aParent);
 
