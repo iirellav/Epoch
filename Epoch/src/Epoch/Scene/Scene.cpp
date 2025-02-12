@@ -1200,8 +1200,12 @@ namespace Epoch
 		EPOCH_PROFILE_FUNC();
 
 		const Frustum frustum = CreateFrustum(aCullingCamera);
+
 		std::unordered_set<UUID> lastFramesFrustumCulledEntities = myFrustumCulledEntities;
 		myFrustumCulledEntities.clear();
+
+		std::unordered_set<UUID> enteredFrustum;
+		std::unordered_set<UUID> exitedFrustum;
 
 		std::unordered_map<AssetHandle, std::shared_ptr<Asset>> assetAccelerationMap;
 		
@@ -1392,14 +1396,14 @@ namespace Epoch
 					if (!mrc.isActive) continue;
 
 					std::shared_ptr<Mesh> mesh;
-					if (assetAccelerationMap.find(mrc.mesh) != assetAccelerationMap.end())
+					if (auto it = assetAccelerationMap.find(mrc.mesh); it != assetAccelerationMap.end())
 					{
-						mesh = std::static_pointer_cast<Mesh>(assetAccelerationMap[mrc.mesh]);
+						mesh = std::static_pointer_cast<Mesh>(it->second);
 					}
 					else
 					{
 						mesh = AssetManager::GetAssetAsync<Mesh>(mrc.mesh);
-						assetAccelerationMap[mrc.mesh] = mesh;
+						assetAccelerationMap.emplace(mrc.mesh, mesh);
 					}
 
 					if (mesh)
@@ -1409,10 +1413,18 @@ namespace Epoch
 						if (!FrustumIntersection(frustum, mesh->GetBoundingBox().GetGlobal(transform)))
 						{
 							myFrustumCulledEntities.insert(entity.GetUUID());
+							if (!lastFramesFrustumCulledEntities.contains(entity.GetUUID()))
+							{
+								exitedFrustum.insert(entity.GetUUID());
+							}
 						}
 						else
 						{
 							aRenderer->SubmitMesh(mesh, mrc.materialTable, transform, (uint32_t)entity);
+							if (lastFramesFrustumCulledEntities.contains(entity.GetUUID()))
+							{
+								enteredFrustum.insert(entity.GetUUID());
+							}
 						}
 						
 						if (mrc.castsShadows)
@@ -1434,9 +1446,9 @@ namespace Epoch
 					if (!smrc.isActive) continue;
 
 					std::shared_ptr<Mesh> mesh;
-					if (assetAccelerationMap.find(smrc.mesh) != assetAccelerationMap.end())
+					if (auto it = assetAccelerationMap.find(smrc.mesh); it != assetAccelerationMap.end())
 					{
-						mesh = std::static_pointer_cast<Mesh>(assetAccelerationMap[smrc.mesh]);
+						mesh = std::static_pointer_cast<Mesh>(it->second);
 					}
 					else
 					{
@@ -1467,15 +1479,15 @@ namespace Epoch
 				if (!src.isActive) continue;
 
 				std::shared_ptr<Texture2D> texture;
-				if (assetAccelerationMap.find(src.texture) != assetAccelerationMap.end())
+				if (auto it = assetAccelerationMap.find(src.texture); it != assetAccelerationMap.end())
 				{
-					texture = std::static_pointer_cast<Texture2D>(assetAccelerationMap[src.texture]);
+					texture = std::static_pointer_cast<Texture2D>(it->second);
 				}
 				else
 				{
 					//texture = AssetManager::GetAssetAsync<Texture2D>(src.texture);
 					texture = AssetManager::GetAsset<Texture2D>(src.texture); //TODO: Make async
-					if (texture) assetAccelerationMap[src.texture] = texture;
+					assetAccelerationMap[src.texture] = texture;
 				}
 
 				CU::Matrix4x4f transform = GetWorldSpaceTransformMatrix(entity);
@@ -1498,14 +1510,14 @@ namespace Epoch
 
 				CU::Matrix4x4f transform = GetWorldSpaceTransformMatrix(entity);
 				std::shared_ptr<Font> font;
-				if (assetAccelerationMap.find(trc.font) != assetAccelerationMap.end())
+				if (auto it = assetAccelerationMap.find(trc.font); it != assetAccelerationMap.end())
 				{
-					font = std::static_pointer_cast<Font>(assetAccelerationMap[trc.font]);
+					font = std::static_pointer_cast<Font>(it->second);
 				}
 				else
 				{
 					font = AssetManager::GetAssetAsync<Font>(trc.font);
-					if (font) assetAccelerationMap[trc.font] = font;
+					assetAccelerationMap[trc.font] = font;
 				}
 
 				if (!font)
@@ -1525,40 +1537,12 @@ namespace Epoch
 
 		aRenderer->EndScene();
 
-		for (UUID entityID : myFrustumCulledEntities)
+		if (aIsRuntime)
 		{
-			if (lastFramesFrustumCulledEntities.find(entityID) == lastFramesFrustumCulledEntities.end())
+			EPOCH_PROFILE_SCOPE("Scene::RenderScene::OnFrustumEnter/Exit");
+
+			for (UUID entityID : enteredFrustum)
 			{
-				//Exited frustum
-
-				Entity entity = TryGetEntityWithUUID(entityID);
-				if (!entity)
-				{
-					continue;
-				}
-
-				if (!entity.HasComponent<ScriptComponent>())
-				{
-					continue;
-				}
-
-				const auto& sc = entity.GetComponent<ScriptComponent>();
-
-				if (!ScriptEngine::IsModuleValid(sc.scriptClassHandle) || !ScriptEngine::IsEntityInstantiated(entity))
-				{
-					continue;
-				}
-
-				ScriptEngine::CallMethod(sc.managedInstance, "OnFrustumExit");
-			}
-		}
-
-		for (UUID entityID : lastFramesFrustumCulledEntities)
-		{
-			if (myFrustumCulledEntities.find(entityID) == myFrustumCulledEntities.end())
-			{
-				//Entered frustum
-
 				Entity entity = TryGetEntityWithUUID(entityID);
 				if (!entity)
 				{
@@ -1578,6 +1562,30 @@ namespace Epoch
 				}
 
 				ScriptEngine::CallMethod(sc.managedInstance, "OnFrustumEnter");
+			}
+
+			
+			for (UUID entityID : exitedFrustum)
+			{
+				Entity entity = TryGetEntityWithUUID(entityID);
+				if (!entity)
+				{
+					continue;
+				}
+
+				if (!entity.HasComponent<ScriptComponent>())
+				{
+					continue;
+				}
+
+				const auto& sc = entity.GetComponent<ScriptComponent>();
+
+				if (!ScriptEngine::IsModuleValid(sc.scriptClassHandle) || !ScriptEngine::IsEntityInstantiated(entity))
+				{
+					continue;
+				}
+
+				ScriptEngine::CallMethod(sc.managedInstance, "OnFrustumExit");
 			}
 		}
 	}
