@@ -189,7 +189,7 @@ namespace Epoch
 				{
 					const auto& msg = myMessageBuffer[i];
 
-					if (set.find(msg.hash) == set.end())
+					if (!set.contains(msg.hash))
 					{
 						msgMap[msg.hash] = (uint32_t)messages.size();
 						messages.push_back(msg);
