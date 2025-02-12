@@ -33,7 +33,7 @@ namespace Epoch
 			return false;
 		}
 
-		parent.IsAncestorActive();
+		return parent.IsAncestorActive();
 	}
 
 	Entity Entity::GetParent() const
