@@ -385,7 +385,7 @@ namespace Epoch
 						});
 
 					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, isMultiEdit && inconsistent);
-					if (UI::Property_AssetReference<Material>(materialName.c_str(), materialID))
+					if (UI::Property_AssetReference<AssetType::Material>(materialName.c_str(), materialID))
 					{
 						for (auto& entityID : aEntityIDs)
 						{

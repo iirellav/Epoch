@@ -129,7 +129,7 @@ namespace Epoch
 
 		UI::BeginPropertyGrid();
 
-		modified |= UI::Property_AssetReference<Texture2D>("Albedo Texture", material->GetAlbedoTexture());
+		modified |= UI::Property_AssetReference<AssetType::Texture>("Albedo Texture", material->GetAlbedoTexture());
 
 		CU::Color albedoColor = material->GetAlbedoColor();
 		if (UI::Property_ColorEdit3("Albedo Color", albedoColor))
@@ -142,7 +142,7 @@ namespace Epoch
 		UI::Spacing();
 		UI::BeginPropertyGrid();
 
-		modified |= UI::Property_AssetReference<Texture2D>("Material Texture", material->GetMaterialTexture());
+		modified |= UI::Property_AssetReference<AssetType::Texture>("Material Texture", material->GetMaterialTexture());
 		modified |= UI::Property_DragFloat("Roughness", material->GetRoughness(), 0.02f, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
 		modified |= UI::Property_DragFloat("Metalness", material->GetMetalness(), 0.02f, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
 		
@@ -162,7 +162,7 @@ namespace Epoch
 		UI::Spacing();
 		UI::BeginPropertyGrid();
 
-		modified |= UI::Property_AssetReference<Texture2D>("Normal Texture", material->GetNormalTexture());
+		modified |= UI::Property_AssetReference<AssetType::Texture>("Normal Texture", material->GetNormalTexture());
 		modified |= UI::Property_DragFloat("Normal Strength", material->GetNormalStrength(), 0.02f);
 		
 		UI::EndPropertyGrid();

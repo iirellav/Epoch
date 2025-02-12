@@ -188,7 +188,7 @@ namespace Epoch::UI
 		bool showFullFilePath = false;
 	};
 
-	template<typename T>
+	template<AssetType TAssetType>
 	static bool Property_AssetReference(const char* aLabel, AssetHandle& outHandle, const char* aTooltip = "", const PropertyAssetReferenceSettings& aSettings = {})
 	{
 		EPOCH_PROFILE_FUNC();
@@ -290,8 +290,9 @@ namespace Epoch::UI
 			if (data)
 			{
 				AssetHandle assetHandle = *(AssetHandle*)data->Data;
-				std::shared_ptr<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
-				if (asset && asset->GetAssetType() == T::GetStaticType())
+				const auto& metadata = Project::GetEditorAssetManager()->GetMetadata(assetHandle);
+
+				if (metadata.type == TAssetType)
 				{
 					outHandle = assetHandle;
 					modified = true;
@@ -330,19 +331,178 @@ namespace Epoch::UI
 
 
 		bool clear = false;
-		if (Widgets::AssetSearchPopup(assetSearchPopupID.c_str(), T::GetStaticType(), outHandle, &clear))
+		if (Widgets::AssetSearchPopup(assetSearchPopupID.c_str(), TAssetType, outHandle, &clear))
 		{
 			if (clear)
 			{
 				outHandle = 0;
 			}
+
+			modified = true;
+		}
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		ImGui::PopID();
+
+		return modified;
+	}
+
+	template<AssetType... TAssetTypes>
+	static bool Property_MultiAssetReference(const char* aLabel, AssetHandle& outHandle, const char* aTooltip = "", const PropertyAssetReferenceSettings& aSettings = {})
+	{
+		EPOCH_PROFILE_FUNC();
+
+		ImGui::PushID(aLabel);
+
+		bool modified = false;
+
+		//ShiftCursor(10.0f, 9.0f);
+		ShiftCursor(10.0f, 5.0f);
+		ImGui::Text(aLabel);
+
+		if (std::strlen(aTooltip) != 0)
+		{
+			ImGui::SameLine();
+			HelpMarker(aTooltip);
+		}
+
+		ImGui::NextColumn();
+		//ShiftCursorY(4.0f);
+		ImGui::PushItemWidth(-1);
+
+		std::initializer_list<AssetType> assetTypes = { TAssetTypes... };
+
+		std::string buttonText = "None";
+
+		bool valid = false;
+		if (outHandle == 0)
+		{
+			if (!aSettings.emptyIsInvalid)
+			{
+				valid = true;
+			}
+		}
+		else if (AssetManager::IsAssetHandleValid(outHandle))
+		{
+			if (Project::GetEditorAssetManager()->IsAssetMissing(outHandle))
+			{
+				buttonText = "Missing";
+			}
+			else if (!Project::GetEditorAssetManager()->IsAssetValid(outHandle))
+			{
+				buttonText = "Invalid";
+			}
 			else
 			{
-				auto object = AssetManager::GetAsset<T>(outHandle);
-				if (!object)
+				const std::filesystem::path& assetPath = Project::GetEditorAssetManager()->GetMetadata(outHandle).filePath;
+				buttonText = aSettings.showFullFilePath ? assetPath.string() : assetPath.stem().string();
+
+				if (buttonText == "")
 				{
-					outHandle = 0;
+					buttonText = "Unnamed";
 				}
+
+				valid = true;
+			}
+		}
+
+		if ((GImGui->CurrentItemFlags & ImGuiItemFlags_MixedValue) != 0)
+		{
+			buttonText = "---";
+		}
+
+		std::string assetSearchPopupID = "AssetSearchPopup";
+
+		if (!valid) ImGui::PushStyleColor(ImGuiCol_Text, Colors::Theme::invalid);
+		{
+			ImVec4 buttonColor = ImGui::GetStyle().Colors[ImGuiCol_Button];
+			ImVec4 newButtonColor = ImVec4(0.125f, 0.125f , 0.125f, 1.0f);
+			UI::ScopedColorStack colors =
+			{
+				ImGuiCol_Button, newButtonColor,
+				ImGuiCol_ButtonHovered, newButtonColor,
+				ImGuiCol_ButtonActive, newButtonColor
+			};
+			
+			ImDrawList* draw_list = ImGui::GetWindowDrawList();
+			ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+			draw_list->AddRectFilled(cursorPos, cursorPos + ImVec2(ImGui::GetContentRegionAvail().x - 25.0f, 24.0f), ImGui::ColorConvertFloat4ToU32(buttonColor));
+			
+			ShiftCursor(1.0f, 1.0f);
+			ImGui::GetStyle().ButtonTextAlign = { 0.0f, 0.5f };
+			ImGui::Button(buttonText.c_str(), { ImGui::GetContentRegionAvail().x - 26.0f, 22.0f });
+			ImGui::GetStyle().ButtonTextAlign = { 0.5f, 0.5f };
+		}
+		if (!valid) ImGui::PopStyleColor();
+
+		if (valid && ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+		{
+			//TODO: Highlight asset in content browser
+			if (OnAssetReferenceDoubleClickedCallback)
+			{
+				OnAssetReferenceDoubleClickedCallback(outHandle);
+			}
+		}
+
+		if (ImGui::BeginDragDropTarget())
+		{
+			auto data = ImGui::AcceptDragDropPayload("asset_payload");
+
+			if (data)
+			{
+				AssetHandle assetHandle = *(AssetHandle*)data->Data;
+				const auto& metadata = Project::GetEditorAssetManager()->GetMetadata(assetHandle);
+
+				for (AssetType type : assetTypes)
+				{
+					if (metadata.type == type)
+					{
+						outHandle = assetHandle;
+						modified = true;
+						break;
+					}
+				}
+			}
+
+			ImGui::EndDragDropTarget();
+		}
+		
+		const float itemSpacingX = ImGui::GetStyle().ItemSpacing.x;
+		ImGui::GetStyle().ItemSpacing.x = 0.0f;
+
+		ImGui::SameLine();
+		bool assetSearchPopupOpen;
+		
+		{
+			ImVec4 newButtonColor = ImVec4(0.0f, 0.0f , 0.0f, 0.0f);
+			UI::ScopedColorStack colors =
+			{
+				ImGuiCol_Button, newButtonColor,
+				ImGuiCol_ButtonHovered, newButtonColor,
+				ImGuiCol_ButtonActive, newButtonColor,
+				ImGuiCol_Text, ImVec4(1.0f, 1.0f , 1.0f, 0.6f)
+			};
+			
+			ShiftCursor(1.0f, -1.0f);
+			assetSearchPopupOpen = ImGui::Button(std::format("{}", EP_ICON_SEARCH).c_str(), { 24.0f, 24.0f });
+		}
+
+		ImGui::GetStyle().ItemSpacing.x = itemSpacingX;
+
+		if (assetSearchPopupOpen)
+		{
+			ImGui::OpenPopup(assetSearchPopupID.c_str());
+		}
+
+
+		bool clear = false;
+		if (Widgets::AssetSearchPopup(assetSearchPopupID.c_str(), assetTypes, outHandle, &clear))
+		{
+			if (clear)
+			{
+				outHandle = 0;
 			}
 
 			modified = true;
@@ -595,7 +755,7 @@ namespace Epoch::UI
 		case FieldType::Scene:
 		{
 			AssetHandle handle = aStorage->GetValue<AssetHandle>();
-			if (Property_AssetReference<Scene>(aFieldName.c_str(), handle, aTooltip, { true }))
+			if (Property_AssetReference<AssetType::Scene>(aFieldName.c_str(), handle, aTooltip, { true }))
 			{
 				aStorage->SetValue(handle);
 				result = true;
@@ -605,7 +765,7 @@ namespace Epoch::UI
 		case FieldType::Prefab:
 		{
 			AssetHandle handle = aStorage->GetValue<AssetHandle>();
-			if (Property_AssetReference<Prefab>(aFieldName.c_str(), handle, aTooltip, { true }))
+			if (Property_AssetReference<AssetType::Prefab>(aFieldName.c_str(), handle, aTooltip, { true }))
 			{
 				aStorage->SetValue(handle);
 				result = true;
@@ -615,7 +775,7 @@ namespace Epoch::UI
 		case FieldType::Material:
 		{
 			AssetHandle handle = aStorage->GetValue<AssetHandle>();
-			if (Property_AssetReference<Material>(aFieldName.c_str(), handle, aTooltip, { true }))
+			if (Property_AssetReference<AssetType::Material>(aFieldName.c_str(), handle, aTooltip, { true }))
 			{
 				aStorage->SetValue(handle);
 				result = true;
@@ -625,7 +785,7 @@ namespace Epoch::UI
 		case FieldType::Mesh:
 		{
 			AssetHandle handle = aStorage->GetValue<AssetHandle>();
-			if (Property_AssetReference<Mesh>(aFieldName.c_str(), handle, aTooltip, { true }))
+			if (Property_AssetReference<AssetType::Mesh>(aFieldName.c_str(), handle, aTooltip, { true }))
 			{
 				aStorage->SetValue(handle);
 				result = true;
@@ -635,7 +795,7 @@ namespace Epoch::UI
 		case FieldType::Texture2D:
 		{
 			AssetHandle handle = aStorage->GetValue<AssetHandle>();
-			if (Property_AssetReference<Texture2D>(aFieldName.c_str(), handle, aTooltip, { true }))
+			if (Property_AssetReference<AssetType::Texture>(aFieldName.c_str(), handle, aTooltip, { true }))
 			{
 				aStorage->SetValue(handle);
 				result = true;
@@ -777,7 +937,7 @@ namespace Epoch::UI
 				case FieldType::Scene:
 				{
 					AssetHandle handle = aStorage->GetValue<AssetHandle>(i);
-					if (Property_AssetReference<Scene>(indexString.c_str(), handle, aTooltip, { true }))
+					if (Property_AssetReference<AssetType::Scene>(indexString.c_str(), handle, aTooltip, { true }))
 					{
 						aStorage->SetValue(i, handle);
 						modified = true;
@@ -787,7 +947,7 @@ namespace Epoch::UI
 				case FieldType::Prefab:
 				{
 					AssetHandle handle = aStorage->GetValue<AssetHandle>(i);
-					if (Property_AssetReference<Prefab>(indexString.c_str(), handle, aTooltip, { true }))
+					if (Property_AssetReference<AssetType::Prefab>(indexString.c_str(), handle, aTooltip, { true }))
 					{
 						aStorage->SetValue(i, handle);
 						modified = true;
@@ -797,7 +957,7 @@ namespace Epoch::UI
 				case FieldType::Material:
 				{
 					AssetHandle handle = aStorage->GetValue<AssetHandle>(i);
-					if (Property_AssetReference<Material>(indexString.c_str(), handle, aTooltip, { true }))
+					if (Property_AssetReference<AssetType::Material>(indexString.c_str(), handle, aTooltip, { true }))
 					{
 						aStorage->SetValue(i, handle);
 						modified = true;
@@ -807,7 +967,7 @@ namespace Epoch::UI
 				case FieldType::Mesh:
 				{
 					AssetHandle handle = aStorage->GetValue<AssetHandle>(i);
-					if (Property_AssetReference<Mesh>(indexString.c_str(), handle, aTooltip, { true }))
+					if (Property_AssetReference<AssetType::Mesh>(indexString.c_str(), handle, aTooltip, { true }))
 					{
 						aStorage->SetValue(i, handle);
 						modified = true;
@@ -817,7 +977,7 @@ namespace Epoch::UI
 				case FieldType::Texture2D:
 				{
 					AssetHandle handle = aStorage->GetValue<AssetHandle>(i);
-					if (Property_AssetReference<Texture2D>(indexString.c_str(), handle, aTooltip, { true }))
+					if (Property_AssetReference<AssetType::Texture>(indexString.c_str(), handle, aTooltip, { true }))
 					{
 						aStorage->SetValue(i, handle);
 						modified = true;

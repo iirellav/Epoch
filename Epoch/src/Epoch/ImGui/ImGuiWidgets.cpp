@@ -213,6 +213,11 @@ namespace Epoch::UI::Widgets
 
 	bool AssetSearchPopup(const char* aPopupID, AssetType aAssetType, AssetHandle& outSelected, bool* outClear)
 	{
+		return AssetSearchPopup(aPopupID, { aAssetType }, outSelected, outClear);
+	}
+
+	bool AssetSearchPopup(const char* aPopupID, std::initializer_list<AssetType> aAssetTypes, AssetHandle& outSelected, bool* outClear)
+	{
 		EPOCH_PROFILE_FUNC();
 
 		bool modified = false;
@@ -298,7 +303,21 @@ namespace Epoch::UI::Widgets
 
 					for (const auto& [path, metadata] : assetRegistry)
 					{
-						if (metadata.type != aAssetType) continue;
+						bool isValidType = false;
+
+						for (AssetType type : aAssetTypes)
+						{
+							if (metadata.type == type)
+							{
+								isValidType = true;
+								break;
+							}
+						}
+
+						if (!isValidType)
+						{
+							continue;
+						}
 
 						const std::string assetName = metadata.isMemoryAsset ? metadata.filePath.string() : metadata.filePath.stem().string();
 

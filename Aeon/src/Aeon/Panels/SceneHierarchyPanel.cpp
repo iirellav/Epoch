@@ -713,7 +713,7 @@ namespace Epoch
 
 					AssetHandle assetHandle = aFirstComponent.colorGrading.lut;
 					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<AssetHandle, VolumeComponent>([](const VolumeComponent& aOther) { return aOther.colorGrading.lut; }));
-					if (UI::Property_AssetReference<Texture2D>("LUT", assetHandle))
+					if (UI::Property_AssetReference<AssetType::Texture>("LUT", assetHandle))
 					{
 						for (auto& entityID : aEntities)
 						{
@@ -1025,7 +1025,7 @@ namespace Epoch
 					UI::BeginPropertyGrid();
 					ImGui::BeginDisabled();
 					AssetHandle oldAssetHandle = 0;
-					UI::Property_AssetReference<ScriptAsset>("Script Class", aFirstComponent.scriptClassHandle, "", { true, true });
+					UI::Property_AssetReference<AssetType::Script>("Script Class", aFirstComponent.scriptClassHandle, "", { true, true });
 					ImGui::EndDisabled();
 					UI::EndPropertyGrid();
 
@@ -1241,9 +1241,12 @@ namespace Epoch
 				{
 					UI::BeginPropertyGrid();
 
+					static AssetHandle testHandle = 0;
+					UI::Property_MultiAssetReference<AssetType::Mesh, AssetType::Texture>("Test", testHandle, "", { true });
+
 					AssetHandle assetHandle = aFirstComponent.mesh;
 					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<AssetHandle, MeshRendererComponent>([](const MeshRendererComponent& aOther) { return aOther.mesh; }));
-					if (UI::Property_AssetReference<Mesh>("Mesh", assetHandle, "", { true }))
+					if (UI::Property_AssetReference<AssetType::Mesh>("Mesh", assetHandle, "", { true }))
 					{
 						for (auto& entityID : aEntities)
 						{
@@ -1280,7 +1283,7 @@ namespace Epoch
 					UI::BeginPropertyGrid();
 
 					AssetHandle assetHandle = aFirstComponent.mesh;
-					if (UI::Property_AssetReference<Mesh>("Mesh", assetHandle, "", { true }))
+					if (UI::Property_AssetReference<AssetType::Mesh>("Mesh", assetHandle, "", { true }))
 					{
 						aFirstComponent.mesh = assetHandle;
 					}
@@ -1326,7 +1329,7 @@ namespace Epoch
 
 					AssetHandle assetHandle = aFirstComponent.texture;
 					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<AssetHandle, SpriteRendererComponent>([](const SpriteRendererComponent& aOther) { return aOther.texture; }));
-					if (UI::Property_AssetReference<Texture2D>("Sprite", assetHandle))
+					if (UI::Property_AssetReference<AssetType::Texture>("Sprite", assetHandle))
 					{
 						for (auto& entityID : aEntities)
 						{
@@ -1393,7 +1396,7 @@ namespace Epoch
 					UI::Property_InputTextMultiline("Text", aFirstComponent.text, CU::Vector2f(0, textFieldHeight), ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_CtrlEnterForNewLine);
 					
 					AssetHandle assetHandle = aFirstComponent.font;
-					if (UI::Property_AssetReference<Font>("Font", assetHandle))
+					if (UI::Property_AssetReference<AssetType::Font>("Font", assetHandle))
 					{
 						aFirstComponent.font = assetHandle;
 					}
@@ -1423,7 +1426,7 @@ namespace Epoch
 					UI::BeginPropertyGrid();
 
 					AssetHandle assetHandle = aFirstComponent.environment;
-					if (UI::Property_AssetReference<Environment>("Environment", assetHandle, "", { true }))
+					if (UI::Property_AssetReference<AssetType::EnvTexture>("Environment", assetHandle, "", { true }))
 					{
 						aFirstComponent.environment = assetHandle;
 					}
@@ -1517,7 +1520,7 @@ namespace Epoch
 					ImGui::PopItemFlag();
 
 					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<AssetHandle, SpotlightComponent>([](const SpotlightComponent& aOther) { return aOther.cookieTexture; }));
-					if (UI::Property_AssetReference<Texture2D>("Cookie", aFirstComponent.cookieTexture))
+					if (UI::Property_AssetReference<AssetType::Texture>("Cookie", aFirstComponent.cookieTexture))
 					{
 						for (auto& entityID : aEntities)
 						{
@@ -1896,7 +1899,7 @@ namespace Epoch
 					ImGui::PopItemFlag();
 
 					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<AssetHandle, BoxColliderComponent>([](const BoxColliderComponent& aOther) { return aOther.physicsMaterial; }));
-					if (UI::Property_AssetReference<PhysicsMaterial>("Physics Material", aFirstComponent.physicsMaterial))
+					if (UI::Property_AssetReference<AssetType::PhysicsMaterial>("Physics Material", aFirstComponent.physicsMaterial))
 					{
 						for (auto& entityID : aEntities)
 						{
@@ -1957,7 +1960,7 @@ namespace Epoch
 					}
 
 					//ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<AssetHandle, SphereColliderComponent>([](const SphereColliderComponent& aOther) { return aOther.physicsMaterial; }));
-					if (UI::Property_AssetReference<PhysicsMaterial>("Physics Material", aFirstComponent.physicsMaterial))
+					if (UI::Property_AssetReference<AssetType::PhysicsMaterial>("Physics Material", aFirstComponent.physicsMaterial))
 					{
 						for (auto& entityID : aEntities)
 						{
@@ -2014,7 +2017,7 @@ namespace Epoch
 					}
 
 					//ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<AssetHandle, CapsuleColliderComponent>([](const CapsuleColliderComponent& aOther) { return aOther.physicsMaterial; }));
-					if (UI::Property_AssetReference<PhysicsMaterial>("Physics Material", aFirstComponent.physicsMaterial))
+					if (UI::Property_AssetReference<AssetType::PhysicsMaterial>("Physics Material", aFirstComponent.physicsMaterial))
 					{
 						for (auto& entityID : aEntities)
 						{
