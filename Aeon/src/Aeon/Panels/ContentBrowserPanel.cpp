@@ -264,7 +264,7 @@ namespace Epoch
 							RenderItems();
 						}
 
-						if (ImGui::IsWindowFocused() && !ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+						if (/*ImGui::IsWindowFocused() && */!ImGui::IsMouseDragging(ImGuiMouseButton_Left))
 						{
 							UpdateInput();
 						}
