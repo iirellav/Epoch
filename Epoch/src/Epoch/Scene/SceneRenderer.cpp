@@ -848,14 +848,11 @@ namespace Epoch
 		++myQuadCount;
 	}
 
-	static bool NextLine(int aIndex, const std::vector<int>& aLines)
+	static bool NextLine(int aIndex, const std::set<int>& aLines)
 	{
-		for (int line : aLines)
+		if (aLines.contains(aIndex))
 		{
-			if (line == aIndex)
-			{
-				return true;
-			}
+			return true;
 		}
 		return false;
 	}
@@ -865,20 +862,20 @@ namespace Epoch
 	// The C++ Standard doesn't provide equivalent non-deprecated functionality; consider using MultiByteToWideChar() and WideCharToMultiByte() from <Windows.h> instead.
 	// You can define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING or _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS to acknowledge that you have received this warning.
 #pragma warning(disable : 4996)
-
 	// From https://stackoverflow.com/questions/31302506/stdu32string-conversion-to-from-stdstring-and-stdu16string
 	static std::u32string To_UTF32(const std::string& s)
 	{
 		std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
 		return conv.from_bytes(s);
 	}
-
 #pragma warning(default : 4996)
 
 	void SceneRenderer::SubmitText(const std::string& aString, const std::shared_ptr<Font>& aFont, const CU::Matrix4x4f& aTransform, const TextSettings& aSettings, uint32_t aEntityID)
 	{
 		if (aString.empty()) return;
-		
+
+		EPOCH_PROFILE_FUNC();
+
 		std::shared_ptr<Texture2D> fontAtlas = aFont->GetFontAtlas();
 		EPOCH_ASSERT(fontAtlas, "Font didn't have a valid font atlas!");
 
@@ -890,7 +887,7 @@ namespace Epoch
 
 		std::u32string utf32string = To_UTF32(aString);
 
-		std::vector<int> nextLines;
+		std::set<int> nextLines;
 		{
 			double x = 0.0;
 			double fsScale = 1 / (metrics.ascenderY - metrics.descenderY);
@@ -914,7 +911,7 @@ namespace Epoch
 				const bool isTab = character == '\t';
 				if (isTab) character = ' ';
 
-				auto glyph = fontGeometry.getGlyph(character);
+				const auto glyph = fontGeometry.getGlyph(character);
 				//if (!glyph)
 				//{
 				//	glyph = fontGeometry.getGlyph('?');}
@@ -940,7 +937,7 @@ namespace Epoch
 					if (quadMax.x > aSettings.maxWidth && lastSpace != -1)
 					{
 						i = lastSpace;
-						nextLines.emplace_back(lastSpace);
+						nextLines.insert(lastSpace);
 						lastSpace = -1;
 						x = 0;
 						y -= fsScale * metrics.lineHeight + aSettings.lineHeightOffset;
@@ -957,19 +954,27 @@ namespace Epoch
 			}
 		}
 
+		const CU::Vector3f camRightWS = mySceneData.sceneCamera.transform.GetRight();
+		const CU::Vector3f camUpWS = mySceneData.sceneCamera.transform.GetUp();
+
+		const CU::Vector3f position = aTransform.GetTranslation();
+		const CU::Vector3f scale = aTransform.GetScale();
+
 		{
-			unsigned line = 0;
 			double x = 0.0f;
-			double fsScale = 1 / (metrics.ascenderY - metrics.descenderY);
+			const double fsScale = 1 / (metrics.ascenderY - metrics.descenderY);
 			double y = 0.0;
 			for (int i = 0; i < utf32string.size(); i++)
 			{
 				char32_t character = utf32string[i];
 				if (character == '\n' || NextLine(i, nextLines))
 				{
-					++line;
 					x = 0.0;
 					y -= fsScale * metrics.lineHeight + aSettings.lineHeightOffset;
+					continue;
+				}
+				if (character == '\r')
+				{
 					continue;
 				}
 
@@ -999,85 +1004,76 @@ namespace Epoch
 				double texelHeight = 1. / fontAtlas->GetHeight();
 				l *= texelWidth, b *= texelHeight, r *= texelWidth, t *= texelHeight;
 
-				if (character != ' ')
+				if (aSettings.billboard)
 				{
-					if (aSettings.billboard)
 					{
-						const CU::Vector3f camRightWS = mySceneData.sceneCamera.transform.GetRight();
-						const CU::Vector3f camUpWS = mySceneData.sceneCamera.transform.GetUp();
-
-						const CU::Vector3f position = aTransform.GetTranslation();
-						const CU::Vector3f scale = aTransform.GetScale();
-
-						{
-							TextVertex& vertex = vertexList.emplace_back();
-							vertex.position = position + camRightWS * ((float)pl * 100.0f) * scale.x + camUpWS * ((float)pb * 100.0f) * scale.y;
-							vertex.tint = aSettings.color.GetVector4();
-							vertex.uv = { (float)l, (float)b };
-							vertex.entityID = aEntityID;
-						}
-
-						{
-							TextVertex& vertex = vertexList.emplace_back();
-							vertex.position = position + camRightWS * ((float)pl * 100.0f) * scale.x + camUpWS * ((float)pt * 100.0f) * scale.y;
-							vertex.tint = aSettings.color.GetVector4();
-							vertex.uv = { (float)l, (float)t };
-							vertex.entityID = aEntityID;
-						}
-
-						{
-							TextVertex& vertex = vertexList.emplace_back();
-							vertex.position = position + camRightWS * ((float)pr * 100.0f) * scale.x + camUpWS * ((float)pt * 100.0f) * scale.y;
-							vertex.tint = aSettings.color.GetVector4();
-							vertex.uv = { (float)r, (float)t };
-							vertex.entityID = aEntityID;
-						}
-
-						{
-							TextVertex& vertex = vertexList.emplace_back();
-							vertex.position = position + camRightWS * ((float)pr * 100.0f) * scale.x + camUpWS * ((float)pb * 100.0f) * scale.y;
-							vertex.tint = aSettings.color.GetVector4();
-							vertex.uv = { (float)r, (float)b };
-							vertex.entityID = aEntityID;
-						}
-					}
-					else
-					{
-						{
-							TextVertex& vertex = vertexList.emplace_back();
-							vertex.position = aTransform * CU::Vector4f((float)pl * 100.0f, (float)pb * 100.0f, 0.0f, 1.0f);
-							vertex.tint = aSettings.color.GetVector4();
-							vertex.uv = { (float)l, (float)b };
-							vertex.entityID = aEntityID;
-						}
-
-						{
-							TextVertex& vertex = vertexList.emplace_back();
-							vertex.position = aTransform * CU::Vector4f((float)pl * 100.0f, (float)pt * 100.0f, 0.0f, 1.0f);
-							vertex.tint = aSettings.color.GetVector4();
-							vertex.uv = { (float)l, (float)t };
-							vertex.entityID = aEntityID;
-						}
-
-						{
-							TextVertex& vertex = vertexList.emplace_back();
-							vertex.position = aTransform * CU::Vector4f((float)pr * 100.0f, (float)pt * 100.0f, 0.0f, 1.0f);
-							vertex.tint = aSettings.color.GetVector4();
-							vertex.uv = { (float)r, (float)t };
-							vertex.entityID = aEntityID;
-						}
-
-						{
-							TextVertex& vertex = vertexList.emplace_back();
-							vertex.position = aTransform * CU::Vector4f((float)pr * 100.0f, (float)pb * 100.0f, 0.0f, 1.0f);
-							vertex.tint = aSettings.color.GetVector4();
-							vertex.uv = { (float)r, (float)b };
-							vertex.entityID = aEntityID;
-						}
+						TextVertex& vertex = vertexList.emplace_back();
+						vertex.position = position + camRightWS * ((float)pl * 100.0f) * scale.x + camUpWS * ((float)pb * 100.0f) * scale.y;
+						vertex.tint = aSettings.color.GetVector4();
+						vertex.uv = { (float)l, (float)b };
+						vertex.entityID = aEntityID;
 					}
 
-					++myTextQuadCount;
+					{
+						TextVertex& vertex = vertexList.emplace_back();
+						vertex.position = position + camRightWS * ((float)pl * 100.0f) * scale.x + camUpWS * ((float)pt * 100.0f) * scale.y;
+						vertex.tint = aSettings.color.GetVector4();
+						vertex.uv = { (float)l, (float)t };
+						vertex.entityID = aEntityID;
+					}
+
+					{
+						TextVertex& vertex = vertexList.emplace_back();
+						vertex.position = position + camRightWS * ((float)pr * 100.0f) * scale.x + camUpWS * ((float)pt * 100.0f) * scale.y;
+						vertex.tint = aSettings.color.GetVector4();
+						vertex.uv = { (float)r, (float)t };
+						vertex.entityID = aEntityID;
+					}
+
+					{
+						TextVertex& vertex = vertexList.emplace_back();
+						vertex.position = position + camRightWS * ((float)pr * 100.0f) * scale.x + camUpWS * ((float)pb * 100.0f) * scale.y;
+						vertex.tint = aSettings.color.GetVector4();
+						vertex.uv = { (float)r, (float)b };
+						vertex.entityID = aEntityID;
+					}
 				}
+				else
+				{
+					{
+						TextVertex& vertex = vertexList.emplace_back();
+						vertex.position = aTransform * CU::Vector4f((float)pl * 100.0f, (float)pb * 100.0f, 0.0f, 1.0f);
+						vertex.tint = aSettings.color.GetVector4();
+						vertex.uv = { (float)l, (float)b };
+						vertex.entityID = aEntityID;
+					}
+
+					{
+						TextVertex& vertex = vertexList.emplace_back();
+						vertex.position = aTransform * CU::Vector4f((float)pl * 100.0f, (float)pt * 100.0f, 0.0f, 1.0f);
+						vertex.tint = aSettings.color.GetVector4();
+						vertex.uv = { (float)l, (float)t };
+						vertex.entityID = aEntityID;
+					}
+
+					{
+						TextVertex& vertex = vertexList.emplace_back();
+						vertex.position = aTransform * CU::Vector4f((float)pr * 100.0f, (float)pt * 100.0f, 0.0f, 1.0f);
+						vertex.tint = aSettings.color.GetVector4();
+						vertex.uv = { (float)r, (float)t };
+						vertex.entityID = aEntityID;
+					}
+
+					{
+						TextVertex& vertex = vertexList.emplace_back();
+						vertex.position = aTransform * CU::Vector4f((float)pr * 100.0f, (float)pb * 100.0f, 0.0f, 1.0f);
+						vertex.tint = aSettings.color.GetVector4();
+						vertex.uv = { (float)r, (float)b };
+						vertex.entityID = aEntityID;
+					}
+				}
+
+				++myTextQuadCount;
 
 				double advance = glyph->getAdvance();
 				fontGeometry.getAdvance(advance, character, utf32string[i + 1]);
