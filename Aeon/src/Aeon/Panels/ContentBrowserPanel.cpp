@@ -807,8 +807,7 @@ namespace Epoch
 			{
 				if (item->GetType() == ContentBrowserItem::ItemType::Asset)
 				{
-					auto assetItem = std::static_pointer_cast<ContentBrowserAsset>(item);
-					const auto& assetMetadata = assetItem->GetAssetInfo();
+					const auto& assetMetadata = Project::GetEditorAssetManager()->GetMetadata(item->GetID());
 
 					if (myAssetRenamedCallbacks.find(assetMetadata.type) != myAssetRenamedCallbacks.end())
 					{
