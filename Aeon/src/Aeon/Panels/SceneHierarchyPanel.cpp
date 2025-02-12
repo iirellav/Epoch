@@ -263,26 +263,10 @@ namespace Epoch
 		if (!isValid)
 		{
 			ImGui::PushStyleColor(ImGuiCol_Text, aEntity.IsActive() ? Colors::Theme::invalid : Colors::Theme::disabledInvalid);
-			//if (aEntity.IsActive())
-			//{
-			//	ImGui::PushStyleColor(ImGuiCol_Text, Colors::Theme::invalid);
-			//}
-			//else
-			//{
-			//	ImGui::PushStyleColor(ImGuiCol_Text, Colors::Theme::disabledInvalid);
-			//}
 		}
 		else if (isPrefab)
 		{
 			ImGui::PushStyleColor(ImGuiCol_Text, aEntity.IsActive() ? Colors::Theme::blue : Colors::Theme::disabledBlue);
-			//if (aEntity.IsActive())
-			//{
-			//	ImGui::PushStyleColor(ImGuiCol_Text, Colors::Theme::blue);
-			//}
-			//else
-			//{
-			//	ImGui::PushStyleColor(ImGuiCol_Text, Colors::Theme::disabledBlue);
-			//}
 		}
 		else if (!aEntity.IsActive())
 		{
@@ -667,7 +651,7 @@ namespace Epoch
 				}
 			}, EditorResources::TransformIcon);
 
-		//DONE - Multi Edit (Not the overides enabled bool)
+		//DONE - Multi Edit (Not the overrides enabled bool)
 		DrawComponent<VolumeComponent>("Volume", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
 		{
 			{
@@ -1240,9 +1224,6 @@ namespace Epoch
 			{
 				{
 					UI::BeginPropertyGrid();
-
-					static AssetHandle testHandle = 0;
-					UI::Property_MultiAssetReference<AssetType::Mesh, AssetType::Texture>("Test", testHandle, "", { true });
 
 					AssetHandle assetHandle = aFirstComponent.mesh;
 					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<AssetHandle, MeshRendererComponent>([](const MeshRendererComponent& aOther) { return aOther.mesh; }));
