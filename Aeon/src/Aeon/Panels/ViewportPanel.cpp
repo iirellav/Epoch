@@ -23,6 +23,11 @@ namespace Epoch
 			open = true;
 		}
 
+		ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+		mySize = { (uint32_t)viewportPanelSize.x, (uint32_t)viewportPanelSize.y };
+		
+		mySceneRenderer->SetViewportSize(mySize.x, mySize.y);
+
 		myIsVisible = open;
 		if (!open)
 		{
@@ -40,11 +45,6 @@ namespace Epoch
 		myIsHovered = ImGui::IsWindowHovered();
 		myIsFocused = ImGui::IsWindowFocused();
 		myAllowEditorCameraMovement = (ImGui::IsMouseHoveringRect(myBounds.min, myBounds.max) && myIsFocused) || myStartedCameraClickInPanel;
-
-		ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-		mySize = { (uint32_t)viewportPanelSize.x, (uint32_t)viewportPanelSize.y };
-		
-		mySceneRenderer->SetViewportSize(mySize.x, mySize.y);
 
 		ImGui::Image((ImTextureID)mySceneRenderer->GetFinalPassTexture()->GetView(), viewportPanelSize);
 

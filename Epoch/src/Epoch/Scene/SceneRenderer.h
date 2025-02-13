@@ -282,6 +282,7 @@ namespace Epoch
 			CU::Vector4f tint;
 			CU::Vector2f uv;
 		};
+
 		std::unordered_map<AssetHandle, std::vector<TextVertex>> myTextVertices;
 		std::unordered_map<AssetHandle, std::shared_ptr<Texture2D>> myFontAtlases;
 		std::shared_ptr<VertexBuffer> myTextVertexBuffer;
