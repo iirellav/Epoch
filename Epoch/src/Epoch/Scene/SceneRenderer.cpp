@@ -120,17 +120,20 @@ namespace Epoch
 			{ ShaderDataType::Float4,	"BONEWEIGHTS" }
 		};
 
-		myCameraBuffer = ConstantBuffer::Create(sizeof(CameraBuffer));
-		myObjectBuffer = ConstantBuffer::Create(sizeof(ObjectBuffer));
-		myMaterialBuffer = ConstantBuffer::Create(sizeof(Material::Data));
-		myBoneBuffer = ConstantBuffer::Create(sizeof(BoneBuffer));
-		myLightBuffer = ConstantBuffer::Create(sizeof(LightBuffer));
-		myPointLightBuffer = ConstantBuffer::Create(sizeof(PointLight) - sizeof(std::shared_ptr<Texture2D>));
-		mySpotlightBuffer = ConstantBuffer::Create(sizeof(Spotlight) - sizeof(std::shared_ptr<Texture2D>));
-		myDebugDrawModeBuffer = ConstantBuffer::Create(sizeof(CU::Vector4f));
-		myPostProcessingBuffer = ConstantBuffer::Create(sizeof(PostProcessingData::BufferData));
+		//Constant and Instanced Buffers
+		{
+			myCameraBuffer = ConstantBuffer::Create(sizeof(CameraBuffer));
+			myObjectBuffer = ConstantBuffer::Create(sizeof(ObjectBuffer));
+			myMaterialBuffer = ConstantBuffer::Create(sizeof(Material::Data));
+			myBoneBuffer = ConstantBuffer::Create(sizeof(BoneBuffer));
+			myLightBuffer = ConstantBuffer::Create(sizeof(LightBuffer));
+			myPointLightBuffer = ConstantBuffer::Create(sizeof(PointLight) - sizeof(std::shared_ptr<Texture2D>));
+			mySpotlightBuffer = ConstantBuffer::Create(sizeof(Spotlight) - sizeof(std::shared_ptr<Texture2D>));
+			myDebugDrawModeBuffer = ConstantBuffer::Create(sizeof(CU::Vector4f));
+			myPostProcessingBuffer = ConstantBuffer::Create(sizeof(PostProcessingData::BufferData));
 
-		myInstanceTransformBuffer = VertexBuffer::Create(MaxInstanceCount, sizeof(MeshInstanceData));
+			myInstanceTransformBuffer = VertexBuffer::Create(MaxInstanceCount, sizeof(MeshInstanceData));
+		}
 
 		//GBuffer
 		{
