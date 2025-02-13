@@ -68,7 +68,7 @@ namespace Epoch
 		}
 
 		myRuntimeScene->OnUpdateRuntime();
-		myRuntimeScene->OnRenderRuntime(mySceneRenderer);
+		myRuntimeScene->OnRenderGame(mySceneRenderer);
 
 
 		//Render (copy scene texture to back buffer)

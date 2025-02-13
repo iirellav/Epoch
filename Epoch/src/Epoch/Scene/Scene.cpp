@@ -495,7 +495,7 @@ namespace Epoch
 		}
 	}
 
-	void Scene::OnRenderRuntime(std::shared_ptr<SceneRenderer> aRenderer)
+	void Scene::OnRenderGame(std::shared_ptr<SceneRenderer> aRenderer)
 	{
 		Entity cameraEntity = GetPrimaryCameraEntity();
 		if (!cameraEntity) return;
@@ -521,7 +521,7 @@ namespace Epoch
 		RenderScene(aRenderer, renderCamera, renderCamera, true);
 	}
 
-	void Scene::OnRenderEditor(std::shared_ptr<SceneRenderer> aRenderer, EditorCamera& aCamera, bool aCullWithEditorCamera, bool aWithPostProccessing)
+	void Scene::OnRenderEditor(std::shared_ptr<SceneRenderer> aRenderer, EditorCamera& aCamera, bool aCullWithGameCamera, bool aWithPostProccessing)
 	{
 		const SceneRendererCamera renderCamera
 		(
@@ -534,35 +534,43 @@ namespace Epoch
 			aCamera.GetFOV(),
 			aCamera.GetAspectRatio()
 		);
+		SceneRendererCamera cullingCamera;
 
-		Entity cameraEntity = GetPrimaryCameraEntity();
 
-		if (aCullWithEditorCamera || !cameraEntity)
+		if (aCullWithGameCamera)
 		{
-			RenderScene(aRenderer, renderCamera, renderCamera, false, aWithPostProccessing);
+			Entity cameraEntity = GetPrimaryCameraEntity();
+			if (cameraEntity)
+			{
+				CU::Transform worldTrans = GetWorldSpaceTransform(cameraEntity);
+				const CU::Matrix4x4f cameraTransformMatrix = worldTrans.GetMatrix();
+				const CU::Matrix4x4f cameraViewMatrix = cameraTransformMatrix.GetFastInverse();
+				SceneCamera& camera = cameraEntity.GetComponent<CameraComponent>().camera;
+				camera.SetViewportSize(myViewportWidth, myViewportHeight);
+
+				cullingCamera = SceneRendererCamera
+				(
+					(Camera)camera,
+					worldTrans.GetTranslation(),
+					cameraTransformMatrix,
+					cameraViewMatrix,
+					camera.GetPerspectiveNearPlane(),
+					camera.GetPerspectiveFarPlane(),
+					camera.GetPerspectiveFOV(),
+					camera.GetAspectRatio()
+				);
+			}
+			else
+			{
+				cullingCamera = renderCamera;
+			}
 		}
 		else
 		{
-			CU::Transform worldTrans = GetWorldSpaceTransform(cameraEntity);
-			const CU::Matrix4x4f cameraTransformMatrix = worldTrans.GetMatrix();
-			const CU::Matrix4x4f cameraViewMatrix = cameraTransformMatrix.GetFastInverse();
-			SceneCamera& camera = cameraEntity.GetComponent<CameraComponent>().camera;
-			camera.SetViewportSize(myViewportWidth, myViewportHeight);
-
-			const SceneRendererCamera cullingCamera
-			(
-				(Camera)camera,
-				worldTrans.GetTranslation(),
-				cameraTransformMatrix,
-				cameraViewMatrix,
-				camera.GetPerspectiveNearPlane(),
-				camera.GetPerspectiveFarPlane(),
-				camera.GetPerspectiveFOV(),
-				camera.GetAspectRatio()
-			);
-
-			RenderScene(aRenderer, renderCamera, cullingCamera, false, aWithPostProccessing);
+			cullingCamera = renderCamera;
 		}
+		
+		RenderScene(aRenderer, renderCamera, renderCamera, false, aWithPostProccessing);
 	}
 
 	void Scene::OnSceneTransition(AssetHandle aScene)
@@ -1195,7 +1203,7 @@ namespace Epoch
 		outBoneTransforms[aBoneIndex] = bone.invBindPose * matrix;
 	}
 
-	void Scene::RenderScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aRenderCamera, const SceneRendererCamera& aCullingCamera, bool aIsRuntime, bool aWithPostProccessing)
+	void Scene::RenderScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aRenderCamera, const SceneRendererCamera& aCullingCamera, bool aIsGameView, bool aWithPostProccessing)
 	{
 		EPOCH_PROFILE_FUNC();
 
@@ -1537,7 +1545,7 @@ namespace Epoch
 
 		aRenderer->EndScene();
 
-		if (aIsRuntime && myIsPlaying)
+		if (aIsGameView && myIsPlaying)
 		{
 			EPOCH_PROFILE_SCOPE("Scene::RenderScene::OnFrustumEnter/Exit");
 

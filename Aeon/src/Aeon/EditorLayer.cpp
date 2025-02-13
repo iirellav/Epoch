@@ -262,7 +262,7 @@ namespace Epoch
 			auto sceneRenderer = myGameViewport->GetSceneRenderer();
 
 			sceneRenderer->SetScene(myActiveScene);
-			myActiveScene->OnRenderRuntime(sceneRenderer);
+			myActiveScene->OnRenderGame(sceneRenderer);
 		}
 
 		switch (mySceneState)
