@@ -501,8 +501,8 @@ namespace Epoch
 		if (!cameraEntity) return;
 		if (myViewportWidth == 0 || myViewportHeight == 0) return;
 
-		CU::Transform worlTrans = GetWorldSpaceTransform(cameraEntity);
-		const CU::Matrix4x4f cameraTransformMatrix = worlTrans.GetMatrix();
+		CU::Transform worldTrans = GetWorldSpaceTransform(cameraEntity);
+		const CU::Matrix4x4f cameraTransformMatrix = worldTrans.GetMatrix();
 		const CU::Matrix4x4f cameraViewMatrix = cameraTransformMatrix.GetFastInverse();
 		SceneCamera& camera = cameraEntity.GetComponent<CameraComponent>().camera;
 		camera.SetViewportSize(myViewportWidth, myViewportHeight);
@@ -510,7 +510,7 @@ namespace Epoch
 		const SceneRendererCamera renderCamera
 		(
 			(Camera)camera,
-			worlTrans.GetTranslation(),
+			worldTrans.GetTranslation(),
 			cameraTransformMatrix,
 			cameraViewMatrix,
 			camera.GetPerspectiveNearPlane(),
@@ -543,8 +543,8 @@ namespace Epoch
 		}
 		else
 		{
-			CU::Transform worlTrans = GetWorldSpaceTransform(cameraEntity);
-			const CU::Matrix4x4f cameraTransformMatrix = worlTrans.GetMatrix();
+			CU::Transform worldTrans = GetWorldSpaceTransform(cameraEntity);
+			const CU::Matrix4x4f cameraTransformMatrix = worldTrans.GetMatrix();
 			const CU::Matrix4x4f cameraViewMatrix = cameraTransformMatrix.GetFastInverse();
 			SceneCamera& camera = cameraEntity.GetComponent<CameraComponent>().camera;
 			camera.SetViewportSize(myViewportWidth, myViewportHeight);
@@ -552,7 +552,7 @@ namespace Epoch
 			const SceneRendererCamera cullingCamera
 			(
 				(Camera)camera,
-				worlTrans.GetTranslation(),
+				worldTrans.GetTranslation(),
 				cameraTransformMatrix,
 				cameraViewMatrix,
 				camera.GetPerspectiveNearPlane(),
@@ -1537,7 +1537,7 @@ namespace Epoch
 
 		aRenderer->EndScene();
 
-		if (aIsRuntime)
+		if (aIsRuntime && myIsPlaying)
 		{
 			EPOCH_PROFILE_SCOPE("Scene::RenderScene::OnFrustumEnter/Exit");
 
