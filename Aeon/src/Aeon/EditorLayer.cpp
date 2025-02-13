@@ -1045,7 +1045,7 @@ namespace Epoch
 
 				if (entity.HasComponent<CameraComponent>())
 				{
-					const CU::Vector2f viewportSize = mySceneViewport->MaxBounds() - mySceneViewport->MinBounds();
+					const CU::Vector2f viewportSize = myGameViewport->MaxBounds() - myGameViewport->MinBounds();
 					auto& cc = entity.GetComponent<CameraComponent>();
 					cc.camera.SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
 
