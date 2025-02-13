@@ -590,15 +590,14 @@ namespace Epoch
 		lineList.indexCount = (uint32_t)lineList.indices.size();
 	}
 
-	//NOTE: Not working
 	void DebugRenderer::DrawFrustum(const CU::Matrix4x4f& aView, const CU::Matrix4x4f& aProj, const CU::Color aColor)
 	{
 		const auto corners = Frustum::GetCorners(aView, aProj);
 		
-		for (const CU::Vector4f& corner : corners)
-		{
-			DrawWireSphere(corner, CU::Vector3f::Zero, 12.5f, aColor);
-		}
+		//for (const CU::Vector4f& corner : corners)
+		//{
+		//	DrawWireSphere(corner, CU::Vector3f::Zero, 12.5f, aColor);
+		//}
 
 		DrawLine(corners[5], corners[6], aColor);
 		DrawLine(corners[6], corners[7], aColor);
