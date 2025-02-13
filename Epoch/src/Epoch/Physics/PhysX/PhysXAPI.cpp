@@ -13,10 +13,12 @@ namespace Epoch
 
 		myFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, myDefaultAllocator, myDefaultErrorCallback);
 	
-		myTolerancesScale.length = 1;
+		myTolerancesScale.length = 100;
 		myTolerancesScale.speed = 982;
-
+		
+#ifndef _DIST
 		myPVD = physx::PxCreatePvd(*myFoundation);
+#endif
 
 		myPhysicsSystem = PxCreatePhysics(PX_PHYSICS_VERSION, *myFoundation, myTolerancesScale, true, myPVD);
 
@@ -61,16 +63,30 @@ namespace Epoch
 
 	void PhysXAPI::ConnectPVD()
 	{
+#ifndef _DIST
+		if (!myPVD || myPVD->isConnected())
+		{
+			return;
+		}
+
 		physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate("127.0.0.1", 5425, 10);
 		if (!myPVD->connect(*transport, physx::PxPvdInstrumentationFlag::eALL))
 		{
 			LOG_WARNING("Failed to connect to PhysX visual debugger");
 		}
+#endif
 	}
 
 	void PhysXAPI::DisconnectPVD()
 	{
+#ifndef _DIST
+		if (!myPVD || !myPVD->isConnected())
+		{
+			return;
+		}
+
 		myPVD->disconnect();
+#endif
 	}
 
 	void PhysXAPI::InitControllerManager(PhysXScene* aScene)
@@ -86,10 +102,6 @@ namespace Epoch
 
 	void PhysXAPI::ClearMaterials()
 	{
-		for (auto [handle, mat] : myMaterialMap)
-		{
-			mat->release();
-		}
 		myMaterialMap.clear();
 	}
 }
