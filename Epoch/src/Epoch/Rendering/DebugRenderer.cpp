@@ -180,9 +180,9 @@ namespace Epoch
 
 			uint32_t vxOffset = 0;
 			uint32_t ixOffset = 0;
-			for (size_t i = 0; i < myFrames.size(); i++)
+			for (size_t i = 0; i < myLineLists.size(); i++)
 			{
-				const Frame& frame = myFrames[i];
+				const LineList& frame = myLineLists[i];
 
 				if (vxOffset + frame.vertexCount >= MaxLineVertices || ixOffset + frame.indexCount >= MaxLineIndices)
 				{
@@ -264,7 +264,7 @@ namespace Epoch
 			myStats.indices += myQuadCount * 6;
 		}
 
-		myFrames.clear();
+		myLineLists.clear();
 
 		myQuadVertices.clear();
 		myQuadCount = 0;
@@ -290,21 +290,21 @@ namespace Epoch
 
 	void DebugRenderer::DrawLine(const CU::Vector3f& aP0, const CU::Vector3f& aP1, CU::Color aColor)
 	{
-		auto& frame = myFrames.emplace_back();
+		auto& lineList = myLineLists.emplace_back();
 
-		frame.vertices.push_back({ aP0, aColor });
-		frame.vertices.push_back({ aP1, aColor });
+		lineList.vertices.push_back({ aP0, aColor });
+		lineList.vertices.push_back({ aP1, aColor });
 
-		frame.indices.push_back(0);
-		frame.indices.push_back(1);
+		lineList.indices.push_back(0);
+		lineList.indices.push_back(1);
 
-		frame.vertexCount = (uint32_t)frame.vertices.size();
-		frame.indexCount = (uint32_t)frame.indices.size();
+		lineList.vertexCount = (uint32_t)lineList.vertices.size();
+		lineList.indexCount = (uint32_t)lineList.indices.size();
 	}
 
 	void DebugRenderer::DrawCircle(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, float aRadius, const CU::Color aColor)
 	{
-		auto& frame = myFrames.emplace_back();
+		auto& lineList = myLineLists.emplace_back();
 
 		CU::Matrix4x4f trans = CU::Transform(aPosition, aRotation).GetMatrix();
 
@@ -318,84 +318,84 @@ namespace Epoch
 			pos.x = aRadius * cosf(finalSegRotationAngle);
 			pos.y = aRadius * sinf(finalSegRotationAngle);
 
-			frame.vertices.push_back({ trans * CU::Vector4f(pos, 1.0f), aColor });
+			lineList.vertices.push_back({ trans * CU::Vector4f(pos, 1.0f), aColor });
 		}
 
 		for (int i = 0; i < vertexCount - 1; i++)
 		{
-			frame.indices.push_back(i);
-			frame.indices.push_back(i + 1);
+			lineList.indices.push_back(i);
+			lineList.indices.push_back(i + 1);
 		}
 
-		frame.indices.push_back(vertexCount - 1);
-		frame.indices.push_back(0);
+		lineList.indices.push_back(vertexCount - 1);
+		lineList.indices.push_back(0);
 
-		frame.vertexCount = (uint32_t)frame.vertices.size();
-		frame.indexCount = (uint32_t)frame.indices.size();
+		lineList.vertexCount = (uint32_t)lineList.vertices.size();
+		lineList.indexCount = (uint32_t)lineList.indices.size();
 	}
 
 	void DebugRenderer::DrawWireBox(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, const CU::Vector3f& aExtent, const CU::Color aColor)
 	{
-		auto& frame = myFrames.emplace_back();
+		auto& lineList = myLineLists.emplace_back();
 
 		CU::Matrix4x4f trans = CU::Transform(aPosition, aRotation, aExtent).GetMatrix();
 
-		frame.vertices.push_back({ { trans * CU::Vector4f(-1.0f,1.0f,1.0f, 1.0f) }, aColor });
-		frame.vertices.push_back({ { trans * CU::Vector4f(1.0f,1.0f,1.0f, 1.0f) }, aColor });
-		frame.vertices.push_back({ { trans * CU::Vector4f(1.0f,1.0f, -1.0f, 1.0f) }, aColor });
-		frame.vertices.push_back({ { trans * CU::Vector4f(-1.0f,1.0f, -1.0f, 1.0f) }, aColor });
+		lineList.vertices.push_back({ { trans * CU::Vector4f(-1.0f,1.0f,1.0f, 1.0f) }, aColor });
+		lineList.vertices.push_back({ { trans * CU::Vector4f(1.0f,1.0f,1.0f, 1.0f) }, aColor });
+		lineList.vertices.push_back({ { trans * CU::Vector4f(1.0f,1.0f, -1.0f, 1.0f) }, aColor });
+		lineList.vertices.push_back({ { trans * CU::Vector4f(-1.0f,1.0f, -1.0f, 1.0f) }, aColor });
 
-		frame.vertices.push_back({ { trans * CU::Vector4f(-1.0f, -1.0f,1.0f, 1.0f) }, aColor });
-		frame.vertices.push_back({ { trans * CU::Vector4f(1.0f, -1.0f,1.0f, 1.0f) }, aColor });
-		frame.vertices.push_back({ { trans * CU::Vector4f(1.0f, -1.0f, -1.0f, 1.0f) }, aColor });
-		frame.vertices.push_back({ { trans * CU::Vector4f(-1.0f, -1.0f, -1.0f, 1.0f) }, aColor });
-
-
-		frame.indices.push_back(0);
-		frame.indices.push_back(1);
-
-		frame.indices.push_back(1);
-		frame.indices.push_back(2);
-
-		frame.indices.push_back(2);
-		frame.indices.push_back(3);
-
-		frame.indices.push_back(3);
-		frame.indices.push_back(0);
+		lineList.vertices.push_back({ { trans * CU::Vector4f(-1.0f, -1.0f,1.0f, 1.0f) }, aColor });
+		lineList.vertices.push_back({ { trans * CU::Vector4f(1.0f, -1.0f,1.0f, 1.0f) }, aColor });
+		lineList.vertices.push_back({ { trans * CU::Vector4f(1.0f, -1.0f, -1.0f, 1.0f) }, aColor });
+		lineList.vertices.push_back({ { trans * CU::Vector4f(-1.0f, -1.0f, -1.0f, 1.0f) }, aColor });
 
 
-		frame.indices.push_back(4);
-		frame.indices.push_back(5);
+		lineList.indices.push_back(0);
+		lineList.indices.push_back(1);
 
-		frame.indices.push_back(5);
-		frame.indices.push_back(6);
+		lineList.indices.push_back(1);
+		lineList.indices.push_back(2);
 
-		frame.indices.push_back(6);
-		frame.indices.push_back(7);
+		lineList.indices.push_back(2);
+		lineList.indices.push_back(3);
 
-		frame.indices.push_back(7);
-		frame.indices.push_back(4);
+		lineList.indices.push_back(3);
+		lineList.indices.push_back(0);
 
 
-		frame.indices.push_back(0);
-		frame.indices.push_back(4);
+		lineList.indices.push_back(4);
+		lineList.indices.push_back(5);
 
-		frame.indices.push_back(1);
-		frame.indices.push_back(5);
+		lineList.indices.push_back(5);
+		lineList.indices.push_back(6);
 
-		frame.indices.push_back(2);
-		frame.indices.push_back(6);
+		lineList.indices.push_back(6);
+		lineList.indices.push_back(7);
 
-		frame.indices.push_back(3);
-		frame.indices.push_back(7);
+		lineList.indices.push_back(7);
+		lineList.indices.push_back(4);
 
-		frame.vertexCount = (uint32_t)frame.vertices.size();
-		frame.indexCount = (uint32_t)frame.indices.size();
+
+		lineList.indices.push_back(0);
+		lineList.indices.push_back(4);
+
+		lineList.indices.push_back(1);
+		lineList.indices.push_back(5);
+
+		lineList.indices.push_back(2);
+		lineList.indices.push_back(6);
+
+		lineList.indices.push_back(3);
+		lineList.indices.push_back(7);
+
+		lineList.vertexCount = (uint32_t)lineList.vertices.size();
+		lineList.indexCount = (uint32_t)lineList.indices.size();
 	}
 
 	void DebugRenderer::DrawWireSphere(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, float aRadius, const CU::Color aColor)
 	{
-		auto& frame = myFrames.emplace_back();
+		auto& lineList = myLineLists.emplace_back();
 
 		const CU::Matrix3x3f rotationMatrix = CU::Quatf(aRotation).GetRotationMatrix3x3();
 		CU::Vector3f pos;
@@ -429,26 +429,26 @@ namespace Epoch
 				pos.x = aRadius * cosf(finalSegRotationAngle);
 				pos.y = aRadius * sinf(finalSegRotationAngle);
 
-				frame.vertices.push_back({ trans * (rotationOffsetMatrix * CU::Vector4f(pos, 1.0f)), aColor });
+				lineList.vertices.push_back({ trans * (rotationOffsetMatrix * CU::Vector4f(pos, 1.0f)), aColor });
 			}
 
 			for (int j = 0; j < vertexCount - 1; j++)
 			{
-				frame.indices.push_back(vertexCount * i + j);
-				frame.indices.push_back(vertexCount * i + j + 1);
+				lineList.indices.push_back(vertexCount * i + j);
+				lineList.indices.push_back(vertexCount * i + j + 1);
 			}
 
-			frame.indices.push_back(vertexCount * i + vertexCount - 1);
-			frame.indices.push_back(vertexCount * i + 0);
+			lineList.indices.push_back(vertexCount * i + vertexCount - 1);
+			lineList.indices.push_back(vertexCount * i + 0);
 		}
 
-		frame.vertexCount = (uint32_t)frame.vertices.size();
-		frame.indexCount = (uint32_t)frame.indices.size();
+		lineList.vertexCount = (uint32_t)lineList.vertices.size();
+		lineList.indexCount = (uint32_t)lineList.indices.size();
 	}
 
 	void DebugRenderer::DrawWireCapsule(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, float aRadius, float aHeight, const CU::Color aColor)
 	{
-		Frame frame;
+		LineList lineList;
 
 		const CU::Matrix3x3f rotationMatrix = CU::Quatf(aRotation).GetRotationMatrix3x3();
 		const CU::Vector3f circleRotation = CU::Quatf(CU::Quatf(CU::Math::DegToRad(90.0f), 0.0f, 0.0f).GetRotationMatrix3x3() * rotationMatrix).GetEulerAngles();
@@ -479,13 +479,13 @@ namespace Epoch
 				pos.x = aRadius * cosf(finalSegRotationAngle);
 				pos.y = aRadius * sinf(finalSegRotationAngle);
 
-				frame.vertices.push_back({ trans * (rotationOffsetMatrix * CU::Vector4f(pos + posOffset, 1.0f)), aColor });
+				lineList.vertices.push_back({ trans * (rotationOffsetMatrix * CU::Vector4f(pos + posOffset, 1.0f)), aColor });
 			}
 
 			for (int j = 0; j < 17 - 1; j++)
 			{
-				frame.indices.push_back(17 * i + j);
-				frame.indices.push_back(17 * i + j + 1);
+				lineList.indices.push_back(17 * i + j);
+				lineList.indices.push_back(17 * i + j + 1);
 			}
 		}
 
@@ -515,40 +515,40 @@ namespace Epoch
 				pos.x = aRadius * cosf(finalSegRotationAngle);
 				pos.y = aRadius * sinf(finalSegRotationAngle);
 
-				frame.vertices.push_back({ trans * (rotationOffsetMatrix * CU::Vector4f(pos + posOffset, 1.0f)), aColor });
+				lineList.vertices.push_back({ trans * (rotationOffsetMatrix * CU::Vector4f(pos + posOffset, 1.0f)), aColor });
 			}
 
 			for (int j = 0; j < 17 - 1; j++)
 			{
-				frame.indices.push_back(17 * i + j);
-				frame.indices.push_back(17 * i + j + 1);
+				lineList.indices.push_back(17 * i + j);
+				lineList.indices.push_back(17 * i + j + 1);
 			}
 		}
 
 		circlePos = aPosition + rotationMatrix * posOffset;
 		DrawCircle(circlePos, circleRotation, aRadius, aColor);
 
-		frame.indices.push_back(0);
-		frame.indices.push_back(50);
+		lineList.indices.push_back(0);
+		lineList.indices.push_back(50);
 
-		frame.indices.push_back(17);
-		frame.indices.push_back(67);
+		lineList.indices.push_back(17);
+		lineList.indices.push_back(67);
 
-		frame.indices.push_back(33);
-		frame.indices.push_back(51);
+		lineList.indices.push_back(33);
+		lineList.indices.push_back(51);
 
-		frame.indices.push_back(16);
-		frame.indices.push_back(34);
+		lineList.indices.push_back(16);
+		lineList.indices.push_back(34);
 
-		frame.vertexCount = (uint32_t)frame.vertices.size();
-		frame.indexCount = (uint32_t)frame.indices.size();
+		lineList.vertexCount = (uint32_t)lineList.vertices.size();
+		lineList.indexCount = (uint32_t)lineList.indices.size();
 
-		myFrames.push_back(frame);
+		myLineLists.push_back(lineList);
 	}
 
 	void DebugRenderer::DrawWireCone(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, float aAngle, float aRange, const CU::Color aColor)
 	{
-		auto& frame = myFrames.emplace_back();
+		auto& lineList = myLineLists.emplace_back();
 
 		CU::Matrix4x4f trans = CU::Transform(aPosition, aRotation).GetMatrix();
 
@@ -566,28 +566,28 @@ namespace Epoch
 
 			pos.z = aRange;
 
-			frame.vertices.push_back({ trans * CU::Vector4f(pos, 1.0f), aColor });
+			lineList.vertices.push_back({ trans * CU::Vector4f(pos, 1.0f), aColor });
 		}
 
 		for (int i = 0; i < vertexCount - 1; i++)
 		{
-			frame.indices.push_back(i);
-			frame.indices.push_back(i + 1);
+			lineList.indices.push_back(i);
+			lineList.indices.push_back(i + 1);
 		}
 
-		frame.indices.push_back(vertexCount - 1);
-		frame.indices.push_back(0);
+		lineList.indices.push_back(vertexCount - 1);
+		lineList.indices.push_back(0);
 
 		for (int i = 0; i < 4; i++)
 		{
-			frame.vertices.push_back({ trans * CU::Vector4f(0, 0, 0, 1.0f), aColor });
+			lineList.vertices.push_back({ trans * CU::Vector4f(0, 0, 0, 1.0f), aColor });
 
-			frame.indices.push_back(vertexCount);
-			frame.indices.push_back(vertexCount / 4 * i);
+			lineList.indices.push_back(vertexCount);
+			lineList.indices.push_back(vertexCount / 4 * i);
 		}
 
-		frame.vertexCount = (uint32_t)frame.vertices.size();
-		frame.indexCount = (uint32_t)frame.indices.size();
+		lineList.vertexCount = (uint32_t)lineList.vertices.size();
+		lineList.indexCount = (uint32_t)lineList.indices.size();
 	}
 
 	//NOTE: Not working

@@ -81,21 +81,16 @@ namespace Epoch
 			CU::Color color;
 		};
 
-		struct Frame
+		struct LineList
 		{
 			std::vector<LineVertex> vertices;
 			std::vector<uint32_t> indices;
 
 			uint32_t vertexCount = 0;
 			uint32_t indexCount = 0;
-
-			//uint32_t baseVertex = 0;
-			//uint32_t baseIndex = 0;
-			//uint32_t vertexCount = 0;
-			//uint32_t indexCount = 0;
 		};
 
-		std::vector<Frame> myFrames;
+		std::vector<LineList> myLineLists;
 
 		std::vector<LineVertex> myVertices;
 		std::vector<uint32_t> myIndices;
