@@ -58,7 +58,7 @@ namespace CU
 		static Matrix4x4<T> LookAt(const Vector3<T>& aPosition, const Vector3<T>& aTarget, const Vector3<T>& aUp = Vector3<T>::Up);
 
 		static Matrix4x4<T> CreatePerspectiveProjection(float aFOV, float aNearPlane, float aFarPlane, float aAspectRatio);
-		static Matrix4x4<T> CreateOrthographicProjection(float aLeftPlane, float aRightPlane, float aBottomPlane, float aTopPlane, float aNearPlane, float aFarPlane);
+		static Matrix4x4<T> CreateOrthographicProjection(float aLeftPlane, float aRightPlane, float aBottomPlane, float aTopPlane, float aNearPlane = (T)0, float aFarPlane = (T)1);
 
 		static Matrix4x4<T> CreateScaleMatrix(const Vector3<T>& aScale);
 		static Matrix4x4<T> CreateRotationMatrix(const Vector3<T>& aRight, const Vector3<T>& aUp, const Vector3<T>& aForward);
