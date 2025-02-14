@@ -1322,17 +1322,41 @@ namespace Epoch
 					ImGui::PopItemFlag();
 
 					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector4f, SpriteRendererComponent>([](const SpriteRendererComponent& aOther) { return aOther.tint.GetVector4(); }));
-					UI::Property_ColorEdit4("Tint", aFirstComponent.tint);
+					if (UI::Property_ColorEdit4("Tint", aFirstComponent.tint))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& src = entity.GetComponent<SpriteRendererComponent>();
+							src.tint = aFirstComponent.tint;
+						}
+					}
 					ImGui::PopItemFlag();
 
 					UI::BeginCheckboxGroup("Flip");
 					
 					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<bool, SpriteRendererComponent>([](const SpriteRendererComponent& aOther) { return aOther.flipX; }));
-					UI::Property_GroupCheckbox("X", aFirstComponent.flipX);
+					if (UI::Property_GroupCheckbox("X", aFirstComponent.flipX))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& src = entity.GetComponent<SpriteRendererComponent>();
+							src.flipX = aFirstComponent.flipX;
+						}
+					}
 					ImGui::PopItemFlag();
 					
 					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<bool, SpriteRendererComponent>([](const SpriteRendererComponent& aOther) { return aOther.flipY; }));
-					UI::Property_GroupCheckbox("Y", aFirstComponent.flipY);
+					if (UI::Property_GroupCheckbox("Y", aFirstComponent.flipY))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& src = entity.GetComponent<SpriteRendererComponent>();
+							src.flipY = aFirstComponent.flipY;
+						}
+					}
 					ImGui::PopItemFlag();
 
 					UI::EndCheckboxGroup();
@@ -1400,6 +1424,93 @@ namespace Epoch
 					UI::EndPropertyGrid();
 				}
 			}, EditorResources::TextRendererIcon);
+
+		//DONE - Multi Edit
+		DrawComponent<ImageComponent>("Image", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
+			{
+				{
+					UI::BeginPropertyGrid();
+
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector2f, ImageComponent>([](const ImageComponent& aOther) { return aOther.pivot; }));
+					if (UI::Property_DragFloat2("Pivot", aFirstComponent.pivot, 0.02f, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& ic = entity.GetComponent<ImageComponent>();
+							ic.pivot = aFirstComponent.pivot;
+						}
+					}
+					ImGui::PopItemFlag();
+					
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector2f, ImageComponent>([](const ImageComponent& aOther) { return aOther.anchor; }));
+					if (UI::Property_DragFloat2("Anchor", aFirstComponent.anchor, 0.02f, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& ic = entity.GetComponent<ImageComponent>();
+							ic.anchor = aFirstComponent.anchor;
+						}
+					}
+					ImGui::PopItemFlag();
+
+					AssetHandle assetHandle = aFirstComponent.texture;
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<AssetHandle, ImageComponent>([](const ImageComponent& aOther) { return aOther.texture; }));
+					if (UI::Property_AssetReference<AssetType::Texture>("Sprite", assetHandle))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& ic = entity.GetComponent<ImageComponent>();
+							ic.texture = assetHandle;
+						}
+					}
+					ImGui::PopItemFlag();
+
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector4f, ImageComponent>([](const ImageComponent& aOther) { return aOther.tint.GetVector4(); }));
+					if (UI::Property_ColorEdit4("Tint", aFirstComponent.tint))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& ic = entity.GetComponent<ImageComponent>();
+							ic.tint = aFirstComponent.tint;
+						}
+					}
+					ImGui::PopItemFlag();
+
+					UI::BeginCheckboxGroup("Flip");
+					
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<bool, ImageComponent>([](const ImageComponent& aOther) { return aOther.flipX; }));
+					if (UI::Property_GroupCheckbox("X", aFirstComponent.flipX))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& ic = entity.GetComponent<ImageComponent>();
+							ic.flipX = aFirstComponent.flipX;
+						}
+					}
+					ImGui::PopItemFlag();
+					
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<bool, ImageComponent>([](const ImageComponent& aOther) { return aOther.flipY; }));
+					if (UI::Property_GroupCheckbox("Y", aFirstComponent.flipY))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& ic = entity.GetComponent<ImageComponent>();
+							ic.flipY = aFirstComponent.flipY;
+						}
+					}
+					ImGui::PopItemFlag();
+
+					UI::EndCheckboxGroup();
+
+					UI::EndPropertyGrid();
+				}
+			}, EditorResources::SpriteRendererIcon);
 
 		DrawComponent<SkyLightComponent>("Sky Light", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
 			{
@@ -2151,6 +2262,13 @@ namespace Epoch
 					DisplayAddComponentEntry<TextRendererComponent>("Text Renderer");
 					//DisplayAddComponentEntry<VideoPlayerComponent>("Video Player");
 
+					if (ImGui::BeginMenu("UI"))
+					{
+						DisplayAddComponentEntry<ImageComponent>("Image");
+
+						ImGui::EndMenu();
+					}
+
 					ImGui::EndMenu();
 				}
 
@@ -2179,6 +2297,7 @@ namespace Epoch
 				DisplayAddComponentEntry<CapsuleColliderComponent>("Capsule Collider", aComponentSearchString);
 				DisplayAddComponentEntry<CharacterControllerComponent>("Character Controller", aComponentSearchString);
 				DisplayAddComponentEntry<DirectionalLightComponent>("Directional Light", aComponentSearchString);
+				DisplayAddComponentEntry<ImageComponent>("Image", aComponentSearchString);
 				DisplayAddComponentEntry<MeshRendererComponent>("Mesh Renderer", aComponentSearchString);
 				DisplayAddComponentEntry<ParticleSystemComponent>("Particle System", aComponentSearchString);
 				DisplayAddComponentEntry<PointLightComponent>("Point Light", aComponentSearchString);
@@ -2424,6 +2543,14 @@ namespace Epoch
 				mrc.mesh = Project::GetEditorAssetManager()->GetAssetHandleFromFilePath("Quad - Built-In");
 			}
 
+			ImGui::Separator();
+
+			if (ImGui::MenuItem("Text"))
+			{
+				createdEntity = myContext->CreateEntity("Text");
+				createdEntity.AddComponent<TextRendererComponent>();
+			}
+
 			ImGui::EndMenu();
 		}
 
@@ -2466,16 +2593,25 @@ namespace Epoch
 			}
 		}
 
+		if (ImGui::BeginMenu("UI"))
+		{
+			if (ImGui::MenuItem("Button"))
+			{
+			}
+			
+			if (ImGui::MenuItem("Image"))
+			{
+				createdEntity = myContext->CreateEntity("Image");
+				createdEntity.AddComponent<ImageComponent>();
+			}
+
+			ImGui::EndMenu();
+		}
+
 		if (ImGui::MenuItem("Particle System"))
 		{
 			createdEntity = myContext->CreateEntity("Particle System");
 			createdEntity.AddComponent<ParticleSystemComponent>();
-		}
-
-		if (ImGui::MenuItem("Text"))
-		{
-			createdEntity = myContext->CreateEntity("Text");
-			createdEntity.AddComponent<TextRendererComponent>();
 		}
 
 		if (createdEntity)

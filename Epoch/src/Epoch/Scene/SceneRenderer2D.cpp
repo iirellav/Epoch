@@ -75,9 +75,11 @@ namespace Epoch
 			};
 
 			FramebufferSpecification specs;
-			specs.attachments = { { TextureFormat::RGBA, "Color" } };
-			specs.existingColorAttachments.emplace(0, aTargetBuffer->GetTarget());
+			specs.existingFramebuffer = aTargetBuffer;
+			//specs.attachments = { { TextureFormat::RGBA, "Color" } };
+			//specs.existingColorAttachments.emplace(0, aTargetBuffer->GetTarget());
 			specs.clearColorOnLoad = false;
+			specs.clearDepthOnLoad = false;
 
 			PipelineSpecification pipelineSpecs("Quads");
 			pipelineSpecs.targetFramebuffer = Framebuffer::Create(specs);
@@ -171,26 +173,24 @@ namespace Epoch
 		}
 	}
 	
-	void SceneRenderer2D::SubmitScreenSpaceQuad(const CU::Vector2f aPosition, const CU::Vector2ui aSize, std::shared_ptr<Texture2D> aTexture, const ScreenSpaceQuadSetting& aSettings, uint32_t aEntityID)
+	void SceneRenderer2D::SubmitScreenSpaceQuad(const CU::Vector3f aPosition, const CU::Vector3f aRotation, const CU::Vector2ui aSize, std::shared_ptr<Texture2D> aTexture, const ScreenSpaceQuadSetting& aSettings, uint32_t aEntityID)
 	{
-		//CU::Vector3f rot = { 0.0f, 0.0f, 45.0f * CU::Math::ToRad };
-		//CU::Transform transform = CU::Transform(CU::Vector3f(aPosition.x, aPosition.y, 0.0f), rot, CU::Vector3f::One);
-		CU::Transform transform = CU::Transform(CU::Vector3f(aPosition.x, aPosition.y, 0.0f), CU::Vector3f::Zero, CU::Vector3f::One);
+		CU::Transform transform = CU::Transform(aPosition, aRotation, CU::Vector3f::One);
 		CU::Matrix4x4f transformMatrix = transform.GetMatrix();
 
 		if (!aTexture) aTexture = Renderer::GetWhiteTexture();
 		auto& vertexList = myQuadVertices[aTexture->GetHandle()];
 		myTextures[aTexture->GetHandle()] = aTexture;
 
-		const CU::Vector2f anchorOffset = { myViewportWidth * aSettings.anchor.x, myViewportHeight * aSettings.anchor.y };
+		const CU::Vector4f anchorOffset = { myViewportWidth * aSettings.anchor.x, myViewportHeight * aSettings.anchor.y, 0.0f, 0.0f };
 		const CU::Vector2f size = { (float)aSize.x, (float)aSize.y };
 
 		for (size_t i = 0; i < 4; i++)
 		{
-			const CU::Vector2f vertPos = (myScreenSpaceQuadVertexPositions[i] - aSettings.pivot) * size + anchorOffset;
+			const CU::Vector2f vertPos = (myScreenSpaceQuadVertexPositions[i] - aSettings.pivot) * size;
 
 			QuadVertex& vertex = vertexList.emplace_back();
-			vertex.position = transformMatrix * CU::Vector4f(vertPos.x, vertPos.y, 0.0f, 1.0f);
+			vertex.position = transformMatrix * CU::Vector4f(vertPos.x, vertPos.y, 0.0f, 1.0f) + anchorOffset;
 			vertex.uv = FlipUVCoord(myQuadUVCoords[i], aSettings.flipX, aSettings.flipY);
 			vertex.tint = aSettings.tint.GetVector4();
 			vertex.entityID = aEntityID;

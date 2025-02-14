@@ -266,6 +266,26 @@ namespace Epoch
 
 #pragma endregion
 
+#pragma region UI
+
+	struct ImageComponent
+	{
+		bool isActive = true;
+
+		AssetHandle texture;
+		CU::Color tint = CU::Color::White;
+		bool flipX = false;
+		bool flipY = false;
+
+		CU::Vector2f pivot = CU::Vector2f(0.5f, 0.5f);
+		CU::Vector2f anchor = CU::Vector2f(0.5f, 0.5f);
+
+		ImageComponent() = default;
+		ImageComponent(const ImageComponent&) = default;
+	};
+
+#pragma endregion
+
 #pragma region Physics Components
 	
 	struct RigidbodyComponent
@@ -378,6 +398,7 @@ namespace Epoch
 		TransformComponent, ActiveComponent, RelationshipComponent, PrefabComponent, ScriptComponent,
 		CameraComponent, SkyLightComponent, DirectionalLightComponent, SpotlightComponent, PointLightComponent,
 		MeshRendererComponent, SkinnedMeshRendererComponent, SpriteRendererComponent, VideoPlayerComponent, TextRendererComponent,
+		ImageComponent,
 		RigidbodyComponent, BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent,
 		CharacterControllerComponent, ParticleSystemComponent, VolumeComponent>;
 
@@ -386,6 +407,7 @@ namespace Epoch
 		TransformComponent, ActiveComponent, PrefabComponent, ScriptComponent,
 		CameraComponent, SkyLightComponent, DirectionalLightComponent, SpotlightComponent, PointLightComponent,
 		MeshRendererComponent, SkinnedMeshRendererComponent, SpriteRendererComponent, VideoPlayerComponent, TextRendererComponent,
+		ImageComponent,
 		RigidbodyComponent, BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent,
 		CharacterControllerComponent, ParticleSystemComponent, VolumeComponent>;
 }

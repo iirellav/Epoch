@@ -1206,6 +1206,8 @@ namespace Epoch
 	void Scene::RenderScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aRenderCamera, const SceneRendererCamera& aCullingCamera, bool aIsGameView, bool aWithPostProccessing)
 	{
 		EPOCH_PROFILE_FUNC();
+
+		std::unordered_map<AssetHandle, std::shared_ptr<Asset>> assetAccelerationMap;
 		
 		//3D
 		{
@@ -1217,8 +1219,6 @@ namespace Epoch
 			std::unordered_set<UUID> enteredFrustum;
 			std::unordered_set<UUID> exitedFrustum;
 
-			std::unordered_map<AssetHandle, std::shared_ptr<Asset>> assetAccelerationMap;
-			
 			// Lighting
 			{
 				EPOCH_PROFILE_SCOPE("Scene::RenderScene::UpdateLightEnvironment");
@@ -1614,11 +1614,49 @@ namespace Epoch
 					screenSpaceRenderer->BeginScene(aRenderCamera.camera.GetProjectionMatrix(), aRenderCamera.viewMatrix);
 				}
 
-				screenSpaceRenderer->SubmitScreenSpaceQuad(CU::Vector2f(50.0f, 0.0f), { 100, 100 }, nullptr, { CU::Color::Red, false, false, { 0.5f, 0.5f }, { 0.f, 0.f } });
-				screenSpaceRenderer->SubmitScreenSpaceQuad(CU::Vector2f(0.0f, -50.0f), { 100, 100 }, nullptr, { CU::Color::Blue, false, false, { 0.5f, 0.5f }, { 0.f, 1.f } });
-				screenSpaceRenderer->SubmitScreenSpaceQuad(CU::Vector2f(-50.0f, 0.0f), { 100, 100 }, nullptr, { CU::Color::Green, false, false, { 0.5f, 0.5f }, { 1.f, 1.f } });
-				screenSpaceRenderer->SubmitScreenSpaceQuad(CU::Vector2f(0.0f, 50.0f), { 100, 100 }, nullptr, { CU::Color::Magenta, false, false, { 0.5f, 0.5f }, { 1.f, 0.f } });
-				screenSpaceRenderer->SubmitScreenSpaceQuad(CU::Vector2f(0.0f, 0.0f), { 120, 970 }, nullptr, { CU::Color::Yellow, false, false, { 0.5f, 0.5f }, { 0.5f, 0.5f } });
+				// Submit Images
+				{
+					EPOCH_PROFILE_SCOPE("Scene::RenderScene::SubmitImages");
+
+					auto view = GetAllEntitiesWith<ImageComponent>();
+					for (auto id : view)
+					{
+						Entity entity = Entity(id, this);
+						if (!entity.IsActive()) continue;
+
+						const auto& ic = view.get<ImageComponent>(id);
+						if (!ic.isActive) continue;
+
+						std::shared_ptr<Texture2D> texture;
+						if (auto it = assetAccelerationMap.find(ic.texture); it != assetAccelerationMap.end())
+						{
+							texture = std::static_pointer_cast<Texture2D>(it->second);
+						}
+						else
+						{
+							//texture = AssetManager::GetAssetAsync<Texture2D>(src.texture);
+							texture = AssetManager::GetAsset<Texture2D>(ic.texture); //TODO: Make async
+							assetAccelerationMap[ic.texture] = texture;
+						}
+
+						CU::Transform transform = entity.GetWorldSpaceTransform();
+
+						SceneRenderer2D::ScreenSpaceQuadSetting setting;
+						setting.anchor = ic.anchor;
+						setting.pivot = ic.pivot;
+						setting.flipX = ic.flipX;
+						setting.flipY = ic.flipY;
+						setting.tint = ic.tint;
+
+						screenSpaceRenderer->SubmitScreenSpaceQuad(transform.GetTranslation() * 0.01f, transform.GetRotation(), {100, 100}, texture, setting, (uint32_t)entity);
+					}
+				}
+
+				//screenSpaceRenderer->SubmitScreenSpaceQuad(CU::Vector3f(50.0f, 0.0f, 0.0f), CU::Vector3f::Zero, { 100, 100 }, nullptr, { CU::Color::Red, false, false, { 0.5f, 0.5f }, { 0.f, 0.f } });
+				//screenSpaceRenderer->SubmitScreenSpaceQuad(CU::Vector3f(0.0f, -50.0f, 0.0f), CU::Vector3f::Zero, { 100, 100 }, nullptr, { CU::Color::Blue, false, false, { 0.5f, 0.5f }, { 0.f, 1.f } });
+				//screenSpaceRenderer->SubmitScreenSpaceQuad(CU::Vector3f(-50.0f, 0.0f, 0.0f), CU::Vector3f::Zero, { 100, 100 }, nullptr, { CU::Color::Green, false, false, { 0.5f, 0.5f }, { 1.f, 1.f } });
+				//screenSpaceRenderer->SubmitScreenSpaceQuad(CU::Vector3f(0.0f, 50.0f, 0.0f), CU::Vector3f::Zero, { 100, 100 }, nullptr, { CU::Color::Magenta, false, false, { 0.5f, 0.5f }, { 1.f, 0.f } });
+				//screenSpaceRenderer->SubmitScreenSpaceQuad(CU::Vector3f(0.0f, 0.0f, 0.0f), CU::Vector3f::Zero, { 120, 970 }, nullptr, { CU::Color::Yellow, false, false, { 0.5f, 0.5f }, { 0.5f, 0.5f } });
 
 				screenSpaceRenderer->EndScene();
 			}

@@ -51,7 +51,7 @@ namespace Epoch
 
 		void SubmitQuad(const CU::Matrix4x4f aTransform, std::shared_ptr<Texture2D> aTexture = nullptr, const QuadSetting& aSettings = DefaultQuadSetting, uint32_t aEntityID = 0);
 
-		void SubmitScreenSpaceQuad(const CU::Vector2f aPosition, const CU::Vector2ui aSize, std::shared_ptr<Texture2D> aTexture = nullptr, const ScreenSpaceQuadSetting& aSettings = DefaultScreenSpaceQuadSetting, uint32_t aEntityID = 0);
+		void SubmitScreenSpaceQuad(const CU::Vector3f aPosition, const CU::Vector3f aRotation, const CU::Vector2ui aSize, std::shared_ptr<Texture2D> aTexture = nullptr, const ScreenSpaceQuadSetting& aSettings = DefaultScreenSpaceQuadSetting, uint32_t aEntityID = 0);
 
 	private:
 		void Shutdown();
