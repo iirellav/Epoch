@@ -1,6 +1,6 @@
 #pragma once
 
-#define EPOCH_ENABLE_PROFILING _RUNTIME && !_DIST || !_RUNTIME
+#define EPOCH_ENABLE_PROFILING !_DIST
 
 #if EPOCH_ENABLE_PROFILING
 #include <tracy/Tracy.hpp>
