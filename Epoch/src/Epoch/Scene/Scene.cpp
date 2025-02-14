@@ -1605,7 +1605,14 @@ namespace Epoch
 			auto screenSpaceRenderer = aRenderer->GetScreenSpaceRenderer();
 			if (screenSpaceRenderer)
 			{
-				screenSpaceRenderer->BeginScene(CU::Matrix4x4f::CreateOrthographicProjection(0.0f, (float)myViewportWidth, 0.0f, (float)myViewportHeight, -1.0f, 1.0f), CU::Matrix4x4f::Identity);
+				if (aIsGameView)
+				{
+					screenSpaceRenderer->BeginScene(CU::Matrix4x4f::CreateOrthographicProjection(0.0f, (float)myViewportWidth, 0.0f, (float)myViewportHeight, -1.0f, 1.0f), CU::Matrix4x4f::Identity);
+				}
+				else
+				{
+					screenSpaceRenderer->BeginScene(aRenderCamera.camera.GetProjectionMatrix(), aRenderCamera.viewMatrix);
+				}
 
 				screenSpaceRenderer->SubmitScreenSpaceQuad(CU::Vector2f(50.0f, 0.0f), { 100, 100 }, nullptr, { CU::Color::Red, false, false, { 0.5f, 0.5f }, { 0.f, 0.f } });
 				screenSpaceRenderer->SubmitScreenSpaceQuad(CU::Vector2f(0.0f, -50.0f), { 100, 100 }, nullptr, { CU::Color::Blue, false, false, { 0.5f, 0.5f }, { 0.f, 1.f } });

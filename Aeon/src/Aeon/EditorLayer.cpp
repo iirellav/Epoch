@@ -185,6 +185,14 @@ namespace Epoch
 			sceneRenderer->SetScreenSpaceRenderer(screenSpaceRenderer);
 		}
 
+		//Screen Space Renderer
+		{
+			auto sceneRenderer = mySceneViewport->GetSceneRenderer();
+			std::shared_ptr<SceneRenderer2D> screenSpaceRenderer = std::make_shared<SceneRenderer2D>();
+			screenSpaceRenderer->Init(sceneRenderer->GetExternalCompositingFramebuffer());
+			sceneRenderer->SetScreenSpaceRenderer(screenSpaceRenderer);
+		}
+
 		//Debug Renderer
 		{
 			auto sceneRenderer = mySceneViewport->GetSceneRenderer();
