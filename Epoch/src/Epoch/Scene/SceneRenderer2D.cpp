@@ -173,11 +173,8 @@ namespace Epoch
 		}
 	}
 	
-	void SceneRenderer2D::SubmitScreenSpaceQuad(const CU::Vector3f aPosition, const CU::Vector3f aRotation, const CU::Vector2ui aSize, std::shared_ptr<Texture2D> aTexture, const ScreenSpaceQuadSetting& aSettings, uint32_t aEntityID)
+	void SceneRenderer2D::SubmitScreenSpaceQuad(const CU::Matrix4x4f aTransform, const CU::Vector2ui aSize, std::shared_ptr<Texture2D> aTexture, const ScreenSpaceQuadSetting& aSettings, uint32_t aEntityID)
 	{
-		CU::Transform transform = CU::Transform(aPosition, aRotation, CU::Vector3f::One);
-		CU::Matrix4x4f transformMatrix = transform.GetMatrix();
-
 		if (!aTexture) aTexture = Renderer::GetWhiteTexture();
 		auto& vertexList = myQuadVertices[aTexture->GetHandle()];
 		myTextures[aTexture->GetHandle()] = aTexture;
@@ -190,7 +187,7 @@ namespace Epoch
 			const CU::Vector2f vertPos = (myScreenSpaceQuadVertexPositions[i] - aSettings.pivot) * size;
 
 			QuadVertex& vertex = vertexList.emplace_back();
-			vertex.position = transformMatrix * CU::Vector4f(vertPos.x, vertPos.y, 0.0f, 1.0f) + anchorOffset;
+			vertex.position = aTransform * CU::Vector4f(vertPos.x, vertPos.y, 0.0f, 1.0f) + anchorOffset;
 			vertex.uv = FlipUVCoord(myQuadUVCoords[i], aSettings.flipX, aSettings.flipY);
 			vertex.tint = aSettings.tint.GetVector4();
 			vertex.entityID = aEntityID;

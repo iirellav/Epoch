@@ -1639,8 +1639,6 @@ namespace Epoch
 							assetAccelerationMap[ic.texture] = texture;
 						}
 
-						CU::Transform transform = entity.GetWorldSpaceTransform();
-
 						SceneRenderer2D::ScreenSpaceQuadSetting setting;
 						setting.anchor = ic.anchor;
 						setting.pivot = ic.pivot;
@@ -1648,7 +1646,9 @@ namespace Epoch
 						setting.flipY = ic.flipY;
 						setting.tint = ic.tint;
 
-						screenSpaceRenderer->SubmitScreenSpaceQuad(transform.GetTranslation() * 0.01f, transform.GetRotation(), {100, 100}, texture, setting, (uint32_t)entity);
+						CU::Transform transform = entity.GetWorldSpaceTransform();
+						transform.SetTranslation(transform.GetTranslation() * 0.01f);
+						screenSpaceRenderer->SubmitScreenSpaceQuad(transform.GetMatrix(), ic.size, texture, setting, (uint32_t)entity);
 					}
 				}
 

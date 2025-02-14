@@ -277,6 +277,7 @@ namespace Epoch
 		bool flipX = false;
 		bool flipY = false;
 
+		CU::Vector2ui size = CU::Vector2ui(100, 100);
 		CU::Vector2f pivot = CU::Vector2f(0.5f, 0.5f);
 		CU::Vector2f anchor = CU::Vector2f(0.5f, 0.5f);
 

@@ -1431,6 +1431,18 @@ namespace Epoch
 				{
 					UI::BeginPropertyGrid();
 
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector2ui, ImageComponent>([](const ImageComponent& aOther) { return aOther.size; }));
+					if (UI::Property_DragUInt2("Size", aFirstComponent.size))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& ic = entity.GetComponent<ImageComponent>();
+							ic.size = aFirstComponent.size;
+						}
+					}
+					ImGui::PopItemFlag();
+
 					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector2f, ImageComponent>([](const ImageComponent& aOther) { return aOther.pivot; }));
 					if (UI::Property_DragFloat2("Pivot", aFirstComponent.pivot, 0.02f, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp))
 					{

@@ -724,6 +724,33 @@ namespace Epoch::UI
 		return modified;
 	}
 
+	bool Property_DragUInt2(const char* aLabel, CU::Vector2ui& outValue, int aDelta, int aMin, int aMax, const char* aFormat, ImGuiSliderFlags aFlags, const char* aTooltip)
+	{
+		
+		bool modified = false;
+
+		//ShiftCursor(10.0f, 9.0f);
+		ShiftCursor(10.0f, 3.0f);
+		ImGui::Text(aLabel);
+
+		if (std::strlen(aTooltip) != 0)
+		{
+			ImGui::SameLine();
+			HelpMarker(aTooltip);
+		}
+
+		ImGui::NextColumn();
+		//ShiftCursorY(4.0f);
+		ImGui::PushItemWidth(-1);
+
+		modified = ImGui::DragScalarN(std::format("##{0}", aLabel).c_str(), ImGuiDataType_U32, &outValue, 2, (float)aDelta, &aMin, &aMax, aFormat, aFlags);
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		return modified;
+	}
+
 	bool Property_SliderFloat(const char* aLabel, float& outValue, float aMin, float aMax, const char* aFormat, ImGuiSliderFlags aFlags, const char* aTooltip)
 	{
 		bool modified = false;
