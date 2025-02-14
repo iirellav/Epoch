@@ -400,10 +400,29 @@ namespace Epoch
 
 				const SpriteRendererComponent& sr = entity.GetComponent<SpriteRendererComponent>();
 				aOut << YAML::Key << "IsActive" << YAML::Value << sr.isActive;
-				aOut << YAML::Key << "Sprite" << YAML::Value << (uint64_t)sr.texture;
+				aOut << YAML::Key << "Sprite" << YAML::Value << sr.texture;
 				aOut << YAML::Key << "Tint" << YAML::Value << sr.tint.GetVector4();
 				aOut << YAML::Key << "FlipX" << YAML::Value << sr.flipX;
 				aOut << YAML::Key << "FlipY" << YAML::Value << sr.flipY;
+
+				aOut << YAML::EndMap;
+			}
+
+			if (entity.HasComponent<ImageComponent>())
+			{
+				aOut << YAML::Key << "ImageComponent";
+				aOut << YAML::BeginMap;
+
+				const ImageComponent& i = entity.GetComponent<ImageComponent>();
+				aOut << YAML::Key << "IsActive" << YAML::Value << i.isActive;
+				aOut << YAML::Key << "Sprite" << YAML::Value << i.texture;
+				aOut << YAML::Key << "Tint" << YAML::Value << i.tint.GetVector4();
+				aOut << YAML::Key << "FlipX" << YAML::Value << i.flipX;
+				aOut << YAML::Key << "FlipY" << YAML::Value << i.flipY;
+
+				aOut << YAML::Key << "Size" << YAML::Value << i.size;
+				aOut << YAML::Key << "Pivot" << YAML::Value << i.pivot;
+				aOut << YAML::Key << "Anchor" << YAML::Value << i.anchor;
 
 				aOut << YAML::EndMap;
 			}
@@ -415,7 +434,7 @@ namespace Epoch
 
 				const VideoPlayerComponent& vp = entity.GetComponent<VideoPlayerComponent>();
 				aOut << YAML::Key << "IsActive" << YAML::Value << vp.isActive;
-				aOut << YAML::Key << "Video" << YAML::Value << (uint64_t)vp.video;
+				aOut << YAML::Key << "Video" << YAML::Value << vp.video;
 				aOut << YAML::Key << "PlayOnAwake" << YAML::Value << vp.playOnAwake;
 				aOut << YAML::Key << "Loop" << YAML::Value << vp.loop;
 				aOut << YAML::Key << "Play Back Speed" << YAML::Value << vp.playbackSpeed;
@@ -1122,9 +1141,25 @@ namespace Epoch
 
 				sr.isActive = spriteRendererComponent["IsActive"].as<bool>(true);
 				sr.texture = spriteRendererComponent["Sprite"].as<UUID>(UUID(0));
-				sr.tint = CU::Color(spriteRendererComponent["Tint"].as<CU::Vector4f>(CU::Color::White.GetVector4()));
+				sr.tint = spriteRendererComponent["Tint"].as<CU::Color>(CU::Color::White);
 				sr.flipX = spriteRendererComponent["FlipX"].as<bool>();
 				sr.flipY = spriteRendererComponent["FlipY"].as<bool>();
+			}
+
+			YAML::Node imageComponent = entity["ImageComponent"];
+			if (imageComponent)
+			{
+				ImageComponent& i = deserializedEntity.AddComponent<ImageComponent>();
+
+				i.isActive = imageComponent["IsActive"].as<bool>(true);
+				i.texture = imageComponent["Sprite"].as<UUID>(UUID(0));
+				i.tint = imageComponent["Tint"].as<CU::Color>(CU::Color::White);
+				i.flipX = imageComponent["FlipX"].as<bool>();
+				i.flipY = imageComponent["FlipY"].as<bool>();
+
+				i.size = imageComponent["Size"].as<CU::Vector2ui>(CU::Vector2ui(100, 100));
+				i.pivot = imageComponent["Pivot"].as<CU::Vector2f>(CU::Vector2f(0.5f, 0.5f));
+				i.anchor = imageComponent["Anchor"].as<CU::Vector2f>(CU::Vector2f(0.5f, 0.5f));
 			}
 
 			YAML::Node videoPlayerComponent = entity["VideoPlayerComponent"];

@@ -47,6 +47,52 @@ namespace YAML
 			return true;
 		}
 	};
+	
+	template<>
+	struct convert<CU::Vector2i>
+	{
+		static Node encode(const CU::Vector2i& aRhs)
+		{
+			Node node;
+			node.push_back(aRhs.x);
+			node.push_back(aRhs.y);
+			node.SetStyle(EmitterStyle::Flow);
+			return node;
+		}
+
+		static bool decode(const Node& node, CU::Vector2i& aRhs)
+		{
+			if (!node.IsSequence() || node.size() != 2)
+				return false;
+
+			aRhs.x = node[0].as<int32_t>();
+			aRhs.y = node[1].as<int32_t>();
+			return true;
+		}
+	};
+	
+	template<>
+	struct convert<CU::Vector2ui>
+	{
+		static Node encode(const CU::Vector2ui& aRhs)
+		{
+			Node node;
+			node.push_back(aRhs.x);
+			node.push_back(aRhs.y);
+			node.SetStyle(EmitterStyle::Flow);
+			return node;
+		}
+
+		static bool decode(const Node& node, CU::Vector2ui& aRhs)
+		{
+			if (!node.IsSequence() || node.size() != 2)
+				return false;
+
+			aRhs.x = node[0].as<uint32_t>();
+			aRhs.y = node[1].as<uint32_t>();
+			return true;
+		}
+	};
 
 	template<>
 	struct convert<CU::Vector3f>
@@ -101,6 +147,33 @@ namespace YAML
 	};
 
 	template<>
+	struct convert<CU::Color>
+	{
+		static Node encode(const CU::Color& aRhs)
+		{
+			Node node;
+			node.push_back(aRhs.r);
+			node.push_back(aRhs.g);
+			node.push_back(aRhs.b);
+			node.push_back(aRhs.a);
+			node.SetStyle(EmitterStyle::Flow);
+			return node;
+		}
+
+		static bool decode(const Node& aNode, CU::Color& aRhs)
+		{
+			if (!aNode.IsSequence() || aNode.size() != 4)
+				return false;
+
+			aRhs.r = aNode[0].as<float>();
+			aRhs.g = aNode[1].as<float>();
+			aRhs.b = aNode[2].as<float>();
+			aRhs.a = aNode[3].as<float>();
+			return true;
+		}
+	};
+
+	template<>
 	struct convert<CU::Gradient>
 	{
 		static bool decode(const Node& node, CU::Gradient& aGradient)
@@ -145,6 +218,20 @@ namespace Epoch
 		out << YAML::BeginSeq << aVector.x << aVector.y << YAML::EndSeq;
 		return out;
 	}
+	
+	inline YAML::Emitter& operator<<(YAML::Emitter& out, const CU::Vector2i& aVector)
+	{
+		out << YAML::Flow;
+		out << YAML::BeginSeq << aVector.x << aVector.y << YAML::EndSeq;
+		return out;
+	}
+
+	inline YAML::Emitter& operator<<(YAML::Emitter& out, const CU::Vector2ui& aVector)
+	{
+		out << YAML::Flow;
+		out << YAML::BeginSeq << aVector.x << aVector.y << YAML::EndSeq;
+		return out;
+	}
 
 	inline YAML::Emitter& operator<<(YAML::Emitter& out, const CU::Vector3f& aVector)
 	{
@@ -157,6 +244,13 @@ namespace Epoch
 	{
 		out << YAML::Flow;
 		out << YAML::BeginSeq << aVector.x << aVector.y << aVector.z << aVector.w << YAML::EndSeq;
+		return out;
+	}
+
+	inline YAML::Emitter& operator<<(YAML::Emitter& out, const CU::Color& aVector)
+	{
+		out << YAML::Flow;
+		out << YAML::BeginSeq << aVector.r << aVector.g << aVector.b << aVector.a << YAML::EndSeq;
 		return out;
 	}
 

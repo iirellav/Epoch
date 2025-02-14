@@ -1053,8 +1053,7 @@ namespace Epoch
 				break;
 			}
 
-			CU::Vector2i gridSize = CU::Vector2i((int)EditorSettings::Get().gridSize.x, (int)EditorSettings::Get().gridSize.y);
-			myDebugRenderer->DrawGrid(EditorSettings::Get().gridOffset, gridRotation, gridSize, EditorSettings::Get().gridOpacity);
+			myDebugRenderer->DrawGrid(EditorSettings::Get().gridOffset, gridRotation, EditorSettings::Get().gridSize, EditorSettings::Get().gridOpacity);
 		}
 
 		if (SelectionManager::GetSelectionCount(SelectionContext::Scene) > 0)

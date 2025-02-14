@@ -622,7 +622,7 @@ namespace Epoch
 		DrawWireSphere(aabb.GetCenter(), CU::Vector3f::Zero, aabb.GetExtents().Length(), aColor);
 	}
 
-	void DebugRenderer::DrawGrid(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, const CU::Vector2i& aSize, float aAlpha)
+	void DebugRenderer::DrawGrid(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, const CU::Vector2ui& aSize, float aAlpha)
 	{
 		EPOCH_PROFILE_FUNC();
 
