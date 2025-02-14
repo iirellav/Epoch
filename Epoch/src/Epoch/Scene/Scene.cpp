@@ -1206,394 +1206,414 @@ namespace Epoch
 	void Scene::RenderScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aRenderCamera, const SceneRendererCamera& aCullingCamera, bool aIsGameView, bool aWithPostProccessing)
 	{
 		EPOCH_PROFILE_FUNC();
-
-		const Frustum frustum = CreateFrustum(aCullingCamera);
-
-		std::unordered_set<UUID> lastFramesFrustumCulledEntities = myFrustumCulledEntities;
-		myFrustumCulledEntities.clear();
-
-		std::unordered_set<UUID> enteredFrustum;
-		std::unordered_set<UUID> exitedFrustum;
-
-		std::unordered_map<AssetHandle, std::shared_ptr<Asset>> assetAccelerationMap;
 		
-		// Lighting
+		//3D
 		{
-			EPOCH_PROFILE_SCOPE("Scene::RenderScene::UpdateLightEnvironment");
+			const Frustum frustum = CreateFrustum(aCullingCamera);
 
-			myLightEnvironment = LightEnvironment();
+			std::unordered_set<UUID> lastFramesFrustumCulledEntities = myFrustumCulledEntities;
+			myFrustumCulledEntities.clear();
+
+			std::unordered_set<UUID> enteredFrustum;
+			std::unordered_set<UUID> exitedFrustum;
+
+			std::unordered_map<AssetHandle, std::shared_ptr<Asset>> assetAccelerationMap;
 			
-			auto directionalLights = GetAllEntitiesWith<DirectionalLightComponent>();
-			for (auto entityID : directionalLights)
+			// Lighting
 			{
-				Entity entity = Entity(entityID, this);
-				if (!entity.IsActive()) continue;
+				EPOCH_PROFILE_SCOPE("Scene::RenderScene::UpdateLightEnvironment");
 
-				const auto& dlc = directionalLights.get<DirectionalLightComponent>(entityID);
-				if (!dlc.isActive && dlc.intensity > 0.0f) continue;
-
-				const CU::Transform transform = GetWorldSpaceTransform(entity);
-
-				myLightEnvironment.directionalLight.direction = transform.GetForward();
-				myLightEnvironment.directionalLight.color = dlc.color.GetVector3();
-				myLightEnvironment.directionalLight.intensity = dlc.intensity;
-
-				break;
-			}
-
-			auto skyLights = GetAllEntitiesWith<SkyLightComponent>();
-			for (auto entityID : skyLights)
-			{
-				Entity entity = Entity(entityID, this);
-				if (!entity.IsActive()) continue;
-
-				const auto& slc = skyLights.get<SkyLightComponent>(entityID);
-				if (!slc.isActive && slc.intensity > 0.0f) continue;
-
-				std::shared_ptr<Environment> environment = AssetManager::GetAsset<Environment>(slc.environment);
-
-				if (!environment) continue;
-
-				myLightEnvironment.environment = environment;
-				myLightEnvironment.environmentIntensity = slc.intensity;
-
-				break;
-			}
-
-			auto pointLights = GetAllEntitiesWith<PointLightComponent>();
-			myLightEnvironment.pointLights.reserve(pointLights.size());
-			for (auto entityID : pointLights)
-			{
-				Entity entity = Entity(entityID, this);
-				if (!entity.IsActive()) continue;
-
-				const auto& plc = pointLights.get<PointLightComponent>(entityID);
-				if (!plc.isActive && plc.intensity > 0.0f) continue;
-
-				CU::Transform transform = GetWorldSpaceTransform(entity);
-
-				PointLight& pl = myLightEnvironment.pointLights.emplace_back();
-				const auto projMatrix = CU::Matrix4x4f::CreatePerspectiveProjection(90.f * CU::Math::ToRad, 10.f, pl.range, 1.0f);
-				pl.viewProjection = transform.GetMatrix().GetFastInverse() * projMatrix;
-				pl.position = transform.GetTranslation();
-				pl.color = plc.color.GetVector3();
-				pl.intensity = plc.intensity;
-				pl.range = CU::Math::Max(plc.range, 0.0001f);
+				myLightEnvironment = LightEnvironment();
 				
-				auto cookie = AssetManager::GetAsset<Texture2D>(plc.cookieTexture);
-				if (!cookie)
-				{
-					cookie = Renderer::GetWhiteTexture();
-				}
-				pl.cookie = cookie;
-			}
-
-			auto spotlights = GetAllEntitiesWith<SpotlightComponent>();
-			myLightEnvironment.spotlights.reserve(spotlights.size());
-			for (auto entityID : spotlights)
-			{
-				Entity entity = Entity(entityID, this);
-				if (!entity.IsActive()) continue;
-
-				const auto& slc = spotlights.get<SpotlightComponent>(entityID);
-				if (!slc.isActive && slc.intensity > 0.0f) continue;
-
-				CU::Transform transform = GetWorldSpaceTransform(entity);
-
-				Spotlight& sl = myLightEnvironment.spotlights.emplace_back();
-				const auto projMatrix = CU::Matrix4x4f::CreatePerspectiveProjection(slc.outerSpotAngle * 2.0f, 10.f, slc.range, 1.0f);
-				sl.viewProjection = transform.GetMatrix().GetFastInverse() * projMatrix;
-				sl.position = transform.GetTranslation();
-				sl.direction = transform.GetForward();
-				sl.color = slc.color.GetVector3();
-				sl.intensity = slc.intensity;
-				sl.range = CU::Math::Max(slc.range, 0.0001f);
-				sl.coneAngle = std::cos(slc.outerSpotAngle);
-				sl.coneAngleDiff = std::cos(slc.innerSpotAngle) - sl.coneAngle;
-				
-				auto cookie = AssetManager::GetAsset<Texture2D>(slc.cookieTexture);
-				if (!cookie)
-				{
-					cookie = Renderer::GetWhiteTexture();
-				}
-				sl.cookie = cookie;
-			}
-		}
-		
-		// Post Processing
-		{
-			EPOCH_PROFILE_SCOPE("Scene::RenderScene::UpdatePostProcessingData");
-
-			myPostProcessingData = PostProcessingData();
-			myPostProcessingData.colorGradingLUT = Renderer::GetDefaultColorGradingLut();
-
-			if (aWithPostProccessing)
-			{
-				auto volumes = GetAllEntitiesWith<VolumeComponent>();
-				for (auto entityID : volumes)
+				auto directionalLights = GetAllEntitiesWith<DirectionalLightComponent>();
+				for (auto entityID : directionalLights)
 				{
 					Entity entity = Entity(entityID, this);
 					if (!entity.IsActive()) continue;
 
-					const auto& vc = volumes.get<VolumeComponent>(entityID);
-					if (!vc.isActive) continue;
+					const auto& dlc = directionalLights.get<DirectionalLightComponent>(entityID);
+					if (!dlc.isActive && dlc.intensity > 0.0f) continue;
 
-					if (vc.tonemapping.enabled)
-					{
-						myPostProcessingData.bufferData.tonemap = vc.tonemapping.tonemap;
-					}
-					
-					if (vc.colorGrading.enabled)
-					{
-						myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::ColorGradingEnabled;
+					const CU::Transform transform = GetWorldSpaceTransform(entity);
 
-						auto lut = AssetManager::GetAsset<Texture2D>(vc.colorGrading.lut);
-						if (!lut)
-						{
-							lut = Renderer::GetDefaultColorGradingLut();
-						}
-						myPostProcessingData.colorGradingLUT = lut;
-					}
-					
-					if (vc.vignette.enabled)
-					{
-						myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::VignetteEnabled;
-
-						myPostProcessingData.bufferData.vignetteCenter = vc.vignette.center;
-						myPostProcessingData.bufferData.vignetteColor = vc.vignette.color;
-						myPostProcessingData.bufferData.vignetteIntensity = vc.vignette.intensity;
-						myPostProcessingData.bufferData.vignetteSize = vc.vignette.size;
-						myPostProcessingData.bufferData.vignetteSmoothness = vc.vignette.smoothness;
-					}
-
-					if (vc.distanceFog.enabled)
-					{
-						myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::DistanceFogEnabled;
-
-						myPostProcessingData.bufferData.distanceFogColor = vc.distanceFog.color.GetVector3();
-						myPostProcessingData.bufferData.distanceFogDensity = vc.distanceFog.density;
-						myPostProcessingData.bufferData.distanceFogOffset = vc.distanceFog.offset;
-					}
-
-					if (vc.posterization.enabled)
-					{
-						myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::PosterizationEnabled;
-
-						myPostProcessingData.bufferData.posterizationSteps = vc.posterization.steps;
-					}
+					myLightEnvironment.directionalLight.direction = transform.GetForward();
+					myLightEnvironment.directionalLight.color = dlc.color.GetVector3();
+					myLightEnvironment.directionalLight.intensity = dlc.intensity;
 
 					break;
 				}
-			}
-		}
 
-		aRenderer->BeginScene(aRenderCamera);
-		
-		// Submit Meshes
-		{
-			EPOCH_PROFILE_SCOPE("Scene::RenderScene::SubmitMeshes");
-
-			{
-				auto view = GetAllEntitiesWith<MeshRendererComponent>();
-				for (auto id : view)
+				auto skyLights = GetAllEntitiesWith<SkyLightComponent>();
+				for (auto entityID : skyLights)
 				{
-					Entity entity = Entity(id, this);
+					Entity entity = Entity(entityID, this);
 					if (!entity.IsActive()) continue;
 
-					const auto& mrc = view.get<MeshRendererComponent>(id);
-					if (!mrc.isActive) continue;
+					const auto& slc = skyLights.get<SkyLightComponent>(entityID);
+					if (!slc.isActive && slc.intensity > 0.0f) continue;
 
-					std::shared_ptr<Mesh> mesh;
-					if (auto it = assetAccelerationMap.find(mrc.mesh); it != assetAccelerationMap.end())
+					std::shared_ptr<Environment> environment = AssetManager::GetAsset<Environment>(slc.environment);
+
+					if (!environment) continue;
+
+					myLightEnvironment.environment = environment;
+					myLightEnvironment.environmentIntensity = slc.intensity;
+
+					break;
+				}
+
+				auto pointLights = GetAllEntitiesWith<PointLightComponent>();
+				myLightEnvironment.pointLights.reserve(pointLights.size());
+				for (auto entityID : pointLights)
+				{
+					Entity entity = Entity(entityID, this);
+					if (!entity.IsActive()) continue;
+
+					const auto& plc = pointLights.get<PointLightComponent>(entityID);
+					if (!plc.isActive && plc.intensity > 0.0f) continue;
+
+					CU::Transform transform = GetWorldSpaceTransform(entity);
+
+					PointLight& pl = myLightEnvironment.pointLights.emplace_back();
+					const auto projMatrix = CU::Matrix4x4f::CreatePerspectiveProjection(90.f * CU::Math::ToRad, 10.f, pl.range, 1.0f);
+					pl.viewProjection = transform.GetMatrix().GetFastInverse() * projMatrix;
+					pl.position = transform.GetTranslation();
+					pl.color = plc.color.GetVector3();
+					pl.intensity = plc.intensity;
+					pl.range = CU::Math::Max(plc.range, 0.0001f);
+					
+					auto cookie = AssetManager::GetAsset<Texture2D>(plc.cookieTexture);
+					if (!cookie)
 					{
-						mesh = std::static_pointer_cast<Mesh>(it->second);
+						cookie = Renderer::GetWhiteTexture();
 					}
-					else
+					pl.cookie = cookie;
+				}
+
+				auto spotlights = GetAllEntitiesWith<SpotlightComponent>();
+				myLightEnvironment.spotlights.reserve(spotlights.size());
+				for (auto entityID : spotlights)
+				{
+					Entity entity = Entity(entityID, this);
+					if (!entity.IsActive()) continue;
+
+					const auto& slc = spotlights.get<SpotlightComponent>(entityID);
+					if (!slc.isActive && slc.intensity > 0.0f) continue;
+
+					CU::Transform transform = GetWorldSpaceTransform(entity);
+
+					Spotlight& sl = myLightEnvironment.spotlights.emplace_back();
+					const auto projMatrix = CU::Matrix4x4f::CreatePerspectiveProjection(slc.outerSpotAngle * 2.0f, 10.f, slc.range, 1.0f);
+					sl.viewProjection = transform.GetMatrix().GetFastInverse() * projMatrix;
+					sl.position = transform.GetTranslation();
+					sl.direction = transform.GetForward();
+					sl.color = slc.color.GetVector3();
+					sl.intensity = slc.intensity;
+					sl.range = CU::Math::Max(slc.range, 0.0001f);
+					sl.coneAngle = std::cos(slc.outerSpotAngle);
+					sl.coneAngleDiff = std::cos(slc.innerSpotAngle) - sl.coneAngle;
+					
+					auto cookie = AssetManager::GetAsset<Texture2D>(slc.cookieTexture);
+					if (!cookie)
 					{
-						mesh = AssetManager::GetAssetAsync<Mesh>(mrc.mesh);
-						assetAccelerationMap.emplace(mrc.mesh, mesh);
+						cookie = Renderer::GetWhiteTexture();
 					}
+					sl.cookie = cookie;
+				}
+			}
+			
+			// Post Processing
+			{
+				EPOCH_PROFILE_SCOPE("Scene::RenderScene::UpdatePostProcessingData");
 
-					if (mesh)
+				myPostProcessingData = PostProcessingData();
+				myPostProcessingData.colorGradingLUT = Renderer::GetDefaultColorGradingLut();
+
+				if (aWithPostProccessing)
+				{
+					auto volumes = GetAllEntitiesWith<VolumeComponent>();
+					for (auto entityID : volumes)
 					{
-						const CU::Matrix4x4f transform = GetWorldSpaceTransformMatrix(entity);
+						Entity entity = Entity(entityID, this);
+						if (!entity.IsActive()) continue;
 
-						if (!FrustumIntersection(frustum, mesh->GetBoundingBox().GetGlobal(transform)))
+						const auto& vc = volumes.get<VolumeComponent>(entityID);
+						if (!vc.isActive) continue;
+
+						if (vc.tonemapping.enabled)
 						{
-							myFrustumCulledEntities.insert(entity.GetUUID());
-							if (!lastFramesFrustumCulledEntities.contains(entity.GetUUID()))
+							myPostProcessingData.bufferData.tonemap = vc.tonemapping.tonemap;
+						}
+						
+						if (vc.colorGrading.enabled)
+						{
+							myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::ColorGradingEnabled;
+
+							auto lut = AssetManager::GetAsset<Texture2D>(vc.colorGrading.lut);
+							if (!lut)
 							{
-								exitedFrustum.insert(entity.GetUUID());
+								lut = Renderer::GetDefaultColorGradingLut();
 							}
+							myPostProcessingData.colorGradingLUT = lut;
+						}
+						
+						if (vc.vignette.enabled)
+						{
+							myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::VignetteEnabled;
+
+							myPostProcessingData.bufferData.vignetteCenter = vc.vignette.center;
+							myPostProcessingData.bufferData.vignetteColor = vc.vignette.color;
+							myPostProcessingData.bufferData.vignetteIntensity = vc.vignette.intensity;
+							myPostProcessingData.bufferData.vignetteSize = vc.vignette.size;
+							myPostProcessingData.bufferData.vignetteSmoothness = vc.vignette.smoothness;
+						}
+
+						if (vc.distanceFog.enabled)
+						{
+							myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::DistanceFogEnabled;
+
+							myPostProcessingData.bufferData.distanceFogColor = vc.distanceFog.color.GetVector3();
+							myPostProcessingData.bufferData.distanceFogDensity = vc.distanceFog.density;
+							myPostProcessingData.bufferData.distanceFogOffset = vc.distanceFog.offset;
+						}
+
+						if (vc.posterization.enabled)
+						{
+							myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::PosterizationEnabled;
+
+							myPostProcessingData.bufferData.posterizationSteps = vc.posterization.steps;
+						}
+
+						break;
+					}
+				}
+			}
+
+			aRenderer->BeginScene(aRenderCamera);
+			
+			// Submit Meshes
+			{
+				EPOCH_PROFILE_SCOPE("Scene::RenderScene::SubmitMeshes");
+
+				{
+					auto view = GetAllEntitiesWith<MeshRendererComponent>();
+					for (auto id : view)
+					{
+						Entity entity = Entity(id, this);
+						if (!entity.IsActive()) continue;
+
+						const auto& mrc = view.get<MeshRendererComponent>(id);
+						if (!mrc.isActive) continue;
+
+						std::shared_ptr<Mesh> mesh;
+						if (auto it = assetAccelerationMap.find(mrc.mesh); it != assetAccelerationMap.end())
+						{
+							mesh = std::static_pointer_cast<Mesh>(it->second);
 						}
 						else
 						{
-							aRenderer->SubmitMesh(mesh, mrc.materialTable, transform, (uint32_t)entity);
-							if (lastFramesFrustumCulledEntities.contains(entity.GetUUID()))
+							mesh = AssetManager::GetAssetAsync<Mesh>(mrc.mesh);
+							assetAccelerationMap.emplace(mrc.mesh, mesh);
+						}
+
+						if (mesh)
+						{
+							const CU::Matrix4x4f transform = GetWorldSpaceTransformMatrix(entity);
+
+							if (!FrustumIntersection(frustum, mesh->GetBoundingBox().GetGlobal(transform)))
 							{
-								enteredFrustum.insert(entity.GetUUID());
+								myFrustumCulledEntities.insert(entity.GetUUID());
+								if (!lastFramesFrustumCulledEntities.contains(entity.GetUUID()))
+								{
+									exitedFrustum.insert(entity.GetUUID());
+								}
+							}
+							else
+							{
+								aRenderer->SubmitMesh(mesh, mrc.materialTable, transform, (uint32_t)entity);
+								if (lastFramesFrustumCulledEntities.contains(entity.GetUUID()))
+								{
+									enteredFrustum.insert(entity.GetUUID());
+								}
+							}
+							
+							if (mrc.castsShadows)
+							{
+								//TODO: Submit for shadow rendering
 							}
 						}
-						
-						if (mrc.castsShadows)
+					}
+				}
+
+				{
+					auto view = GetAllEntitiesWith<SkinnedMeshRendererComponent>();
+					for (auto id : view)
+					{
+						Entity entity = Entity(id, this);
+						if (!entity.IsActive()) continue;
+
+						const auto& smrc = view.get<SkinnedMeshRendererComponent>(id);
+						if (!smrc.isActive) continue;
+
+						std::shared_ptr<Mesh> mesh;
+						if (auto it = assetAccelerationMap.find(smrc.mesh); it != assetAccelerationMap.end())
 						{
-							//TODO: Submit for shadow rendering
+							mesh = std::static_pointer_cast<Mesh>(it->second);
+						}
+						else
+						{
+							mesh = AssetManager::GetAssetAsync<Mesh>(smrc.mesh);
+							assetAccelerationMap[smrc.mesh] = mesh;
+						}
+
+						if (mesh)
+						{
+							CU::Matrix4x4f transform = GetWorldSpaceTransformMatrix(entity);
+							aRenderer->SubmitAnimatedMesh(mesh, transform, GetModelSpaceBoneTransforms(entity, mesh));
 						}
 					}
 				}
 			}
-
+			
+			// Submit Sprites
 			{
-				auto view = GetAllEntitiesWith<SkinnedMeshRendererComponent>();
+				EPOCH_PROFILE_SCOPE("Scene::RenderScene::SubmitSprites");
+
+				auto view = GetAllEntitiesWith<SpriteRendererComponent>();
 				for (auto id : view)
 				{
 					Entity entity = Entity(id, this);
 					if (!entity.IsActive()) continue;
 
-					const auto& smrc = view.get<SkinnedMeshRendererComponent>(id);
-					if (!smrc.isActive) continue;
+					const auto& src = view.get<SpriteRendererComponent>(id);
+					if (!src.isActive) continue;
 
-					std::shared_ptr<Mesh> mesh;
-					if (auto it = assetAccelerationMap.find(smrc.mesh); it != assetAccelerationMap.end())
+					std::shared_ptr<Texture2D> texture;
+					if (auto it = assetAccelerationMap.find(src.texture); it != assetAccelerationMap.end())
 					{
-						mesh = std::static_pointer_cast<Mesh>(it->second);
+						texture = std::static_pointer_cast<Texture2D>(it->second);
 					}
 					else
 					{
-						mesh = AssetManager::GetAssetAsync<Mesh>(smrc.mesh);
-						assetAccelerationMap[smrc.mesh] = mesh;
+						//texture = AssetManager::GetAssetAsync<Texture2D>(src.texture);
+						texture = AssetManager::GetAsset<Texture2D>(src.texture); //TODO: Make async
+						assetAccelerationMap[src.texture] = texture;
 					}
 
-					if (mesh)
+					CU::Matrix4x4f transform = GetWorldSpaceTransformMatrix(entity);
+					aRenderer->SubmitQuad(transform, texture, src.tint, src.flipX, src.flipY, (uint32_t)entity);
+				}
+			}
+
+			// Submit Texts
+			{
+				EPOCH_PROFILE_SCOPE("Scene::RenderScene::SubmitText");
+
+				auto view = GetAllEntitiesWith<TextRendererComponent>();
+				for (auto id : view)
+				{
+					Entity entity = Entity(id, this);
+					if (!entity.IsActive()) continue;
+
+					const auto& trc = view.get<TextRendererComponent>(id);
+					if (!trc.isActive) continue;
+
+					CU::Matrix4x4f transform = GetWorldSpaceTransformMatrix(entity);
+					std::shared_ptr<Font> font;
+					if (auto it = assetAccelerationMap.find(trc.font); it != assetAccelerationMap.end())
 					{
-						CU::Matrix4x4f transform = GetWorldSpaceTransformMatrix(entity);
-						aRenderer->SubmitAnimatedMesh(mesh, transform, GetModelSpaceBoneTransforms(entity, mesh));
+						font = std::static_pointer_cast<Font>(it->second);
 					}
+					else
+					{
+						font = AssetManager::GetAssetAsync<Font>(trc.font);
+						assetAccelerationMap[trc.font] = font;
+					}
+
+					if (!font)
+					{
+						font = Font::GetDefaultFont();
+					}
+
+					SceneRenderer::TextSettings settings;
+					settings.maxWidth = trc.maxWidth;
+					settings.color = trc.color;
+					settings.lineHeightOffset = trc.lineSpacing;
+					settings.letterSpacing = trc.letterSpacing;
+					settings.billboard = trc.billboard;
+					aRenderer->SubmitText(trc.text, font, transform, settings, (uint32_t)entity);
+				}
+			}
+
+			aRenderer->EndScene();
+
+			if (aIsGameView && myIsPlaying)
+			{
+				EPOCH_PROFILE_SCOPE("Scene::RenderScene::OnFrustumEnter/Exit");
+
+				for (UUID entityID : enteredFrustum)
+				{
+					Entity entity = TryGetEntityWithUUID(entityID);
+					if (!entity)
+					{
+						continue;
+					}
+
+					if (!entity.HasComponent<ScriptComponent>())
+					{
+						continue;
+					}
+
+					const auto& sc = entity.GetComponent<ScriptComponent>();
+
+					if (!ScriptEngine::IsModuleValid(sc.scriptClassHandle) || !ScriptEngine::IsEntityInstantiated(entity))
+					{
+						continue;
+					}
+
+					ScriptEngine::CallMethod(sc.managedInstance, "OnFrustumEnter");
+				}
+
+
+				for (UUID entityID : exitedFrustum)
+				{
+					Entity entity = TryGetEntityWithUUID(entityID);
+					if (!entity)
+					{
+						continue;
+					}
+
+					if (!entity.HasComponent<ScriptComponent>())
+					{
+						continue;
+					}
+
+					const auto& sc = entity.GetComponent<ScriptComponent>();
+
+					if (!ScriptEngine::IsModuleValid(sc.scriptClassHandle) || !ScriptEngine::IsEntityInstantiated(entity))
+					{
+						continue;
+					}
+
+					ScriptEngine::CallMethod(sc.managedInstance, "OnFrustumExit");
 				}
 			}
 		}
-		
-		// Submit Sprites
+
+		//2D
 		{
-			EPOCH_PROFILE_SCOPE("Scene::RenderScene::SubmitSprites");
-
-			auto view = GetAllEntitiesWith<SpriteRendererComponent>();
-			for (auto id : view)
+			auto screenSpaceRenderer = aRenderer->GetScreenSpaceRenderer();
+			if (screenSpaceRenderer)
 			{
-				Entity entity = Entity(id, this);
-				if (!entity.IsActive()) continue;
+				screenSpaceRenderer->BeginScene(CU::Matrix4x4f::CreateOrthographicProjection(0.0f, (float)myViewportWidth, 0.0f, (float)myViewportHeight, -1.0f, 1.0f), CU::Matrix4x4f::Identity);
 
-				const auto& src = view.get<SpriteRendererComponent>(id);
-				if (!src.isActive) continue;
+				screenSpaceRenderer->SubmitScreenSpaceQuad(CU::Vector2f(50.0f, 0.0f), { 100, 100 }, nullptr, { CU::Color::Red, false, false, { 0.5f, 0.5f }, { 0.f, 0.f } });
+				screenSpaceRenderer->SubmitScreenSpaceQuad(CU::Vector2f(0.0f, -50.0f), { 100, 100 }, nullptr, { CU::Color::Blue, false, false, { 0.5f, 0.5f }, { 0.f, 1.f } });
+				screenSpaceRenderer->SubmitScreenSpaceQuad(CU::Vector2f(-50.0f, 0.0f), { 100, 100 }, nullptr, { CU::Color::Green, false, false, { 0.5f, 0.5f }, { 1.f, 1.f } });
+				screenSpaceRenderer->SubmitScreenSpaceQuad(CU::Vector2f(0.0f, 50.0f), { 100, 100 }, nullptr, { CU::Color::Magenta, false, false, { 0.5f, 0.5f }, { 1.f, 0.f } });
+				screenSpaceRenderer->SubmitScreenSpaceQuad(CU::Vector2f(0.0f, 0.0f), { 120, 970 }, nullptr, { CU::Color::Yellow, false, false, { 0.5f, 0.5f }, { 0.5f, 0.5f } });
 
-				std::shared_ptr<Texture2D> texture;
-				if (auto it = assetAccelerationMap.find(src.texture); it != assetAccelerationMap.end())
-				{
-					texture = std::static_pointer_cast<Texture2D>(it->second);
-				}
-				else
-				{
-					//texture = AssetManager::GetAssetAsync<Texture2D>(src.texture);
-					texture = AssetManager::GetAsset<Texture2D>(src.texture); //TODO: Make async
-					assetAccelerationMap[src.texture] = texture;
-				}
-
-				CU::Matrix4x4f transform = GetWorldSpaceTransformMatrix(entity);
-				aRenderer->SubmitQuad(transform, texture, src.tint, src.flipX, src.flipY, (uint32_t)entity);
-			}
-		}
-		
-		// Submit Texts
-		{
-			EPOCH_PROFILE_SCOPE("Scene::RenderScene::SubmitText");
-
-			auto view = GetAllEntitiesWith<TextRendererComponent>();
-			for (auto id : view)
-			{
-				Entity entity = Entity(id, this);
-				if (!entity.IsActive()) continue;
-
-				const auto& trc = view.get<TextRendererComponent>(id);
-				if (!trc.isActive) continue;
-
-				CU::Matrix4x4f transform = GetWorldSpaceTransformMatrix(entity);
-				std::shared_ptr<Font> font;
-				if (auto it = assetAccelerationMap.find(trc.font); it != assetAccelerationMap.end())
-				{
-					font = std::static_pointer_cast<Font>(it->second);
-				}
-				else
-				{
-					font = AssetManager::GetAssetAsync<Font>(trc.font);
-					assetAccelerationMap[trc.font] = font;
-				}
-
-				if (!font)
-				{
-					font = Font::GetDefaultFont();
-				}
-
-				SceneRenderer::TextSettings settings;
-				settings.maxWidth = trc.maxWidth;
-				settings.color = trc.color;
-				settings.lineHeightOffset = trc.lineSpacing;
-				settings.letterSpacing = trc.letterSpacing;
-				settings.billboard = trc.billboard;
-				aRenderer->SubmitText(trc.text, font, transform, settings, (uint32_t)entity);
-			}
-		}
-
-		aRenderer->EndScene();
-
-		if (aIsGameView && myIsPlaying)
-		{
-			EPOCH_PROFILE_SCOPE("Scene::RenderScene::OnFrustumEnter/Exit");
-
-			for (UUID entityID : enteredFrustum)
-			{
-				Entity entity = TryGetEntityWithUUID(entityID);
-				if (!entity)
-				{
-					continue;
-				}
-
-				if (!entity.HasComponent<ScriptComponent>())
-				{
-					continue;
-				}
-
-				const auto& sc = entity.GetComponent<ScriptComponent>();
-
-				if (!ScriptEngine::IsModuleValid(sc.scriptClassHandle) || !ScriptEngine::IsEntityInstantiated(entity))
-				{
-					continue;
-				}
-
-				ScriptEngine::CallMethod(sc.managedInstance, "OnFrustumEnter");
-			}
-
-			
-			for (UUID entityID : exitedFrustum)
-			{
-				Entity entity = TryGetEntityWithUUID(entityID);
-				if (!entity)
-				{
-					continue;
-				}
-
-				if (!entity.HasComponent<ScriptComponent>())
-				{
-					continue;
-				}
-
-				const auto& sc = entity.GetComponent<ScriptComponent>();
-
-				if (!ScriptEngine::IsModuleValid(sc.scriptClassHandle) || !ScriptEngine::IsEntityInstantiated(entity))
-				{
-					continue;
-				}
-
-				ScriptEngine::CallMethod(sc.managedInstance, "OnFrustumExit");
+				screenSpaceRenderer->EndScene();
 			}
 		}
 	}

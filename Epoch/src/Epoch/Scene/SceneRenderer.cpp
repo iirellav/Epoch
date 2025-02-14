@@ -603,6 +603,11 @@ namespace Epoch
 			myInvViewportHeight = 1.0f / (float)aHeight;
 			myNeedsResize = true;
 		}
+
+		if (myScreenSpaceRenderer)
+		{
+			myScreenSpaceRenderer->SetViewportSize(aWidth, aHeight);
+		}
 	}
 
 	void SceneRenderer::SetScene(std::shared_ptr<Scene> aScene)

@@ -5,8 +5,9 @@
 #include <memory>
 #include <CommonUtilities/Math/Transform.h>
 #include "Epoch/Rendering/RenderConstants.h"
-#include "Epoch/Scene/Scene.h"
-#include "Epoch/Scene/SceneInfo.h"
+#include "SceneRenderer2D.h"
+#include "Scene.h"
+#include "SceneInfo.h"
 
 namespace Epoch
 {
@@ -85,6 +86,9 @@ namespace Epoch
 
 		void SetDebugRenderer(std::shared_ptr<DebugRenderer> aDebugRenderer) { myDebugRenderer = aDebugRenderer; }
 		std::shared_ptr<DebugRenderer> GetDebugRenderer() { return myDebugRenderer; }
+		
+		void SetScreenSpaceRenderer(std::shared_ptr<SceneRenderer2D> aSceneRenderer2D) { myScreenSpaceRenderer = aSceneRenderer2D; }
+		std::shared_ptr<SceneRenderer2D> GetScreenSpaceRenderer() { return myScreenSpaceRenderer; }
 
 		std::pair<uint32_t, uint32_t> GetViewportSize() { return { myViewportWidth, myViewportHeight }; }
 		void SetViewportSize(uint32_t aWidth, uint32_t aHeight);
@@ -154,6 +158,7 @@ namespace Epoch
 	private:
 		std::shared_ptr<Scene> myScene;
 		std::shared_ptr<DebugRenderer> myDebugRenderer;
+		std::shared_ptr<SceneRenderer2D> myScreenSpaceRenderer;
 
 		bool myActive = false;
 

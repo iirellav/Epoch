@@ -18,6 +18,7 @@
 #include <Epoch/Core/Events/SceneEvents.h>
 #include <Epoch/Rendering/Renderer.h>
 #include <Epoch/Rendering/DebugRenderer.h>
+#include <Epoch/Scene/SceneRenderer2D.h>
 #include <Epoch/Project/ProjectSerializer.h>
 #include <Epoch/Project/RuntimeBuilder.h>
 #include <Epoch/Scene/SceneSerializer.h>
@@ -176,13 +177,24 @@ namespace Epoch
 
 		GradientEditor::Get().Init();
 
-		auto sceneRenderer = mySceneViewport->GetSceneRenderer();
-		myDebugRenderer = std::make_shared<DebugRenderer>();
-		myDebugRenderer->Init(sceneRenderer->GetExternalCompositingFramebuffer());
-		sceneRenderer->SetDebugRenderer(myDebugRenderer);
+		//Screen Space Renderer
+		{
+			auto sceneRenderer = myGameViewport->GetSceneRenderer();
+			std::shared_ptr<SceneRenderer2D> screenSpaceRenderer = std::make_shared<SceneRenderer2D>();
+			screenSpaceRenderer->Init(sceneRenderer->GetExternalCompositingFramebuffer());
+			sceneRenderer->SetScreenSpaceRenderer(screenSpaceRenderer);
+		}
 
-		myStatisticsPanel->SetSceneRenderer(sceneRenderer);
-		myStatisticsPanel->SetDebugRenderer(myDebugRenderer);
+		//Debug Renderer
+		{
+			auto sceneRenderer = mySceneViewport->GetSceneRenderer();
+			myDebugRenderer = std::make_shared<DebugRenderer>();
+			myDebugRenderer->Init(sceneRenderer->GetExternalCompositingFramebuffer());
+			sceneRenderer->SetDebugRenderer(myDebugRenderer);
+
+			myStatisticsPanel->SetSceneRenderer(sceneRenderer);
+			myStatisticsPanel->SetDebugRenderer(myDebugRenderer);
+		}
 	}
 
 	void EditorLayer::OnDetach()
