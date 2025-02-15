@@ -1659,12 +1659,6 @@ namespace Epoch
 
 						CU::Transform transform = entity.GetWorldSpaceTransform();
 						screenSpaceRenderer->SubmitScreenSpaceQuad(transform.GetMatrix(), ic.size, texture, setting, (uint32_t)entity);
-
-						auto dr = aRenderer->GetDebugRenderer();
-						if (dr)
-						{
-							dr->DrawWireSphere(transform.GetTranslation(), transform.GetRotation(), 25.0f);
-						}
 					}
 				}
 
