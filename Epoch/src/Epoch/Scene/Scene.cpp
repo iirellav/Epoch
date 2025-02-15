@@ -771,7 +771,18 @@ namespace Epoch
 			transform = GetWorldSpaceTransformMatrix(parent);
 		}
 
-		return aEntity.TransformMatrix() * transform;
+		if (aEntity.HasComponent<ImageComponent>())
+		{
+			auto trans = aEntity.Transform();
+			ImageComponent ic = aEntity.GetComponent<ImageComponent>();
+			const CU::Vector3f anchorOffset(myViewportWidth * ic.anchor.x, myViewportHeight * ic.anchor.y, 0.0f);
+			const CU::Vector3f anchoredPos = trans.GetTranslation() * 0.01f + anchorOffset;
+			return CU::Transform(anchoredPos, trans.GetRotation(), trans.GetScale()).GetMatrix() * transform;
+		}
+		else
+		{
+			return aEntity.TransformMatrix() * transform;
+		}
 	}
 
 	CU::Transform Scene::GetWorldSpaceTransform(Entity aEntity)
@@ -1647,8 +1658,13 @@ namespace Epoch
 						setting.tint = ic.tint;
 
 						CU::Transform transform = entity.GetWorldSpaceTransform();
-						transform.SetTranslation(transform.GetTranslation() * 0.01f);
 						screenSpaceRenderer->SubmitScreenSpaceQuad(transform.GetMatrix(), ic.size, texture, setting, (uint32_t)entity);
+
+						auto dr = aRenderer->GetDebugRenderer();
+						if (dr)
+						{
+							dr->DrawWireSphere(transform.GetTranslation(), transform.GetRotation(), 25.0f);
+						}
 					}
 				}
 

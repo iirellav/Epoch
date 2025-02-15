@@ -179,7 +179,6 @@ namespace Epoch
 		auto& vertexList = myQuadVertices[aTexture->GetHandle()];
 		myTextures[aTexture->GetHandle()] = aTexture;
 
-		const CU::Vector4f anchorOffset = { myViewportWidth * aSettings.anchor.x, myViewportHeight * aSettings.anchor.y, 0.0f, 0.0f };
 		const CU::Vector2f size = { (float)aSize.x, (float)aSize.y };
 
 		for (size_t i = 0; i < 4; i++)
@@ -187,7 +186,7 @@ namespace Epoch
 			const CU::Vector2f vertPos = (myScreenSpaceQuadVertexPositions[i] - aSettings.pivot) * size;
 
 			QuadVertex& vertex = vertexList.emplace_back();
-			vertex.position = aTransform * CU::Vector4f(vertPos.x, vertPos.y, 0.0f, 1.0f) + anchorOffset;
+			vertex.position = aTransform * CU::Vector4f(vertPos.x, vertPos.y, 0.0f, 1.0f);
 			vertex.uv = FlipUVCoord(myQuadUVCoords[i], aSettings.flipX, aSettings.flipY);
 			vertex.tint = aSettings.tint.GetVector4();
 			vertex.entityID = aEntityID;
