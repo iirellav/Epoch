@@ -1641,7 +1641,7 @@ namespace Epoch
 		{
 			if (aIsGameView)
 			{
-				screenSpaceRenderer->BeginScene(CU::Matrix4x4f::CreateOrthographicProjection(0.0f, (float)myViewportWidth, 0.0f, (float)myViewportHeight, -1.0f, 1.0f), CU::Matrix4x4f::Identity);
+				screenSpaceRenderer->BeginScene(CU::Matrix4x4f::CreateOrthographicProjection(0.0f, (float)myViewportWidth, 0.0f, (float)myViewportHeight), CU::Matrix4x4f::Identity);
 			}
 			else
 			{
