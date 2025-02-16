@@ -66,6 +66,10 @@ namespace Epoch
 			mySceneRenderer->SetViewportSize(myViewportWidth, myViewportHeight);
 			myRuntimeScene->SetViewportSize(myViewportWidth, myViewportHeight);
 		}
+		
+		auto [mx, my] = Input::GetMousePosition();
+		my = (float)myViewportHeight - my;
+		myRuntimeScene->SetMousePos({ mx, my });
 
 		myRuntimeScene->OnUpdateRuntime();
 		myRuntimeScene->OnRenderGame(mySceneRenderer);

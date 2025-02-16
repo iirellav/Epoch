@@ -112,6 +112,19 @@ namespace Epoch
 
 				aOut << YAML::EndMap;
 			}
+			
+			if (entity.HasComponent<RectComponent>())
+			{
+				aOut << YAML::Key << "RectComponent";
+				aOut << YAML::BeginMap;
+
+				const RectComponent& rc = entity.GetComponent<RectComponent>();
+				aOut << YAML::Key << "Size" << YAML::Value << rc.size;
+				aOut << YAML::Key << "Pivot" << YAML::Value << rc.pivot;
+				aOut << YAML::Key << "Anchor" << YAML::Value << rc.anchor;
+
+				aOut << YAML::EndMap;
+			}
 
 			if (entity.HasComponent<ScriptComponent>())
 			{
@@ -419,10 +432,6 @@ namespace Epoch
 				aOut << YAML::Key << "Tint" << YAML::Value << i.tint;
 				aOut << YAML::Key << "FlipX" << YAML::Value << i.flipX;
 				aOut << YAML::Key << "FlipY" << YAML::Value << i.flipY;
-
-				aOut << YAML::Key << "Size" << YAML::Value << i.size;
-				aOut << YAML::Key << "Pivot" << YAML::Value << i.pivot;
-				aOut << YAML::Key << "Anchor" << YAML::Value << i.anchor;
 
 				aOut << YAML::EndMap;
 			}
@@ -874,6 +883,15 @@ namespace Epoch
 				tc.transform.SetScale(transformComponent["Scale"].as<CU::Vector3f>());
 			}
 
+			YAML::Node rectComponent = entity["RectComponent"];
+			if (rectComponent)
+			{
+				RectComponent& rc = deserializedEntity.AddComponent<RectComponent>();
+				rc.size = rectComponent["Size"].as<CU::Vector2ui>(CU::Vector2ui(100, 100));
+				rc.pivot = rectComponent["Pivot"].as<CU::Vector2f>(CU::Vector2f(0.5f, 0.5f));
+				rc.anchor = rectComponent["Anchor"].as<CU::Vector2f>(CU::Vector2f(0.5f, 0.5f));
+			}
+
 			YAML::Node scriptComponent = entity["ScriptComponent"];
 			if (scriptComponent)
 			{
@@ -1170,10 +1188,6 @@ namespace Epoch
 				i.tint = imageComponent["Tint"].as<CU::Color>(CU::Color::White);
 				i.flipX = imageComponent["FlipX"].as<bool>();
 				i.flipY = imageComponent["FlipY"].as<bool>();
-
-				i.size = imageComponent["Size"].as<CU::Vector2ui>(CU::Vector2ui(100, 100));
-				i.pivot = imageComponent["Pivot"].as<CU::Vector2f>(CU::Vector2f(0.5f, 0.5f));
-				i.anchor = imageComponent["Anchor"].as<CU::Vector2f>(CU::Vector2f(0.5f, 0.5f));
 			}
 
 			YAML::Node buttonComponent = entity["ButtonComponent"];

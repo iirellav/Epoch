@@ -1210,6 +1210,18 @@ namespace Epoch
 				}
 		}
 
+		if (myDisplayUIInSceneView)
+		{
+			const float width = (float)mySceneViewport->Size().x;
+			const float height = (float)mySceneViewport->Size().y;
+			const CU::Vector3f bl = CU::Vector3f(0.0f, 0.0f, 0.0f);
+			const CU::Vector3f br = CU::Vector3f(0.0f, height, 0.0f);
+			const CU::Vector3f tl = CU::Vector3f(width, 0.0f, 0.0f);
+			const CU::Vector3f tr = CU::Vector3f(width, height, 0.0f);
+
+			mySceneViewport->GetSceneRenderer()->GetDebugRenderer()->DrawRect(bl, br, tl, tr);
+		}
+
 		myDebugRenderer->Render(myEditorCamera.GetViewMatrix(), myEditorCamera.GetProjectionMatrix(), myDebugRendererOnTop);
 	}
 

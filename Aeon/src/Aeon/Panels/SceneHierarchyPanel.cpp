@@ -651,6 +651,52 @@ namespace Epoch
 				}
 			}, EditorResources::TransformIcon);
 
+			//DONE - Multi Edit
+		DrawComponent<RectComponent, false>("Rect", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
+			{
+				{
+					UI::BeginPropertyGrid();
+					
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector2f, RectComponent>([](const RectComponent& aOther) { return aOther.anchor; }));
+					if (UI::Property_DragFloat2("Anchor", aFirstComponent.anchor, 0.02f, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& rc = entity.GetComponent<RectComponent>();
+							rc.anchor = aFirstComponent.anchor;
+						}
+					}
+					ImGui::PopItemFlag();
+
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector2f, RectComponent>([](const RectComponent& aOther) { return aOther.pivot; }));
+					if (UI::Property_DragFloat2("Pivot", aFirstComponent.pivot, 0.02f, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& rc = entity.GetComponent<RectComponent>();
+							rc.pivot = aFirstComponent.pivot;
+						}
+					}
+					ImGui::PopItemFlag();
+
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector2ui, RectComponent>([](const RectComponent& aOther) { return aOther.size; }));
+					if (UI::Property_DragUInt2("Size", aFirstComponent.size))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& rc = entity.GetComponent<RectComponent>();
+							rc.size = aFirstComponent.size;
+						}
+					}
+					ImGui::PopItemFlag();
+
+					UI::EndPropertyGrid();
+				}
+			}, EditorResources::SpriteRendererIcon);
+
 		//DONE - Multi Edit (Not the overrides enabled bool)
 		DrawComponent<VolumeComponent, true>("Volume", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
 		{
@@ -1430,42 +1476,6 @@ namespace Epoch
 			{
 				{
 					UI::BeginPropertyGrid();
-
-					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector2ui, ImageComponent>([](const ImageComponent& aOther) { return aOther.size; }));
-					if (UI::Property_DragUInt2("Size", aFirstComponent.size))
-					{
-						for (auto& entityID : aEntities)
-						{
-							Entity entity = myContext->GetEntityWithUUID(entityID);
-							auto& ic = entity.GetComponent<ImageComponent>();
-							ic.size = aFirstComponent.size;
-						}
-					}
-					ImGui::PopItemFlag();
-
-					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector2f, ImageComponent>([](const ImageComponent& aOther) { return aOther.pivot; }));
-					if (UI::Property_DragFloat2("Pivot", aFirstComponent.pivot, 0.02f, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp))
-					{
-						for (auto& entityID : aEntities)
-						{
-							Entity entity = myContext->GetEntityWithUUID(entityID);
-							auto& ic = entity.GetComponent<ImageComponent>();
-							ic.pivot = aFirstComponent.pivot;
-						}
-					}
-					ImGui::PopItemFlag();
-					
-					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector2f, ImageComponent>([](const ImageComponent& aOther) { return aOther.anchor; }));
-					if (UI::Property_DragFloat2("Anchor", aFirstComponent.anchor, 0.02f, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp))
-					{
-						for (auto& entityID : aEntities)
-						{
-							Entity entity = myContext->GetEntityWithUUID(entityID);
-							auto& ic = entity.GetComponent<ImageComponent>();
-							ic.anchor = aFirstComponent.anchor;
-						}
-					}
-					ImGui::PopItemFlag();
 
 					AssetHandle assetHandle = aFirstComponent.texture;
 					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<AssetHandle, ImageComponent>([](const ImageComponent& aOther) { return aOther.texture; }));
@@ -2658,12 +2668,14 @@ namespace Epoch
 			if (ImGui::MenuItem("Image"))
 			{
 				createdEntity = myContext->CreateEntity("Image");
+				createdEntity.AddComponent<RectComponent>();
 				createdEntity.AddComponent<ImageComponent>();
 			}
 
 			if (ImGui::MenuItem("Button"))
 			{
 				createdEntity = myContext->CreateEntity("Button");
+				createdEntity.AddComponent<RectComponent>();
 				createdEntity.AddComponent<ImageComponent>();
 				createdEntity.AddComponent<ButtonComponent>();
 			}

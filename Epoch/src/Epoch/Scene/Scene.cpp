@@ -474,18 +474,18 @@ namespace Epoch
 			{
 				if (MouseInViewport())
 				{
-					auto view = GetAllEntitiesWith<ButtonComponent, ImageComponent>();
+					auto view = GetAllEntitiesWith<RectComponent, ButtonComponent>();
 					for (auto id : view)
 					{
 						Entity entity = Entity(id, this);
 						if (!entity.IsActive()) continue;
 				
-						const auto& [bc, ic] = view.get<ButtonComponent, ImageComponent>(id);
-						if (!bc.isActive || !ic.isActive) continue;
+						const auto& [rc, bc] = view.get<RectComponent, ButtonComponent>(id);
+						if (!bc.isActive) continue;
 				
-						const CU::Vector2f size = CU::Vector2f((float)ic.size.x, (float)ic.size.y);
-						const CU::Vector2f bl = (CU::Vector2f(0.0f, 0.0f) - ic.pivot) * size;
-						const CU::Vector2f tr = (CU::Vector2f(1.0f, 1.0f) - ic.pivot) * size;
+						const CU::Vector2f size = CU::Vector2f((float)rc.size.x, (float)rc.size.y);
+						const CU::Vector2f bl = (CU::Vector2f(0.0f, 0.0f) - rc.pivot) * size;
+						const CU::Vector2f tr = (CU::Vector2f(1.0f, 1.0f) - rc.pivot) * size;
 				
 						CU::Transform transform = entity.GetWorldSpaceTransform();
 
@@ -848,25 +848,22 @@ namespace Epoch
 			transform = GetWorldSpaceTransformMatrix(parent);
 		}
 
-		//Temp until UIElemtComponent or RectTransformComponent gets added
-		if (aEntity.HasComponent<ImageComponent>())
+		if (aEntity.HasComponent<RectComponent>())
 		{
 			auto trans = aEntity.Transform();
-			ImageComponent ic = aEntity.GetComponent<ImageComponent>();
+			RectComponent rc = aEntity.GetComponent<RectComponent>();
 
 			CU::Vector3f anchorOffset;
-			if (parent && parent.HasComponent<ImageComponent>())
+			if (parent && parent.HasComponent<RectComponent>())
 			{
-				ImageComponent pic = parent.GetComponent<ImageComponent>();
-				const CU::Vector2f scale = { transform.GetScale().x, transform.GetScale().y };
-				const CU::Vector2f size = { (float)pic.size.x, (float)pic.size.y };
-				const CU::Vector2f anchorOffset2D = size * scale * ic.anchor - size * pic.pivot;
-				//anchorOffset = CU::Vector3f(pic.size.x * transform.GetScale().x * ic.anchor.x - pic.size.x * pic.pivot.x, pic.size.y * transform.GetScale().y * ic.anchor.y - pic.size.y * pic.pivot.y, 0.0f);
+				RectComponent prc = parent.GetComponent<RectComponent>();
+				const CU::Vector2f size = { (float)prc.size.x, (float)prc.size.y };
+				const CU::Vector2f anchorOffset2D = size * rc.anchor - size * rc.pivot;
 				anchorOffset = CU::Vector3f(anchorOffset2D);
 			}
 			else
 			{
-				anchorOffset = CU::Vector3f(myViewportWidth * ic.anchor.x, myViewportHeight * ic.anchor.y, 0.0f);
+				anchorOffset = CU::Vector3f(myViewportWidth * rc.anchor.x, myViewportHeight * rc.anchor.y, 0.0f);
 			}
 			const CU::Vector3f anchoredPos = trans.GetTranslation() * 0.01f + anchorOffset;
 			return CU::Transform(anchoredPos, trans.GetRotation(), trans.GetScale()).GetMatrix() * transform;
@@ -1094,6 +1091,24 @@ namespace Epoch
 			}
 		}
 
+		// ImageComponent
+		{
+			auto view = myRegistry.view<ImageComponent>();
+			for (auto entity : view)
+			{
+				auto& ic = myRegistry.get<ImageComponent>(entity);
+				if (ic.texture)
+				{
+					if (AssetManager::IsMemoryAsset(ic.texture) || !AssetManager::IsAssetHandleValid(ic.texture))
+					{
+						continue;
+					}
+
+					assetList.insert(ic.texture);
+				}
+			}
+		}
+
 		// TextRendererComponent
 		{
 			auto view = myRegistry.view<TextRendererComponent>();
@@ -1190,6 +1205,63 @@ namespace Epoch
 					}
 
 					assetList.insert(sc.cookieTexture);
+				}
+			}
+		}
+
+		// Collider Components
+		{
+			// Box
+			{
+				auto view = myRegistry.view<BoxColliderComponent>();
+				for (auto entity : view)
+				{
+					const auto& cc = myRegistry.get<BoxColliderComponent>(entity);
+					if (cc.physicsMaterial)
+					{
+						if (AssetManager::IsMemoryAsset(cc.physicsMaterial) || !AssetManager::IsAssetHandleValid(cc.physicsMaterial))
+						{
+							continue;
+						}
+
+						assetList.insert(cc.physicsMaterial);
+					}
+				}
+			}
+
+			// Sphere
+			{
+				auto view = myRegistry.view<SphereColliderComponent>();
+				for (auto entity : view)
+				{
+					const auto& cc = myRegistry.get<SphereColliderComponent>(entity);
+					if (cc.physicsMaterial)
+					{
+						if (AssetManager::IsMemoryAsset(cc.physicsMaterial) || !AssetManager::IsAssetHandleValid(cc.physicsMaterial))
+						{
+							continue;
+						}
+
+						assetList.insert(cc.physicsMaterial);
+					}
+				}
+			}
+
+			// Capsule
+			{
+				auto view = myRegistry.view<CapsuleColliderComponent>();
+				for (auto entity : view)
+				{
+					const auto& cc = myRegistry.get<CapsuleColliderComponent>(entity);
+					if (cc.physicsMaterial)
+					{
+						if (AssetManager::IsMemoryAsset(cc.physicsMaterial) || !AssetManager::IsAssetHandleValid(cc.physicsMaterial))
+						{
+							continue;
+						}
+
+						assetList.insert(cc.physicsMaterial);
+					}
 				}
 			}
 		}
@@ -1747,13 +1819,13 @@ namespace Epoch
 					}
 				}
 
-				auto view = GetAllEntitiesWith<ImageComponent>();
+				auto view = GetAllEntitiesWith<RectComponent, ImageComponent>();
 				for (auto id : view)
 				{
 					Entity entity = Entity(id, this);
 					if (!entity.IsActive()) continue;
 
-					const auto& ic = view.get<ImageComponent>(id);
+					const auto& [rc, ic] = view.get<RectComponent, ImageComponent>(id);
 					if (!ic.isActive) continue;
 
 					std::shared_ptr<Texture2D> texture;
@@ -1769,8 +1841,8 @@ namespace Epoch
 					}
 
 					SceneRenderer2D::QuadSetting setting;
-					setting.anchor = ic.anchor;
-					setting.pivot = ic.pivot;
+					setting.anchor = rc.anchor;
+					setting.pivot = rc.pivot;
 					setting.flipX = ic.flipX;
 					setting.flipY = ic.flipY;
 
@@ -1784,16 +1856,16 @@ namespace Epoch
 					}
 
 					CU::Transform transform = entity.GetWorldSpaceTransform();
-					screenSpaceRenderer->SubmitQuad(transform.GetMatrix(), ic.size, texture, setting, (uint32_t)entity);
+					screenSpaceRenderer->SubmitQuad(transform.GetMatrix(), rc.size, texture, setting, (uint32_t)entity);
 
 					auto dr = aRenderer->GetDebugRenderer();
 					if (dr && aRenderDebugRects)
 					{
-						const CU::Vector2f size = CU::Vector2f((float)ic.size.x, (float)ic.size.y);
-						const CU::Vector2f bl = (CU::Vector2f(0.0f, 0.0f) - ic.pivot) * size;
-						const CU::Vector2f br = (CU::Vector2f(1.0f, 0.0f) - ic.pivot) * size;
-						const CU::Vector2f tl = (CU::Vector2f(0.0f, 1.0f) - ic.pivot) * size;
-						const CU::Vector2f tr = (CU::Vector2f(1.0f, 1.0f) - ic.pivot) * size;
+						const CU::Vector2f size = CU::Vector2f((float)rc.size.x, (float)rc.size.y);
+						const CU::Vector2f bl = (CU::Vector2f(0.0f, 0.0f) - rc.pivot) * size;
+						const CU::Vector2f br = (CU::Vector2f(1.0f, 0.0f) - rc.pivot) * size;
+						const CU::Vector2f tl = (CU::Vector2f(0.0f, 1.0f) - rc.pivot) * size;
+						const CU::Vector2f tr = (CU::Vector2f(1.0f, 1.0f) - rc.pivot) * size;
 						const CU::Vector4f bl4D(bl.x, bl.y, 0.0f, 1.0f);
 						const CU::Vector4f br4D(br.x, br.y, 0.0f, 1.0f);
 						const CU::Vector4f tl4D(tl.x, tl.y, 0.0f, 1.0f);

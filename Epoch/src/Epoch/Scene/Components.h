@@ -268,18 +268,25 @@ namespace Epoch
 
 #pragma region UI
 
+	struct RectComponent
+	{
+		CU::Vector2f anchor = CU::Vector2f(0.5f, 0.5f);
+		CU::Vector2f pivot = CU::Vector2f(0.5f, 0.5f);
+
+		CU::Vector2ui size = CU::Vector2ui(100, 100);
+
+		RectComponent() = default;
+		RectComponent(const RectComponent&) = default;
+	};
+
 	struct ImageComponent
 	{
 		bool isActive = true;
 
-		AssetHandle texture;
+		AssetHandle texture = 0;
 		CU::Color tint = CU::Color::White;
 		bool flipX = false;
 		bool flipY = false;
-
-		CU::Vector2ui size = CU::Vector2ui(100, 100);
-		CU::Vector2f pivot = CU::Vector2f(0.5f, 0.5f);
-		CU::Vector2f anchor = CU::Vector2f(0.5f, 0.5f);
 
 		ImageComponent() = default;
 		ImageComponent(const ImageComponent&) = default;
@@ -420,7 +427,7 @@ namespace Epoch
 		TransformComponent, ActiveComponent, RelationshipComponent, PrefabComponent, ScriptComponent,
 		CameraComponent, SkyLightComponent, DirectionalLightComponent, SpotlightComponent, PointLightComponent,
 		MeshRendererComponent, SkinnedMeshRendererComponent, SpriteRendererComponent, VideoPlayerComponent, TextRendererComponent,
-		ImageComponent, ButtonComponent,
+		RectComponent, ImageComponent, ButtonComponent,
 		RigidbodyComponent, BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent,
 		CharacterControllerComponent, ParticleSystemComponent, VolumeComponent>;
 
@@ -429,7 +436,7 @@ namespace Epoch
 		TransformComponent, ActiveComponent, PrefabComponent, ScriptComponent,
 		CameraComponent, SkyLightComponent, DirectionalLightComponent, SpotlightComponent, PointLightComponent,
 		MeshRendererComponent, SkinnedMeshRendererComponent, SpriteRendererComponent, VideoPlayerComponent, TextRendererComponent,
-		ImageComponent, ButtonComponent,
+		RectComponent, ImageComponent, ButtonComponent,
 		RigidbodyComponent, BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent,
 		CharacterControllerComponent, ParticleSystemComponent, VolumeComponent>;
 }

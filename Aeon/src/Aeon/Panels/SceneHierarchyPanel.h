@@ -198,23 +198,7 @@ namespace Epoch
 			ImGui::Separator();
 			bool open = false;
 
-			if constexpr (ActiveCheckbox
-				/*std::is_same_v<TComponent, CameraComponent> ||
-				std::is_same_v<TComponent, ParticleSystemComponent> ||
-				std::is_same_v<TComponent, MeshRendererComponent> ||
-				std::is_same_v<TComponent, SkinnedMeshRendererComponent> ||
-				std::is_same_v<TComponent, SpriteRendererComponent> ||
-				std::is_same_v<TComponent, VideoPlayerComponent> ||
-				std::is_same_v<TComponent, TextRendererComponent> ||
-				std::is_same_v<TComponent, SkyLightComponent> ||
-				std::is_same_v<TComponent, DirectionalLightComponent> ||
-				std::is_same_v<TComponent, SpotlightComponent> ||
-				std::is_same_v<TComponent, PointLightComponent> ||
-				std::is_same_v<TComponent, ScriptComponent> ||
-				std::is_same_v<TComponent, ImageComponent> ||
-				std::is_same_v<TComponent, ButtonComponent> ||
-				std::is_same_v<TComponent, VolumeComponent>*/
-				)
+			if constexpr (ActiveCheckbox)
 			{
 				const bool isMultiEdit = entities.size() > 1;
 				bool oldState = component.isActive;
@@ -274,7 +258,7 @@ namespace Epoch
 					resetComponent = true;
 				}
 
-				if (ImGui::MenuItem("Remove component", 0, false, !std::is_same<TComponent, TransformComponent>::value))
+				if (ImGui::MenuItem("Remove component", 0, false, !std::is_same<TComponent, TransformComponent>::value && !std::is_same<TComponent, RectComponent>::value))
 				{
 					removeComponent = true;
 				}

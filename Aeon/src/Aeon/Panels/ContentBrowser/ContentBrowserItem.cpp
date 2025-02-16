@@ -257,7 +257,7 @@ namespace Epoch
 
 	void ContentBrowserItem::SetDisplayNameFromFileName()
 	{
-		const float thumbnailSize = EditorSettings::Get().contentBrowserThumbnailSize;
+		const float thumbnailSize = EditorSettings::Get().contentBrowserThumbnailSize * 0.9f;
 
 		int maxCharacters = (int)(0.00152587f * (thumbnailSize * thumbnailSize)); // 0.00152587f is a magic number that is gained from graphing this equation in desmos and setting the y=25 at x=128
 
