@@ -177,22 +177,6 @@ namespace Epoch
 
 		GradientEditor::Get().Init();
 
-		//Screen Space Renderer
-		{
-			auto sceneRenderer = myGameViewport->GetSceneRenderer();
-			std::shared_ptr<SceneRenderer2D> screenSpaceRenderer = std::make_shared<SceneRenderer2D>();
-			screenSpaceRenderer->Init(sceneRenderer->GetExternalCompositingFramebuffer());
-			sceneRenderer->SetScreenSpaceRenderer(screenSpaceRenderer);
-		}
-
-		//Screen Space Renderer
-		{
-			auto sceneRenderer = mySceneViewport->GetSceneRenderer();
-			std::shared_ptr<SceneRenderer2D> screenSpaceRenderer = std::make_shared<SceneRenderer2D>();
-			screenSpaceRenderer->Init(sceneRenderer->GetExternalCompositingFramebuffer());
-			sceneRenderer->SetScreenSpaceRenderer(screenSpaceRenderer);
-		}
-
 		//Debug Renderer
 		{
 			auto sceneRenderer = mySceneViewport->GetSceneRenderer();
@@ -270,8 +254,14 @@ namespace Epoch
 		{
 			auto sceneRenderer = mySceneViewport->GetSceneRenderer();
 
+			Scene::EditorRenderSettings renderSetting;
+			renderSetting.cullWithGameCamera = myCullWithSceneCamera;
+			renderSetting.postProcessingEnabled = myPostProcessingInSceneView;
+			renderSetting.displayUI = myDisplayUIInSceneView;
+			renderSetting.displayUIRects = myDisplayUIDebugRectsInSceneView;
+
 			sceneRenderer->SetScene(myActiveScene);
-			myActiveScene->OnRenderEditor(sceneRenderer, myEditorCamera, !myCullWithSceneCamera, myPostProcessingInSceneView);
+			myActiveScene->OnRenderEditor(sceneRenderer, myEditorCamera, renderSetting);
 
 			OnRenderOverlay();
 		}
@@ -1936,6 +1926,17 @@ namespace Epoch
 
 			UI::Property_Checkbox("Show Gizmos", myShowGizmos);
 			UI::Property_DragFloat("Gizmos Scale", myGizmoScale, 0.02f, 0.2f, 1.0f);
+
+			UI::EndPropertyGrid();
+
+			UI::Spacing();
+			UI::Draw::Underline();
+			UI::Spacing();
+
+			UI::BeginPropertyGrid();
+
+			UI::Property_Checkbox("Display UI in Scene View", myDisplayUIInSceneView);
+			UI::Property_Checkbox("Display UI Debug Rects in Scene View", myDisplayUIDebugRectsInSceneView);
 
 			UI::EndPropertyGrid();
 

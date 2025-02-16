@@ -72,7 +72,15 @@ namespace Epoch
 		void OnUpdateEditor();
 
 		void OnRenderGame(std::shared_ptr<SceneRenderer> aRenderer);
-		void OnRenderEditor(std::shared_ptr<SceneRenderer> aRenderer, EditorCamera& aCamera, bool aCullWithGameCamera = false, bool aWithPostProccessing = true);
+
+		struct EditorRenderSettings
+		{
+			bool cullWithGameCamera = false;
+			bool postProcessingEnabled = false;
+			bool displayUI = false;
+			bool displayUIRects = false;
+		};
+		void OnRenderEditor(std::shared_ptr<SceneRenderer> aRenderer, EditorCamera& aCamera, const EditorRenderSettings& aSettings);
 
 		void OnSceneTransition(AssetHandle aScene);
 
@@ -200,7 +208,8 @@ namespace Epoch
 		std::vector<CU::Matrix4x4f> GetModelSpaceBoneTransforms(Entity aEntity, std::shared_ptr<Mesh> aMesh);
 		void GetModelSpaceBoneTransform(const std::vector<UUID>& aBoneEntityIds, std::vector<CU::Matrix4x4f>& outBoneTransforms, uint32_t aBoneIndex, const CU::Matrix4x4f& aParentTransform, std::shared_ptr<Skeleton> aSkeleton);
 
-		void RenderScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aRenderCamera, const SceneRendererCamera& aCullingCamera, bool aIsGameView, bool aWithPostProccessing = true);
+		void Render3DScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aRenderCamera, const SceneRendererCamera& aCullingCamera, bool aIsGameView, bool aWithPostProccessing = true);
+		void Render2DScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aRenderCamera, bool aIsGameView, bool aRenderDebugRects = false);
 		Frustum CreateFrustum(const SceneRendererCamera& aCamera);
 		bool FrustumIntersection(const Frustum& aFrustum, const AABB aAABB);
 		

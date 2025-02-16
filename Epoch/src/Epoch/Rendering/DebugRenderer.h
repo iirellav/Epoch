@@ -30,6 +30,7 @@ namespace Epoch
 		void Render(const CU::Matrix4x4f& aView, const CU::Matrix4x4f& aProjection, bool aOnTop = true);
 
 		void DrawLine(const CU::Vector3f& aP0, const CU::Vector3f& aP1, CU::Color aColor = CU::Color::White);
+		void DrawRect(const CU::Vector3f& aBottomLeft, const CU::Vector3f& aBottomRight, const CU::Vector3f& aTopLeft, const CU::Vector3f& aTopRight, CU::Color aColor = CU::Color::White);
 		void DrawCircle(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, float aRadius, const CU::Color aColor = CU::Color::White);
 		void DrawWireBox(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, const CU::Vector3f& aExtent, const CU::Color aColor = CU::Color::White);
 		void DrawWireSphere(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, float aRadius, const CU::Color aColor = CU::Color::White);

@@ -22,20 +22,15 @@ namespace Epoch
 			CU::Color tint = CU::Color::White;
 			bool flipX = false;
 			bool flipY = false;
-			bool billboard = false;
-		};
-		
-		struct ScreenSpaceQuadSetting
-		{
-			CU::Color tint = CU::Color::White;
-			bool flipX = false;
-			bool flipY = false;
+
+			bool billboard = false; //3D space only
+			bool preserveAspectRatio = false; //3D space only
+
 			CU::Vector2f pivot = CU::Vector2f(0.5f, 0.5f);
-			CU::Vector2f anchor = CU::Vector2f(0.5f, 0.5f);
+			CU::Vector2f anchor = CU::Vector2f(0.5f, 0.5f); //Screen space only
 		};
 
 		static inline const QuadSetting DefaultQuadSetting;
-		static inline const ScreenSpaceQuadSetting DefaultScreenSpaceQuadSetting;
 
 	public:
 		SceneRenderer2D();
@@ -49,9 +44,7 @@ namespace Epoch
 		void BeginScene(const CU::Matrix4x4f& aProj, const CU::Matrix4x4f& aView);
 		void EndScene();
 
-		void SubmitQuad(const CU::Matrix4x4f aTransform, std::shared_ptr<Texture2D> aTexture = nullptr, const QuadSetting& aSettings = DefaultQuadSetting, uint32_t aEntityID = 0);
-
-		void SubmitScreenSpaceQuad(const CU::Matrix4x4f aTransform, const CU::Vector2ui aSize, std::shared_ptr<Texture2D> aTexture = nullptr, const ScreenSpaceQuadSetting& aSettings = DefaultScreenSpaceQuadSetting, uint32_t aEntityID = 0);
+		void SubmitQuad(const CU::Matrix4x4f aTransform, const CU::Vector2ui aSize, std::shared_ptr<Texture2D> aTexture = nullptr, const QuadSetting& aSettings = DefaultQuadSetting, uint32_t aEntityID = 0);
 
 	private:
 		void Shutdown();
@@ -82,8 +75,7 @@ namespace Epoch
 			CU::Vector2f uv;
 		};
 
-		CU::Vector2f myScreenSpaceQuadVertexPositions[4];
-		CU::Vector4f myQuadVertexPositions[4];
+		CU::Vector2f myQuadVertexPositions[4];
 		CU::Vector2f myQuadUVCoords[4];
 		std::unordered_map<UUID, std::vector<QuadVertex>> myQuadVertices;
 		std::unordered_map<UUID, std::shared_ptr<Texture2D>> myTextures;

@@ -518,10 +518,11 @@ namespace Epoch
 			camera.GetPerspectiveFOV(),
 			camera.GetAspectRatio()
 		);
-		RenderScene(aRenderer, renderCamera, renderCamera, true);
+		Render3DScene(aRenderer, renderCamera, renderCamera, true);
+		Render2DScene(aRenderer, renderCamera, true);
 	}
 
-	void Scene::OnRenderEditor(std::shared_ptr<SceneRenderer> aRenderer, EditorCamera& aCamera, bool aCullWithGameCamera, bool aWithPostProccessing)
+	void Scene::OnRenderEditor(std::shared_ptr<SceneRenderer> aRenderer, EditorCamera& aCamera, const EditorRenderSettings& aSettings)
 	{
 		const SceneRendererCamera renderCamera
 		(
@@ -537,7 +538,7 @@ namespace Epoch
 		SceneRendererCamera cullingCamera;
 
 
-		if (aCullWithGameCamera)
+		if (aSettings.cullWithGameCamera)
 		{
 			Entity cameraEntity = GetPrimaryCameraEntity();
 			if (cameraEntity)
@@ -570,7 +571,12 @@ namespace Epoch
 			cullingCamera = renderCamera;
 		}
 		
-		RenderScene(aRenderer, renderCamera, renderCamera, false, aWithPostProccessing);
+		Render3DScene(aRenderer, renderCamera, cullingCamera, false, aSettings.postProcessingEnabled);
+
+		if (aSettings.displayUI)
+		{
+			Render2DScene(aRenderer, renderCamera, false, aSettings.displayUIRects);
+		}
 	}
 
 	void Scene::OnSceneTransition(AssetHandle aScene)
@@ -771,11 +777,26 @@ namespace Epoch
 			transform = GetWorldSpaceTransformMatrix(parent);
 		}
 
+		//Temp until UIElemtComponent or RectTransformComponent gets added
 		if (aEntity.HasComponent<ImageComponent>())
 		{
 			auto trans = aEntity.Transform();
 			ImageComponent ic = aEntity.GetComponent<ImageComponent>();
-			const CU::Vector3f anchorOffset(myViewportWidth * ic.anchor.x, myViewportHeight * ic.anchor.y, 0.0f);
+
+			CU::Vector3f anchorOffset;
+			if (parent && parent.HasComponent<ImageComponent>())
+			{
+				ImageComponent pic = parent.GetComponent<ImageComponent>();
+				const CU::Vector2f scale = { transform.GetScale().x, transform.GetScale().y };
+				const CU::Vector2f size = { (float)pic.size.x, (float)pic.size.y };
+				const CU::Vector2f anchorOffset2D = size * scale * ic.anchor - size * pic.pivot;
+				//anchorOffset = CU::Vector3f(pic.size.x * transform.GetScale().x * ic.anchor.x - pic.size.x * pic.pivot.x, pic.size.y * transform.GetScale().y * ic.anchor.y - pic.size.y * pic.pivot.y, 0.0f);
+				anchorOffset = CU::Vector3f(anchorOffset2D);
+			}
+			else
+			{
+				anchorOffset = CU::Vector3f(myViewportWidth * ic.anchor.x, myViewportHeight * ic.anchor.y, 0.0f);
+			}
 			const CU::Vector3f anchoredPos = trans.GetTranslation() * 0.01f + anchorOffset;
 			return CU::Transform(anchoredPos, trans.GetRotation(), trans.GetScale()).GetMatrix() * transform;
 		}
@@ -1214,24 +1235,22 @@ namespace Epoch
 		outBoneTransforms[aBoneIndex] = bone.invBindPose * matrix;
 	}
 
-	void Scene::RenderScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aRenderCamera, const SceneRendererCamera& aCullingCamera, bool aIsGameView, bool aWithPostProccessing)
+	void Scene::Render3DScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aRenderCamera, const SceneRendererCamera& aCullingCamera, bool aIsGameView, bool aWithPostProccessing)
 	{
 		EPOCH_PROFILE_FUNC();
 
 		std::unordered_map<AssetHandle, std::shared_ptr<Asset>> assetAccelerationMap;
-		
-		//3D
+
+		const Frustum frustum = CreateFrustum(aCullingCamera);
+
+		std::unordered_set<UUID> lastFramesFrustumCulledEntities = myFrustumCulledEntities;
+		myFrustumCulledEntities.clear();
+
+		std::unordered_set<UUID> enteredFrustum;
+		std::unordered_set<UUID> exitedFrustum;
+
+		// Lighting
 		{
-			const Frustum frustum = CreateFrustum(aCullingCamera);
-
-			std::unordered_set<UUID> lastFramesFrustumCulledEntities = myFrustumCulledEntities;
-			myFrustumCulledEntities.clear();
-
-			std::unordered_set<UUID> enteredFrustum;
-			std::unordered_set<UUID> exitedFrustum;
-
-			// Lighting
-			{
 				EPOCH_PROFILE_SCOPE("Scene::RenderScene::UpdateLightEnvironment");
 
 				myLightEnvironment = LightEnvironment();
@@ -1332,78 +1351,78 @@ namespace Epoch
 					sl.cookie = cookie;
 				}
 			}
-			
-			// Post Processing
+		
+		// Post Processing
+		{
+			EPOCH_PROFILE_SCOPE("Scene::RenderScene::UpdatePostProcessingData");
+
+			myPostProcessingData = PostProcessingData();
+			myPostProcessingData.colorGradingLUT = Renderer::GetDefaultColorGradingLut();
+
+			if (aWithPostProccessing)
 			{
-				EPOCH_PROFILE_SCOPE("Scene::RenderScene::UpdatePostProcessingData");
-
-				myPostProcessingData = PostProcessingData();
-				myPostProcessingData.colorGradingLUT = Renderer::GetDefaultColorGradingLut();
-
-				if (aWithPostProccessing)
+				auto volumes = GetAllEntitiesWith<VolumeComponent>();
+				for (auto entityID : volumes)
 				{
-					auto volumes = GetAllEntitiesWith<VolumeComponent>();
-					for (auto entityID : volumes)
+					Entity entity = Entity(entityID, this);
+					if (!entity.IsActive()) continue;
+
+					const auto& vc = volumes.get<VolumeComponent>(entityID);
+					if (!vc.isActive) continue;
+
+					if (vc.tonemapping.enabled)
 					{
-						Entity entity = Entity(entityID, this);
-						if (!entity.IsActive()) continue;
-
-						const auto& vc = volumes.get<VolumeComponent>(entityID);
-						if (!vc.isActive) continue;
-
-						if (vc.tonemapping.enabled)
-						{
-							myPostProcessingData.bufferData.tonemap = vc.tonemapping.tonemap;
-						}
-						
-						if (vc.colorGrading.enabled)
-						{
-							myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::ColorGradingEnabled;
-
-							auto lut = AssetManager::GetAsset<Texture2D>(vc.colorGrading.lut);
-							if (!lut)
-							{
-								lut = Renderer::GetDefaultColorGradingLut();
-							}
-							myPostProcessingData.colorGradingLUT = lut;
-						}
-						
-						if (vc.vignette.enabled)
-						{
-							myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::VignetteEnabled;
-
-							myPostProcessingData.bufferData.vignetteCenter = vc.vignette.center;
-							myPostProcessingData.bufferData.vignetteColor = vc.vignette.color;
-							myPostProcessingData.bufferData.vignetteIntensity = vc.vignette.intensity;
-							myPostProcessingData.bufferData.vignetteSize = vc.vignette.size;
-							myPostProcessingData.bufferData.vignetteSmoothness = vc.vignette.smoothness;
-						}
-
-						if (vc.distanceFog.enabled)
-						{
-							myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::DistanceFogEnabled;
-
-							myPostProcessingData.bufferData.distanceFogColor = vc.distanceFog.color.GetVector3();
-							myPostProcessingData.bufferData.distanceFogDensity = vc.distanceFog.density;
-							myPostProcessingData.bufferData.distanceFogOffset = vc.distanceFog.offset;
-						}
-
-						if (vc.posterization.enabled)
-						{
-							myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::PosterizationEnabled;
-
-							myPostProcessingData.bufferData.posterizationSteps = vc.posterization.steps;
-						}
-
-						break;
+						myPostProcessingData.bufferData.tonemap = vc.tonemapping.tonemap;
 					}
+					
+					if (vc.colorGrading.enabled)
+					{
+						myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::ColorGradingEnabled;
+
+						auto lut = AssetManager::GetAsset<Texture2D>(vc.colorGrading.lut);
+						if (!lut)
+						{
+							lut = Renderer::GetDefaultColorGradingLut();
+						}
+						myPostProcessingData.colorGradingLUT = lut;
+					}
+					
+					if (vc.vignette.enabled)
+					{
+						myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::VignetteEnabled;
+
+						myPostProcessingData.bufferData.vignetteCenter = vc.vignette.center;
+						myPostProcessingData.bufferData.vignetteColor = vc.vignette.color;
+						myPostProcessingData.bufferData.vignetteIntensity = vc.vignette.intensity;
+						myPostProcessingData.bufferData.vignetteSize = vc.vignette.size;
+						myPostProcessingData.bufferData.vignetteSmoothness = vc.vignette.smoothness;
+					}
+
+					if (vc.distanceFog.enabled)
+					{
+						myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::DistanceFogEnabled;
+
+						myPostProcessingData.bufferData.distanceFogColor = vc.distanceFog.color.GetVector3();
+						myPostProcessingData.bufferData.distanceFogDensity = vc.distanceFog.density;
+						myPostProcessingData.bufferData.distanceFogOffset = vc.distanceFog.offset;
+					}
+
+					if (vc.posterization.enabled)
+					{
+						myPostProcessingData.bufferData.flags |= (uint32_t)PostProcessingData::Flag::PosterizationEnabled;
+
+						myPostProcessingData.bufferData.posterizationSteps = vc.posterization.steps;
+					}
+
+					break;
 				}
 			}
+		}
 
-			aRenderer->BeginScene(aRenderCamera);
-			
-			// Submit Meshes
-			{
+		aRenderer->BeginScene(aRenderCamera);
+		
+		// Submit Meshes
+		{
 				EPOCH_PROFILE_SCOPE("Scene::RenderScene::SubmitMeshes");
 
 				{
@@ -1485,9 +1504,9 @@ namespace Epoch
 					}
 				}
 			}
-			
-			// Submit Sprites
-			{
+		
+		// Submit Sprites
+		{
 				EPOCH_PROFILE_SCOPE("Scene::RenderScene::SubmitSprites");
 
 				auto view = GetAllEntitiesWith<SpriteRendererComponent>();
@@ -1516,8 +1535,8 @@ namespace Epoch
 				}
 			}
 
-			// Submit Texts
-			{
+		// Submit Texts
+		{
 				EPOCH_PROFILE_SCOPE("Scene::RenderScene::SubmitText");
 
 				auto view = GetAllEntitiesWith<TextRendererComponent>();
@@ -1556,9 +1575,9 @@ namespace Epoch
 				}
 			}
 
-			aRenderer->EndScene();
+		aRenderer->EndScene();
 
-			if (aIsGameView && myIsPlaying)
+		if (aIsGameView && myIsPlaying)
 			{
 				EPOCH_PROFILE_SCOPE("Scene::RenderScene::OnFrustumEnter/Exit");
 
@@ -1609,67 +1628,79 @@ namespace Epoch
 					ScriptEngine::CallMethod(sc.managedInstance, "OnFrustumExit");
 				}
 			}
-		}
+	}
 
-		//2D
+	void Scene::Render2DScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aRenderCamera, bool aIsGameView, bool aRenderDebugRects)
+	{
+		EPOCH_PROFILE_FUNC();
+
+		std::unordered_map<AssetHandle, std::shared_ptr<Asset>> assetAccelerationMap;
+
+		auto screenSpaceRenderer = aRenderer->GetScreenSpaceRenderer();
+		if (screenSpaceRenderer)
 		{
-			auto screenSpaceRenderer = aRenderer->GetScreenSpaceRenderer();
-			if (screenSpaceRenderer)
+			if (aIsGameView)
 			{
-				if (aIsGameView)
-				{
-					screenSpaceRenderer->BeginScene(CU::Matrix4x4f::CreateOrthographicProjection(0.0f, (float)myViewportWidth, 0.0f, (float)myViewportHeight, -1.0f, 1.0f), CU::Matrix4x4f::Identity);
-				}
-				else
-				{
-					screenSpaceRenderer->BeginScene(aRenderCamera.camera.GetProjectionMatrix(), aRenderCamera.viewMatrix);
-				}
+				screenSpaceRenderer->BeginScene(CU::Matrix4x4f::CreateOrthographicProjection(0.0f, (float)myViewportWidth, 0.0f, (float)myViewportHeight, -1.0f, 1.0f), CU::Matrix4x4f::Identity);
+			}
+			else
+			{
+				screenSpaceRenderer->BeginScene(aRenderCamera.camera.GetProjectionMatrix(), aRenderCamera.viewMatrix);
+			}
 
-				// Submit Images
-				{
-					EPOCH_PROFILE_SCOPE("Scene::RenderScene::SubmitImages");
+			// Submit Images
+			{
+				EPOCH_PROFILE_SCOPE("Scene::RenderScene::SubmitImages");
 
-					auto view = GetAllEntitiesWith<ImageComponent>();
-					for (auto id : view)
+				auto view = GetAllEntitiesWith<ImageComponent>();
+				for (auto id : view)
+				{
+					Entity entity = Entity(id, this);
+					if (!entity.IsActive()) continue;
+
+					const auto& ic = view.get<ImageComponent>(id);
+					if (!ic.isActive) continue;
+
+					std::shared_ptr<Texture2D> texture;
+					if (auto it = assetAccelerationMap.find(ic.texture); it != assetAccelerationMap.end())
 					{
-						Entity entity = Entity(id, this);
-						if (!entity.IsActive()) continue;
+						texture = std::static_pointer_cast<Texture2D>(it->second);
+					}
+					else
+					{
+						//texture = AssetManager::GetAssetAsync<Texture2D>(src.texture);
+						texture = AssetManager::GetAsset<Texture2D>(ic.texture); //TODO: Make async
+						assetAccelerationMap[ic.texture] = texture;
+					}
 
-						const auto& ic = view.get<ImageComponent>(id);
-						if (!ic.isActive) continue;
+					SceneRenderer2D::QuadSetting setting;
+					setting.anchor = ic.anchor;
+					setting.pivot = ic.pivot;
+					setting.flipX = ic.flipX;
+					setting.flipY = ic.flipY;
+					setting.tint = ic.tint;
 
-						std::shared_ptr<Texture2D> texture;
-						if (auto it = assetAccelerationMap.find(ic.texture); it != assetAccelerationMap.end())
-						{
-							texture = std::static_pointer_cast<Texture2D>(it->second);
-						}
-						else
-						{
-							//texture = AssetManager::GetAssetAsync<Texture2D>(src.texture);
-							texture = AssetManager::GetAsset<Texture2D>(ic.texture); //TODO: Make async
-							assetAccelerationMap[ic.texture] = texture;
-						}
+					CU::Transform transform = entity.GetWorldSpaceTransform();
+					screenSpaceRenderer->SubmitQuad(transform.GetMatrix(), ic.size, texture, setting, (uint32_t)entity);
 
-						SceneRenderer2D::ScreenSpaceQuadSetting setting;
-						setting.anchor = ic.anchor;
-						setting.pivot = ic.pivot;
-						setting.flipX = ic.flipX;
-						setting.flipY = ic.flipY;
-						setting.tint = ic.tint;
-
-						CU::Transform transform = entity.GetWorldSpaceTransform();
-						screenSpaceRenderer->SubmitScreenSpaceQuad(transform.GetMatrix(), ic.size, texture, setting, (uint32_t)entity);
+					auto dr = aRenderer->GetDebugRenderer();
+					if (dr && aRenderDebugRects)
+					{
+						const CU::Vector2f size = CU::Vector2f((float)ic.size.x, (float)ic.size.y);
+						const CU::Vector2f bl = (CU::Vector2f(0.0f, 0.0f) - ic.pivot) * size;
+						const CU::Vector2f br = (CU::Vector2f(1.0f, 0.0f) - ic.pivot) * size;
+						const CU::Vector2f tl = (CU::Vector2f(0.0f, 1.0f) - ic.pivot) * size;
+						const CU::Vector2f tr = (CU::Vector2f(1.0f, 1.0f) - ic.pivot) * size;
+						const CU::Vector4f bl4D(bl.x, bl.y, 0.0f, 1.0f);
+						const CU::Vector4f br4D(br.x, br.y, 0.0f, 1.0f);
+						const CU::Vector4f tl4D(tl.x, tl.y, 0.0f, 1.0f);
+						const CU::Vector4f tr4D(tr.x, tr.y, 0.0f, 1.0f);
+						dr->DrawRect(transform.GetMatrix() * bl4D, transform.GetMatrix() * br4D, transform.GetMatrix() * tl4D, transform.GetMatrix() * tr4D);
 					}
 				}
-
-				//screenSpaceRenderer->SubmitScreenSpaceQuad(CU::Vector3f(50.0f, 0.0f, 0.0f), CU::Vector3f::Zero, { 100, 100 }, nullptr, { CU::Color::Red, false, false, { 0.5f, 0.5f }, { 0.f, 0.f } });
-				//screenSpaceRenderer->SubmitScreenSpaceQuad(CU::Vector3f(0.0f, -50.0f, 0.0f), CU::Vector3f::Zero, { 100, 100 }, nullptr, { CU::Color::Blue, false, false, { 0.5f, 0.5f }, { 0.f, 1.f } });
-				//screenSpaceRenderer->SubmitScreenSpaceQuad(CU::Vector3f(-50.0f, 0.0f, 0.0f), CU::Vector3f::Zero, { 100, 100 }, nullptr, { CU::Color::Green, false, false, { 0.5f, 0.5f }, { 1.f, 1.f } });
-				//screenSpaceRenderer->SubmitScreenSpaceQuad(CU::Vector3f(0.0f, 50.0f, 0.0f), CU::Vector3f::Zero, { 100, 100 }, nullptr, { CU::Color::Magenta, false, false, { 0.5f, 0.5f }, { 1.f, 0.f } });
-				//screenSpaceRenderer->SubmitScreenSpaceQuad(CU::Vector3f(0.0f, 0.0f, 0.0f), CU::Vector3f::Zero, { 120, 970 }, nullptr, { CU::Color::Yellow, false, false, { 0.5f, 0.5f }, { 0.5f, 0.5f } });
-
-				screenSpaceRenderer->EndScene();
 			}
+
+			screenSpaceRenderer->EndScene();
 		}
 	}
 

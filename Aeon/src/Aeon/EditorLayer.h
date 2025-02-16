@@ -128,6 +128,8 @@ namespace Epoch
 		bool myShowGizmos = true;
 		float myGizmoScale = 0.5f;
 
+		bool myDisplayUIInSceneView = false;
+		bool myDisplayUIDebugRectsInSceneView = false;
 		bool myPostProcessingInSceneView = true;
 
 		bool myDisplayCurrentColorGradingLUT = false;

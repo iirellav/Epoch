@@ -31,15 +31,10 @@ namespace Epoch
 			myQuadUVCoords[2] = { 1.0f, 0.0f };
 			myQuadUVCoords[3] = { 1.0f, 1.0f };
 
-			myScreenSpaceQuadVertexPositions[0] = { 0.0f, 0.0f };
-			myScreenSpaceQuadVertexPositions[1] = { 0.0f, 1.0f };
-			myScreenSpaceQuadVertexPositions[2] = { 1.0f, 1.0f };
-			myScreenSpaceQuadVertexPositions[3] = { 1.0f, 0.0f };
-			
-			myQuadVertexPositions[0] = { -50.0f, -50.0f, 0.0f, 1.0f };
-			myQuadVertexPositions[1] = { -50.0f,  50.0f, 0.0f, 1.0f };
-			myQuadVertexPositions[2] = { 50.0f,  50.0f, 0.0f, 1.0f };
-			myQuadVertexPositions[3] = { 50.0f, -50.0f, 0.0f, 1.0f };
+			myQuadVertexPositions[0] = { 0.0f, 0.0f };
+			myQuadVertexPositions[1] = { 0.0f, 1.0f };
+			myQuadVertexPositions[2] = { 1.0f, 1.0f };
+			myQuadVertexPositions[3] = { 1.0f, 0.0f };
 
 			myQuadVertexBuffer = VertexBuffer::Create(MaxQuadVertices, sizeof(QuadVertex));
 
@@ -143,47 +138,30 @@ namespace Epoch
 		return { CU::Math::Abs(aCoord.x - (float)aFlipX), CU::Math::Abs(aCoord.y - (float)aFlipY) };
 	}
 
-	void SceneRenderer2D::SubmitQuad(const CU::Matrix4x4f aTransform, std::shared_ptr<Texture2D> aTexture, const QuadSetting& aSettings, uint32_t aEntityID)
+	void SceneRenderer2D::SubmitQuad(const CU::Matrix4x4f aTransform, const CU::Vector2ui aSize, std::shared_ptr<Texture2D> aTexture, const QuadSetting& aSettings, uint32_t aEntityID)
 	{
-		CU::Vector4f scaleMultiplier = CU::Vector4f::One;
-		if (aTexture)
-		{
+		if (!aTexture) aTexture = Renderer::GetWhiteTexture();
+		auto& vertexList = myQuadVertices[aTexture->GetHandle()];
+		myTextures[aTexture->GetHandle()] = aTexture;
 
+		CU::Vector2f scaleMultiplier = CU::Vector2f::One;
+		if (aTexture && aSettings.preserveAspectRatio)
+		{
 			if ((float)aTexture->GetWidth() < (float)aTexture->GetHeight())
-			{
-				scaleMultiplier.y = (float)aTexture->GetHeight() / (float)aTexture->GetWidth();
-			}
-			else
 			{
 				scaleMultiplier.x = (float)aTexture->GetWidth() / (float)aTexture->GetHeight();
 			}
+			else
+			{
+				scaleMultiplier.y = (float)aTexture->GetHeight() / (float)aTexture->GetWidth();
+			}
 		}
 
-		if (!aTexture) aTexture = Renderer::GetWhiteTexture();
-		auto& vertexList = myQuadVertices[aTexture->GetHandle()];
-		myTextures[aTexture->GetHandle()] = aTexture;
+		const CU::Vector2f size = CU::Vector2f((float)aSize.x, (float)aSize.y) * scaleMultiplier;
 
 		for (size_t i = 0; i < 4; i++)
 		{
-			QuadVertex& vertex = vertexList.emplace_back();
-			vertex.position = aTransform * (myQuadVertexPositions[i] * scaleMultiplier);
-			vertex.uv = FlipUVCoord(myQuadUVCoords[i], aSettings.flipX, aSettings.flipY);
-			vertex.tint = aSettings.tint.GetVector4();
-			vertex.entityID = aEntityID;
-		}
-	}
-	
-	void SceneRenderer2D::SubmitScreenSpaceQuad(const CU::Matrix4x4f aTransform, const CU::Vector2ui aSize, std::shared_ptr<Texture2D> aTexture, const ScreenSpaceQuadSetting& aSettings, uint32_t aEntityID)
-	{
-		if (!aTexture) aTexture = Renderer::GetWhiteTexture();
-		auto& vertexList = myQuadVertices[aTexture->GetHandle()];
-		myTextures[aTexture->GetHandle()] = aTexture;
-
-		const CU::Vector2f size = { (float)aSize.x, (float)aSize.y };
-
-		for (size_t i = 0; i < 4; i++)
-		{
-			const CU::Vector2f vertPos = (myScreenSpaceQuadVertexPositions[i] - aSettings.pivot) * size;
+			const CU::Vector2f vertPos = (myQuadVertexPositions[i] - aSettings.pivot) * size;
 
 			QuadVertex& vertex = vertexList.emplace_back();
 			vertex.position = aTransform * CU::Vector4f(vertPos.x, vertPos.y, 0.0f, 1.0f);

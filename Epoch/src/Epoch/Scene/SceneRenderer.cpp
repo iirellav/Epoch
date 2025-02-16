@@ -284,6 +284,12 @@ namespace Epoch
 
 			myExternalCompositingFramebuffer = Framebuffer::Create(specs);
 		}
+
+		//2D renderer/s
+		{
+			myScreenSpaceRenderer = std::make_shared<SceneRenderer2D>();
+			myScreenSpaceRenderer->Init(GetExternalCompositingFramebuffer());
+		}
 	}
 
 	void SceneRenderer::Shutdown()

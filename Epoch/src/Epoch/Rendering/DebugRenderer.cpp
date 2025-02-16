@@ -302,6 +302,31 @@ namespace Epoch
 		lineList.indexCount = (uint32_t)lineList.indices.size();
 	}
 
+	void DebugRenderer::DrawRect(const CU::Vector3f& aBottomLeft, const CU::Vector3f& aBottomRight, const CU::Vector3f& aTopLeft, const CU::Vector3f& aTopRight, CU::Color aColor)
+	{
+		auto& lineList = myLineLists.emplace_back();
+		
+		lineList.vertices.push_back({ aBottomLeft, aColor });
+		lineList.vertices.push_back({ aBottomRight, aColor });
+		lineList.vertices.push_back({ aTopLeft, aColor });
+		lineList.vertices.push_back({ aTopRight, aColor });
+		
+		lineList.indices.push_back(0);
+		lineList.indices.push_back(1);
+
+		lineList.indices.push_back(1);
+		lineList.indices.push_back(3);
+
+		lineList.indices.push_back(3);
+		lineList.indices.push_back(2);
+
+		lineList.indices.push_back(2);
+		lineList.indices.push_back(0);
+		
+		lineList.vertexCount = (uint32_t)lineList.vertices.size();
+		lineList.indexCount = (uint32_t)lineList.indices.size();
+	}
+
 	void DebugRenderer::DrawCircle(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, float aRadius, const CU::Color aColor)
 	{
 		auto& lineList = myLineLists.emplace_back();
