@@ -45,9 +45,6 @@ namespace Epoch
 
 		void RecursivePanelMenuItem(const std::vector<std::string>& aNameParts, uint32_t aDepth, bool& aIsOpen);
 
-		std::pair<float, float> GetMouseViewportCord() const;
-		std::pair<float, float> GetMouseViewportSpace() const;
-		bool MouseInViewport();
 		Entity GetHoveredEntity();
 
 		void HandleAssetDrop();

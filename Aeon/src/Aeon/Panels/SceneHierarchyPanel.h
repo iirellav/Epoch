@@ -151,7 +151,7 @@ namespace Epoch
 			return false;
 		}
 
-		template<typename TComponent, typename UIFunction>
+		template<typename TComponent, bool ActiveCheckbox, typename UIFunction>
 		void DrawComponent(const std::string& aName, UIFunction aUIFunction, std::shared_ptr<Texture2D> aIcon = nullptr)
 		{
 			std::string name = aName;
@@ -198,8 +198,8 @@ namespace Epoch
 			ImGui::Separator();
 			bool open = false;
 
-			if constexpr (
-				std::is_same_v<TComponent, CameraComponent> ||
+			if constexpr (ActiveCheckbox
+				/*std::is_same_v<TComponent, CameraComponent> ||
 				std::is_same_v<TComponent, ParticleSystemComponent> ||
 				std::is_same_v<TComponent, MeshRendererComponent> ||
 				std::is_same_v<TComponent, SkinnedMeshRendererComponent> ||
@@ -211,7 +211,9 @@ namespace Epoch
 				std::is_same_v<TComponent, SpotlightComponent> ||
 				std::is_same_v<TComponent, PointLightComponent> ||
 				std::is_same_v<TComponent, ScriptComponent> ||
-				std::is_same_v<TComponent, VolumeComponent>
+				std::is_same_v<TComponent, ImageComponent> ||
+				std::is_same_v<TComponent, ButtonComponent> ||
+				std::is_same_v<TComponent, VolumeComponent>*/
 				)
 			{
 				const bool isMultiEdit = entities.size() > 1;

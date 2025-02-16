@@ -1,6 +1,7 @@
 #include "epch.h"
 #include "Scene.h"
 #include <CommonUtilities/Timer.h>
+#include "Epoch/Core/Input.h"
 #include "Prefab.h"
 #include "SceneRenderer.h"
 #include "Epoch/Rendering/Font.h"
@@ -469,6 +470,52 @@ namespace Epoch
 			// Update animation
 			// Update audio
 
+			// Update UI
+			{
+				if (MouseInViewport())
+				{
+					auto view = GetAllEntitiesWith<ButtonComponent, ImageComponent>();
+					for (auto id : view)
+					{
+						Entity entity = Entity(id, this);
+						if (!entity.IsActive()) continue;
+				
+						const auto& [bc, ic] = view.get<ButtonComponent, ImageComponent>(id);
+						if (!bc.isActive || !ic.isActive) continue;
+				
+						const CU::Vector2f size = CU::Vector2f((float)ic.size.x, (float)ic.size.y);
+						const CU::Vector2f bl = (CU::Vector2f(0.0f, 0.0f) - ic.pivot) * size;
+						const CU::Vector2f tr = (CU::Vector2f(1.0f, 1.0f) - ic.pivot) * size;
+				
+						CU::Transform transform = entity.GetWorldSpaceTransform();
+
+						const CU::Vector4f bl4D = transform.GetMatrix() * CU::Vector4f(bl.x, bl.y, 0.0f, 1.0f);
+						const CU::Vector4f tr4D = transform.GetMatrix() * CU::Vector4f(tr.x, tr.y, 0.0f, 1.0f);
+
+						if (myMousePos.x > bl4D.x && myMousePos.x < tr4D.x &&
+							myMousePos.y > bl4D.y && myMousePos.y < tr4D.y)
+						{
+							if (bc.state == InteractableState::Default)
+							{
+								bc.state = InteractableState::Hovered;
+							}
+							else if (bc.state == InteractableState::Hovered && Input::IsMouseButtonPressed(MouseButton::Left))
+							{
+								bc.state = InteractableState::Pressed;
+							}
+							else if (bc.state == InteractableState::Pressed && Input::IsMouseButtonReleased(MouseButton::Left))
+							{
+								bc.state = InteractableState::Hovered;
+							}
+						}
+						else if (bc.state != InteractableState::Default)
+						{
+							bc.state = InteractableState::Default;
+						}
+					}
+				}
+			}
+
 			for (auto&& fn : myPostUpdateQueue)
 			{
 				fn();
@@ -589,12 +636,6 @@ namespace Epoch
 		{
 			LOG_WARNING("Cannot transition scene - no callback set!");
 		}
-	}
-
-	void Scene::SetViewportSize(uint32_t aWidth, uint32_t aHeight)
-	{
-		myViewportWidth = aWidth;
-		myViewportHeight = aHeight;
 	}
 
 	Entity Scene::TryGetEntityByName(std::string_view aName)
@@ -1652,6 +1693,30 @@ namespace Epoch
 			{
 				EPOCH_PROFILE_SCOPE("Scene::RenderScene::SubmitImages");
 
+				std::map<entt::entity, CU::Color> imageTintMap;
+				auto buttonView = GetAllEntitiesWith<ButtonComponent>();
+				for (auto id : buttonView)
+				{
+					Entity entity = Entity(id, this);
+					if (!entity.IsActive()) continue;
+
+					const auto& bc = buttonView.get<ButtonComponent>(id);
+					if (!bc.isActive) continue;
+
+					switch (bc.state)
+					{
+					case Epoch::InteractableState::Default:
+						imageTintMap.emplace(id, bc.defaultColor);
+						break;
+					case Epoch::InteractableState::Hovered:
+						imageTintMap.emplace(id, bc.hoveredColor);
+						break;
+					case Epoch::InteractableState::Pressed:
+						imageTintMap.emplace(id, bc.pressedColor);
+						break;
+					}
+				}
+
 				auto view = GetAllEntitiesWith<ImageComponent>();
 				for (auto id : view)
 				{
@@ -1678,7 +1743,15 @@ namespace Epoch
 					setting.pivot = ic.pivot;
 					setting.flipX = ic.flipX;
 					setting.flipY = ic.flipY;
-					setting.tint = ic.tint;
+
+					if (auto it = imageTintMap.find(id); it != imageTintMap.end())
+					{
+						setting.tint = ic.tint * it->second;
+					}
+					else
+					{
+						setting.tint = ic.tint;
+					}
 
 					CU::Transform transform = entity.GetWorldSpaceTransform();
 					screenSpaceRenderer->SubmitQuad(transform.GetMatrix(), ic.size, texture, setting, (uint32_t)entity);
@@ -1800,5 +1873,16 @@ namespace Epoch
 		}
 
 		return true;
+	}
+	
+	std::pair<float, float> Scene::GetMouseViewportSpace() const
+	{
+		return { (myMousePos.x / myViewportWidth) * 2.0f - 1.0f, (myMousePos.y / myViewportHeight) * 2.0f - 1.0f };
+	}
+	
+	bool Scene::MouseInViewport()
+	{
+		auto [mouseX, mouseY] = GetMouseViewportSpace();
+		return (mouseX > -1.0f && mouseX < 1.0f && mouseY > -1.0f && mouseY < 1.0f);
 	}
 }

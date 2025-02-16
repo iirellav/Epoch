@@ -285,6 +285,27 @@ namespace Epoch
 		ImageComponent(const ImageComponent&) = default;
 	};
 
+	enum class InteractableState
+	{
+		Default,
+		Hovered,
+		Pressed
+	};
+
+	struct ButtonComponent
+	{
+		bool isActive = true;
+
+		CU::Color defaultColor = CU::Color::White;
+		CU::Color hoveredColor = CU::Color::White * 0.85f;
+		CU::Color pressedColor = CU::Color::White * 0.7f;
+
+		InteractableState state = InteractableState::Default;
+
+		ButtonComponent() = default;
+		ButtonComponent(const ButtonComponent&) = default;
+	};
+
 #pragma endregion
 
 #pragma region Physics Components
@@ -399,7 +420,7 @@ namespace Epoch
 		TransformComponent, ActiveComponent, RelationshipComponent, PrefabComponent, ScriptComponent,
 		CameraComponent, SkyLightComponent, DirectionalLightComponent, SpotlightComponent, PointLightComponent,
 		MeshRendererComponent, SkinnedMeshRendererComponent, SpriteRendererComponent, VideoPlayerComponent, TextRendererComponent,
-		ImageComponent,
+		ImageComponent, ButtonComponent,
 		RigidbodyComponent, BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent,
 		CharacterControllerComponent, ParticleSystemComponent, VolumeComponent>;
 
@@ -408,7 +429,7 @@ namespace Epoch
 		TransformComponent, ActiveComponent, PrefabComponent, ScriptComponent,
 		CameraComponent, SkyLightComponent, DirectionalLightComponent, SpotlightComponent, PointLightComponent,
 		MeshRendererComponent, SkinnedMeshRendererComponent, SpriteRendererComponent, VideoPlayerComponent, TextRendererComponent,
-		ImageComponent,
+		ImageComponent, ButtonComponent,
 		RigidbodyComponent, BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent,
 		CharacterControllerComponent, ParticleSystemComponent, VolumeComponent>;
 }

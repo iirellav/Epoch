@@ -437,6 +437,9 @@ namespace Epoch
 		myDebugRenderer->SetViewportSize(mySceneViewport->Size().x, mySceneViewport->Size().y);
 		myActiveScene->SetViewportSize(myGameViewport->Size().x, myGameViewport->Size().y);
 
+		auto [mx, my] = myGameViewport->GetMouseViewportCord();
+		myActiveScene->SetMousePos({ mx, my });
+
 		EditorOptionsPanel();
 
 		EndDockspace();
@@ -770,34 +773,9 @@ namespace Epoch
 		}
 	}
 
-	std::pair<float, float> EditorLayer::GetMouseViewportCord() const
-	{
-		auto [mx, my] = ImGui::GetMousePos();
-		mx -= mySceneViewport->MinBounds().x;
-		my -= mySceneViewport->MinBounds().y;
-		CU::Vector2f viewportSize = mySceneViewport->MaxBounds() - mySceneViewport->MinBounds();
-		my = viewportSize.y - my;
-
-		return { mx, my };
-	}
-
-	std::pair<float, float> EditorLayer::GetMouseViewportSpace() const
-	{
-		auto [mx, my] = GetMouseViewportCord();
-		CU::Vector2f viewportSize = mySceneViewport->MaxBounds() - mySceneViewport->MinBounds();
-
-		return { (mx / viewportSize.x) * 2.0f - 1.0f, (my / viewportSize.y) * 2.0f - 1.0f };
-	}
-
-	bool EditorLayer::MouseInViewport()
-	{
-		auto [mouseX, mouseY] = GetMouseViewportSpace();
-		return (mouseX > -1.0f && mouseX < 1.0f && mouseY > -1.0f && mouseY < 1.0f);
-	}
-
 	Entity EditorLayer::GetHoveredEntity()
 	{
-		auto [px, py] = GetMouseViewportCord();
+		auto [px, py] = mySceneViewport->GetMouseViewportCord();
 
 		auto sceneRenderer = mySceneViewport->GetSceneRenderer();
 		auto IDBuffer = sceneRenderer->GetEntityIDTexture();
@@ -2431,7 +2409,7 @@ namespace Epoch
 				!mySceneViewport->IsHovered() ||
 				ImGui::IsAnyItemHovered() ||
 				ImGuizmo::IsOver() ||
-				!MouseInViewport() ||
+				!mySceneViewport->MouseInViewport() ||
 				Input::IsKeyHeld(KeyCode::LeftShift))
 			{
 				return false;
@@ -2487,7 +2465,7 @@ namespace Epoch
 
 		if (!mySceneViewport->IsFocused() ||
 			(!dragging && ImGuizmo::IsOver()) ||
-			!MouseInViewport())
+			!mySceneViewport->MouseInViewport())
 		{
 			return;
 		}
@@ -2505,14 +2483,14 @@ namespace Epoch
 			boxStartPos.x = mousePos.x;
 			boxStartPos.y = mousePos.y;
 		
-			auto [px, py] = GetMouseViewportCord();
+			auto [px, py] = mySceneViewport->GetMouseViewportCord();
 			dragStartPos = CU::Vector2f(px, py);
 		}
 		else if ((shiftReleased && dragging) || (Input::IsMouseButtonReleased(MouseButton::Left) && dragging))
 		{
 			dragging = false;
 		
-			auto [px, py] = GetMouseViewportCord();
+			auto [px, py] = mySceneViewport->GetMouseViewportCord();
 			dragEndPos = CU::Vector2f(px, py);
 		
 			const CU::Vector2f selectionBoxMin = { CU::Math::Min(dragStartPos.x, dragEndPos.x), CU::Math::Min(dragStartPos.y, dragEndPos.y) };

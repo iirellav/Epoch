@@ -524,7 +524,7 @@ namespace Epoch
 		}
 
 		//DONE - Multi Edit
-		DrawComponent<TransformComponent>("Transform", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
+		DrawComponent<TransformComponent, false>("Transform", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
 			{
 				{
 					UI::ScopedStyle itemSpacing(ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 8.0f));
@@ -652,7 +652,7 @@ namespace Epoch
 			}, EditorResources::TransformIcon);
 
 		//DONE - Multi Edit (Not the overrides enabled bool)
-		DrawComponent<VolumeComponent>("Volume", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
+		DrawComponent<VolumeComponent, true>("Volume", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
 		{
 			{
 				if (UI::SubHeaderWithCheckbox("Tonemapping", &aFirstComponent.tonemapping.enabled, false))
@@ -880,7 +880,7 @@ namespace Epoch
 		});
 
 		//DONE - Multi Edit
-		DrawComponent<CameraComponent>("Camera", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
+		DrawComponent<CameraComponent, true>("Camera", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
 			{
 				{
 					UI::BeginPropertyGrid();
@@ -996,7 +996,7 @@ namespace Epoch
 				}
 			}, EditorResources::CameraIcon);
 
-		DrawComponent<ScriptComponent>("Script", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
+		DrawComponent<ScriptComponent, true>("Script", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
 			{
 				{
 					//UI::BeginPropertyGrid();
@@ -1121,7 +1121,7 @@ namespace Epoch
 				}
 			}, EditorResources::ScriptIcon);
 
-		DrawComponent<ParticleSystemComponent>("Particle System", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
+		DrawComponent<ParticleSystemComponent, true>("Particle System", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
 			{
 				{
 					UI::BeginPropertyGrid();
@@ -1220,7 +1220,7 @@ namespace Epoch
 			});
 
 		//DONE - Multi Edit
-		DrawComponent<MeshRendererComponent>("Mesh Renderer", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
+		DrawComponent<MeshRendererComponent, true>("Mesh Renderer", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
 			{
 				{
 					UI::BeginPropertyGrid();
@@ -1258,7 +1258,7 @@ namespace Epoch
 			}, EditorResources::MeshRendererIcon);
 
 		//DONE - Multi Edit
-		DrawComponent<SkinnedMeshRendererComponent>("Skinned Mesh Renderer", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
+		DrawComponent<SkinnedMeshRendererComponent, true>("Skinned Mesh Renderer", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
 			{
 				{
 					UI::BeginPropertyGrid();
@@ -1303,7 +1303,7 @@ namespace Epoch
 			}, EditorResources::MeshRendererIcon);
 
 		//DONE - Multi Edit
-		DrawComponent<SpriteRendererComponent>("Sprite Renderer", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
+		DrawComponent<SpriteRendererComponent, true>("Sprite Renderer", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
 			{
 				{
 					UI::BeginPropertyGrid();
@@ -1386,7 +1386,7 @@ namespace Epoch
 		//		}
 		//	}, EditorResources::CameraIcon);
 
-		DrawComponent<TextRendererComponent>("Text Renderer", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
+		DrawComponent<TextRendererComponent, true>("Text Renderer", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
 			{
 				{
 					UI::BeginPropertyGrid();
@@ -1426,7 +1426,7 @@ namespace Epoch
 			}, EditorResources::TextRendererIcon);
 
 		//DONE - Multi Edit
-		DrawComponent<ImageComponent>("Image", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
+		DrawComponent<ImageComponent, true>("Image", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
 			{
 				{
 					UI::BeginPropertyGrid();
@@ -1524,7 +1524,53 @@ namespace Epoch
 				}
 			}, EditorResources::SpriteRendererIcon);
 
-		DrawComponent<SkyLightComponent>("Sky Light", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
+		//DONE - Multi Edit
+		DrawComponent<ButtonComponent, true>("Button", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
+			{
+				{
+					UI::BeginPropertyGrid();
+
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector4f, ButtonComponent>([](const ButtonComponent& aOther) { return aOther.defaultColor.GetVector4(); }));
+					if (UI::Property_ColorEdit4("Default Color", aFirstComponent.defaultColor))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& bc = entity.GetComponent<ButtonComponent>();
+							bc.defaultColor = aFirstComponent.defaultColor;
+						}
+					}
+					ImGui::PopItemFlag();
+
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector4f, ButtonComponent>([](const ButtonComponent& aOther) { return aOther.hoveredColor.GetVector4(); }));
+					if (UI::Property_ColorEdit4("Hovered Color", aFirstComponent.hoveredColor))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& bc = entity.GetComponent<ButtonComponent>();
+							bc.hoveredColor = aFirstComponent.hoveredColor;
+						}
+					}
+					ImGui::PopItemFlag();
+
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector4f, ButtonComponent>([](const ButtonComponent& aOther) { return aOther.pressedColor.GetVector4(); }));
+					if (UI::Property_ColorEdit4("Pressed Color", aFirstComponent.pressedColor))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& bc = entity.GetComponent<ButtonComponent>();
+							bc.pressedColor = aFirstComponent.pressedColor;
+						}
+					}
+					ImGui::PopItemFlag();
+
+					UI::EndPropertyGrid();
+				}
+			}, EditorResources::SpriteRendererIcon);
+
+		DrawComponent<SkyLightComponent, true>("Sky Light", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
 			{
 				{
 					UI::BeginPropertyGrid();
@@ -1541,7 +1587,7 @@ namespace Epoch
 				}
 			}, EditorResources::SkyLightIcon);
 
-		DrawComponent<DirectionalLightComponent>("Directional Light", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
+		DrawComponent<DirectionalLightComponent, true>("Directional Light", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
 			{
 				{
 					UI::BeginPropertyGrid();
@@ -1555,7 +1601,7 @@ namespace Epoch
 			}, EditorResources::DirectionalLightIcon);
 		
 		//DONE - Multi Edit
-		DrawComponent<SpotlightComponent>("Spotlight", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
+		DrawComponent<SpotlightComponent, true>("Spotlight", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
 			{
 				{
 					UI::BeginPropertyGrid();
@@ -1652,7 +1698,7 @@ namespace Epoch
 			}, EditorResources::SpotlightIcon);
 		
 		//DONE - Multi Edit
-		DrawComponent<PointLightComponent>("Point Light", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
+		DrawComponent<PointLightComponent, true>("Point Light", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
 			{
 				{
 					UI::BeginPropertyGrid();
@@ -1711,7 +1757,7 @@ namespace Epoch
 			}, EditorResources::PointLightIcon);
 		
 		//DONE - Multi Edit (Constraints mixed values not implemented)
-		DrawComponent<RigidbodyComponent>("Rigidbody", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
+		DrawComponent<RigidbodyComponent, false>("Rigidbody", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
 			{
 				{
 					UI::BeginPropertyGrid();
@@ -1953,7 +1999,7 @@ namespace Epoch
 			}, EditorResources::RigidbodyIcon);
 
 		//DONE - Multi Edit
-		DrawComponent<BoxColliderComponent>("Box Collider", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
+		DrawComponent<BoxColliderComponent, false>("Box Collider", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
 			{
 				{
 					UI::BeginPropertyGrid();
@@ -2030,7 +2076,7 @@ namespace Epoch
 				}
 			}, EditorResources::BoxColliderIcon);
 
-		DrawComponent<SphereColliderComponent>("Sphere Collider", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
+		DrawComponent<SphereColliderComponent, false>("Sphere Collider", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
 			{
 				{
 					UI::BeginPropertyGrid();
@@ -2081,7 +2127,7 @@ namespace Epoch
 				}
 			}, EditorResources::SphereColliderIcon);
 
-		DrawComponent<CapsuleColliderComponent>("Capsule Collider", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
+		DrawComponent<CapsuleColliderComponent, false>("Capsule Collider", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
 			{
 				{
 					UI::BeginPropertyGrid();
@@ -2138,7 +2184,7 @@ namespace Epoch
 				}
 			}, EditorResources::CapsuleColliderIcon);
 
-		DrawComponent<CharacterControllerComponent>("Character Controller", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
+		DrawComponent<CharacterControllerComponent, false>("Character Controller", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
 			{
 				{
 					UI::BeginPropertyGrid();
@@ -2276,6 +2322,7 @@ namespace Epoch
 
 					if (ImGui::BeginMenu("UI"))
 					{
+						DisplayAddComponentEntry<ButtonComponent>("Button");
 						DisplayAddComponentEntry<ImageComponent>("Image");
 
 						ImGui::EndMenu();
@@ -2305,6 +2352,7 @@ namespace Epoch
 				//Alphabetical order (A-B-C-D-E-F-G-H-I-J-K-L-M-N-O-P-Q-R-S-T-U-V-W-X-Y-Z)
 
 				DisplayAddComponentEntry<BoxColliderComponent>("Box Collider", aComponentSearchString);
+				DisplayAddComponentEntry<ButtonComponent>("Button", aComponentSearchString);
 				DisplayAddComponentEntry<CameraComponent>("Camera", aComponentSearchString);
 				DisplayAddComponentEntry<CapsuleColliderComponent>("Capsule Collider", aComponentSearchString);
 				DisplayAddComponentEntry<CharacterControllerComponent>("Character Controller", aComponentSearchString);
@@ -2607,14 +2655,17 @@ namespace Epoch
 
 		if (ImGui::BeginMenu("UI"))
 		{
-			if (ImGui::MenuItem("Button"))
-			{
-			}
-			
 			if (ImGui::MenuItem("Image"))
 			{
 				createdEntity = myContext->CreateEntity("Image");
 				createdEntity.AddComponent<ImageComponent>();
+			}
+
+			if (ImGui::MenuItem("Button"))
+			{
+				createdEntity = myContext->CreateEntity("Button");
+				createdEntity.AddComponent<ImageComponent>();
+				createdEntity.AddComponent<ButtonComponent>();
 			}
 
 			ImGui::EndMenu();

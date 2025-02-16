@@ -35,6 +35,10 @@ namespace Epoch
 		
 		void AddAdditionalFunction(const std::function<void()>& aFunc) { myAdditionalFunctions.push_back(aFunc); }
 
+		std::pair<float, float> GetMouseViewportCord() const;
+		std::pair<float, float> GetMouseViewportSpace() const;
+		bool MouseInViewport();
+
 	private:
 		std::shared_ptr<SceneRenderer> mySceneRenderer;
 

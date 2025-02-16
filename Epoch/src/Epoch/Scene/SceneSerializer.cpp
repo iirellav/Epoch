@@ -416,13 +416,27 @@ namespace Epoch
 				const ImageComponent& i = entity.GetComponent<ImageComponent>();
 				aOut << YAML::Key << "IsActive" << YAML::Value << i.isActive;
 				aOut << YAML::Key << "Sprite" << YAML::Value << i.texture;
-				aOut << YAML::Key << "Tint" << YAML::Value << i.tint.GetVector4();
+				aOut << YAML::Key << "Tint" << YAML::Value << i.tint;
 				aOut << YAML::Key << "FlipX" << YAML::Value << i.flipX;
 				aOut << YAML::Key << "FlipY" << YAML::Value << i.flipY;
 
 				aOut << YAML::Key << "Size" << YAML::Value << i.size;
 				aOut << YAML::Key << "Pivot" << YAML::Value << i.pivot;
 				aOut << YAML::Key << "Anchor" << YAML::Value << i.anchor;
+
+				aOut << YAML::EndMap;
+			}
+
+			if (entity.HasComponent<ButtonComponent>())
+			{
+				aOut << YAML::Key << "ButtonComponent";
+				aOut << YAML::BeginMap;
+
+				const ButtonComponent& b = entity.GetComponent<ButtonComponent>();
+				aOut << YAML::Key << "IsActive" << YAML::Value << b.isActive;
+				aOut << YAML::Key << "DefaultColor" << YAML::Value << b.defaultColor;
+				aOut << YAML::Key << "HoveredColor" << YAML::Value << b.hoveredColor;
+				aOut << YAML::Key << "PressedColor" << YAML::Value << b.pressedColor;
 
 				aOut << YAML::EndMap;
 			}
@@ -1160,6 +1174,17 @@ namespace Epoch
 				i.size = imageComponent["Size"].as<CU::Vector2ui>(CU::Vector2ui(100, 100));
 				i.pivot = imageComponent["Pivot"].as<CU::Vector2f>(CU::Vector2f(0.5f, 0.5f));
 				i.anchor = imageComponent["Anchor"].as<CU::Vector2f>(CU::Vector2f(0.5f, 0.5f));
+			}
+
+			YAML::Node buttonComponent = entity["ButtonComponent"];
+			if (buttonComponent)
+			{
+				ButtonComponent& b = deserializedEntity.AddComponent<ButtonComponent>();
+
+				b.isActive = buttonComponent["IsActive"].as<bool>(true);
+				b.defaultColor = buttonComponent["DefaultColor"].as<CU::Color>(b.defaultColor);
+				b.hoveredColor = buttonComponent["HoveredColor"].as<CU::Color>(b.hoveredColor);
+				b.pressedColor = buttonComponent["PressedColor"].as<CU::Color>(b.pressedColor);
 			}
 
 			YAML::Node videoPlayerComponent = entity["VideoPlayerComponent"];

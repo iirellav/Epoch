@@ -84,7 +84,8 @@ namespace Epoch
 
 		void OnSceneTransition(AssetHandle aScene);
 
-		void SetViewportSize(uint32_t aWidth, uint32_t aHeight);
+		void SetMousePos(const CU::Vector2f& aPos) { myMousePos = aPos; }
+		void SetViewportSize(uint32_t aWidth, uint32_t aHeight) { myViewportWidth = aWidth; myViewportHeight = aHeight; }
 		unsigned GetViewportWidth() const { return myViewportWidth; }
 		unsigned GetViewportHeight() const { return myViewportHeight; }
 
@@ -216,6 +217,9 @@ namespace Epoch
 		void SetName(const std::string& aName) { myName = aName; }
 		void SetAssetHandle(AssetHandle aHandle) { myHandle = aHandle; }
 
+		std::pair<float, float> GetMouseViewportSpace() const;
+		bool MouseInViewport();
+
 	private:
 		entt::registry myRegistry;
 		std::unordered_map<UUID, entt::entity> myEntityMap;
@@ -230,6 +234,7 @@ namespace Epoch
 		std::function<void(AssetHandle)> myOnSceneTransitionCallback;
 		std::function<void(Entity)> myOnEntityDestroyedCallback;
 
+		CU::Vector2f myMousePos;
 		uint32_t myViewportWidth = 0;
 		uint32_t myViewportHeight = 0;
 

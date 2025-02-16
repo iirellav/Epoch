@@ -61,4 +61,32 @@ namespace Epoch
 	{
 		mySceneRenderer->SetScene(aScene);
 	}
+
+	std::pair<float, float> ViewportPanel::GetMouseViewportCord() const
+	{
+		auto [mx, my] = ImGui::GetMousePos();
+		mx -= myBounds.min.x;
+		my -= myBounds.min.y;
+		my = (float)mySize.y - my;
+
+		return { mx, my };
+	}
+
+	std::pair<float, float> ViewportPanel::GetMouseViewportSpace() const
+	{
+		auto [mx, my] = GetMouseViewportCord();
+
+		return { (mx / (float)mySize.x) * 2.0f - 1.0f, (my / (float)mySize.y) * 2.0f - 1.0f };
+	}
+
+	bool ViewportPanel::MouseInViewport()
+	{
+		if (!myIsVisible)
+		{
+			return false;
+		}
+
+		auto [mouseX, mouseY] = GetMouseViewportSpace();
+		return (mouseX > -1.0f && mouseX < 1.0f && mouseY > -1.0f && mouseY < 1.0f);
+	}
 }
