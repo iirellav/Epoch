@@ -498,6 +498,16 @@ namespace Epoch
 							if (bc.state == InteractableState::Default)
 							{
 								bc.state = InteractableState::Hovered;
+
+								if (entity.HasComponent<ScriptComponent>())
+								{
+									const auto& sc = entity.GetComponent<ScriptComponent>();
+
+									if (ScriptEngine::IsModuleValid(sc.scriptClassHandle) && ScriptEngine::IsEntityInstantiated(entity))
+									{
+										ScriptEngine::CallMethod(sc.managedInstance, "OnMouseEnter");
+									}
+								}
 							}
 							else if (bc.state == InteractableState::Hovered && Input::IsMouseButtonPressed(MouseButton::Left))
 							{
@@ -506,11 +516,31 @@ namespace Epoch
 							else if (bc.state == InteractableState::Pressed && Input::IsMouseButtonReleased(MouseButton::Left))
 							{
 								bc.state = InteractableState::Hovered;
+
+								if (entity.HasComponent<ScriptComponent>())
+								{
+									const auto& sc = entity.GetComponent<ScriptComponent>();
+
+									if (ScriptEngine::IsModuleValid(sc.scriptClassHandle) && ScriptEngine::IsEntityInstantiated(entity))
+									{
+										ScriptEngine::CallMethod(sc.managedInstance, "OnClick");
+									}
+								}
 							}
 						}
 						else if (bc.state != InteractableState::Default)
 						{
 							bc.state = InteractableState::Default;
+
+							if (entity.HasComponent<ScriptComponent>())
+							{
+								const auto& sc = entity.GetComponent<ScriptComponent>();
+
+								if (ScriptEngine::IsModuleValid(sc.scriptClassHandle) && ScriptEngine::IsEntityInstantiated(entity))
+								{
+									ScriptEngine::CallMethod(sc.managedInstance, "OnMouseExit");
+								}
+							}
 						}
 					}
 				}

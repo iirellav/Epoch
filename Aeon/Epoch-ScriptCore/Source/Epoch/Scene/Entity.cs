@@ -55,14 +55,21 @@ namespace Epoch
             myComponentCache.Clear();
         }
 
+        //Colliders only callbacks
         protected virtual void OnCollisionEnter(ulong aID) { }
         protected virtual void OnCollisionExit(ulong aID) { }
 
         protected virtual void OnTriggerEnter(ulong aID) { }
         protected virtual void OnTriggerExit(ulong aID) { }
 
+        //Meshes only callbacks
         protected virtual void OnFrustumEnter() { }
         protected virtual void OnFrustumExit() { }
+
+        //Button only callbacks
+        protected virtual void OnClick() { }
+        protected virtual void OnMouseEnter() { }
+        protected virtual void OnMouseExit() { }
 
 
         public T AddComponent<T>() where T : Component, new()
