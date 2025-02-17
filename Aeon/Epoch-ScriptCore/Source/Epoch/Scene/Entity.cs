@@ -66,10 +66,11 @@ namespace Epoch
         protected virtual void OnFrustumEnter() { }
         protected virtual void OnFrustumExit() { }
 
-        //Button only callbacks
-        protected virtual void OnClick() { }
+        //UI only callbacks
         protected virtual void OnMouseEnter() { }
         protected virtual void OnMouseExit() { }
+        protected virtual void OnClick() { } //Button
+        protected virtual void OnValueChanged(bool aValue) { } //Checkbox
 
 
         public T AddComponent<T>() where T : Component, new()

@@ -1540,38 +1540,114 @@ namespace Epoch
 				{
 					UI::BeginPropertyGrid();
 
-					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector4f, ButtonComponent>([](const ButtonComponent& aOther) { return aOther.defaultColor.GetVector4(); }));
-					if (UI::Property_ColorEdit4("Default Color", aFirstComponent.defaultColor))
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector4f, ButtonComponent>([](const ButtonComponent& aOther) { return aOther.colorGroup.defaultColor.GetVector4(); }));
+					if (UI::Property_ColorEdit4("Default Color", aFirstComponent.colorGroup.defaultColor))
 					{
 						for (auto& entityID : aEntities)
 						{
 							Entity entity = myContext->GetEntityWithUUID(entityID);
 							auto& bc = entity.GetComponent<ButtonComponent>();
-							bc.defaultColor = aFirstComponent.defaultColor;
+							bc.colorGroup.defaultColor = aFirstComponent.colorGroup.defaultColor;
 						}
 					}
 					ImGui::PopItemFlag();
 
-					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector4f, ButtonComponent>([](const ButtonComponent& aOther) { return aOther.hoveredColor.GetVector4(); }));
-					if (UI::Property_ColorEdit4("Hovered Color", aFirstComponent.hoveredColor))
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector4f, ButtonComponent>([](const ButtonComponent& aOther) { return aOther.colorGroup.hoveredColor.GetVector4(); }));
+					if (UI::Property_ColorEdit4("Hovered Color", aFirstComponent.colorGroup.hoveredColor))
 					{
 						for (auto& entityID : aEntities)
 						{
 							Entity entity = myContext->GetEntityWithUUID(entityID);
 							auto& bc = entity.GetComponent<ButtonComponent>();
-							bc.hoveredColor = aFirstComponent.hoveredColor;
+							bc.colorGroup.hoveredColor = aFirstComponent.colorGroup.hoveredColor;
 						}
 					}
 					ImGui::PopItemFlag();
 
-					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector4f, ButtonComponent>([](const ButtonComponent& aOther) { return aOther.pressedColor.GetVector4(); }));
-					if (UI::Property_ColorEdit4("Pressed Color", aFirstComponent.pressedColor))
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector4f, ButtonComponent>([](const ButtonComponent& aOther) { return aOther.colorGroup.pressedColor.GetVector4(); }));
+					if (UI::Property_ColorEdit4("Pressed Color", aFirstComponent.colorGroup.pressedColor))
 					{
 						for (auto& entityID : aEntities)
 						{
 							Entity entity = myContext->GetEntityWithUUID(entityID);
 							auto& bc = entity.GetComponent<ButtonComponent>();
-							bc.pressedColor = aFirstComponent.pressedColor;
+							bc.colorGroup.pressedColor = aFirstComponent.colorGroup.pressedColor;
+						}
+					}
+					ImGui::PopItemFlag();
+
+					UI::EndPropertyGrid();
+				}
+			}, EditorResources::SpriteRendererIcon);
+
+		//DONE - Multi Edit
+		DrawComponent<CheckboxComponent, true>("Checkbox", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
+			{
+				{
+					UI::BeginPropertyGrid();
+
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector4f, CheckboxComponent>([](const CheckboxComponent& aOther) { return aOther.colorGroup.defaultColor.GetVector4(); }));
+					if (UI::Property_ColorEdit4("Default Color", aFirstComponent.colorGroup.defaultColor))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& cc = entity.GetComponent<CheckboxComponent>();
+							cc.colorGroup.defaultColor = aFirstComponent.colorGroup.defaultColor;
+						}
+					}
+					ImGui::PopItemFlag();
+
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector4f, CheckboxComponent>([](const CheckboxComponent& aOther) { return aOther.colorGroup.hoveredColor.GetVector4(); }));
+					if (UI::Property_ColorEdit4("Hovered Color", aFirstComponent.colorGroup.hoveredColor))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& cc = entity.GetComponent<CheckboxComponent>();
+							cc.colorGroup.hoveredColor = aFirstComponent.colorGroup.hoveredColor;
+						}
+					}
+					ImGui::PopItemFlag();
+
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<CU::Vector4f, CheckboxComponent>([](const CheckboxComponent& aOther) { return aOther.colorGroup.pressedColor.GetVector4(); }));
+					if (UI::Property_ColorEdit4("Pressed Color", aFirstComponent.colorGroup.pressedColor))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& cc = entity.GetComponent<CheckboxComponent>();
+							cc.colorGroup.pressedColor = aFirstComponent.colorGroup.pressedColor;
+						}
+					}
+					ImGui::PopItemFlag();
+
+					UI::EndPropertyGrid();
+					
+					UI::Spacing();
+
+					UI::BeginPropertyGrid();
+
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<bool, CheckboxComponent>([](const CheckboxComponent& aOther) { return aOther.isOn; }));
+					if (UI::Property_Checkbox("Is On", aFirstComponent.isOn))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& cc = entity.GetComponent<CheckboxComponent>();
+							cc.isOn = aFirstComponent.isOn;
+						}
+					}
+					ImGui::PopItemFlag();
+
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<UUID, CheckboxComponent>([](const CheckboxComponent& aOther) { return aOther.checkmark; }));
+					if (UI::Property_EntityReference("Checkmark", aFirstComponent.checkmark, myContext))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& cc = entity.GetComponent<CheckboxComponent>();
+							cc.checkmark = aFirstComponent.checkmark;
 						}
 					}
 					ImGui::PopItemFlag();
@@ -2333,6 +2409,7 @@ namespace Epoch
 					if (ImGui::BeginMenu("UI"))
 					{
 						DisplayAddComponentEntry<ButtonComponent>("Button");
+						DisplayAddComponentEntry<ButtonComponent>("Checkbox");
 						DisplayAddComponentEntry<ImageComponent>("Image");
 
 						ImGui::EndMenu();
@@ -2366,6 +2443,7 @@ namespace Epoch
 				DisplayAddComponentEntry<CameraComponent>("Camera", aComponentSearchString);
 				DisplayAddComponentEntry<CapsuleColliderComponent>("Capsule Collider", aComponentSearchString);
 				DisplayAddComponentEntry<CharacterControllerComponent>("Character Controller", aComponentSearchString);
+				DisplayAddComponentEntry<ButtonComponent>("Checkbox", aComponentSearchString);
 				DisplayAddComponentEntry<DirectionalLightComponent>("Directional Light", aComponentSearchString);
 				DisplayAddComponentEntry<ImageComponent>("Image", aComponentSearchString);
 				DisplayAddComponentEntry<MeshRendererComponent>("Mesh Renderer", aComponentSearchString);
@@ -2678,6 +2756,29 @@ namespace Epoch
 				createdEntity.AddComponent<RectComponent>();
 				createdEntity.AddComponent<ImageComponent>();
 				createdEntity.AddComponent<ButtonComponent>();
+			}
+
+			if (ImGui::MenuItem("Checkbox"))
+			{
+				createdEntity = myContext->CreateEntity("Checkbox");
+				{
+					auto& rc = createdEntity.AddComponent<RectComponent>();
+					rc.size = { 24, 24 };
+					createdEntity.AddComponent<ImageComponent>();
+				}
+				auto& cc = createdEntity.AddComponent<CheckboxComponent>();
+
+				Entity checkmarkEntity = myContext->CreateChildEntity(createdEntity, "Checkmark");
+				{
+					auto& rc = checkmarkEntity.AddComponent<RectComponent>();
+					rc.size = { 12, 12 };
+					auto& ic = checkmarkEntity.AddComponent<ImageComponent>();
+					ic.tint = CU::Color::White * 0.25f;
+
+					checkmarkEntity.Transform().SetTranslation(CU::Vector3f(0.0f, 0.0f, -20.0f));
+				}
+
+				cc.checkmark = checkmarkEntity.GetUUID();
 			}
 
 			ImGui::EndMenu();

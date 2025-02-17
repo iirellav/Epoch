@@ -443,9 +443,26 @@ namespace Epoch
 
 				const ButtonComponent& b = entity.GetComponent<ButtonComponent>();
 				aOut << YAML::Key << "IsActive" << YAML::Value << b.isActive;
-				aOut << YAML::Key << "DefaultColor" << YAML::Value << b.defaultColor;
-				aOut << YAML::Key << "HoveredColor" << YAML::Value << b.hoveredColor;
-				aOut << YAML::Key << "PressedColor" << YAML::Value << b.pressedColor;
+				aOut << YAML::Key << "DefaultColor" << YAML::Value << b.colorGroup.defaultColor;
+				aOut << YAML::Key << "HoveredColor" << YAML::Value << b.colorGroup.hoveredColor;
+				aOut << YAML::Key << "PressedColor" << YAML::Value << b.colorGroup.pressedColor;
+
+				aOut << YAML::EndMap;
+			}
+
+			if (entity.HasComponent<CheckboxComponent>())
+			{
+				aOut << YAML::Key << "CheckboxComponent";
+				aOut << YAML::BeginMap;
+
+				const CheckboxComponent& c = entity.GetComponent<CheckboxComponent>();
+				aOut << YAML::Key << "IsActive" << YAML::Value << c.isActive;
+				aOut << YAML::Key << "DefaultColor" << YAML::Value << c.colorGroup.defaultColor;
+				aOut << YAML::Key << "HoveredColor" << YAML::Value << c.colorGroup.hoveredColor;
+				aOut << YAML::Key << "PressedColor" << YAML::Value << c.colorGroup.pressedColor;
+
+				aOut << YAML::Key << "IsOn" << YAML::Value << c.isOn;
+				aOut << YAML::Key << "Checkmark" << YAML::Value << c.checkmark;
 
 				aOut << YAML::EndMap;
 			}
@@ -1196,9 +1213,23 @@ namespace Epoch
 				ButtonComponent& b = deserializedEntity.AddComponent<ButtonComponent>();
 
 				b.isActive = buttonComponent["IsActive"].as<bool>(true);
-				b.defaultColor = buttonComponent["DefaultColor"].as<CU::Color>(b.defaultColor);
-				b.hoveredColor = buttonComponent["HoveredColor"].as<CU::Color>(b.hoveredColor);
-				b.pressedColor = buttonComponent["PressedColor"].as<CU::Color>(b.pressedColor);
+				b.colorGroup.defaultColor = buttonComponent["DefaultColor"].as<CU::Color>(b.colorGroup.defaultColor);
+				b.colorGroup.hoveredColor = buttonComponent["HoveredColor"].as<CU::Color>(b.colorGroup.hoveredColor);
+				b.colorGroup.pressedColor = buttonComponent["PressedColor"].as<CU::Color>(b.colorGroup.pressedColor);
+			}
+
+			YAML::Node checkboxComponent = entity["CheckboxComponent"];
+			if (checkboxComponent)
+			{
+				CheckboxComponent& c = deserializedEntity.AddComponent<CheckboxComponent>();
+
+				c.isActive = checkboxComponent["IsActive"].as<bool>(true);
+				c.colorGroup.defaultColor = checkboxComponent["DefaultColor"].as<CU::Color>(c.colorGroup.defaultColor);
+				c.colorGroup.hoveredColor = checkboxComponent["HoveredColor"].as<CU::Color>(c.colorGroup.hoveredColor);
+				c.colorGroup.pressedColor = checkboxComponent["PressedColor"].as<CU::Color>(c.colorGroup.pressedColor);
+
+				c.isOn = checkboxComponent["IsOn"].as<bool>(true);
+				c.checkmark = checkboxComponent["Checkmark"].as<UUID>(0);
 			}
 
 			YAML::Node videoPlayerComponent = entity["VideoPlayerComponent"];

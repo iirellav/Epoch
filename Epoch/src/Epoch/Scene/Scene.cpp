@@ -476,13 +476,13 @@ namespace Epoch
 
 				if (MouseInViewport())
 				{
-					auto view = GetAllEntitiesWith<RectComponent, ButtonComponent>();
-					for (auto id : view)
+					auto buttonView = GetAllEntitiesWith<RectComponent, ButtonComponent>();
+					for (auto id : buttonView)
 					{
 						Entity entity = Entity(id, this);
 						if (!entity.IsActive()) continue;
 				
-						const auto& [rc, bc] = view.get<RectComponent, ButtonComponent>(id);
+						const auto& [rc, bc] = buttonView.get<RectComponent, ButtonComponent>(id);
 						if (!bc.isActive) continue;
 				
 						CU::Matrix4x4f transform = entity.GetWorldSpaceTransform().GetMatrix();
@@ -532,6 +532,76 @@ namespace Epoch
 						else if (bc.state != InteractableState::Default)
 						{
 							bc.state = InteractableState::Default;
+
+							if (entity.HasComponent<ScriptComponent>())
+							{
+								const auto& sc = entity.GetComponent<ScriptComponent>();
+
+								if (ScriptEngine::IsModuleValid(sc.scriptClassHandle) && ScriptEngine::IsEntityInstantiated(entity))
+								{
+									ScriptEngine::CallMethod(sc.managedInstance, "OnMouseExit");
+								}
+							}
+						}
+					}
+
+					auto checkboxView = GetAllEntitiesWith<RectComponent, CheckboxComponent>();
+					for (auto id : checkboxView)
+					{
+						Entity entity = Entity(id, this);
+						if (!entity.IsActive()) continue;
+				
+						const auto& [rc, cc] = checkboxView.get<RectComponent, CheckboxComponent>(id);
+						if (!cc.isActive) continue;
+				
+						CU::Matrix4x4f transform = entity.GetWorldSpaceTransform().GetMatrix();
+				
+						const CU::Vector2f size = CU::Vector2f((float)rc.size.x, (float)rc.size.y);
+						const CU::Vector2f bl = (CU::Vector2f(0.0f, 0.0f) - rc.pivot) * size;
+						const CU::Vector2f tr = (CU::Vector2f(1.0f, 1.0f) - rc.pivot) * size;
+						const CU::Vector4f bl4D = transform * CU::Vector4f(bl.x, bl.y, 0.0f, 1.0f);
+						const CU::Vector4f tr4D = transform * CU::Vector4f(tr.x, tr.y, 0.0f, 1.0f);
+
+						if (myMousePos.x > bl4D.x && myMousePos.x < tr4D.x &&
+							myMousePos.y > bl4D.y && myMousePos.y < tr4D.y)
+						{
+							if (cc.state == InteractableState::Default)
+							{
+								cc.state = InteractableState::Hovered;
+
+								if (entity.HasComponent<ScriptComponent>())
+								{
+									const auto& sc = entity.GetComponent<ScriptComponent>();
+
+									if (ScriptEngine::IsModuleValid(sc.scriptClassHandle) && ScriptEngine::IsEntityInstantiated(entity))
+									{
+										ScriptEngine::CallMethod(sc.managedInstance, "OnMouseEnter");
+									}
+								}
+							}
+							else if (cc.state == InteractableState::Hovered && Input::IsMouseButtonPressed(MouseButton::Left))
+							{
+								cc.state = InteractableState::Pressed;
+							}
+							else if (cc.state == InteractableState::Pressed && Input::IsMouseButtonReleased(MouseButton::Left))
+							{
+								cc.state = InteractableState::Hovered;
+								cc.isOn = !cc.isOn;
+
+								if (entity.HasComponent<ScriptComponent>())
+								{
+									const auto& sc = entity.GetComponent<ScriptComponent>();
+								
+									if (ScriptEngine::IsModuleValid(sc.scriptClassHandle) && ScriptEngine::IsEntityInstantiated(entity))
+									{
+										ScriptEngine::CallMethod(sc.managedInstance, "OnValueChanged", cc.isOn);
+									}
+								}
+							}
+						}
+						else if (cc.state != InteractableState::Default)
+						{
+							cc.state = InteractableState::Default;
 
 							if (entity.HasComponent<ScriptComponent>())
 							{
@@ -653,7 +723,7 @@ namespace Epoch
 
 		if (aSettings.displayUI)
 		{
-			Render2DScene(aRenderer, renderCamera, false, aSettings.displayUIRects);
+			Render2DScene(aRenderer, renderCamera, false);
 		}
 	}
 
@@ -1774,7 +1844,7 @@ namespace Epoch
 			}
 	}
 
-	void Scene::Render2DScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aRenderCamera, bool aIsGameView, bool aRenderDebugRects)
+	void Scene::Render2DScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aRenderCamera, bool aIsGameView)
 	{
 		EPOCH_PROFILE_FUNC();
 
@@ -1785,7 +1855,7 @@ namespace Epoch
 		{
 			if (aIsGameView)
 			{
-				screenSpaceRenderer->BeginScene(CU::Matrix4x4f::CreateOrthographicProjection(0.0f, (float)myViewportWidth, 0.0f, (float)myViewportHeight), CU::Matrix4x4f::Identity);
+				screenSpaceRenderer->BeginScene(CU::Matrix4x4f::CreateOrthographicProjection(0.0f, (float)myViewportWidth, 0.0f, (float)myViewportHeight, -100.0f, 100.0f), CU::Matrix4x4f::Identity);
 			}
 			else
 			{
@@ -1793,26 +1863,64 @@ namespace Epoch
 			}
 
 			std::map<entt::entity, CU::Color> imageTintMap;
-			auto buttonView = GetAllEntitiesWith<ButtonComponent>();
-			for (auto id : buttonView)
+			std::set<entt::entity> imageToSkip;
+
 			{
-				Entity entity = Entity(id, this);
-				if (!entity.IsActive()) continue;
-
-				const auto& bc = buttonView.get<ButtonComponent>(id);
-				if (!bc.isActive) continue;
-
-				switch (bc.state)
+				auto buttonView = GetAllEntitiesWith<ButtonComponent>();
+				for (auto id : buttonView)
 				{
-				case Epoch::InteractableState::Default:
-					imageTintMap.emplace(id, bc.defaultColor);
-					break;
-				case Epoch::InteractableState::Hovered:
-					imageTintMap.emplace(id, bc.hoveredColor);
-					break;
-				case Epoch::InteractableState::Pressed:
-					imageTintMap.emplace(id, bc.pressedColor);
-					break;
+					Entity entity = Entity(id, this);
+					if (!entity.IsActive()) continue;
+
+					const auto& bc = buttonView.get<ButtonComponent>(id);
+					if (!bc.isActive) continue;
+
+					switch (bc.state)
+					{
+					case Epoch::InteractableState::Default:
+						imageTintMap.emplace(id, bc.colorGroup.defaultColor);
+						break;
+					case Epoch::InteractableState::Hovered:
+						imageTintMap.emplace(id, bc.colorGroup.hoveredColor);
+						break;
+					case Epoch::InteractableState::Pressed:
+						imageTintMap.emplace(id, bc.colorGroup.pressedColor);
+						break;
+					}
+				}
+			}
+
+			{
+				auto checkboxView = GetAllEntitiesWith<CheckboxComponent>();
+				for (auto id : checkboxView)
+				{
+					Entity entity = Entity(id, this);
+					if (!entity.IsActive()) continue;
+
+					const auto& cc = checkboxView.get<CheckboxComponent>(id);
+					if (!cc.isActive) continue;
+
+					switch (cc.state)
+					{
+					case Epoch::InteractableState::Default:
+						imageTintMap.emplace(id, cc.colorGroup.defaultColor);
+						break;
+					case Epoch::InteractableState::Hovered:
+						imageTintMap.emplace(id, cc.colorGroup.hoveredColor);
+						break;
+					case Epoch::InteractableState::Pressed:
+						imageTintMap.emplace(id, cc.colorGroup.pressedColor);
+						break;
+					}
+
+					if (!cc.isOn)
+					{
+						Entity checkmark = TryGetEntityWithUUID(cc.checkmark);
+						if (checkmark)
+						{
+							imageToSkip.emplace(checkmark);
+						}
+					}
 				}
 			}
 
@@ -1823,6 +1931,8 @@ namespace Epoch
 				auto view = GetAllEntitiesWith<RectComponent, ImageComponent>();
 				for (auto id : view)
 				{
+					if (imageToSkip.contains(id)) continue;
+
 					Entity entity = Entity(id, this);
 					if (!entity.IsActive()) continue;
 
@@ -1858,21 +1968,6 @@ namespace Epoch
 
 					const CU::Matrix4x4f transform = entity.GetWorldSpaceTransform().GetMatrix();
 					screenSpaceRenderer->SubmitQuad(transform, rc.size, texture, setting, (uint32_t)entity);
-
-					auto dr = aRenderer->GetDebugRenderer();
-					if (dr && aRenderDebugRects)
-					{
-						const CU::Vector2f size = CU::Vector2f((float)rc.size.x, (float)rc.size.y);
-						const CU::Vector2f bl = (CU::Vector2f(0.0f, 0.0f) - rc.pivot) * size;
-						const CU::Vector2f br = (CU::Vector2f(1.0f, 0.0f) - rc.pivot) * size;
-						const CU::Vector2f tl = (CU::Vector2f(0.0f, 1.0f) - rc.pivot) * size;
-						const CU::Vector2f tr = (CU::Vector2f(1.0f, 1.0f) - rc.pivot) * size;
-						const CU::Vector4f bl4D = transform * CU::Vector4f(bl.x, bl.y, 0.0f, 1.0f);
-						const CU::Vector4f br4D = transform * CU::Vector4f(br.x, br.y, 0.0f, 1.0f);
-						const CU::Vector4f tl4D = transform * CU::Vector4f(tl.x, tl.y, 0.0f, 1.0f);
-						const CU::Vector4f tr4D = transform * CU::Vector4f(tr.x, tr.y, 0.0f, 1.0f);
-						dr->DrawRect(bl4D, br4D, tl4D, tr4D);
-					}
 				}
 			}
 

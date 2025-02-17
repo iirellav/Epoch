@@ -299,18 +299,38 @@ namespace Epoch
 		Pressed
 	};
 
+	struct ColorGroup
+	{
+		CU::Color defaultColor = CU::Color::White;
+		CU::Color hoveredColor = CU::Color::White * 0.85f;
+		CU::Color pressedColor = CU::Color::White * 0.7f;
+	};
+
 	struct ButtonComponent
 	{
 		bool isActive = true;
 
-		CU::Color defaultColor = CU::Color::White;
-		CU::Color hoveredColor = CU::Color::White * 0.85f;
-		CU::Color pressedColor = CU::Color::White * 0.7f;
+		ColorGroup colorGroup;
 
 		InteractableState state = InteractableState::Default;
 
 		ButtonComponent() = default;
 		ButtonComponent(const ButtonComponent&) = default;
+	};
+
+	struct CheckboxComponent
+	{
+		bool isActive = true;
+
+		ColorGroup colorGroup;
+
+		InteractableState state = InteractableState::Default;
+
+		bool isOn = true;
+		UUID checkmark = 0;
+
+		CheckboxComponent() = default;
+		CheckboxComponent(const CheckboxComponent&) = default;
 	};
 
 #pragma endregion
@@ -427,7 +447,7 @@ namespace Epoch
 		TransformComponent, ActiveComponent, RelationshipComponent, PrefabComponent, ScriptComponent,
 		CameraComponent, SkyLightComponent, DirectionalLightComponent, SpotlightComponent, PointLightComponent,
 		MeshRendererComponent, SkinnedMeshRendererComponent, SpriteRendererComponent, VideoPlayerComponent, TextRendererComponent,
-		RectComponent, ImageComponent, ButtonComponent,
+		RectComponent, ImageComponent, ButtonComponent, CheckboxComponent,
 		RigidbodyComponent, BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent,
 		CharacterControllerComponent, ParticleSystemComponent, VolumeComponent>;
 
@@ -436,7 +456,7 @@ namespace Epoch
 		TransformComponent, ActiveComponent, PrefabComponent, ScriptComponent,
 		CameraComponent, SkyLightComponent, DirectionalLightComponent, SpotlightComponent, PointLightComponent,
 		MeshRendererComponent, SkinnedMeshRendererComponent, SpriteRendererComponent, VideoPlayerComponent, TextRendererComponent,
-		RectComponent, ImageComponent, ButtonComponent,
+		RectComponent, ImageComponent, ButtonComponent, CheckboxComponent,
 		RigidbodyComponent, BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent,
 		CharacterControllerComponent, ParticleSystemComponent, VolumeComponent>;
 }

@@ -254,7 +254,6 @@ namespace Epoch
 			renderSetting.cullWithGameCamera = myCullWithSceneCamera;
 			renderSetting.postProcessingEnabled = myPostProcessingInSceneView;
 			renderSetting.displayUI = myDisplayUIInSceneView;
-			renderSetting.displayUIRects = myDisplayUIDebugRectsInSceneView;
 
 			sceneRenderer->SetScene(myActiveScene);
 			myActiveScene->OnRenderEditor(sceneRenderer, myEditorCamera, renderSetting);
@@ -1208,6 +1207,8 @@ namespace Epoch
 
 		if (myDisplayUIInSceneView)
 		{
+			auto dr = mySceneViewport->GetSceneRenderer()->GetDebugRenderer();
+			
 			const float width = (float)mySceneViewport->Size().x;
 			const float height = (float)mySceneViewport->Size().y;
 			const CU::Vector3f bl = CU::Vector3f(0.0f, 0.0f, 0.0f);
@@ -1215,7 +1216,31 @@ namespace Epoch
 			const CU::Vector3f tl = CU::Vector3f(width, 0.0f, 0.0f);
 			const CU::Vector3f tr = CU::Vector3f(width, height, 0.0f);
 
-			mySceneViewport->GetSceneRenderer()->GetDebugRenderer()->DrawRect(bl, br, tl, tr);
+			dr->DrawRect(bl, br, tl, tr);
+
+			if (myDisplayUIDebugRectsInSceneView)
+			{
+				auto view = myActiveScene->GetAllEntitiesWith<RectComponent>();
+				for (auto id : view)
+				{
+					Entity entity{ id, myActiveScene.get() };
+					if (!entity.IsActive()) continue;
+
+					const auto& rc= view.get<RectComponent>(id);
+					const CU::Matrix4x4f transform = entity.GetWorldSpaceTransform().GetMatrix();
+
+					const CU::Vector2f size = CU::Vector2f((float)rc.size.x, (float)rc.size.y);
+					const CU::Vector2f bl = (CU::Vector2f(0.0f, 0.0f) - rc.pivot) * size;
+					const CU::Vector2f br = (CU::Vector2f(1.0f, 0.0f) - rc.pivot) * size;
+					const CU::Vector2f tl = (CU::Vector2f(0.0f, 1.0f) - rc.pivot) * size;
+					const CU::Vector2f tr = (CU::Vector2f(1.0f, 1.0f) - rc.pivot) * size;
+					const CU::Vector4f bl4D = transform * CU::Vector4f(bl.x, bl.y, 0.0f, 1.0f);
+					const CU::Vector4f br4D = transform * CU::Vector4f(br.x, br.y, 0.0f, 1.0f);
+					const CU::Vector4f tl4D = transform * CU::Vector4f(tl.x, tl.y, 0.0f, 1.0f);
+					const CU::Vector4f tr4D = transform * CU::Vector4f(tr.x, tr.y, 0.0f, 1.0f);
+					dr->DrawRect(bl4D, br4D, tl4D, tr4D);
+				}
+			}
 		}
 
 		myDebugRenderer->Render(myEditorCamera.GetViewMatrix(), myEditorCamera.GetProjectionMatrix(), myDebugRendererOnTop);
