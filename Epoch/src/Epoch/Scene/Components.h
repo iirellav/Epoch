@@ -194,19 +194,6 @@ namespace Epoch
 		VideoPlayerComponent(const VideoPlayerComponent&) = default;
 	};
 
-	enum class Alignment
-	{
-		UpperLeft,
-		UpperCenter,
-		UpperRight,
-		MiddleLeft,
-		MiddleCenter,
-		MiddleRight,
-		LowerLeft,
-		LowerCenter,
-		LowerRight
-	};
-
 	struct TextRendererComponent
 	{
 		bool isActive = true;
@@ -215,7 +202,6 @@ namespace Epoch
 		AssetHandle font = 0;
 		CU::Color color = CU::Color::White;
 
-		//Alignment alignment = Alignment::MiddleCenter;
 		float letterSpacing = 0.0f; // Kerning
 		float lineSpacing = 0.0f;
 		float maxWidth = 10.0f;
@@ -290,6 +276,21 @@ namespace Epoch
 
 		ImageComponent() = default;
 		ImageComponent(const ImageComponent&) = default;
+	};
+	
+	struct Text2DComponent
+	{
+		bool isActive = true;
+
+		std::string text = "Text";
+		AssetHandle font = 0;
+		CU::Color color = CU::Color::White;
+
+		float letterSpacing = 0.0f; // Kerning
+		float lineSpacing = 0.0f;
+
+		Text2DComponent() = default;
+		Text2DComponent(const Text2DComponent&) = default;
 	};
 
 	enum class InteractableState
@@ -447,7 +448,7 @@ namespace Epoch
 		TransformComponent, ActiveComponent, RelationshipComponent, PrefabComponent, ScriptComponent,
 		CameraComponent, SkyLightComponent, DirectionalLightComponent, SpotlightComponent, PointLightComponent,
 		MeshRendererComponent, SkinnedMeshRendererComponent, SpriteRendererComponent, VideoPlayerComponent, TextRendererComponent,
-		RectComponent, ImageComponent, ButtonComponent, CheckboxComponent,
+		RectComponent, ImageComponent, Text2DComponent, ButtonComponent, CheckboxComponent,
 		RigidbodyComponent, BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent,
 		CharacterControllerComponent, ParticleSystemComponent, VolumeComponent>;
 
@@ -456,7 +457,7 @@ namespace Epoch
 		TransformComponent, ActiveComponent, PrefabComponent, ScriptComponent,
 		CameraComponent, SkyLightComponent, DirectionalLightComponent, SpotlightComponent, PointLightComponent,
 		MeshRendererComponent, SkinnedMeshRendererComponent, SpriteRendererComponent, VideoPlayerComponent, TextRendererComponent,
-		RectComponent, ImageComponent, ButtonComponent, CheckboxComponent,
+		RectComponent, ImageComponent, Text2DComponent, ButtonComponent, CheckboxComponent,
 		RigidbodyComponent, BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent,
 		CharacterControllerComponent, ParticleSystemComponent, VolumeComponent>;
 }
