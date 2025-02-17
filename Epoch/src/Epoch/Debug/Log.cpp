@@ -8,6 +8,7 @@
 namespace Epoch
 {
 #define HAS_CONSOLE !_DIST
+#define HAS_GAME_CONSOLE !_RUNTIME
 
 	void Log::Init()
 	{
@@ -41,6 +42,22 @@ namespace Epoch
 		staticLogger = std::make_shared<spdlog::logger>("EPOCH", epochSinks.begin(), epochSinks.end());
 		staticLogger->set_level(spdlog::level::trace);
 
+		std::vector<spdlog::sink_ptr> editorConsoleSinks =
+		{
+			std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/App.log", true),
+			#if HAS_GAME_CONSOLE
+			std::make_shared<EditorConsoleSink>(1)
+			#endif
+		};
+
+		editorConsoleSinks[0]->set_pattern("%l: %v");
+		#if HAS_GAME_CONSOLE
+		editorConsoleSinks[1]->set_pattern("%v");
+		#endif
+
+		staticEditorConsoleLogger = std::make_shared<spdlog::logger>("CONSOLE", editorConsoleSinks.begin(), editorConsoleSinks.end());
+		staticEditorConsoleLogger->set_level(spdlog::level::trace);
+
 		staticIsInitialized = true;
 
 #endif
@@ -52,46 +69,6 @@ namespace Epoch
 
 		staticLogger.reset();
 		spdlog::drop("EPOCH");
-
-#endif
-	}
-
-	void Log::InitAppConsole(bool aWithConsole)
-	{
-#if EPOCH_ENABLE_LOGGING
-
-		std::vector<spdlog::sink_ptr> editorConsoleSinks;
-
-		if (aWithConsole)
-		{
-			editorConsoleSinks =
-			{
-				std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/App.log", true),
-				std::make_shared<EditorConsoleSink>(1)
-			};
-
-			editorConsoleSinks[0]->set_pattern("%l: %v");
-			editorConsoleSinks[1]->set_pattern("%v");
-		}
-		else
-		{
-			editorConsoleSinks =
-			{
-				std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/App.log", true)
-			};
-			
-			editorConsoleSinks[0]->set_pattern("%l: %v");
-		}
-
-		staticEditorConsoleLogger = std::make_shared<spdlog::logger>("CONSOLE", editorConsoleSinks.begin(), editorConsoleSinks.end());
-		staticEditorConsoleLogger->set_level(spdlog::level::trace);
-
-#endif
-	}
-
-	void Log::ShutdownAppConsole()
-	{
-#if EPOCH_ENABLE_LOGGING
 
 		staticEditorConsoleLogger.reset();
 		spdlog::drop("CONSOLE");

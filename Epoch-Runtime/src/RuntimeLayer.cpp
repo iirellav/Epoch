@@ -21,8 +21,6 @@ namespace Epoch
 
 	void RuntimeLayer::OnAttach()
 	{
-		Log::InitAppConsole(false);
-
 		mySceneRenderer = std::make_shared<SceneRenderer>();
 
 		OpenProject();
@@ -47,8 +45,6 @@ namespace Epoch
 		myRuntimeScene = nullptr;
 
 		Project::SetActive(nullptr);
-
-		Log::ShutdownAppConsole();
 	}
 	
 	void RuntimeLayer::OnUpdate()

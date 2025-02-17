@@ -20,9 +20,6 @@ namespace Epoch
 		static void Init();
 		static void Shutdown();
 
-		static void InitAppConsole(bool aWithConsole = true);
-		static void ShutdownAppConsole();
-
 		static std::shared_ptr<spdlog::logger>& GetLogger() { return staticLogger; }
 		static std::shared_ptr<spdlog::logger>& GetAppConsoleLogger() { return staticEditorConsoleLogger; }
 

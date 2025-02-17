@@ -59,8 +59,6 @@ namespace Epoch
 	{
 		EPOCH_PROFILE_FUNC();
 
-		Log::InitAppConsole();
-
 		EditorSettingsSerializer::Init();
 		EditorResources::Init();
 
@@ -201,8 +199,6 @@ namespace Epoch
 		}
 
 		EditorSettingsSerializer::SaveSettings();
-
-		Log::ShutdownAppConsole();
 	}
 
 	void EditorLayer::OnUpdate()
