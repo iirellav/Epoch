@@ -276,6 +276,15 @@ namespace Epoch
 
         #endregion
 
+        #region CheckboxComponent
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool CheckboxComponent_GetIsActive(ulong aEntityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void CheckboxComponent_SetIsActive(ulong aEntityID, bool aState);
+
+        #endregion
+
         #region PointLightComponent
 
         [MethodImpl(MethodImplOptions.InternalCall)]

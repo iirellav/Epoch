@@ -184,18 +184,19 @@ namespace Epoch
 
 #pragma endregion
 
-#pragma region ScriptComponent
-		
-		MonoObject* ScriptComponent_GetInstance(uint64_t aEntityID);
-
-#pragma endregion
-
 #pragma region TextRendererComponent
 
 		MonoString* TextComponent_GetText(uint64_t aEntityID);
 		void TextComponent_SetText(uint64_t aEntityID, MonoString* aText);
 		void TextComponent_GetColor(uint64_t aEntityID, CU::Color* outColor);
 		void TextComponent_SetColor(uint64_t aEntityID, CU::Color* aColor);
+
+#pragma endregion
+		
+#pragma region CheckboxComponent
+
+		bool CheckboxComponent_GetIsActive(uint64_t aEntityID);
+		void CheckboxComponent_SetIsActive(uint64_t aEntityID, bool aState);
 
 #pragma endregion
 
@@ -234,6 +235,12 @@ namespace Epoch
 
 		float SpotlightComponent_GetInnerAngle(uint64_t aEntityID);
 		void SpotlightComponent_SetInnerAngle(uint64_t aEntityID, float aAngle);
+
+#pragma endregion
+
+#pragma region ScriptComponent
+		
+		MonoObject* ScriptComponent_GetInstance(uint64_t aEntityID);
 
 #pragma endregion
 

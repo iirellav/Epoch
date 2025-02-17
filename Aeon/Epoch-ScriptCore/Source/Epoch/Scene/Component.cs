@@ -212,6 +212,8 @@
         }
     }
 
+    //Image Component
+
     public class TextRendererComponent : Component
     {
         public string Text
@@ -233,6 +235,19 @@
             }
 
             set => InternalCalls.TextComponent_SetColor(entity.id, ref value);
+        }
+    }
+
+    //Text2D Component
+
+    //Button Component
+
+    public class CheckboxComponent : Component
+    {
+        public bool IsOn
+        {
+            get => InternalCalls.CheckboxComponent_GetIsActive(entity.id);
+            set => InternalCalls.CheckboxComponent_SetIsActive(entity.id, value);
         }
     }
 

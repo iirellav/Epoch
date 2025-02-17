@@ -79,6 +79,7 @@ namespace Epoch
 		RegisterManagedComponent<SpriteRendererComponent>();
 		RegisterManagedComponent<ScriptComponent>();
 		RegisterManagedComponent<TextRendererComponent>();
+		RegisterManagedComponent<CheckboxComponent>();
 		RegisterManagedComponent<PointLightComponent>();
 		RegisterManagedComponent<SpotlightComponent>();
 		RegisterManagedComponent<RigidbodyComponent>();
@@ -183,13 +184,14 @@ namespace Epoch
 		EPOCH_ADD_INTERNAL_CALL(SpriteRendererComponent_SetFlipY);
 
 
-		EPOCH_ADD_INTERNAL_CALL(ScriptComponent_GetInstance);
-
-
 		EPOCH_ADD_INTERNAL_CALL(TextComponent_GetText);
 		EPOCH_ADD_INTERNAL_CALL(TextComponent_SetText);
 		EPOCH_ADD_INTERNAL_CALL(TextComponent_GetColor);
 		EPOCH_ADD_INTERNAL_CALL(TextComponent_SetColor);
+
+
+		EPOCH_ADD_INTERNAL_CALL(CheckboxComponent_GetIsActive);
+		EPOCH_ADD_INTERNAL_CALL(CheckboxComponent_SetIsActive);
 
 
 		EPOCH_ADD_INTERNAL_CALL(PointLightComponent_GetColor);
@@ -216,6 +218,9 @@ namespace Epoch
 
 		EPOCH_ADD_INTERNAL_CALL(SpotlightComponent_GetRange);
 		EPOCH_ADD_INTERNAL_CALL(SpotlightComponent_SetRange);
+
+
+		EPOCH_ADD_INTERNAL_CALL(ScriptComponent_GetInstance);
 
 
 		EPOCH_ADD_INTERNAL_CALL(Log_LogMessage);
@@ -1231,48 +1236,6 @@ namespace Epoch
 
 #pragma endregion
 
-#pragma region ScriptComponent
-		
-		MonoObject* ScriptComponent_GetInstance(uint64_t aEntityID)
-		{
-			auto entity = GetEntity(aEntityID);
-			if (!entity) return nullptr;
-			if (!entity.HasComponent<ScriptComponent>()) return nullptr;
-
-			const auto& component = entity.GetComponent<ScriptComponent>();
-
-			if (!ScriptEngine::IsModuleValid(component.scriptClassHandle))
-			{
-				LOG_ERROR("Entity is referencing an invalid C# class!");
-				return nullptr;
-			}
-
-			if (!ScriptEngine::IsEntityInstantiated(entity))
-			{
-				if (ScriptEngine::IsEntityInstantiated(entity, false))
-				{
-					ScriptEngine::CallMethod(component.managedInstance, "OnCreate");
-
-					
-					entity.GetComponent<ScriptComponent>().isRuntimeInitialized = true;
-
-					return GCManager::GetReferencedObject(component.managedInstance);
-				}
-				else if (component.managedInstance == nullptr)
-				{
-					ScriptEngine::RuntimeInitializeScriptEntity(entity);
-					return GCManager::GetReferencedObject(component.managedInstance);
-				}
-
-				LOG_ERROR("Entity '{}' isn't instantiated?", entity.GetName());
-				return nullptr;
-			}
-
-			return GCManager::GetReferencedObject(component.managedInstance);
-		}
-
-#pragma endregion
-
 #pragma region TextRendererComponent
 
 		MonoString* TextComponent_GetText(uint64_t aEntityID)
@@ -1313,6 +1276,38 @@ namespace Epoch
 
 			auto& component = entity.GetComponent<TextRendererComponent>();
 			component.color = *aColor;
+		}
+
+#pragma endregion
+
+#pragma region CheckboxComponent
+
+		bool CheckboxComponent_GetIsActive(uint64_t aEntityID)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return false;
+
+			if (!entity.HasComponent<CheckboxComponent>())
+			{
+				return false;
+			}
+
+			const auto& cc = entity.GetComponent<CheckboxComponent>();
+			return cc.isOn;
+		}
+
+		void CheckboxComponent_SetIsActive(uint64_t aEntityID, bool aState)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return;
+
+			if (!entity.HasComponent<CheckboxComponent>())
+			{
+				return;
+			}
+
+			auto& cc = entity.GetComponent<CheckboxComponent>();
+			cc.isOn = aState;
 		}
 
 #pragma endregion
@@ -1521,6 +1516,48 @@ namespace Epoch
 
 			auto& component = entity.GetComponent<SpotlightComponent>();
 			component.innerSpotAngle = aAngle * CU::Math::ToRad;
+		}
+
+#pragma endregion
+
+#pragma region ScriptComponent
+		
+		MonoObject* ScriptComponent_GetInstance(uint64_t aEntityID)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return nullptr;
+			if (!entity.HasComponent<ScriptComponent>()) return nullptr;
+
+			const auto& component = entity.GetComponent<ScriptComponent>();
+
+			if (!ScriptEngine::IsModuleValid(component.scriptClassHandle))
+			{
+				LOG_ERROR("Entity is referencing an invalid C# class!");
+				return nullptr;
+			}
+
+			if (!ScriptEngine::IsEntityInstantiated(entity))
+			{
+				if (ScriptEngine::IsEntityInstantiated(entity, false))
+				{
+					ScriptEngine::CallMethod(component.managedInstance, "OnCreate");
+
+					
+					entity.GetComponent<ScriptComponent>().isRuntimeInitialized = true;
+
+					return GCManager::GetReferencedObject(component.managedInstance);
+				}
+				else if (component.managedInstance == nullptr)
+				{
+					ScriptEngine::RuntimeInitializeScriptEntity(entity);
+					return GCManager::GetReferencedObject(component.managedInstance);
+				}
+
+				LOG_ERROR("Entity '{}' isn't instantiated?", entity.GetName());
+				return nullptr;
+			}
+
+			return GCManager::GetReferencedObject(component.managedInstance);
 		}
 
 #pragma endregion
