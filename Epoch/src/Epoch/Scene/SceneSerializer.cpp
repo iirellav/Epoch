@@ -436,6 +436,23 @@ namespace Epoch
 				aOut << YAML::EndMap;
 			}
 
+			if (entity.HasComponent<Text2DComponent>())
+			{
+				aOut << YAML::Key << "Text2DComponent";
+				aOut << YAML::BeginMap;
+
+				const Text2DComponent& t = entity.GetComponent<Text2DComponent>();
+				aOut << YAML::Key << "IsActive" << YAML::Value << t.isActive;
+				aOut << YAML::Key << "Text" << YAML::Value << t.text;
+				aOut << YAML::Key << "Font" << YAML::Value << t.font;
+				aOut << YAML::Key << "Color" << YAML::Value << t.color;
+
+				aOut << YAML::Key << "LetterSpacing" << YAML::Value << t.letterSpacing;
+				aOut << YAML::Key << "LineSpacing" << YAML::Value << t.lineSpacing;
+
+				aOut << YAML::EndMap;
+			}
+
 			if (entity.HasComponent<ButtonComponent>())
 			{
 				aOut << YAML::Key << "ButtonComponent";
@@ -1205,6 +1222,20 @@ namespace Epoch
 				i.tint = imageComponent["Tint"].as<CU::Color>(CU::Color::White);
 				i.flipX = imageComponent["FlipX"].as<bool>();
 				i.flipY = imageComponent["FlipY"].as<bool>();
+			}
+
+			YAML::Node text2DComponent = entity["Text2DComponent"];
+			if (text2DComponent)
+			{
+				Text2DComponent& t = deserializedEntity.AddComponent<Text2DComponent>();
+
+				t.isActive = text2DComponent["IsActive"].as<bool>(true);
+				t.text = text2DComponent["Text"].as<std::string>("Text");
+				t.font = text2DComponent["Font"].as<UUID>(UUID(0));
+				t.color = text2DComponent["Color"].as<CU::Color>(CU::Color::White);
+
+				t.letterSpacing = text2DComponent["LetterSpacing"].as<float>(0.0f);
+				t.lineSpacing = text2DComponent["LineSpacing"].as<float>(0.0f);
 			}
 
 			YAML::Node buttonComponent = entity["ButtonComponent"];

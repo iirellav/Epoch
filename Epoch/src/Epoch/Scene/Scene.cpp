@@ -1971,8 +1971,45 @@ namespace Epoch
 				}
 			}
 
-			CU::Matrix4x4f transform;
-			screenSpaceRenderer->SubmitText("Test", Font::GetDefaultFont(), transform);
+			// Submit Text
+			{
+				EPOCH_PROFILE_SCOPE("Scene::RenderScene::SubmitImages");
+
+				auto view = GetAllEntitiesWith<RectComponent, Text2DComponent>();
+				for (auto id : view)
+				{
+					Entity entity = Entity(id, this);
+					if (!entity.IsActive()) continue;
+
+					const auto& [rc, tc] = view.get<RectComponent, Text2DComponent>(id);
+					if (!tc.isActive) continue;
+
+					std::shared_ptr<Font> font;
+					if (auto it = assetAccelerationMap.find(tc.font); it != assetAccelerationMap.end())
+					{
+						font = std::static_pointer_cast<Font>(it->second);
+					}
+					else
+					{
+						font = AssetManager::GetAssetAsync<Font>(tc.font);
+						assetAccelerationMap[tc.font] = font;
+					}
+
+					if (!font)
+					{
+						font = Font::GetDefaultFont();
+					}
+
+					SceneRenderer2D::TextSettings textSettings;
+					textSettings.color = tc.color;
+					textSettings.letterSpacing = tc.letterSpacing;
+					textSettings.lineHeightOffset = tc.lineSpacing;
+					textSettings.maxWidth = rc.size.x * 0.01f;
+
+					const CU::Matrix4x4f transform = entity.GetWorldSpaceTransform().GetMatrix();
+					screenSpaceRenderer->SubmitText(tc.text, font, transform, textSettings, (uint32_t)entity);
+				}
+			}
 
 			screenSpaceRenderer->EndScene();
 		}

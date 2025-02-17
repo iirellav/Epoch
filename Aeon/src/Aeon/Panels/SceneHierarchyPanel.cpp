@@ -1534,6 +1534,36 @@ namespace Epoch
 				}
 			}, EditorResources::SpriteRendererIcon);
 
+		DrawComponent<Text2DComponent, true>("Text 2D", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
+			{
+				{
+					UI::BeginPropertyGrid();
+
+					float textLineHeight = ImGui::GetTextLineHeight();
+					float textHeight = ImGui::CalcTextSize(aFirstComponent.text.c_str()).y;
+					uint32_t rows = (uint32_t)(textHeight / textLineHeight);
+					if (CU::EndsWith(aFirstComponent.text, "\n")) ++rows;
+					rows = CU::Math::Min(rows, 5u);
+					float textFieldHeight = rows * textLineHeight + ImGui::GetStyle().FramePadding.x * 2;
+
+					UI::Property_InputTextMultiline("Text", aFirstComponent.text, CU::Vector2f(0, textFieldHeight), ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_CtrlEnterForNewLine);
+					
+					AssetHandle assetHandle = aFirstComponent.font;
+					if (UI::Property_AssetReference<AssetType::Font>("Font", assetHandle))
+					{
+						aFirstComponent.font = assetHandle;
+					}
+					
+					UI::Property_ColorEdit3("Color", aFirstComponent.color);
+
+					UI::Property_DragFloat("Letter Spacing", aFirstComponent.letterSpacing, 0.02f);
+					UI::Property_DragFloat("Line Spacing", aFirstComponent.lineSpacing, 0.02f);
+
+					UI::EndPropertyGrid();
+				}
+			}, EditorResources::TextRendererIcon);
+
+
 		//DONE - Multi Edit
 		DrawComponent<ButtonComponent, true>("Button", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
 			{
@@ -2411,6 +2441,7 @@ namespace Epoch
 						DisplayAddComponentEntry<ButtonComponent>("Button");
 						DisplayAddComponentEntry<ButtonComponent>("Checkbox");
 						DisplayAddComponentEntry<ImageComponent>("Image");
+						DisplayAddComponentEntry<Text2DComponent>("Text");
 
 						ImGui::EndMenu();
 					}
@@ -2457,6 +2488,7 @@ namespace Epoch
 				DisplayAddComponentEntry<SpotlightComponent>("Spotlight", aComponentSearchString);
 				DisplayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer", aComponentSearchString);
 				DisplayAddComponentEntry<TextRendererComponent>("Text Renderer", aComponentSearchString);
+				DisplayAddComponentEntry<Text2DComponent>("Text2D", aComponentSearchString);
 				//DisplayAddComponentEntry<VideoPlayerComponent>("Video Player", aFirstComponentSearchString);
 				DisplayAddComponentEntry<VolumeComponent>("Volume", aComponentSearchString);
 
@@ -2748,6 +2780,14 @@ namespace Epoch
 				createdEntity = myContext->CreateEntity("Image");
 				createdEntity.AddComponent<RectComponent>();
 				createdEntity.AddComponent<ImageComponent>();
+			}
+
+			if (ImGui::MenuItem("Text"))
+			{
+				createdEntity = myContext->CreateEntity("Text");
+				auto& rc = createdEntity.AddComponent<RectComponent>();
+				rc.pivot = { 0.0f, 0.0f };
+				createdEntity.AddComponent<Text2DComponent>();
 			}
 
 			if (ImGui::MenuItem("Button"))
