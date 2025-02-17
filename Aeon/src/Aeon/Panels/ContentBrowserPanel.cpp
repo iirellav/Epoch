@@ -280,6 +280,28 @@ namespace Epoch
 
 				if (ImGui::BeginDragDropTarget())
 				{
+					auto data = ImGui::AcceptDragDropPayload("scene_entity_hierarchy");
+					if (data)
+					{
+						size_t count = data->DataSize / sizeof(UUID);
+
+						for (size_t i = 0; i < count; i++)
+						{
+							UUID entityID = *(((UUID*)data->Data) + i);
+							Entity entity = mySceneContext->TryGetEntityWithUUID(entityID);
+
+							if (!entity)
+							{
+								LOG_ERROR_TAG("ContentBrowser", "Failed to find Entity with ID {} in current Scene context!", entityID);
+								continue;
+							}
+
+							std::shared_ptr<Prefab> prefab = CreateAsset<Prefab>(entity.GetName() + ".prefab");
+							prefab->Create(entity);
+							AssetImporter::Serialize(prefab);
+						}
+					}
+
 					ImGui::EndDragDropTarget();
 				}
 
