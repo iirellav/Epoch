@@ -1971,6 +1971,9 @@ namespace Epoch
 				}
 			}
 
+			CU::Matrix4x4f transform;
+			screenSpaceRenderer->SubmitText("Test", Font::GetDefaultFont(), transform);
+
 			screenSpaceRenderer->EndScene();
 		}
 	}

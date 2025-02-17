@@ -13,6 +13,7 @@ namespace Epoch
 	class ConstantBuffer;
 	class RenderPipeline;
 	class Texture2D;
+	class Font;
 
 	class SceneRenderer2D
 	{
@@ -32,6 +33,17 @@ namespace Epoch
 
 		static inline const QuadSetting DefaultQuadSetting;
 
+		struct TextSettings
+		{
+			CU::Color color = CU::Color::White;
+			float maxWidth = FLT_MAX;
+
+			float lineHeightOffset = 0.0f;
+			float letterSpacing = 0.0f;
+		};
+
+		static inline const TextSettings DefaultTextSettings;
+
 	public:
 		SceneRenderer2D();
 		~SceneRenderer2D();
@@ -45,11 +57,14 @@ namespace Epoch
 		void EndScene();
 
 		void SubmitQuad(const CU::Matrix4x4f aTransform, const CU::Vector2ui aSize, std::shared_ptr<Texture2D> aTexture = nullptr, const QuadSetting& aSettings = DefaultQuadSetting, uint32_t aEntityID = 0);
+		
+		void SubmitText(const std::string& aString, const std::shared_ptr<Font>& aFont, const CU::Matrix4x4f& aTransform, const TextSettings& aSettings = DefaultTextSettings, uint32_t aEntityID = 0);
 
 	private:
 		void Shutdown();
 
 		void QuadPass();
+		void TextPass();
 
 	private:
 		bool myActive = false;
@@ -65,21 +80,28 @@ namespace Epoch
 		std::shared_ptr<ConstantBuffer> myCameraBuffer;
 		
 		std::shared_ptr<RenderPipeline> myQuadPipeline;
+		std::shared_ptr<RenderPipeline> myTextPipeline;
 
-		// Quads
-		struct QuadVertex
+		struct Vertex
 		{
 			CU::Vector3f position;
 			uint32_t entityID = 0;
 			CU::Vector4f tint;
 			CU::Vector2f uv;
 		};
-
+		
+		// Quads
 		CU::Vector2f myQuadVertexPositions[4];
 		CU::Vector2f myQuadUVCoords[4];
-		std::unordered_map<UUID, std::vector<QuadVertex>> myQuadVertices;
+		std::unordered_map<UUID, std::vector<Vertex>> myQuadVertices;
 		std::unordered_map<UUID, std::shared_ptr<Texture2D>> myTextures;
 		std::shared_ptr<VertexBuffer> myQuadVertexBuffer;
-		std::shared_ptr<IndexBuffer> myQuadIndexBuffer;
+		
+		// Text
+		std::unordered_map<UUID, std::vector<Vertex>> myTextVertices;
+		std::unordered_map<UUID, std::shared_ptr<Texture2D>> myFontAtlases;
+		std::shared_ptr<VertexBuffer> myTextVertexBuffer;
+
+		std::shared_ptr<IndexBuffer> myIndexBuffer;
 	};
 }
