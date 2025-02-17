@@ -1563,7 +1563,6 @@ namespace Epoch
 				}
 			}, EditorResources::TextRendererIcon);
 
-
 		//DONE - Multi Edit
 		DrawComponent<ButtonComponent, true>("Button", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
 			{
