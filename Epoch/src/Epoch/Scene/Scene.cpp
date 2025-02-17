@@ -472,6 +472,8 @@ namespace Epoch
 
 			// Update UI
 			{
+				EPOCH_PROFILE_SCOPE("Scene::OnUpdate::UpdateUI");
+
 				if (MouseInViewport())
 				{
 					auto view = GetAllEntitiesWith<RectComponent, ButtonComponent>();
@@ -483,14 +485,13 @@ namespace Epoch
 						const auto& [rc, bc] = view.get<RectComponent, ButtonComponent>(id);
 						if (!bc.isActive) continue;
 				
+						CU::Matrix4x4f transform = entity.GetWorldSpaceTransform().GetMatrix();
+				
 						const CU::Vector2f size = CU::Vector2f((float)rc.size.x, (float)rc.size.y);
 						const CU::Vector2f bl = (CU::Vector2f(0.0f, 0.0f) - rc.pivot) * size;
 						const CU::Vector2f tr = (CU::Vector2f(1.0f, 1.0f) - rc.pivot) * size;
-				
-						CU::Transform transform = entity.GetWorldSpaceTransform();
-
-						const CU::Vector4f bl4D = transform.GetMatrix() * CU::Vector4f(bl.x, bl.y, 0.0f, 1.0f);
-						const CU::Vector4f tr4D = transform.GetMatrix() * CU::Vector4f(tr.x, tr.y, 0.0f, 1.0f);
+						const CU::Vector4f bl4D = transform * CU::Vector4f(bl.x, bl.y, 0.0f, 1.0f);
+						const CU::Vector4f tr4D = transform * CU::Vector4f(tr.x, tr.y, 0.0f, 1.0f);
 
 						if (myMousePos.x > bl4D.x && myMousePos.x < tr4D.x &&
 							myMousePos.y > bl4D.y && myMousePos.y < tr4D.y)
@@ -858,7 +859,7 @@ namespace Epoch
 			{
 				RectComponent prc = parent.GetComponent<RectComponent>();
 				const CU::Vector2f size = { (float)prc.size.x, (float)prc.size.y };
-				const CU::Vector2f anchorOffset2D = size * rc.anchor - size * rc.pivot;
+				const CU::Vector2f anchorOffset2D = size * rc.anchor - size * prc.pivot;
 				anchorOffset = CU::Vector3f(anchorOffset2D);
 			}
 			else
@@ -1791,33 +1792,33 @@ namespace Epoch
 				screenSpaceRenderer->BeginScene(aRenderCamera.camera.GetProjectionMatrix(), aRenderCamera.viewMatrix);
 			}
 
+			std::map<entt::entity, CU::Color> imageTintMap;
+			auto buttonView = GetAllEntitiesWith<ButtonComponent>();
+			for (auto id : buttonView)
+			{
+				Entity entity = Entity(id, this);
+				if (!entity.IsActive()) continue;
+
+				const auto& bc = buttonView.get<ButtonComponent>(id);
+				if (!bc.isActive) continue;
+
+				switch (bc.state)
+				{
+				case Epoch::InteractableState::Default:
+					imageTintMap.emplace(id, bc.defaultColor);
+					break;
+				case Epoch::InteractableState::Hovered:
+					imageTintMap.emplace(id, bc.hoveredColor);
+					break;
+				case Epoch::InteractableState::Pressed:
+					imageTintMap.emplace(id, bc.pressedColor);
+					break;
+				}
+			}
+
 			// Submit Images
 			{
 				EPOCH_PROFILE_SCOPE("Scene::RenderScene::SubmitImages");
-
-				std::map<entt::entity, CU::Color> imageTintMap;
-				auto buttonView = GetAllEntitiesWith<ButtonComponent>();
-				for (auto id : buttonView)
-				{
-					Entity entity = Entity(id, this);
-					if (!entity.IsActive()) continue;
-
-					const auto& bc = buttonView.get<ButtonComponent>(id);
-					if (!bc.isActive) continue;
-
-					switch (bc.state)
-					{
-					case Epoch::InteractableState::Default:
-						imageTintMap.emplace(id, bc.defaultColor);
-						break;
-					case Epoch::InteractableState::Hovered:
-						imageTintMap.emplace(id, bc.hoveredColor);
-						break;
-					case Epoch::InteractableState::Pressed:
-						imageTintMap.emplace(id, bc.pressedColor);
-						break;
-					}
-				}
 
 				auto view = GetAllEntitiesWith<RectComponent, ImageComponent>();
 				for (auto id : view)
@@ -1855,8 +1856,8 @@ namespace Epoch
 						setting.tint = ic.tint;
 					}
 
-					CU::Transform transform = entity.GetWorldSpaceTransform();
-					screenSpaceRenderer->SubmitQuad(transform.GetMatrix(), rc.size, texture, setting, (uint32_t)entity);
+					const CU::Matrix4x4f transform = entity.GetWorldSpaceTransform().GetMatrix();
+					screenSpaceRenderer->SubmitQuad(transform, rc.size, texture, setting, (uint32_t)entity);
 
 					auto dr = aRenderer->GetDebugRenderer();
 					if (dr && aRenderDebugRects)
@@ -1866,11 +1867,11 @@ namespace Epoch
 						const CU::Vector2f br = (CU::Vector2f(1.0f, 0.0f) - rc.pivot) * size;
 						const CU::Vector2f tl = (CU::Vector2f(0.0f, 1.0f) - rc.pivot) * size;
 						const CU::Vector2f tr = (CU::Vector2f(1.0f, 1.0f) - rc.pivot) * size;
-						const CU::Vector4f bl4D(bl.x, bl.y, 0.0f, 1.0f);
-						const CU::Vector4f br4D(br.x, br.y, 0.0f, 1.0f);
-						const CU::Vector4f tl4D(tl.x, tl.y, 0.0f, 1.0f);
-						const CU::Vector4f tr4D(tr.x, tr.y, 0.0f, 1.0f);
-						dr->DrawRect(transform.GetMatrix() * bl4D, transform.GetMatrix() * br4D, transform.GetMatrix() * tl4D, transform.GetMatrix() * tr4D);
+						const CU::Vector4f bl4D = transform * CU::Vector4f(bl.x, bl.y, 0.0f, 1.0f);
+						const CU::Vector4f br4D = transform * CU::Vector4f(br.x, br.y, 0.0f, 1.0f);
+						const CU::Vector4f tl4D = transform * CU::Vector4f(tl.x, tl.y, 0.0f, 1.0f);
+						const CU::Vector4f tr4D = transform * CU::Vector4f(tr.x, tr.y, 0.0f, 1.0f);
+						dr->DrawRect(bl4D, br4D, tl4D, tr4D);
 					}
 				}
 			}
