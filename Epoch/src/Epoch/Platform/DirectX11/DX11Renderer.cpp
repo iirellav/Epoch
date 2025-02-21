@@ -306,13 +306,18 @@ namespace Epoch
 
 	std::pair<std::shared_ptr<TextureCube>, std::shared_ptr<TextureCube>> DX11Renderer::CreateEnvironmentTextures(const std::string& aFilepath)
 	{
-		Timer timer;
-
 		//LOG_WARNING("'CreateEnvironmentTextures' not implemented!");
 		//return std::pair<std::shared_ptr<TextureCube>, std::shared_ptr<TextureCube>>(nullptr, nullptr);
 		
 		std::shared_ptr<Texture2D> envEquirect = Texture2D::Create(aFilepath);
 		EPOCH_ASSERT(envEquirect->GetFormat() == TextureFormat::RGBA32F, "Texture is not HDR!");
+
+		return CreateEnvironmentTextures(envEquirect, std::filesystem::path(aFilepath).stem().string());
+	}
+
+	std::pair<std::shared_ptr<TextureCube>, std::shared_ptr<TextureCube>> DX11Renderer::CreateEnvironmentTextures(std::shared_ptr<Texture2D> aEquirectangularTexture, const std::string& aName)
+	{
+		Timer timer;
 		
 		const uint32_t cubemapSize = 1024;
 		const uint32_t irradianceMapSize = 32;
@@ -323,7 +328,7 @@ namespace Epoch
 		cubemapSpec.format = TextureFormat::RGBA32F;
 		cubemapSpec.width = cubemapSize;
 		cubemapSpec.height = cubemapSize;
-		cubemapSpec.debugName = std::filesystem::path(aFilepath).stem().string();
+		cubemapSpec.debugName = aName;
 		
 		std::shared_ptr<TextureCube> envUnfiltered = TextureCube::Create(cubemapSpec);
 		std::shared_ptr<TextureCube> envFiltered = TextureCube::Create(cubemapSpec);
@@ -338,7 +343,7 @@ namespace Epoch
 			RHI::GetContext()->CSSetShader(cs.Get(), nullptr, 0);
 
 			std::shared_ptr<DX11TextureCube> dxTextureCube = std::dynamic_pointer_cast<DX11TextureCube>(envUnfiltered);
-			std::shared_ptr<DX11Texture2D> dxEquirect = std::dynamic_pointer_cast<DX11Texture2D>(envEquirect);
+			std::shared_ptr<DX11Texture2D> dxEquirect = std::dynamic_pointer_cast<DX11Texture2D>(aEquirectangularTexture);
 			RHI::GetContext()->CSSetUnorderedAccessViews(0, 1, dxTextureCube->GetUAV().GetAddressOf(), 0);
 			RHI::GetContext()->CSSetShaderResources(0, 1, dxEquirect->GetSRV().GetAddressOf());
 
@@ -396,7 +401,7 @@ namespace Epoch
 			
 			RHI::GetContext()->CSSetShader(nullptr, nullptr, 0);
 		}
-
+		
 		LOG_DEBUG_TAG("Renderer", "Creation of environmental map took {}ms", timer.ElapsedMillis());
 		return std::pair<std::shared_ptr<TextureCube>, std::shared_ptr<TextureCube>>(envFiltered, envUnfiltered);
 		//return std::pair<std::shared_ptr<TextureCube>, std::shared_ptr<TextureCube>>(envUnfiltered, envFiltered);

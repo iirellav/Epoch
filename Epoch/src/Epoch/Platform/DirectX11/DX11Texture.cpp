@@ -156,7 +156,8 @@ namespace Epoch
 
 		{
 			ID3D11Resource* resource = nullptr;
-			myRTV.Get()->GetResource(&resource);
+			mySRV.Get()->GetResource(&resource);
+			//myRTV.Get()->GetResource(&resource);
 			RHI::GetContext()->CopySubresourceRegion(stagingBuffer->myTexture.Get(), 0, 0, 0, 0, resource, 0, &box);
 		}
 

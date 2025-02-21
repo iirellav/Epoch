@@ -224,6 +224,11 @@ namespace Epoch
 		return staticRendererAPI->CreateEnvironmentTextures(aFilepath);
 	}
 
+	std::pair<std::shared_ptr<TextureCube>, std::shared_ptr<TextureCube>> Renderer::CreateEnvironmentTextures(std::shared_ptr<Texture2D> aEquirectangularTexture, const std::string& aName)
+	{
+		return staticRendererAPI->CreateEnvironmentTextures(aEquirectangularTexture, aName);
+	}
+
 	std::shared_ptr<Texture2D> Renderer::GetWhiteTexture()
 	{
 		return staticRendererData.whiteTexture;
