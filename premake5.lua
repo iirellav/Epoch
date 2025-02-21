@@ -1,6 +1,6 @@
 workspace "Epoch"
 	architecture "x64"
-	startproject  "Aeon"
+	startproject  "Epoch-Editor"
 
 	language "C++"
 	cppdialect "C++20"
@@ -55,13 +55,11 @@ workspace "Epoch"
 
 group "Core"
 include "Epoch"
-include "Aeon/Epoch-ScriptCore"
+include "Epoch-Editor/Epoch-ScriptCore"
 group ""
 
 group "Tools"
-include "Aeon"
---include "Basic Raytracer"
---include "SSOHorseRegistry"
+include "Epoch-Editor"
 group ""
 
 group "Runtime"

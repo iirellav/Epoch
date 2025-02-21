@@ -1,0 +1,5 @@
+D:\Epoch\Aeon\Resources\Scripts\Intermediates\Dist\Epoch-ScriptCore.csproj.AssemblyReference.cache
+D:\Epoch\Aeon\Resources\Scripts\Intermediates\Dist\Epoch-ScriptCore.csproj.CoreCompileInputs.cache
+D:\Epoch\Aeon\Resources\Scripts\Intermediates\Dist\Epoch-Sc.CF656D6E.Up2Date
+D:\Epoch\Aeon\Resources\Scripts\Intermediates\Dist\Epoch-ScriptCore.dll
+D:\Epoch\Aeon\Resources\Scripts\Epoch-ScriptCore.dll
