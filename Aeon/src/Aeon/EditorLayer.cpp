@@ -1207,16 +1207,14 @@ namespace Epoch
 
 		if (myDisplayUIInSceneView)
 		{
-			auto dr = mySceneViewport->GetSceneRenderer()->GetDebugRenderer();
-			
-			const float width = (float)mySceneViewport->Size().x;
-			const float height = (float)mySceneViewport->Size().y;
+			const float width = (float)myGameViewport->Size().x;
+			const float height = (float)myGameViewport->Size().y;
 			const CU::Vector3f bl = CU::Vector3f(0.0f, 0.0f, 0.0f);
 			const CU::Vector3f br = CU::Vector3f(0.0f, height, 0.0f);
 			const CU::Vector3f tl = CU::Vector3f(width, 0.0f, 0.0f);
 			const CU::Vector3f tr = CU::Vector3f(width, height, 0.0f);
 
-			dr->DrawRect(bl, br, tl, tr);
+			myDebugRenderer->DrawRect(bl, br, tl, tr);
 
 			if (myDisplayUIDebugRectsInSceneView)
 			{
@@ -1238,7 +1236,7 @@ namespace Epoch
 					const CU::Vector4f br4D = transform * CU::Vector4f(br.x, br.y, 0.0f, 1.0f);
 					const CU::Vector4f tl4D = transform * CU::Vector4f(tl.x, tl.y, 0.0f, 1.0f);
 					const CU::Vector4f tr4D = transform * CU::Vector4f(tr.x, tr.y, 0.0f, 1.0f);
-					dr->DrawRect(bl4D, br4D, tl4D, tr4D);
+					myDebugRenderer->DrawRect(bl4D, br4D, tl4D, tr4D);
 				}
 			}
 		}
