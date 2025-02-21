@@ -5,7 +5,7 @@
 !Epoch/vendor/mono/bin
 obj/
 bin-int/
-Epoch-Runtime/Resources/Scripts
+Epoch-Editor/Resources/Scripts
 **/cache/**
 **/Cache/**
 
@@ -19,10 +19,10 @@ Epoch-Runtime/Resources/Scripts
 **.user
 
 # Folders
-Epoch-Runtime/Profiling_Results
-Epoch-Runtime/logs
-Epoch-Runtime/Config
+Epoch-Editor/Profiling_Results
+Epoch-Editor/logs
+Epoch-Editor/Config
 
 # Files
 **.auto
-Epoch-Runtime/imgui.ini
+Epoch-Editor/imgui.ini
