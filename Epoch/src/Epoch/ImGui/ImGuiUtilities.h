@@ -212,6 +212,71 @@ namespace Epoch::UI
 
 
 	//=========================================================================================
+	/// Colors
+	inline ImColor ColorWithValue(const ImColor& aColor, float aValue)
+	{
+		const ImVec4& colRaw = aColor.Value;
+		float hue, sat, val;
+		ImGui::ColorConvertRGBtoHSV(colRaw.x, colRaw.y, colRaw.z, hue, sat, val);
+		return ImColor::HSV(hue, sat, std::min(aValue, 1.0f));
+	}
+
+	inline ImColor ColorWithSaturation(const ImColor& aColor, float aSaturation)
+	{
+		const ImVec4& colRaw = aColor.Value;
+		float hue, sat, val;
+		ImGui::ColorConvertRGBtoHSV(colRaw.x, colRaw.y, colRaw.z, hue, sat, val);
+		return ImColor::HSV(hue, std::min(aSaturation, 1.0f), val);
+	}
+
+	inline ImColor ColorWithHue(const ImColor& aColor, float aHue)
+	{
+		const ImVec4& colRaw = aColor.Value;
+		float h, s, v;
+		ImGui::ColorConvertRGBtoHSV(colRaw.x, colRaw.y, colRaw.z, h, s, v);
+		return ImColor::HSV(std::min(aHue, 1.0f), s, v);
+	}
+
+	inline ImColor ColorWithAlpha(const ImColor& aColor, float aMultiplier)
+	{
+		ImVec4 colRaw = aColor.Value;
+		colRaw.w = aMultiplier;
+		return colRaw;
+	}
+
+	inline ImColor ColorWithMultipliedValue(const ImColor& aColor, float aMultiplier)
+	{
+		const ImVec4& colRaw = aColor.Value;
+		float hue, sat, val;
+		ImGui::ColorConvertRGBtoHSV(colRaw.x, colRaw.y, colRaw.z, hue, sat, val);
+		return ImColor::HSV(hue, sat, std::min(val * aMultiplier, 1.0f));
+	}
+
+	inline ImColor ColorWithMultipliedSaturation(const ImColor& aColor, float aMultiplier)
+	{
+		const ImVec4& colRaw = aColor.Value;
+		float hue, sat, val;
+		ImGui::ColorConvertRGBtoHSV(colRaw.x, colRaw.y, colRaw.z, hue, sat, val);
+		return ImColor::HSV(hue, std::min(sat * aMultiplier, 1.0f), val);
+	}
+
+	inline ImColor ColorWithMultipliedHue(const ImColor& aColor, float aMultiplier)
+	{
+		const ImVec4& colRaw = aColor.Value;
+		float hue, sat, val;
+		ImGui::ColorConvertRGBtoHSV(colRaw.x, colRaw.y, colRaw.z, hue, sat, val);
+		return ImColor::HSV(std::min(hue * aMultiplier, 1.0f), sat, val);
+	}
+
+	inline ImColor ColorWithMultipliedAlpha(const ImColor& aColor, float aMultiplier)
+	{
+		ImVec4 colRaw = aColor.Value;
+		colRaw.w *= aMultiplier;
+		return colRaw;
+	}
+
+
+	//=========================================================================================
 	/// Custom IMGui controls
 
 	inline int FormatString(char* buf, size_t buf_size, const char* fmt, ...)
