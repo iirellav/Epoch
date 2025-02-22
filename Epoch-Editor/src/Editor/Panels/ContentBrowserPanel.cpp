@@ -264,15 +264,15 @@ namespace Epoch
 							RenderItems();
 						}
 
-						if (/*ImGui::IsWindowFocused() && */!ImGui::IsMouseDragging(ImGuiMouseButton_Left))
-						{
-							UpdateInput();
-						}
-
 						ImGui::PopStyleColor(2);
 
 						RenderDeleteDialogue();
 						RenderNewScriptDialogue();
+
+						if (ImGui::IsWindowFocused() && !ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+						{
+							UpdateInput();
+						}
 					}
 					ImGui::EndChild();
 				}
