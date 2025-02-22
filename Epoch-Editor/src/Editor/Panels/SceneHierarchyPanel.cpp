@@ -215,7 +215,8 @@ namespace Epoch
 		{
 			ImGui::SetNextItemOpen(true);
 		}
-
+		
+		bool isActive = aEntity.IsActive();
 		bool isPrefab = aEntity.HasComponent<PrefabComponent>();
 		bool isValid = true;
 		{
@@ -260,22 +261,34 @@ namespace Epoch
 			}
 		}
 
-		if (!isValid)
+		if (!isValid || isPrefab || !isActive)
 		{
-			ImGui::PushStyleColor(ImGuiCol_Text, aEntity.IsActive() ? Colors::Theme::invalid : Colors::Theme::disabledInvalid);
-		}
-		else if (isPrefab)
-		{
-			ImGui::PushStyleColor(ImGuiCol_Text, aEntity.IsActive() ? Colors::Theme::blue : Colors::Theme::disabledBlue);
-		}
-		else if (!aEntity.IsActive())
-		{
-			ImGui::PushStyleColor(ImGuiCol_Text, Colors::Theme::disabled);
+			ImColor colorToPush;
+
+			if (!isValid)
+			{
+				colorToPush = isActive ? Colors::Theme::invalid : Colors::Theme::disabledInvalid;
+			}
+			else if (isPrefab)
+			{
+				colorToPush = isActive ? Colors::Theme::blue : Colors::Theme::disabledBlue;
+			}
+			else
+			{
+				colorToPush = Colors::Theme::disabled;
+			}
+
+			if (!isActive && aEntity.IsActive(false))
+			{
+				colorToPush = UI::ColorWithMultipliedValue(colorToPush, 1.3f);
+			}
+
+			ImGui::PushStyleColor(ImGuiCol_Text, (ImU32)colorToPush);
 		}
 
 		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)aEntity, flags, entityName.c_str());
 
-		if (!isValid || isPrefab || !aEntity.IsActive())
+		if (!isValid || isPrefab || !isActive)
 		{
 			ImGui::PopStyleColor();
 		}
