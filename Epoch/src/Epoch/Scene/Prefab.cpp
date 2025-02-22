@@ -17,7 +17,7 @@ namespace Epoch
 		LOG_INFO("Creating prefab from: {}", aEntity.GetName());
 		myScene = std::make_shared<Scene>("Empty");
 		myEntity = CreatePrefabFromEntity(aEntity);
-		myScene->UpdateScriptInstanceEntityReferences(staticDuplicateEntityIDMap);
+		myScene->UpdateEntityReferences(staticDuplicateEntityIDMap);
 		staticDuplicateEntityIDMap.clear();
 	}
 

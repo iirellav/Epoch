@@ -188,7 +188,7 @@ namespace Epoch
 
 		if (aFirst)
 		{
-			UpdateScriptInstanceEntityReferences(staticDuplicateEntityIDMap);
+			UpdateEntityReferences(staticDuplicateEntityIDMap);
 			staticDuplicateEntityIDMap.clear();
 		}
 
@@ -243,7 +243,7 @@ namespace Epoch
 			}
 		}
 
-		UpdateScriptInstanceEntityReferences(staticDuplicateEntityIDMap);
+		UpdateEntityReferences(staticDuplicateEntityIDMap);
 		staticDuplicateEntityIDMap.clear();
 
 		return result;
@@ -294,61 +294,67 @@ namespace Epoch
 		return rootEntity;
 	}
 
-	void Scene::UpdateScriptInstanceEntityReferences(const std::unordered_map<UUID, UUID>& aEntityIDMap)
+	void Scene::UpdateEntityReferences(const std::unordered_map<UUID, UUID>& aEntityIDMap)
 	{
 		for (auto [orgID, newID] : aEntityIDMap)
 		{
 			Entity entity = GetEntityWithUUID(newID);
 
-			if (!entity.HasComponent<ScriptComponent>())
+			if (entity.HasComponent<ScriptComponent>())
 			{
-				continue;
-			}
+				auto& sc = entity.GetComponent<ScriptComponent>();
 
-			auto& sc = entity.GetComponent<ScriptComponent>();
-
-			if (!ScriptEngine::IsModuleValid(sc.scriptClassHandle))
-			{
-				continue;
-			}
-
-			for (auto fieldID : sc.fieldIDs)
-			{
-				FieldInfo* field = ScriptCache::GetFieldByID(fieldID);
-
-				if (field->type != FieldType::Entity)
+				if (!ScriptEngine::IsModuleValid(sc.scriptClassHandle))
 				{
 					continue;
 				}
 
-				std::shared_ptr<FieldStorageBase> storage = ScriptEngine::GetFieldStorage(entity, field->id);
-
-				if (field->IsArray())
+				for (auto fieldID : sc.fieldIDs)
 				{
-					auto fieldStorage = std::dynamic_pointer_cast<ArrayFieldStorage>(storage);
+					FieldInfo* field = ScriptCache::GetFieldByID(fieldID);
 
-					for (size_t i = 0; i < fieldStorage->GetLength(); i++)
+					if (field->type != FieldType::Entity)
 					{
-						UUID oldEntityID = fieldStorage->GetValue<UUID>((uint32_t)i);
+						continue;
+					}
 
-						if (aEntityIDMap.find(oldEntityID) != aEntityIDMap.end())
+					std::shared_ptr<FieldStorageBase> storage = ScriptEngine::GetFieldStorage(entity, field->id);
+
+					if (field->IsArray())
+					{
+						auto fieldStorage = std::dynamic_pointer_cast<ArrayFieldStorage>(storage);
+
+						for (size_t i = 0; i < fieldStorage->GetLength(); i++)
 						{
-							UUID newEntityID = aEntityIDMap.at(oldEntityID);
-							fieldStorage->SetValue((uint32_t)i, newEntityID);
+							UUID oldEntityID = fieldStorage->GetValue<UUID>((uint32_t)i);
+
+							if (auto it = aEntityIDMap.find(oldEntityID); it != aEntityIDMap.end())
+							{
+								fieldStorage->SetValue((uint32_t)i, it->second);
+							}
+						}
+					}
+					else
+					{
+						auto fieldStorage = std::dynamic_pointer_cast<FieldStorage>(storage);
+
+						UUID oldEntityID = fieldStorage->GetValue<UUID>();
+
+						if (auto it = aEntityIDMap.find(oldEntityID); it != aEntityIDMap.end())
+						{
+							fieldStorage->SetValue(it->second);
 						}
 					}
 				}
-				else
+			}
+
+			if (entity.HasComponent<CheckboxComponent>())
+			{
+				auto& cc = entity.GetComponent<CheckboxComponent>();
+				
+				if (auto it = aEntityIDMap.find(cc.checkmark); it != aEntityIDMap.end())
 				{
-					auto fieldStorage = std::dynamic_pointer_cast<FieldStorage>(storage);
-
-					UUID oldEntityID = fieldStorage->GetValue<UUID>();
-
-					if (aEntityIDMap.find(oldEntityID) != aEntityIDMap.end())
-					{
-						UUID newEntityID = aEntityIDMap.at(oldEntityID);
-						fieldStorage->SetValue(newEntityID);
-					}
+					cc.checkmark = it->second;
 				}
 			}
 		}
