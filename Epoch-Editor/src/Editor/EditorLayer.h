@@ -95,7 +95,7 @@ namespace Epoch
 		bool OnViewportClickSelection();
 		void UpdateViewportBoxSelection();
 
-		void OnSetToEditorCameraTransform(Entity aEntity);
+		void OnSnapToEditorCamera(Entity aEntity);
 		void OnResetBoneTransforms(Entity aEntity);
 		void OnCurrentSceneRenamed(const AssetMetadata& aMetadata);
 

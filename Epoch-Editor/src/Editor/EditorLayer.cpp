@@ -91,8 +91,8 @@ namespace Epoch
 
 		std::shared_ptr<SceneHierarchyPanel> sceneHierarchyPanel = myPanelManager->AddPanel<SceneHierarchyPanel>(PanelCategory::View, "Panel/Scene Hierarchy", SCENE_HIERARCHY_PANEL_ID, true);
 		sceneHierarchyPanel->SetEntityCreationCallback([this](Entity aEntity) { return OnEntityCreated(aEntity); });
-		sceneHierarchyPanel->AddEntityPopupPlugin("Set Transform to Editor Camera Transform", [this](Entity aEntity) { OnSetToEditorCameraTransform(aEntity); });
-		sceneHierarchyPanel->AddEntityPopupPlugin("Reset Bone Transforms", [this](Entity aEntity) { OnResetBoneTransforms(aEntity); });
+		sceneHierarchyPanel->AddEntityPopupPlugin("Snap to Editor Camera", [this](Entity aEntity) { OnSnapToEditorCamera(aEntity); });
+		//sceneHierarchyPanel->AddEntityPopupPlugin("Reset Bone Transforms", [this](Entity aEntity) { OnResetBoneTransforms(aEntity); });
 
 		std::shared_ptr<ContentBrowserPanel> contentBrowserPanel = myPanelManager->AddPanel<ContentBrowserPanel>(PanelCategory::View, "Panel/Content Browser", CONTENT_BROWSER_PANEL_ID, true);
 
@@ -2587,7 +2587,7 @@ namespace Epoch
 		}
 	}
 
-	void EditorLayer::OnSetToEditorCameraTransform(Entity aEntity)
+	void EditorLayer::OnSnapToEditorCamera(Entity aEntity)
 	{
 		myActiveScene->ConvertToWorldSpace(aEntity);
 		aEntity.Transform().SetTranslation(myEditorCamera.GetTransform().GetTranslation());
