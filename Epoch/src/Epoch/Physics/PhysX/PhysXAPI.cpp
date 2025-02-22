@@ -70,10 +70,7 @@ namespace Epoch
 		}
 
 		physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate("127.0.0.1", 5425, 10);
-		if (!myPVD->connect(*transport, physx::PxPvdInstrumentationFlag::eALL))
-		{
-			LOG_WARNING("Failed to connect to PhysX visual debugger");
-		}
+		myPVD->connect(*transport, physx::PxPvdInstrumentationFlag::eALL);
 #endif
 	}
 

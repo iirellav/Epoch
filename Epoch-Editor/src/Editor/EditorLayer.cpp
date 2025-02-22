@@ -1065,6 +1065,8 @@ namespace Epoch
 
 		if (myShowCollidersMode != DebugLinesDrawMode::Off)
 		{
+			EPOCH_PROFILE_SCOPE("EditorLayer::OnRenderOverlay::Colliders");
+
 			auto entities = myActiveScene->GetAllEntitiesWith<TransformComponent>();
 			for (auto entityID : entities)
 			{
@@ -1099,6 +1101,8 @@ namespace Epoch
 
 		if (myShowBoundingBoxesMode != DebugLinesDrawMode::Off)
 		{
+			EPOCH_PROFILE_SCOPE("EditorLayer::OnRenderOverlay::BoundingBoxes");
+
 			auto meshEntities = myActiveScene->GetAllEntitiesWith<MeshRendererComponent>();
 			for (auto entityID : meshEntities)
 			{
