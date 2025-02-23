@@ -2012,8 +2012,10 @@ namespace Epoch
 					textSettings.lineHeightOffset = tc.lineSpacing;
 					textSettings.maxWidth = rc.size.x * 0.01f;
 
-					const CU::Matrix4x4f transform = entity.GetWorldSpaceTransform().GetMatrix();
-					screenSpaceRenderer->SubmitText(tc.text, font, transform, textSettings, (uint32_t)entity);
+					//const CU::Matrix4x4f transform = entity.GetWorldSpaceTransform().GetMatrix();
+					CU::Transform transform = entity.GetWorldSpaceTransform();
+					transform.Translate(-CU::Vector3f(rc.size.x * transform.GetScale().x * rc.pivot.x, rc.size.y * transform.GetScale().y * rc.pivot.y, 0.0f));
+					screenSpaceRenderer->SubmitText(tc.text, font, transform.GetMatrix(), textSettings, (uint32_t)entity);
 				}
 			}
 
