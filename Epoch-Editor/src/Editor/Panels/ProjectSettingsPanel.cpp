@@ -25,7 +25,7 @@ namespace Epoch
 		UI::BeginPropertyGrid();
 		
 		modified |= UI::Property_InputText("Product Name", config.productName);
-		modified |= UI::Property_AssetReference<AssetType::Texture>("Icon Path", config.appIcon);
+		modified |= UI::Property_AssetReference<AssetType::Texture>("Icon", config.appIcon);
 
 		//modified |= UI::Property_InputText("Company Name", config.companyName);
 		//modified |= UI::Property_InputText("Version", config.version);
