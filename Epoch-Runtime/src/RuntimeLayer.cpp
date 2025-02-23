@@ -5,13 +5,13 @@
 #include <Epoch/Rendering/RenderPipeline.h>
 #include <Epoch/Rendering/Renderer.h>
 #include <Epoch/Project/ProjectSerializer.h>
+#include <Epoch/Assets/AssetPack/AssetPack.h>
 #include <Epoch/Scene/SceneRenderer.h>
 #include <Epoch/Scene/SceneSerializer.h>
 #include <Epoch/Script/ScriptEngine.h>
 #include <Epoch/Rendering/RHI.h>
 #include <Epoch/Core/Input.h>
-#include <Epoch/Debug/Instrumentor.h>
-#include <d3d11.h>
+#include <Epoch/Debug/Profiler.h>
 
 namespace Epoch
 {
@@ -21,8 +21,6 @@ namespace Epoch
 
 	void RuntimeLayer::OnAttach()
 	{
-		Log::InitAppConsole(false);
-
 		mySceneRenderer = std::make_shared<SceneRenderer>();
 
 		OpenProject();
@@ -47,50 +45,11 @@ namespace Epoch
 		myRuntimeScene = nullptr;
 
 		Project::SetActive(nullptr);
-
-		Log::ShutdownAppConsole();
 	}
 	
 	void RuntimeLayer::OnUpdate()
 	{
 		Application& app = Application::Get();
-
-		if (Input::IsKeyPressed(KeyCode::F11))
-		{
-			Window& window = app.GetWindow();
-
-			if (window.IsFullscreen())
-			{
-				window.SetFullscreen(false);
-			}
-			else
-			{
-				window.SetFullscreen(true);
-			}
-		}
-
-		if (Input::IsKeyPressed(KeyCode::F3))
-		{
-			LOG_INFO("F3");
-			
-			if (Input::IsKeyHeld(KeyCode::LeftAlt))
-			{
-				if (Instrumentor::Get().IsPaused())
-				{
-					LOG_INFO("Instrumentor unpause");
-					Instrumentor::Get().Unpause();
-				}
-				else
-				{
-					LOG_INFO("Instrumentor pause");
-					Instrumentor::Get().Pause();
-				}
-			}
-			else
-			{
-				//Show debug data
-			}
-		}
 
 		uint32_t width = app.GetWindowWidth();
 		uint32_t height = app.GetWindowHeight();
@@ -103,9 +62,13 @@ namespace Epoch
 			mySceneRenderer->SetViewportSize(myViewportWidth, myViewportHeight);
 			myRuntimeScene->SetViewportSize(myViewportWidth, myViewportHeight);
 		}
+		
+		auto [mx, my] = Input::GetMousePosition();
+		my = (float)myViewportHeight - my;
+		myRuntimeScene->SetMousePos({ mx, my });
 
 		myRuntimeScene->OnUpdateRuntime();
-		myRuntimeScene->OnRenderRuntime(mySceneRenderer);
+		myRuntimeScene->OnRenderGame(mySceneRenderer);
 
 
 		//Render (copy scene texture to back buffer)
@@ -144,19 +107,21 @@ namespace Epoch
 		ProjectSerializer serializer(project);
 		serializer.DeserializeRuntime(myProjectPath);
 
-		//TODO: Load asset bank
-		Project::SetActiveRuntime(project);
+		// Load asset pack
+		myAssetPack = AssetPack::Load(project->GetConfig().projectDirectory / project->GetConfig().assetDirectory / "AssetPack.eap");
+		Project::SetActiveRuntime(project, myAssetPack);
 
-		ScriptEngine::LoadAppAssembly(); //TODO: Should load binary from asset pack (maybe)
+		// Load app binary
+		Buffer appBinary = myAssetPack->ReadAppBinary();
+		ScriptEngine::LoadAppAssemblyRuntime(appBinary);
+		appBinary.Release();
 
 		LoadScene(Project::GetActive()->GetConfig().startScene);
 	}
 
 	void RuntimeLayer::LoadScene(uint64_t aSceneHandle)
 	{
-		std::shared_ptr<Scene> newScene = std::make_shared<Scene>(aSceneHandle);
-		SceneSerializer serializer(newScene);
-		serializer.Deserialize((Project::GetAssetDirectory() / Project::GetEditorAssetManager()->GetMetadata(aSceneHandle).filePath).string());
+		std::shared_ptr<Scene> newScene = Project::GetRuntimeAssetManager()->LoadScene(aSceneHandle);
 		myRuntimeScene = newScene;
 		myRuntimeScene->SetViewportSize(myViewportWidth, myViewportHeight);
 	}

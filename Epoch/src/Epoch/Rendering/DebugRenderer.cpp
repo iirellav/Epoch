@@ -2,7 +2,7 @@
 #include "DebugRenderer.h"
 #include <CommonUtilities/Math/Transform.h>
 #include <CommonUtilities/Math/CommonMath.hpp>
-#include "Epoch/Debug/Instrumentor.h"
+#include "Epoch/Debug/Profiler.h"
 #include "Epoch/Rendering/Renderer.h"
 #include "Epoch/Rendering/VertexBuffer.h"
 #include "Epoch/Rendering/IndexBuffer.h"
@@ -180,9 +180,9 @@ namespace Epoch
 
 			uint32_t vxOffset = 0;
 			uint32_t ixOffset = 0;
-			for (size_t i = 0; i < myFrames.size(); i++)
+			for (size_t i = 0; i < myLineLists.size(); i++)
 			{
-				const Frame& frame = myFrames[i];
+				const LineList& frame = myLineLists[i];
 
 				if (vxOffset + frame.vertexCount >= MaxLineVertices || ixOffset + frame.indexCount >= MaxLineIndices)
 				{
@@ -264,7 +264,7 @@ namespace Epoch
 			myStats.indices += myQuadCount * 6;
 		}
 
-		myFrames.clear();
+		myLineLists.clear();
 
 		myQuadVertices.clear();
 		myQuadCount = 0;
@@ -290,21 +290,46 @@ namespace Epoch
 
 	void DebugRenderer::DrawLine(const CU::Vector3f& aP0, const CU::Vector3f& aP1, CU::Color aColor)
 	{
-		auto& frame = myFrames.emplace_back();
+		auto& lineList = myLineLists.emplace_back();
 
-		frame.vertices.push_back({ aP0, aColor });
-		frame.vertices.push_back({ aP1, aColor });
+		lineList.vertices.push_back({ aP0, aColor });
+		lineList.vertices.push_back({ aP1, aColor });
 
-		frame.indices.push_back(0);
-		frame.indices.push_back(1);
+		lineList.indices.push_back(0);
+		lineList.indices.push_back(1);
 
-		frame.vertexCount = (uint32_t)frame.vertices.size();
-		frame.indexCount = (uint32_t)frame.indices.size();
+		lineList.vertexCount = (uint32_t)lineList.vertices.size();
+		lineList.indexCount = (uint32_t)lineList.indices.size();
+	}
+
+	void DebugRenderer::DrawRect(const CU::Vector3f& aBottomLeft, const CU::Vector3f& aBottomRight, const CU::Vector3f& aTopLeft, const CU::Vector3f& aTopRight, CU::Color aColor)
+	{
+		auto& lineList = myLineLists.emplace_back();
+		
+		lineList.vertices.push_back({ aBottomLeft, aColor });
+		lineList.vertices.push_back({ aBottomRight, aColor });
+		lineList.vertices.push_back({ aTopLeft, aColor });
+		lineList.vertices.push_back({ aTopRight, aColor });
+		
+		lineList.indices.push_back(0);
+		lineList.indices.push_back(1);
+
+		lineList.indices.push_back(1);
+		lineList.indices.push_back(3);
+
+		lineList.indices.push_back(3);
+		lineList.indices.push_back(2);
+
+		lineList.indices.push_back(2);
+		lineList.indices.push_back(0);
+		
+		lineList.vertexCount = (uint32_t)lineList.vertices.size();
+		lineList.indexCount = (uint32_t)lineList.indices.size();
 	}
 
 	void DebugRenderer::DrawCircle(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, float aRadius, const CU::Color aColor)
 	{
-		auto& frame = myFrames.emplace_back();
+		auto& lineList = myLineLists.emplace_back();
 
 		CU::Matrix4x4f trans = CU::Transform(aPosition, aRotation).GetMatrix();
 
@@ -318,84 +343,84 @@ namespace Epoch
 			pos.x = aRadius * cosf(finalSegRotationAngle);
 			pos.y = aRadius * sinf(finalSegRotationAngle);
 
-			frame.vertices.push_back({ trans * CU::Vector4f(pos, 1.0f), aColor });
+			lineList.vertices.push_back({ trans * CU::Vector4f(pos, 1.0f), aColor });
 		}
 
 		for (int i = 0; i < vertexCount - 1; i++)
 		{
-			frame.indices.push_back(i);
-			frame.indices.push_back(i + 1);
+			lineList.indices.push_back(i);
+			lineList.indices.push_back(i + 1);
 		}
 
-		frame.indices.push_back(vertexCount - 1);
-		frame.indices.push_back(0);
+		lineList.indices.push_back(vertexCount - 1);
+		lineList.indices.push_back(0);
 
-		frame.vertexCount = (uint32_t)frame.vertices.size();
-		frame.indexCount = (uint32_t)frame.indices.size();
+		lineList.vertexCount = (uint32_t)lineList.vertices.size();
+		lineList.indexCount = (uint32_t)lineList.indices.size();
 	}
 
 	void DebugRenderer::DrawWireBox(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, const CU::Vector3f& aExtent, const CU::Color aColor)
 	{
-		auto& frame = myFrames.emplace_back();
+		auto& lineList = myLineLists.emplace_back();
 
 		CU::Matrix4x4f trans = CU::Transform(aPosition, aRotation, aExtent).GetMatrix();
 
-		frame.vertices.push_back({ { trans * CU::Vector4f(-1.0f,1.0f,1.0f, 1.0f) }, aColor });
-		frame.vertices.push_back({ { trans * CU::Vector4f(1.0f,1.0f,1.0f, 1.0f) }, aColor });
-		frame.vertices.push_back({ { trans * CU::Vector4f(1.0f,1.0f, -1.0f, 1.0f) }, aColor });
-		frame.vertices.push_back({ { trans * CU::Vector4f(-1.0f,1.0f, -1.0f, 1.0f) }, aColor });
+		lineList.vertices.push_back({ { trans * CU::Vector4f(-1.0f,1.0f,1.0f, 1.0f) }, aColor });
+		lineList.vertices.push_back({ { trans * CU::Vector4f(1.0f,1.0f,1.0f, 1.0f) }, aColor });
+		lineList.vertices.push_back({ { trans * CU::Vector4f(1.0f,1.0f, -1.0f, 1.0f) }, aColor });
+		lineList.vertices.push_back({ { trans * CU::Vector4f(-1.0f,1.0f, -1.0f, 1.0f) }, aColor });
 
-		frame.vertices.push_back({ { trans * CU::Vector4f(-1.0f, -1.0f,1.0f, 1.0f) }, aColor });
-		frame.vertices.push_back({ { trans * CU::Vector4f(1.0f, -1.0f,1.0f, 1.0f) }, aColor });
-		frame.vertices.push_back({ { trans * CU::Vector4f(1.0f, -1.0f, -1.0f, 1.0f) }, aColor });
-		frame.vertices.push_back({ { trans * CU::Vector4f(-1.0f, -1.0f, -1.0f, 1.0f) }, aColor });
-
-
-		frame.indices.push_back(0);
-		frame.indices.push_back(1);
-
-		frame.indices.push_back(1);
-		frame.indices.push_back(2);
-
-		frame.indices.push_back(2);
-		frame.indices.push_back(3);
-
-		frame.indices.push_back(3);
-		frame.indices.push_back(0);
+		lineList.vertices.push_back({ { trans * CU::Vector4f(-1.0f, -1.0f,1.0f, 1.0f) }, aColor });
+		lineList.vertices.push_back({ { trans * CU::Vector4f(1.0f, -1.0f,1.0f, 1.0f) }, aColor });
+		lineList.vertices.push_back({ { trans * CU::Vector4f(1.0f, -1.0f, -1.0f, 1.0f) }, aColor });
+		lineList.vertices.push_back({ { trans * CU::Vector4f(-1.0f, -1.0f, -1.0f, 1.0f) }, aColor });
 
 
-		frame.indices.push_back(4);
-		frame.indices.push_back(5);
+		lineList.indices.push_back(0);
+		lineList.indices.push_back(1);
 
-		frame.indices.push_back(5);
-		frame.indices.push_back(6);
+		lineList.indices.push_back(1);
+		lineList.indices.push_back(2);
 
-		frame.indices.push_back(6);
-		frame.indices.push_back(7);
+		lineList.indices.push_back(2);
+		lineList.indices.push_back(3);
 
-		frame.indices.push_back(7);
-		frame.indices.push_back(4);
+		lineList.indices.push_back(3);
+		lineList.indices.push_back(0);
 
 
-		frame.indices.push_back(0);
-		frame.indices.push_back(4);
+		lineList.indices.push_back(4);
+		lineList.indices.push_back(5);
 
-		frame.indices.push_back(1);
-		frame.indices.push_back(5);
+		lineList.indices.push_back(5);
+		lineList.indices.push_back(6);
 
-		frame.indices.push_back(2);
-		frame.indices.push_back(6);
+		lineList.indices.push_back(6);
+		lineList.indices.push_back(7);
 
-		frame.indices.push_back(3);
-		frame.indices.push_back(7);
+		lineList.indices.push_back(7);
+		lineList.indices.push_back(4);
 
-		frame.vertexCount = (uint32_t)frame.vertices.size();
-		frame.indexCount = (uint32_t)frame.indices.size();
+
+		lineList.indices.push_back(0);
+		lineList.indices.push_back(4);
+
+		lineList.indices.push_back(1);
+		lineList.indices.push_back(5);
+
+		lineList.indices.push_back(2);
+		lineList.indices.push_back(6);
+
+		lineList.indices.push_back(3);
+		lineList.indices.push_back(7);
+
+		lineList.vertexCount = (uint32_t)lineList.vertices.size();
+		lineList.indexCount = (uint32_t)lineList.indices.size();
 	}
 
 	void DebugRenderer::DrawWireSphere(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, float aRadius, const CU::Color aColor)
 	{
-		auto& frame = myFrames.emplace_back();
+		auto& lineList = myLineLists.emplace_back();
 
 		const CU::Matrix3x3f rotationMatrix = CU::Quatf(aRotation).GetRotationMatrix3x3();
 		CU::Vector3f pos;
@@ -429,26 +454,26 @@ namespace Epoch
 				pos.x = aRadius * cosf(finalSegRotationAngle);
 				pos.y = aRadius * sinf(finalSegRotationAngle);
 
-				frame.vertices.push_back({ trans * (rotationOffsetMatrix * CU::Vector4f(pos, 1.0f)), aColor });
+				lineList.vertices.push_back({ trans * (rotationOffsetMatrix * CU::Vector4f(pos, 1.0f)), aColor });
 			}
 
 			for (int j = 0; j < vertexCount - 1; j++)
 			{
-				frame.indices.push_back(vertexCount * i + j);
-				frame.indices.push_back(vertexCount * i + j + 1);
+				lineList.indices.push_back(vertexCount * i + j);
+				lineList.indices.push_back(vertexCount * i + j + 1);
 			}
 
-			frame.indices.push_back(vertexCount * i + vertexCount - 1);
-			frame.indices.push_back(vertexCount * i + 0);
+			lineList.indices.push_back(vertexCount * i + vertexCount - 1);
+			lineList.indices.push_back(vertexCount * i + 0);
 		}
 
-		frame.vertexCount = (uint32_t)frame.vertices.size();
-		frame.indexCount = (uint32_t)frame.indices.size();
+		lineList.vertexCount = (uint32_t)lineList.vertices.size();
+		lineList.indexCount = (uint32_t)lineList.indices.size();
 	}
 
 	void DebugRenderer::DrawWireCapsule(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, float aRadius, float aHeight, const CU::Color aColor)
 	{
-		Frame frame;
+		LineList lineList;
 
 		const CU::Matrix3x3f rotationMatrix = CU::Quatf(aRotation).GetRotationMatrix3x3();
 		const CU::Vector3f circleRotation = CU::Quatf(CU::Quatf(CU::Math::DegToRad(90.0f), 0.0f, 0.0f).GetRotationMatrix3x3() * rotationMatrix).GetEulerAngles();
@@ -479,13 +504,13 @@ namespace Epoch
 				pos.x = aRadius * cosf(finalSegRotationAngle);
 				pos.y = aRadius * sinf(finalSegRotationAngle);
 
-				frame.vertices.push_back({ trans * (rotationOffsetMatrix * CU::Vector4f(pos + posOffset, 1.0f)), aColor });
+				lineList.vertices.push_back({ trans * (rotationOffsetMatrix * CU::Vector4f(pos + posOffset, 1.0f)), aColor });
 			}
 
 			for (int j = 0; j < 17 - 1; j++)
 			{
-				frame.indices.push_back(17 * i + j);
-				frame.indices.push_back(17 * i + j + 1);
+				lineList.indices.push_back(17 * i + j);
+				lineList.indices.push_back(17 * i + j + 1);
 			}
 		}
 
@@ -515,40 +540,40 @@ namespace Epoch
 				pos.x = aRadius * cosf(finalSegRotationAngle);
 				pos.y = aRadius * sinf(finalSegRotationAngle);
 
-				frame.vertices.push_back({ trans * (rotationOffsetMatrix * CU::Vector4f(pos + posOffset, 1.0f)), aColor });
+				lineList.vertices.push_back({ trans * (rotationOffsetMatrix * CU::Vector4f(pos + posOffset, 1.0f)), aColor });
 			}
 
 			for (int j = 0; j < 17 - 1; j++)
 			{
-				frame.indices.push_back(17 * i + j);
-				frame.indices.push_back(17 * i + j + 1);
+				lineList.indices.push_back(17 * i + j);
+				lineList.indices.push_back(17 * i + j + 1);
 			}
 		}
 
 		circlePos = aPosition + rotationMatrix * posOffset;
 		DrawCircle(circlePos, circleRotation, aRadius, aColor);
 
-		frame.indices.push_back(0);
-		frame.indices.push_back(50);
+		lineList.indices.push_back(0);
+		lineList.indices.push_back(50);
 
-		frame.indices.push_back(17);
-		frame.indices.push_back(67);
+		lineList.indices.push_back(17);
+		lineList.indices.push_back(67);
 
-		frame.indices.push_back(33);
-		frame.indices.push_back(51);
+		lineList.indices.push_back(33);
+		lineList.indices.push_back(51);
 
-		frame.indices.push_back(16);
-		frame.indices.push_back(34);
+		lineList.indices.push_back(16);
+		lineList.indices.push_back(34);
 
-		frame.vertexCount = (uint32_t)frame.vertices.size();
-		frame.indexCount = (uint32_t)frame.indices.size();
+		lineList.vertexCount = (uint32_t)lineList.vertices.size();
+		lineList.indexCount = (uint32_t)lineList.indices.size();
 
-		myFrames.push_back(frame);
+		myLineLists.push_back(lineList);
 	}
 
 	void DebugRenderer::DrawWireCone(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, float aAngle, float aRange, const CU::Color aColor)
 	{
-		auto& frame = myFrames.emplace_back();
+		auto& lineList = myLineLists.emplace_back();
 
 		CU::Matrix4x4f trans = CU::Transform(aPosition, aRotation).GetMatrix();
 
@@ -566,115 +591,53 @@ namespace Epoch
 
 			pos.z = aRange;
 
-			frame.vertices.push_back({ trans * CU::Vector4f(pos, 1.0f), aColor });
+			lineList.vertices.push_back({ trans * CU::Vector4f(pos, 1.0f), aColor });
 		}
 
 		for (int i = 0; i < vertexCount - 1; i++)
 		{
-			frame.indices.push_back(i);
-			frame.indices.push_back(i + 1);
+			lineList.indices.push_back(i);
+			lineList.indices.push_back(i + 1);
 		}
 
-		frame.indices.push_back(vertexCount - 1);
-		frame.indices.push_back(0);
+		lineList.indices.push_back(vertexCount - 1);
+		lineList.indices.push_back(0);
 
 		for (int i = 0; i < 4; i++)
 		{
-			frame.vertices.push_back({ trans * CU::Vector4f(0, 0, 0, 1.0f), aColor });
+			lineList.vertices.push_back({ trans * CU::Vector4f(0, 0, 0, 1.0f), aColor });
 
-			frame.indices.push_back(vertexCount);
-			frame.indices.push_back(vertexCount / 4 * i);
+			lineList.indices.push_back(vertexCount);
+			lineList.indices.push_back(vertexCount / 4 * i);
 		}
 
-		frame.vertexCount = (uint32_t)frame.vertices.size();
-		frame.indexCount = (uint32_t)frame.indices.size();
+		lineList.vertexCount = (uint32_t)lineList.vertices.size();
+		lineList.indexCount = (uint32_t)lineList.indices.size();
 	}
 
-	//NOTE: Not working
 	void DebugRenderer::DrawFrustum(const CU::Matrix4x4f& aView, const CU::Matrix4x4f& aProj, const CU::Color aColor)
 	{
 		const auto corners = Frustum::GetCorners(aView, aProj);
+		
+		//for (const CU::Vector4f& corner : corners)
+		//{
+		//	DrawWireSphere(corner, CU::Vector3f::Zero, 12.5f, aColor);
+		//}
 
-		for (const CU::Vector4f& corner : corners)
-		{
-			DrawWireSphere(corner, CU::Vector3f::Zero, 12.5f, aColor);
-		}
-	}
+		DrawLine(corners[5], corners[6], aColor);
+		DrawLine(corners[6], corners[7], aColor);
+		DrawLine(corners[7], corners[4], aColor);
+		DrawLine(corners[4], corners[5], aColor);
 
-	void DebugRenderer::DrawPerspectiveFrustum(const CU::Matrix4x4f& aTransform, float aNear, float aFar, float aFov, float aRatio, const CU::Color aColor)
-	{
-		CU::Vector3f nearCenter = aTransform.GetTranslation() + aTransform.GetForward() * aNear;
-		CU::Vector3f farCenter = aTransform.GetTranslation() + aTransform.GetForward() * aFar;
+		DrawLine(corners[1], corners[2], aColor);
+		DrawLine(corners[2], corners[3], aColor);
+		DrawLine(corners[3], corners[0], aColor);
+		DrawLine(corners[0], corners[1], aColor);
 
-		float nearHeight = 2.0f * std::tanf(aFov / 2.0f) * aNear;
-		float farHeight = 2.0f * std::tanf(aFov / 2.0f) * aFar;
-		float nearWidth = nearHeight * aRatio;
-		float farWidth = farHeight * aRatio;
-
-		CU::Vector3f up = aTransform.GetUp();
-		CU::Vector3f right = aTransform.GetRight();
-
-		CU::Vector3f farTopLeft = farCenter + up * (farHeight * 0.5f) - right * (farWidth * 0.5f);
-		CU::Vector3f farTopRight = farCenter + up * (farHeight * 0.5f) + right * (farWidth * 0.5f);
-		CU::Vector3f farBottomLeft = farCenter - up * (farHeight * 0.5f) - right * (farWidth * 0.5f);
-		CU::Vector3f farBottomRight = farCenter - up * (farHeight * 0.5f) + right * (farWidth * 0.5f);
-
-		CU::Vector3f nearTopLeft = nearCenter + up * (nearHeight * 0.5f) - right * (nearWidth * 0.5f);
-		CU::Vector3f nearTopRight = nearCenter + up * (nearHeight * 0.5f) + right * (nearWidth * 0.5f);
-		CU::Vector3f nearBottomLeft = nearCenter - up * (nearHeight * 0.5f) - right * (nearWidth * 0.5f);
-		CU::Vector3f nearBottomRight = nearCenter - up * (nearHeight * 0.5f) + right * (nearWidth * 0.5f);
-
-		DrawLine(farTopLeft, farTopRight, aColor);
-		DrawLine(farTopRight, farBottomRight, aColor);
-		DrawLine(farBottomRight, farBottomLeft, aColor);
-		DrawLine(farBottomLeft, farTopLeft, aColor);
-
-		DrawLine(nearTopLeft, nearTopRight, aColor);
-		DrawLine(nearTopRight, nearBottomRight, aColor);
-		DrawLine(nearBottomRight, nearBottomLeft, aColor);
-		DrawLine(nearBottomLeft, nearTopLeft, aColor);
-
-		DrawLine(farTopLeft, nearTopLeft, aColor);
-		DrawLine(farTopRight, nearTopRight, aColor);
-		DrawLine(farBottomLeft, nearBottomLeft, aColor);
-		DrawLine(farBottomRight, nearBottomRight, aColor);
-	}
-
-	void DebugRenderer::DrawOrthographicFrustum(const CU::Matrix4x4f& aTransform, float aNear, float aFar, float aSize, float aRatio, const CU::Color aColor)
-	{
-		CU::Vector3f nearCenter = aTransform.GetTranslation() + aTransform.GetForward() * aNear;
-		CU::Vector3f farCenter = aTransform.GetTranslation() + aTransform.GetForward() * aFar;
-
-		float width = aSize * aRatio * 0.5f;
-		float height = aSize * 0.5f;
-
-		CU::Vector3f up = aTransform.GetUp();
-		CU::Vector3f right = aTransform.GetRight();
-
-		CU::Vector3f farTopLeft = farCenter + up * height - right * width;
-		CU::Vector3f farTopRight = farCenter + up * height + right * width;
-		CU::Vector3f farBottomLeft = farCenter - up * height - right * width;
-		CU::Vector3f farBottomRight = farCenter - up * height + right * width;
-
-		CU::Vector3f nearTopLeft = nearCenter + up * height - right * width;
-		CU::Vector3f nearTopRight = nearCenter + up * height + right * width;
-		CU::Vector3f nearBottomLeft = nearCenter - up * height - right * width;
-		CU::Vector3f nearBottomRight = nearCenter - up * height + right * width;
-
-		DrawLine(farTopLeft, farTopRight, aColor);
-		DrawLine(farTopRight, farBottomRight, aColor);
-		DrawLine(farBottomRight, farBottomLeft, aColor);
-		DrawLine(farBottomLeft, farTopLeft, aColor);
-
-		DrawLine(nearTopLeft, nearTopRight, aColor);
-		DrawLine(nearTopRight, nearBottomRight, aColor);
-		DrawLine(nearBottomRight, nearBottomLeft, aColor);
-		DrawLine(nearBottomLeft, nearTopLeft, aColor);
-
-		DrawLine(farTopLeft, nearTopLeft, aColor);
-		DrawLine(farTopRight, nearTopRight, aColor);
-		DrawLine(farBottomLeft, nearBottomLeft, aColor);
-		DrawLine(farBottomRight, nearBottomRight, aColor);
+		DrawLine(corners[5], corners[1], aColor);
+		DrawLine(corners[6], corners[2], aColor);
+		DrawLine(corners[4], corners[0], aColor);
+		DrawLine(corners[7], corners[3], aColor);
 	}
 
 	void DebugRenderer::DrawWireAABB(const AABB& aAABB, const CU::Matrix4x4f& aTransform, const CU::Color aColor)
@@ -684,7 +647,7 @@ namespace Epoch
 		DrawWireSphere(aabb.GetCenter(), CU::Vector3f::Zero, aabb.GetExtents().Length(), aColor);
 	}
 
-	void DebugRenderer::DrawGrid(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, const CU::Vector2i& aSize, float aAlpha)
+	void DebugRenderer::DrawGrid(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, const CU::Vector2ui& aSize, float aAlpha)
 	{
 		EPOCH_PROFILE_FUNC();
 

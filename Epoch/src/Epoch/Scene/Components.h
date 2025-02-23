@@ -194,19 +194,6 @@ namespace Epoch
 		VideoPlayerComponent(const VideoPlayerComponent&) = default;
 	};
 
-	enum class Alignment
-	{
-		UpperLeft,
-		UpperCenter,
-		UpperRight,
-		MiddleLeft,
-		MiddleCenter,
-		MiddleRight,
-		LowerLeft,
-		LowerCenter,
-		LowerRight
-	};
-
 	struct TextRendererComponent
 	{
 		bool isActive = true;
@@ -215,8 +202,6 @@ namespace Epoch
 		AssetHandle font = 0;
 		CU::Color color = CU::Color::White;
 
-		//Alignment alignment = Alignment::MiddleCenter;
-		bool centered = false;
 		float letterSpacing = 0.0f; // Kerning
 		float lineSpacing = 0.0f;
 		float maxWidth = 10.0f;
@@ -267,6 +252,90 @@ namespace Epoch
 
 #pragma endregion
 
+#pragma region UI
+
+	struct RectComponent
+	{
+		CU::Vector2f anchor = CU::Vector2f(0.5f, 0.5f);
+		CU::Vector2f pivot = CU::Vector2f(0.5f, 0.5f);
+
+		CU::Vector2ui size = CU::Vector2ui(100, 100);
+
+		RectComponent() = default;
+		RectComponent(const RectComponent&) = default;
+	};
+
+	struct ImageComponent
+	{
+		bool isActive = true;
+
+		AssetHandle texture = 0;
+		CU::Color tint = CU::Color::White;
+		bool flipX = false;
+		bool flipY = false;
+
+		ImageComponent() = default;
+		ImageComponent(const ImageComponent&) = default;
+	};
+	
+	struct Text2DComponent
+	{
+		bool isActive = true;
+
+		std::string text = "Text";
+		AssetHandle font = 0;
+		CU::Color color = CU::Color::White;
+
+		float letterSpacing = 0.0f; // Kerning
+		float lineSpacing = 0.0f;
+
+		Text2DComponent() = default;
+		Text2DComponent(const Text2DComponent&) = default;
+	};
+
+	enum class InteractableState
+	{
+		Default,
+		Hovered,
+		Pressed
+	};
+
+	struct ColorGroup
+	{
+		CU::Color defaultColor = CU::Color::White;
+		CU::Color hoveredColor = CU::Color::White * 0.85f;
+		CU::Color pressedColor = CU::Color::White * 0.7f;
+	};
+
+	struct ButtonComponent
+	{
+		bool isActive = true;
+
+		ColorGroup colorGroup;
+
+		InteractableState state = InteractableState::Default;
+
+		ButtonComponent() = default;
+		ButtonComponent(const ButtonComponent&) = default;
+	};
+
+	struct CheckboxComponent
+	{
+		bool isActive = true;
+
+		ColorGroup colorGroup;
+
+		InteractableState state = InteractableState::Default;
+
+		bool isOn = true;
+		UUID checkmark = 0;
+
+		CheckboxComponent() = default;
+		CheckboxComponent(const CheckboxComponent&) = default;
+	};
+
+#pragma endregion
+
 #pragma region Physics Components
 	
 	struct RigidbodyComponent
@@ -293,6 +362,8 @@ namespace Epoch
 
 		uint32_t layerID = 0;
 
+		AssetHandle physicsMaterial = 0;
+
 		bool isTrigger = false;
 
 		BoxColliderComponent() = default;
@@ -305,6 +376,8 @@ namespace Epoch
 		CU::Vector3f offset;
 
 		uint32_t layerID = 0;
+
+		AssetHandle physicsMaterial = 0;
 
 		bool isTrigger = false;
 
@@ -319,6 +392,8 @@ namespace Epoch
 		CU::Vector3f offset;
 
 		uint32_t layerID = 0;
+
+		AssetHandle physicsMaterial = 0;
 
 		bool isTrigger = false;
 
@@ -355,6 +430,10 @@ namespace Epoch
 
 		bool isRuntimeInitialized = false;
 
+		// Set when script entity get initialized (don't modify)
+		ManagedClassMethodFlags methodFlags = ManagedClassMethodFlags::None;
+		bool IsFlagSet(ManagedClassMethodFlags aFlag) const { return (uint16_t)aFlag & (uint16_t)methodFlags; }
+
 		ScriptComponent() = default;
 		ScriptComponent(const ScriptComponent&) = default;
 		ScriptComponent(AssetHandle aScriptClassHandle) : scriptClassHandle(aScriptClassHandle) {}
@@ -369,6 +448,7 @@ namespace Epoch
 		TransformComponent, ActiveComponent, RelationshipComponent, PrefabComponent, ScriptComponent,
 		CameraComponent, SkyLightComponent, DirectionalLightComponent, SpotlightComponent, PointLightComponent,
 		MeshRendererComponent, SkinnedMeshRendererComponent, SpriteRendererComponent, VideoPlayerComponent, TextRendererComponent,
+		RectComponent, ImageComponent, Text2DComponent, ButtonComponent, CheckboxComponent,
 		RigidbodyComponent, BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent,
 		CharacterControllerComponent, ParticleSystemComponent, VolumeComponent>;
 
@@ -377,6 +457,7 @@ namespace Epoch
 		TransformComponent, ActiveComponent, PrefabComponent, ScriptComponent,
 		CameraComponent, SkyLightComponent, DirectionalLightComponent, SpotlightComponent, PointLightComponent,
 		MeshRendererComponent, SkinnedMeshRendererComponent, SpriteRendererComponent, VideoPlayerComponent, TextRendererComponent,
+		RectComponent, ImageComponent, Text2DComponent, ButtonComponent, CheckboxComponent,
 		RigidbodyComponent, BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent,
 		CharacterControllerComponent, ParticleSystemComponent, VolumeComponent>;
 }

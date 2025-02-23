@@ -6,6 +6,7 @@
 #include "Events/Event.h"
 #include "Events/WindowEvent.h"
 #include "Epoch/Script/ScriptEngineConfig.h"
+#include "Epoch/Rendering/RendererConfig.h"
 
 int main(int argc, char** argv);
 
@@ -29,6 +30,7 @@ namespace Epoch
 		std::string cacheDirectory = "cache";
 
 		ScriptEngineConfig scriptEngineConfig;
+		RendererConfig rendererConfig;
 	};
 
 	class Application
@@ -59,6 +61,21 @@ namespace Epoch
 		{
 			std::scoped_lock<std::mutex> lock(myEventQueueMutex);
 			myEventQueue.emplace(func);
+		}
+
+		template<typename TEvent, bool DispatchImmediately = false, typename... TEventArgs>
+		void DispatchEvent(TEventArgs&&... args)
+		{
+			std::shared_ptr<TEvent> event = std::make_shared<TEvent>(std::forward<TEventArgs>(args)...);
+			if constexpr (DispatchImmediately)
+			{
+				OnEvent(*event);
+			}
+			else
+			{
+				std::scoped_lock<std::mutex> lock(myEventQueueMutex);
+				myEventQueue.emplace([event](){ Application::Get().OnEvent(*event); });
+			}
 		}
 
 		static bool IsRuntime() { return staticIsRuntime; }
@@ -94,5 +111,5 @@ namespace Epoch
 		static inline bool staticIsRuntime = false;
 	};
 
-	Application* CreateApplication();
+	Application* CreateApplication(int aArgc, char** aArgv);
 }

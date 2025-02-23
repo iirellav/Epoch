@@ -9,7 +9,7 @@
 #include <condition_variable>
 #include <future>
 #include "Epoch/Debug/Assert.h"
-#include "Epoch/Debug/Instrumentor.h"
+#include "Epoch/Debug/Profiler.h"
 
 namespace Epoch
 {

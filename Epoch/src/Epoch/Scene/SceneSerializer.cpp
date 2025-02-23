@@ -12,21 +12,11 @@ namespace Epoch
 	{
 		EPOCH_PROFILE_FUNC();
 
-		LOG_DEBUG("Serializing scene '{}'", myScene->myName);
-
 		YAML::Emitter out;
-		out << YAML::BeginMap;
-		out << YAML::Key << "Scene" << YAML::Value << (myScene->myName = aFilepath.stem().string());
-		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
+		SerializeToYAML(out);
 
-		SerializeEntities(out);
-
-		out << YAML::EndSeq;
-		out << YAML::EndMap;
-
-		std::ofstream fileOut(aFilepath);
-		fileOut << out.c_str();
-		fileOut.close();
+		std::ofstream fout(aFilepath);
+		fout << out.c_str();
 	}
 
 	bool SceneSerializer::Deserialize(const std::filesystem::path& aFilepath)
@@ -37,34 +27,9 @@ namespace Epoch
 		std::stringstream strStream;
 		strStream << stream.rdbuf();
 
-		YAML::Node data = YAML::Load(strStream);
-		//YAML::Node data;
-		//try
-		//{
-		//	data = YAML::LoadFile(aFilepath.string());
-		//}
-		//catch (YAML::ParserException e)
-		//{
-		//	CONSOLE_LOG_ERROR("Failed to deserialize scene '{}': {}", aFilepath.string(), e.what());
-		//	LOG_ERROR("Failed to deserialize scene '{}': {}", aFilepath.string(), e.what());
-		//	return false;
-		//}
-
-		if (!data["Scene"])
-		{
-			return false;
-		}
-
 		myScene->myName = aFilepath.stem().string();
-		LOG_DEBUG("Deserializing scene '{}'", myScene->myName);
 
-		YAML::Node entities = data["Entities"];
-		if (entities)
-		{
-			DeserializeEntities(entities);
-		}
-
-		return true;
+		return DeserializeFromYAML(strStream.str());
 	}
 
 	void SceneSerializer::SerializeEntities(YAML::Emitter& aOut)
@@ -144,6 +109,19 @@ namespace Epoch
 				aOut << YAML::Key << "Translation" << YAML::Value << tc.transform.GetTranslation();
 				aOut << YAML::Key << "Rotation" << YAML::Value << tc.transform.GetRotation();
 				aOut << YAML::Key << "Scale" << YAML::Value << tc.transform.GetScale();
+
+				aOut << YAML::EndMap;
+			}
+			
+			if (entity.HasComponent<RectComponent>())
+			{
+				aOut << YAML::Key << "RectComponent";
+				aOut << YAML::BeginMap;
+
+				const RectComponent& rc = entity.GetComponent<RectComponent>();
+				aOut << YAML::Key << "Size" << YAML::Value << rc.size;
+				aOut << YAML::Key << "Pivot" << YAML::Value << rc.pivot;
+				aOut << YAML::Key << "Anchor" << YAML::Value << rc.anchor;
 
 				aOut << YAML::EndMap;
 			}
@@ -435,10 +413,73 @@ namespace Epoch
 
 				const SpriteRendererComponent& sr = entity.GetComponent<SpriteRendererComponent>();
 				aOut << YAML::Key << "IsActive" << YAML::Value << sr.isActive;
-				aOut << YAML::Key << "Sprite" << YAML::Value << (uint64_t)sr.texture;
+				aOut << YAML::Key << "Sprite" << YAML::Value << sr.texture;
 				aOut << YAML::Key << "Tint" << YAML::Value << sr.tint.GetVector4();
 				aOut << YAML::Key << "FlipX" << YAML::Value << sr.flipX;
 				aOut << YAML::Key << "FlipY" << YAML::Value << sr.flipY;
+
+				aOut << YAML::EndMap;
+			}
+
+			if (entity.HasComponent<ImageComponent>())
+			{
+				aOut << YAML::Key << "ImageComponent";
+				aOut << YAML::BeginMap;
+
+				const ImageComponent& i = entity.GetComponent<ImageComponent>();
+				aOut << YAML::Key << "IsActive" << YAML::Value << i.isActive;
+				aOut << YAML::Key << "Sprite" << YAML::Value << i.texture;
+				aOut << YAML::Key << "Tint" << YAML::Value << i.tint;
+				aOut << YAML::Key << "FlipX" << YAML::Value << i.flipX;
+				aOut << YAML::Key << "FlipY" << YAML::Value << i.flipY;
+
+				aOut << YAML::EndMap;
+			}
+
+			if (entity.HasComponent<Text2DComponent>())
+			{
+				aOut << YAML::Key << "Text2DComponent";
+				aOut << YAML::BeginMap;
+
+				const Text2DComponent& t = entity.GetComponent<Text2DComponent>();
+				aOut << YAML::Key << "IsActive" << YAML::Value << t.isActive;
+				aOut << YAML::Key << "Text" << YAML::Value << t.text;
+				aOut << YAML::Key << "Font" << YAML::Value << t.font;
+				aOut << YAML::Key << "Color" << YAML::Value << t.color;
+
+				aOut << YAML::Key << "LetterSpacing" << YAML::Value << t.letterSpacing;
+				aOut << YAML::Key << "LineSpacing" << YAML::Value << t.lineSpacing;
+
+				aOut << YAML::EndMap;
+			}
+
+			if (entity.HasComponent<ButtonComponent>())
+			{
+				aOut << YAML::Key << "ButtonComponent";
+				aOut << YAML::BeginMap;
+
+				const ButtonComponent& b = entity.GetComponent<ButtonComponent>();
+				aOut << YAML::Key << "IsActive" << YAML::Value << b.isActive;
+				aOut << YAML::Key << "DefaultColor" << YAML::Value << b.colorGroup.defaultColor;
+				aOut << YAML::Key << "HoveredColor" << YAML::Value << b.colorGroup.hoveredColor;
+				aOut << YAML::Key << "PressedColor" << YAML::Value << b.colorGroup.pressedColor;
+
+				aOut << YAML::EndMap;
+			}
+
+			if (entity.HasComponent<CheckboxComponent>())
+			{
+				aOut << YAML::Key << "CheckboxComponent";
+				aOut << YAML::BeginMap;
+
+				const CheckboxComponent& c = entity.GetComponent<CheckboxComponent>();
+				aOut << YAML::Key << "IsActive" << YAML::Value << c.isActive;
+				aOut << YAML::Key << "DefaultColor" << YAML::Value << c.colorGroup.defaultColor;
+				aOut << YAML::Key << "HoveredColor" << YAML::Value << c.colorGroup.hoveredColor;
+				aOut << YAML::Key << "PressedColor" << YAML::Value << c.colorGroup.pressedColor;
+
+				aOut << YAML::Key << "IsOn" << YAML::Value << c.isOn;
+				aOut << YAML::Key << "Checkmark" << YAML::Value << c.checkmark;
 
 				aOut << YAML::EndMap;
 			}
@@ -450,7 +491,7 @@ namespace Epoch
 
 				const VideoPlayerComponent& vp = entity.GetComponent<VideoPlayerComponent>();
 				aOut << YAML::Key << "IsActive" << YAML::Value << vp.isActive;
-				aOut << YAML::Key << "Video" << YAML::Value << (uint64_t)vp.video;
+				aOut << YAML::Key << "Video" << YAML::Value << vp.video;
 				aOut << YAML::Key << "PlayOnAwake" << YAML::Value << vp.playOnAwake;
 				aOut << YAML::Key << "Loop" << YAML::Value << vp.loop;
 				aOut << YAML::Key << "Play Back Speed" << YAML::Value << vp.playbackSpeed;
@@ -468,7 +509,7 @@ namespace Epoch
 				aOut << YAML::Key << "Text" << YAML::Value << tr.text;
 				aOut << YAML::Key << "Font" << YAML::Value << tr.font;
 				aOut << YAML::Key << "Color" << YAML::Value << tr.color.GetVector4();
-				aOut << YAML::Key << "Centered" << YAML::Value << tr.centered;
+
 				aOut << YAML::Key << "LetterSpacing" << YAML::Value << tr.letterSpacing;
 				aOut << YAML::Key << "LineSpacing" << YAML::Value << tr.lineSpacing;
 				aOut << YAML::Key << "LineWidth" << YAML::Value << tr.maxWidth;
@@ -751,6 +792,7 @@ namespace Epoch
 				aOut << YAML::Key << "HalfSize" << YAML::Value << bc.halfSize;
 				aOut << YAML::Key << "Offset" << YAML::Value << bc.offset;
 				aOut << YAML::Key << "Layer" << YAML::Value << bc.layerID;
+				aOut << YAML::Key << "PhysicsMaterial" << YAML::Value << bc.physicsMaterial;
 				aOut << YAML::Key << "IsTrigger" << YAML::Value << bc.isTrigger;
 
 				aOut << YAML::EndMap;
@@ -765,6 +807,7 @@ namespace Epoch
 				aOut << YAML::Key << "Radius" << YAML::Value << sc.radius;
 				aOut << YAML::Key << "Offset" << YAML::Value << sc.offset;
 				aOut << YAML::Key << "Layer" << YAML::Value << sc.layerID;
+				aOut << YAML::Key << "PhysicsMaterial" << YAML::Value << sc.physicsMaterial;
 				aOut << YAML::Key << "IsTrigger" << YAML::Value << sc.isTrigger;
 
 				aOut << YAML::EndMap;
@@ -780,6 +823,7 @@ namespace Epoch
 				aOut << YAML::Key << "Height" << YAML::Value << cc.height;
 				aOut << YAML::Key << "Offset" << YAML::Value << cc.offset;
 				aOut << YAML::Key << "Layer" << YAML::Value << cc.layerID;
+				aOut << YAML::Key << "PhysicsMaterial" << YAML::Value << cc.physicsMaterial;
 				aOut << YAML::Key << "IsTrigger" << YAML::Value << cc.isTrigger;
 
 				aOut << YAML::EndMap;
@@ -871,6 +915,15 @@ namespace Epoch
 				tc.transform.SetTranslation(transformComponent["Translation"].as<CU::Vector3f>());
 				tc.transform.SetRotation(transformComponent["Rotation"].as<CU::Vector3f>());
 				tc.transform.SetScale(transformComponent["Scale"].as<CU::Vector3f>());
+			}
+
+			YAML::Node rectComponent = entity["RectComponent"];
+			if (rectComponent)
+			{
+				RectComponent& rc = deserializedEntity.AddComponent<RectComponent>();
+				rc.size = rectComponent["Size"].as<CU::Vector2ui>(CU::Vector2ui(100, 100));
+				rc.pivot = rectComponent["Pivot"].as<CU::Vector2f>(CU::Vector2f(0.5f, 0.5f));
+				rc.anchor = rectComponent["Anchor"].as<CU::Vector2f>(CU::Vector2f(0.5f, 0.5f));
 			}
 
 			YAML::Node scriptComponent = entity["ScriptComponent"];
@@ -1154,9 +1207,60 @@ namespace Epoch
 
 				sr.isActive = spriteRendererComponent["IsActive"].as<bool>(true);
 				sr.texture = spriteRendererComponent["Sprite"].as<UUID>(UUID(0));
-				sr.tint = CU::Color(spriteRendererComponent["Tint"].as<CU::Vector4f>(CU::Color::White.GetVector4()));
+				sr.tint = spriteRendererComponent["Tint"].as<CU::Color>(CU::Color::White);
 				sr.flipX = spriteRendererComponent["FlipX"].as<bool>();
 				sr.flipY = spriteRendererComponent["FlipY"].as<bool>();
+			}
+
+			YAML::Node imageComponent = entity["ImageComponent"];
+			if (imageComponent)
+			{
+				ImageComponent& i = deserializedEntity.AddComponent<ImageComponent>();
+
+				i.isActive = imageComponent["IsActive"].as<bool>(true);
+				i.texture = imageComponent["Sprite"].as<UUID>(UUID(0));
+				i.tint = imageComponent["Tint"].as<CU::Color>(CU::Color::White);
+				i.flipX = imageComponent["FlipX"].as<bool>();
+				i.flipY = imageComponent["FlipY"].as<bool>();
+			}
+
+			YAML::Node text2DComponent = entity["Text2DComponent"];
+			if (text2DComponent)
+			{
+				Text2DComponent& t = deserializedEntity.AddComponent<Text2DComponent>();
+
+				t.isActive = text2DComponent["IsActive"].as<bool>(true);
+				t.text = text2DComponent["Text"].as<std::string>("Text");
+				t.font = text2DComponent["Font"].as<UUID>(UUID(0));
+				t.color = text2DComponent["Color"].as<CU::Color>(CU::Color::White);
+
+				t.letterSpacing = text2DComponent["LetterSpacing"].as<float>(0.0f);
+				t.lineSpacing = text2DComponent["LineSpacing"].as<float>(0.0f);
+			}
+
+			YAML::Node buttonComponent = entity["ButtonComponent"];
+			if (buttonComponent)
+			{
+				ButtonComponent& b = deserializedEntity.AddComponent<ButtonComponent>();
+
+				b.isActive = buttonComponent["IsActive"].as<bool>(true);
+				b.colorGroup.defaultColor = buttonComponent["DefaultColor"].as<CU::Color>(b.colorGroup.defaultColor);
+				b.colorGroup.hoveredColor = buttonComponent["HoveredColor"].as<CU::Color>(b.colorGroup.hoveredColor);
+				b.colorGroup.pressedColor = buttonComponent["PressedColor"].as<CU::Color>(b.colorGroup.pressedColor);
+			}
+
+			YAML::Node checkboxComponent = entity["CheckboxComponent"];
+			if (checkboxComponent)
+			{
+				CheckboxComponent& c = deserializedEntity.AddComponent<CheckboxComponent>();
+
+				c.isActive = checkboxComponent["IsActive"].as<bool>(true);
+				c.colorGroup.defaultColor = checkboxComponent["DefaultColor"].as<CU::Color>(c.colorGroup.defaultColor);
+				c.colorGroup.hoveredColor = checkboxComponent["HoveredColor"].as<CU::Color>(c.colorGroup.hoveredColor);
+				c.colorGroup.pressedColor = checkboxComponent["PressedColor"].as<CU::Color>(c.colorGroup.pressedColor);
+
+				c.isOn = checkboxComponent["IsOn"].as<bool>(true);
+				c.checkmark = checkboxComponent["Checkmark"].as<UUID>(0);
 			}
 
 			YAML::Node videoPlayerComponent = entity["VideoPlayerComponent"];
@@ -1180,7 +1284,7 @@ namespace Epoch
 				tr.text = textRendererComponent["Text"].as<std::string>();
 				tr.font = textRendererComponent["Font"].as<UUID>(UUID(0));
 				tr.color = CU::Color(textRendererComponent["Color"].as<CU::Vector4f>());
-				tr.centered = textRendererComponent["Centered"].as<bool>(false);
+
 				tr.letterSpacing = textRendererComponent["LetterSpacing"].as<float>();
 				tr.lineSpacing = textRendererComponent["LineSpacing"].as<float>();
 				tr.maxWidth = textRendererComponent["LineWidth"].as<float>(10.0f);
@@ -1400,6 +1504,7 @@ namespace Epoch
 				bc.halfSize = boxColliderComponent["HalfSize"].as<CU::Vector3f>(CU::Vector3f(50.0f));
 				bc.offset = boxColliderComponent["Offset"].as<CU::Vector3f>(CU::Vector3f::Zero);
 				bc.layerID = boxColliderComponent["Layer"].as<uint32_t>(0);
+				bc.physicsMaterial = boxColliderComponent["PhysicsMaterial"].as<AssetHandle>(AssetHandle(0));
 				bc.isTrigger = boxColliderComponent["IsTrigger"].as<bool>(false);
 			}
 
@@ -1410,6 +1515,7 @@ namespace Epoch
 				sc.radius = sphereColliderComponent["Radius"].as<float>(50.0f);
 				sc.offset = sphereColliderComponent["Offset"].as<CU::Vector3f>(CU::Vector3f::Zero);
 				sc.layerID = sphereColliderComponent["Layer"].as<uint32_t>(0);
+				sc.physicsMaterial = sphereColliderComponent["PhysicsMaterial"].as<AssetHandle>(AssetHandle(0));
 				sc.isTrigger = sphereColliderComponent["IsTrigger"].as<bool>(false);
 			}
 
@@ -1421,6 +1527,7 @@ namespace Epoch
 				cc.height = capsuleColliderComponent["Height"].as<float>(200.0f);
 				cc.offset = capsuleColliderComponent["Offset"].as<CU::Vector3f>(CU::Vector3f::Zero);
 				cc.layerID = capsuleColliderComponent["Layer"].as<uint32_t>(0);
+				cc.physicsMaterial = capsuleColliderComponent["PhysicsMaterial"].as<AssetHandle>(AssetHandle(0));
 				cc.isTrigger = capsuleColliderComponent["IsTrigger"].as<bool>(false);
 			}
 
@@ -1436,5 +1543,60 @@ namespace Epoch
 				cc.layerID = characterControllerComponent["Layer"].as<uint32_t>(0);
 			}
 		}
+	}
+
+	bool SceneSerializer::SerializeToAssetPack(FileStreamWriter& aStream, AssetSerializationInfo& outInfo)
+	{
+		YAML::Emitter out;
+		SerializeToYAML(out);
+
+		outInfo.offset = aStream.GetStreamPosition();
+		std::string yamlString = out.c_str();
+		aStream.WriteString(yamlString);
+		outInfo.size = aStream.GetStreamPosition() - outInfo.offset;
+		return outInfo.size > 0;
+	}
+
+	bool SceneSerializer::DeserializeFromAssetPack(FileStreamReader& aStream, const AssetPackFile::SceneInfo& aSceneInfo)
+	{
+		aStream.SetStreamPosition(aSceneInfo.packedOffset);
+		std::string sceneYAML;
+		aStream.ReadString(sceneYAML);
+
+		return DeserializeFromYAML(sceneYAML);
+	}
+	
+	void SceneSerializer::SerializeToYAML(YAML::Emitter& out)
+	{
+		LOG_DEBUG("Serializing scene '{}'", myScene->myName);
+
+		out << YAML::BeginMap;
+		out << YAML::Key << "Scene" << YAML::Value << myScene->myName;
+		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
+
+		SerializeEntities(out);
+
+		out << YAML::EndSeq;
+		out << YAML::EndMap;
+	}
+	
+	bool SceneSerializer::DeserializeFromYAML(const std::string& aYamlString)
+	{
+		YAML::Node data = YAML::Load(aYamlString);
+
+		if (!data["Scene"])
+		{
+			return false;
+		}
+
+		LOG_DEBUG("Deserializing scene '{}'", myScene->myName);
+
+		YAML::Node entities = data["Entities"];
+		if (entities)
+		{
+			DeserializeEntities(entities);
+		}
+
+		return true;
 	}
 }

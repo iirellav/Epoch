@@ -30,21 +30,18 @@ namespace Epoch
 		void Render(const CU::Matrix4x4f& aView, const CU::Matrix4x4f& aProjection, bool aOnTop = true);
 
 		void DrawLine(const CU::Vector3f& aP0, const CU::Vector3f& aP1, CU::Color aColor = CU::Color::White);
+		void DrawRect(const CU::Vector3f& aBottomLeft, const CU::Vector3f& aBottomRight, const CU::Vector3f& aTopLeft, const CU::Vector3f& aTopRight, CU::Color aColor = CU::Color::White);
 		void DrawCircle(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, float aRadius, const CU::Color aColor = CU::Color::White);
 		void DrawWireBox(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, const CU::Vector3f& aExtent, const CU::Color aColor = CU::Color::White);
 		void DrawWireSphere(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, float aRadius, const CU::Color aColor = CU::Color::White);
 		void DrawWireCapsule(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, float aRadius, float aHeight, const CU::Color aColor = CU::Color::White);
 		void DrawWireCone(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, float aAngle, float aRange, const CU::Color aColor = CU::Color::White);
 
-		//NOTE: Not working
 		void DrawFrustum(const CU::Matrix4x4f& aView, const CU::Matrix4x4f& aProj, const CU::Color aColor = CU::Color::White);
-
-		void DrawPerspectiveFrustum(const CU::Matrix4x4f& aTransform, float aNear, float aFar, float aFov, float aRatio, const CU::Color aColor = CU::Color::White);
-		void DrawOrthographicFrustum(const CU::Matrix4x4f& aTransform, float aNear, float aFar, float aSize, float aRatio, const CU::Color aColor = CU::Color::White);
 
 		void DrawWireAABB(const AABB& aAABB, const CU::Matrix4x4f& aTransform, const CU::Color aColor = CU::Color::White);
 
-		void DrawGrid(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, const CU::Vector2i& aSize, float aAlpha = 0.5f);
+		void DrawGrid(const CU::Vector3f& aPosition, const CU::Vector3f& aRotation, const CU::Vector2ui& aSize, float aAlpha = 0.5f);
 
 		void DrawQuad(std::shared_ptr<Texture2D> aTexture, const CU::Matrix4x4f& aTransform, const CU::Color& aTint = CU::Color::White, uint32_t aEntityID = 0);
 
@@ -85,21 +82,16 @@ namespace Epoch
 			CU::Color color;
 		};
 
-		struct Frame
+		struct LineList
 		{
 			std::vector<LineVertex> vertices;
 			std::vector<uint32_t> indices;
 
 			uint32_t vertexCount = 0;
 			uint32_t indexCount = 0;
-
-			//uint32_t baseVertex = 0;
-			//uint32_t baseIndex = 0;
-			//uint32_t vertexCount = 0;
-			//uint32_t indexCount = 0;
 		};
 
-		std::vector<Frame> myFrames;
+		std::vector<LineList> myLineLists;
 
 		std::vector<LineVertex> myVertices;
 		std::vector<uint32_t> myIndices;

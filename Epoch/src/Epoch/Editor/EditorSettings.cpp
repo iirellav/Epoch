@@ -2,7 +2,7 @@
 #include "EditorSettings.h"
 #include <filesystem>
 #include <Epoch/Debug/Log.h>
-#include <Epoch/Debug/Instrumentor.h>
+#include <Epoch/Debug/Profiler.h>
 #include <Epoch/Utils/YAMLSerializationHelpers.h>
 
 namespace Epoch
@@ -77,7 +77,7 @@ namespace Epoch
 		settings.gridEnabled = rootNode["GridEnabled"].as<bool>(true);
 		settings.gridOpacity = rootNode["GridOpacity"].as<float>(0.5f);
 		settings.gridOffset = rootNode["GridOffset"].as<CU::Vector3f>(CU::Vector3f::Zero);
-		settings.gridSize = rootNode["GridSize"].as<CU::Vector2f>(CU::Vector2f(20.0f, 20.0f));
+		settings.gridSize = rootNode["GridSize"].as<CU::Vector2ui>(CU::Vector2ui(20, 20));
 		settings.gridPlane = (GridPlane)rootNode["GridPlane"].as<int>((int)GridPlane::Y);
 
 		//---------- Content Browser ------------

@@ -1,6 +1,7 @@
 #include "epch.h"
 #include "Prefab.h"
 #include "Epoch/Script/ScriptEngine.h"
+#include "Epoch/Assets/AssetManager.h"
 
 namespace Epoch
 {
@@ -16,8 +17,31 @@ namespace Epoch
 		LOG_INFO("Creating prefab from: {}", aEntity.GetName());
 		myScene = std::make_shared<Scene>("Empty");
 		myEntity = CreatePrefabFromEntity(aEntity);
-		myScene->UpdateScriptInstanceEntityReferences(staticDuplicateEntityIDMap);
+		myScene->UpdateEntityReferences(staticDuplicateEntityIDMap);
 		staticDuplicateEntityIDMap.clear();
+	}
+
+	std::unordered_set<AssetHandle> Prefab::GetAssetList()
+	{
+		std::unordered_set<AssetHandle> prefabAssetList = myScene->GetAllSceneAssets();
+
+		for (AssetHandle handle : prefabAssetList)
+		{
+			if (!AssetManager::IsAssetHandleValid(handle))
+			{
+				continue;
+			}
+
+			const auto& metadata = Project::GetEditorAssetManager()->GetMetadata(handle);
+			if (metadata.type == AssetType::Prefab)
+			{
+				std::shared_ptr<Prefab> prefab = AssetManager::GetAsset<Prefab>(handle);
+				std::unordered_set<AssetHandle> childPrefabAssetList = prefab->GetAssetList();
+				prefabAssetList.insert(childPrefabAssetList.begin(), childPrefabAssetList.end());
+			}
+		}
+
+		return prefabAssetList;
 	}
 
 	Entity Prefab::CreatePrefabFromEntity(Entity aEntity)

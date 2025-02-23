@@ -240,6 +240,83 @@ namespace Epoch
 		return true;
 	}
 
+	bool ScriptEngine::LoadAppAssemblyRuntime(Buffer aAppAssemblyData)
+	{
+		if (staticData->appAssemblyInfo->assembly)
+		{
+			staticData->appAssemblyInfo->referencedAssemblies.clear();
+			staticData->appAssemblyInfo->assembly = nullptr;
+			staticData->appAssemblyInfo->assemblyImage = nullptr;
+
+			staticData->referencedAssemblies.clear();
+
+			if (!LoadCoreAssembly())
+			{
+				return false;
+			}
+		}
+
+		auto appAssembly = LoadMonoAssemblyRuntime(aAppAssemblyData);
+		if (appAssembly == nullptr)
+		{
+			LOG_ERROR_TAG("ScriptEngine", "Failed to load app assembly!");
+			return false;
+		}
+
+		staticData->appAssemblyInfo->filePath = Project::GetScriptModuleFilePath();
+		staticData->appAssemblyInfo->assembly = appAssembly;
+		staticData->appAssemblyInfo->assemblyImage = mono_assembly_get_image(staticData->appAssemblyInfo->assembly);
+		staticData->appAssemblyInfo->classes.clear();
+		staticData->appAssemblyInfo->isCoreAssembly = false;
+		staticData->appAssemblyInfo->metadata = GetMetadataForImage(staticData->appAssemblyInfo->assemblyImage);
+
+		if (staticData->postLoadCleanup)
+		{
+			mono_domain_unload(staticData->scriptsDomain);
+
+			if (staticData->oldCoreAssembly)
+			{
+				staticData->oldCoreAssembly = nullptr;
+			}
+
+			staticData->scriptsDomain = staticData->newScriptsDomain;
+			staticData->newScriptsDomain = nullptr;
+			staticData->postLoadCleanup = false;
+		}
+
+		staticData->appAssemblyInfo->referencedAssemblies = GetReferencedAssembliesMetadata(staticData->appAssemblyInfo->assemblyImage);
+
+		// Check that the referenced Script Core version matches the loaded script core version
+		auto coreMetadataIt = std::find_if(staticData->appAssemblyInfo->referencedAssemblies.begin(), staticData->appAssemblyInfo->referencedAssemblies.end(), [](const AssemblyMetadata& metadata)
+			{
+				return metadata.name == "Epoch-ScriptCore";
+			});
+
+		if (coreMetadataIt == staticData->appAssemblyInfo->referencedAssemblies.end())
+		{
+			LOG_ERROR("C# project doesn't reference Epoch-ScriptCore?");
+			return false;
+		}
+
+		const auto& coreMetadata = staticData->coreAssemblyInfo->metadata;
+
+		if (coreMetadataIt->majorVersion != coreMetadata.majorVersion || coreMetadataIt->minorVersion != coreMetadata.minorVersion)
+		{
+			LOG_ERROR("C# project referencing an incompatible script core version!");
+			LOG_ERROR("Expected version: {}.{}, referenced version: {}.{}", coreMetadata.majorVersion, coreMetadata.minorVersion, coreMetadataIt->majorVersion, coreMetadataIt->minorVersion);
+
+			return false;
+		}
+
+		LoadReferencedAssemblies(staticData->appAssemblyInfo);
+
+		LOG_INFO_TAG("ScriptEngine", "Successfully loaded app assembly from: {}", staticData->appAssemblyInfo->filePath);
+
+		ScriptGlue::RegisterGlue();
+		ScriptCache::GenerateCacheForAssembly(staticData->appAssemblyInfo);
+		return true;
+	}
+
 	bool ScriptEngine::ReloadAppAssembly(const bool aScheduleReload)
 	{
 		if (aScheduleReload)
@@ -413,6 +490,8 @@ namespace Epoch
 		
 			sc.fieldIDs.push_back(fieldID);
 		}
+
+		sc.methodFlags = managedClass->methodFlags;
 
 		if (std::find(staticData->scriptEntities.begin(), staticData->scriptEntities.end(), entityID) != staticData->scriptEntities.end())
 		{
@@ -860,6 +939,24 @@ namespace Epoch
 		return assembly;
 	}
 
+	MonoAssembly* ScriptEngine::LoadMonoAssemblyRuntime(Buffer aAssemblyData)
+	{
+		// NOTE: We can't use this image for anything other than loading the assembly because this image doesn't have a reference to the assembly
+		MonoImageOpenStatus status;
+		MonoImage* image = mono_image_open_from_data_full(aAssemblyData.As<char>(), uint32_t(aAssemblyData.size), 1, &status, 0);
+
+		if (status != MONO_IMAGE_OK)
+		{
+			const char* errorMessage = mono_image_strerror(status);
+			LOG_ERROR_TAG("ScriptEngine", "Failed to load C# assembly");
+			return nullptr;
+		}
+
+		MonoAssembly* assembly = mono_assembly_load_from(image, "", &status);
+		mono_image_close(image);
+		return assembly;
+	}
+
 	void ScriptEngine::UnloadAssembly(std::shared_ptr<AssemblyInfo> aAssemblyInfo)
 	{
 		EPOCH_PROFILE_FUNC();
@@ -1001,11 +1098,6 @@ namespace Epoch
 			return nullptr;
 		}
 
-		if (staticData->scriptInstances.find(aEntityID) == staticData->scriptInstances.end())
-		{
-			return nullptr;
-		}
-
 		return staticData->scriptInstances.at(aEntityID);
 	}
 
@@ -1013,6 +1105,8 @@ namespace Epoch
 	
 	void ScriptEngine::CallMethod(MonoObject* aMonoObject, ManagedMethod* aManagedMethod, const void** aParameters)
 	{
+		EPOCH_PROFILE_SCOPE(fmt::format("{}", aManagedMethod->fullName).c_str());
+
 		MonoObject* exception = NULL;
 		mono_runtime_invoke(aManagedMethod->method, aMonoObject, const_cast<void**>(aParameters), &exception);
 		ScriptUtils::HandleException(exception);

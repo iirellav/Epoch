@@ -9,6 +9,8 @@ namespace Epoch
 	class EditorPanel
 	{
 	public:
+		EditorPanel() = delete;
+		EditorPanel(const std::string& aName) : myName(aName) {}
 		virtual ~EditorPanel() = default;
 
 		virtual void OnImGuiRender(bool& aIsOpen) = 0;
@@ -17,5 +19,8 @@ namespace Epoch
 
 		virtual void OnProjectChanged(const std::shared_ptr<Project>& aProject) { aProject; }
 		virtual void OnSceneChanged(const std::shared_ptr<Scene>& aScene) { aScene; }
+
+	protected:
+		std::string myName;
 	};
 }

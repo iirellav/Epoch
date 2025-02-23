@@ -17,6 +17,7 @@ namespace Epoch::UI::Widgets
 	void Spinner(const char* aLabel, float aRadius, float aThickness, uint32_t aColor);
 	void BufferingBar(const char* aLabel, float aValue, CU::Vector2f aSize, uint32_t aBgCol, uint32_t aFgCol);
 
-	bool AssetSearchPopup(const char* aPopupID, AssetType aAssetType, AssetHandle& outSelected, bool* outClear);
+	bool AssetSearchPopup(const char* aPopupID, AssetType aAssetType, AssetHandle& outSelected, bool* outClear = nullptr);
+	bool AssetSearchPopup(const char* aPopupID, std::initializer_list<AssetType> aAssetTypes, AssetHandle& outSelected, bool* outClear = nullptr);
 	bool EntitySearchPopup(const char* aPopupID, std::shared_ptr<Scene> aScene, UUID& outSelected, bool* outClear);
 }

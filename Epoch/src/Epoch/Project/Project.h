@@ -3,8 +3,9 @@
 #include <memory>
 #include <filesystem>
 #include <CommonUtilities/Math/Vector/Vector3.hpp>
-#include <Epoch/Debug/Log.h>
 #include "Epoch/Assets/AssetManager/EditorAssetManager.h"
+#include "Epoch/Assets/AssetManager/RuntimeAssetManager.h"
+#include "Epoch/Assets/AssetPack/AssetPack.h"
 
 namespace Epoch
 {
@@ -14,8 +15,9 @@ namespace Epoch
 		std::string name = "Untitled";
 		std::string companyName = "";
 		std::string version = "1.0.0";
+		AssetHandle appIcon = 0;
 
-		AssetHandle startScene;
+		AssetHandle startScene = 0;
 
 		std::filesystem::path autosaveDirectory = "Autosaves";
 
@@ -58,10 +60,11 @@ namespace Epoch
 		static std::shared_ptr<Project> GetActive() { return staticActiveProject; }
 
 		static void SetActive(std::shared_ptr<Project> aProject);
-		static void SetActiveRuntime(std::shared_ptr<Project> aProject);
+		static void SetActiveRuntime(std::shared_ptr<Project> aProject, std::shared_ptr<AssetPack> aAssetPack);
 
 		inline static std::shared_ptr<AssetManagerBase> GetAssetManager() { return staticAssetManager; }
 		inline static std::shared_ptr<EditorAssetManager> GetEditorAssetManager() { return std::static_pointer_cast<EditorAssetManager>(staticAssetManager); }
+		inline static std::shared_ptr<RuntimeAssetManager> GetRuntimeAssetManager() { return std::static_pointer_cast<RuntimeAssetManager>(staticAssetManager); }
 
 		static const std::string& GetProductName()
 		{

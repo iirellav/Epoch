@@ -120,17 +120,20 @@ namespace Epoch
 			{ ShaderDataType::Float4,	"BONEWEIGHTS" }
 		};
 
-		myCameraBuffer = ConstantBuffer::Create(sizeof(CameraBuffer));
-		myObjectBuffer = ConstantBuffer::Create(sizeof(ObjectBuffer));
-		myMaterialBuffer = ConstantBuffer::Create(sizeof(Material::Data));
-		myBoneBuffer = ConstantBuffer::Create(sizeof(BoneBuffer));
-		myLightBuffer = ConstantBuffer::Create(sizeof(LightBuffer));
-		myPointLightBuffer = ConstantBuffer::Create(sizeof(PointLight) - sizeof(AssetHandle));
-		mySpotlightBuffer = ConstantBuffer::Create(sizeof(Spotlight) - sizeof(AssetHandle));
-		myDebugDrawModeBuffer = ConstantBuffer::Create(sizeof(CU::Vector4f));
-		myPostProcessingBuffer = ConstantBuffer::Create(sizeof(PostProcessingData::BufferData));
+		//Constant and Instanced Buffers
+		{
+			myCameraBuffer = ConstantBuffer::Create(sizeof(CameraBuffer));
+			myObjectBuffer = ConstantBuffer::Create(sizeof(ObjectBuffer));
+			myMaterialBuffer = ConstantBuffer::Create(sizeof(Material::Data));
+			myBoneBuffer = ConstantBuffer::Create(sizeof(BoneBuffer));
+			myLightBuffer = ConstantBuffer::Create(sizeof(LightBuffer));
+			myPointLightBuffer = ConstantBuffer::Create(sizeof(PointLight) - sizeof(std::shared_ptr<Texture2D>));
+			mySpotlightBuffer = ConstantBuffer::Create(sizeof(Spotlight) - sizeof(std::shared_ptr<Texture2D>));
+			myDebugDrawModeBuffer = ConstantBuffer::Create(sizeof(CU::Vector4f));
+			myPostProcessingBuffer = ConstantBuffer::Create(sizeof(PostProcessingData::BufferData));
 
-		myInstanceTransformBuffer = VertexBuffer::Create(MaxInstanceCount, sizeof(MeshInstanceData));
+			myInstanceTransformBuffer = VertexBuffer::Create(MaxInstanceCount, sizeof(MeshInstanceData));
+		}
 
 		//GBuffer
 		{
@@ -139,10 +142,10 @@ namespace Epoch
 			specs.clearColor = CU::Color::Zero;
 
 			specs.attachments = {
-			{ TextureFormat::R11G11B10F,	"Albedo" },
+			{ TextureFormat::RGBA,			"Albedo" },
 			{ TextureFormat::RGBA,			"Material" },
 			{ TextureFormat::RG16F,			"Normal" },
-			{ TextureFormat::RGBA32F,		"WorldPosition" },
+			{ TextureFormat::R11G11B10F,	"Emission" },
 			{ TextureFormat::R32UI,			"EntityID" },
 			{ TextureFormat::DEPTH32,		"Depth" } };
 
@@ -219,8 +222,9 @@ namespace Epoch
 			};
 
 			FramebufferSpecification specs;
-			specs.existingAttachments.push_back(myUberPipeline->GetSpecification().targetFramebuffer->GetTarget());
-			specs.existingAttachments.push_back(myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(4));
+			specs.attachments = { { TextureFormat::RGBA, "Color" }, { TextureFormat::R32UI, "EntityID" }, { TextureFormat::DEPTH32, "Depth" } };
+			specs.existingColorAttachments.emplace(0, myUberPipeline->GetSpecification().targetFramebuffer->GetTarget("Color"));
+			specs.existingColorAttachments.emplace(1, myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget("EntityID"));
 			specs.existingDepthAttachment = myGBufferPipeline->GetSpecification().targetFramebuffer->GetDepthAttachment();
 			specs.clearColorOnLoad = false;
 			specs.clearDepthOnLoad = false;
@@ -238,16 +242,13 @@ namespace Epoch
 			VertexBufferLayout layout =
 			{
 				{ ShaderDataType::Float3,	"POSITION" },
-				{ ShaderDataType::UInt,		"TEXINDEX" },
+				{ ShaderDataType::UInt,		"ID" },
 				{ ShaderDataType::Float4,	"TINT" },
-				{ ShaderDataType::Float2,	"UV" },
-				{ ShaderDataType::UInt,		"ID" }
+				{ ShaderDataType::Float2,	"UV" }
 			};
 
 			FramebufferSpecification specs;
-			specs.existingAttachments.push_back(myUberPipeline->GetSpecification().targetFramebuffer->GetTarget());
-			specs.existingAttachments.push_back(myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(4));
-			specs.existingDepthAttachment = myGBufferPipeline->GetSpecification().targetFramebuffer->GetDepthAttachment();
+			specs.existingFramebuffer = mySpritePipeline->GetSpecification().targetFramebuffer;
 			specs.clearColorOnLoad = false;
 			specs.clearDepthOnLoad = false;
 
@@ -277,13 +278,17 @@ namespace Epoch
 		//External Compositing Framebuffer
 		{
 			FramebufferSpecification specs;
-			specs.existingAttachments.push_back(myUberPipeline->GetSpecification().targetFramebuffer->GetTarget());
-			specs.existingAttachments.push_back(myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(4));
-			specs.existingDepthAttachment = myGBufferPipeline->GetSpecification().targetFramebuffer->GetDepthAttachment();
+			specs.existingFramebuffer = mySpritePipeline->GetSpecification().targetFramebuffer;
 			specs.clearColorOnLoad = false;
 			specs.clearDepthOnLoad = false;
 
 			myExternalCompositingFramebuffer = Framebuffer::Create(specs);
+		}
+
+		//2D renderer/s
+		{
+			myScreenSpaceRenderer = std::make_shared<SceneRenderer2D>();
+			myScreenSpaceRenderer->Init(GetExternalCompositingFramebuffer());
 		}
 	}
 
@@ -291,8 +296,221 @@ namespace Epoch
 	{
 	}
 
-	void SceneRenderer::PreRender()
+	void SceneRenderer::GBufferPass()
 	{
+		Renderer::SetRenderPipeline(myGBufferPipeline);
+
+		AssetHandle currentMaterial = 0;
+		for (auto [k, dc] : myDrawList)
+		{
+			if (currentMaterial != dc.material->GetHandle())
+			{
+				SetMaterial(dc.material);
+				currentMaterial = dc.material->GetHandle();
+			}
+
+			auto& transformStorage = myMeshTransformMap[k];
+			for (uint32_t i = 0; i < dc.instanceCount; i += MaxInstanceCount)
+			{
+				uint32_t instanceCount = CU::Math::Min(dc.instanceCount - i, MaxInstanceCount);
+
+				myInstanceTransformBuffer->SetData(transformStorage.data(), instanceCount, i * sizeof(MeshInstanceData));
+				Renderer::RenderInstancedMesh(dc.mesh, dc.submeshIndex, myInstanceTransformBuffer, instanceCount);
+			}
+		}
+
+		Renderer::RemoveRenderPipeline(myGBufferPipeline);
+	}
+
+	void SceneRenderer::EnvironmentPass()
+	{
+		{
+			LightBuffer lightBuffer;
+
+			lightBuffer.direction = mySceneData.lightEnvironment.directionalLight.direction;
+			lightBuffer.color = mySceneData.lightEnvironment.directionalLight.color;
+			lightBuffer.intensity = mySceneData.lightEnvironment.directionalLight.intensity;
+			lightBuffer.environmentIntensity = mySceneData.lightEnvironment.environmentIntensity;
+
+			myLightBuffer->SetData(&lightBuffer);
+			myLightBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 2);
+
+			auto env = mySceneData.lightEnvironment.environment.lock();
+			std::shared_ptr<TextureCube> cubeMap;
+
+			if (env)
+			{
+				cubeMap = env->GetRadianceMap();
+			}
+			else
+			{
+				cubeMap = Renderer::GetDefaultBlackCubemap();
+			}
+
+			std::vector<ID3D11ShaderResourceView*> SRVs(2);
+
+			auto dxTextureCube = std::dynamic_pointer_cast<DX11TextureCube>(cubeMap);
+			SRVs[0] = dxTextureCube->GetSRV().Get();
+
+			auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(Renderer::GetBRDFLut());
+			SRVs[1] = dxTexture->GetSRV().Get();
+
+			RHI::GetContext()->PSSetShaderResources(10, 2, SRVs.data());
+		}
+
+		Renderer::SetRenderPipeline(myEnvironmentalLightPipeline);
+		Renderer::RenderQuad();
+		Renderer::RemoveRenderPipeline(myEnvironmentalLightPipeline);
+
+		{
+			auto env = mySceneData.lightEnvironment.environment.lock();
+			if (env)
+			{
+				std::vector<ID3D11ShaderResourceView*> emptySRVs(2);
+				RHI::GetContext()->PSSetShaderResources(10, 2, emptySRVs.data());
+			}
+			else
+			{
+				std::vector<ID3D11ShaderResourceView*> emptySRVs(1);
+				RHI::GetContext()->PSSetShaderResources(11, 1, emptySRVs.data());
+			}
+		}
+	}
+
+	void SceneRenderer::PointLightPass()
+	{
+		Renderer::SetRenderPipeline(myPointLightPipeline);
+		for (PointLight& pointLight : mySceneData.lightEnvironment.pointLights)
+		{
+			myPointLightBuffer->SetData(&pointLight);
+			myPointLightBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 2);
+
+			Renderer::RenderQuad();
+		}
+		Renderer::RemoveRenderPipeline(myPointLightPipeline);
+	}
+
+	void SceneRenderer::SpotlightPass()
+	{
+		Renderer::SetRenderPipeline(mySpotlightPipeline);
+		for (Spotlight& spotlight : mySceneData.lightEnvironment.spotlights)
+		{
+			//Set cookie
+			{
+				std::vector<ID3D11ShaderResourceView*> SRVs(1);
+				auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(spotlight.cookie.lock());
+				SRVs[0] = dxTexture->GetSRV().Get();
+				RHI::GetContext()->PSSetShaderResources(5, 1, SRVs.data());
+			}
+
+			mySpotlightBuffer->SetData(&spotlight);
+			mySpotlightBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 2);
+		
+			Renderer::RenderQuad();
+
+			//Remove cookie
+			{
+				std::vector<ID3D11ShaderResourceView*> SRVs(1);
+				RHI::GetContext()->PSSetShaderResources(5, 1, SRVs.data());
+			}
+		}
+		Renderer::RemoveRenderPipeline(mySpotlightPipeline);
+	}
+
+	void SceneRenderer::PostProcessingPass()
+	{
+		{
+			std::vector<ID3D11ShaderResourceView*> SRVs(3);
+
+			auto texture = myEnvironmentalLightPipeline->GetSpecification().targetFramebuffer->GetTarget();
+			auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
+			SRVs[0] = dxTexture->GetSRV().Get();
+			
+			texture = myGBufferPipeline->GetSpecification().targetFramebuffer->GetDepthAttachment();
+			dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
+			SRVs[1] = dxTexture->GetSRV().Get();
+
+			dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(mySceneData.postProcessingData.colorGradingLUT.lock());
+			SRVs[2] = dxTexture->GetSRV().Get();
+			
+			RHI::GetContext()->PSSetShaderResources(0, 3, SRVs.data());
+		}
+
+		myPostProcessingBuffer->SetData(&mySceneData.postProcessingData.bufferData);
+		myPostProcessingBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 1);
+		
+		Renderer::SetRenderPipeline(myUberPipeline);
+		Renderer::RenderQuad();
+		Renderer::RemoveRenderPipeline(myUberPipeline);
+
+		{
+			std::vector<ID3D11ShaderResourceView*> emptySRVs(3);
+			RHI::GetContext()->PSSetShaderResources(0, 3, emptySRVs.data());
+		}
+	}
+
+	void SceneRenderer::SpritesPass()
+	{
+		Renderer::SetRenderPipeline(mySpritePipeline);
+
+		for (const auto& [texture, vertexList] : myQuadVertices)
+		{
+			if (!myTextures[texture])
+			{
+				continue;
+			}
+
+			std::vector<ID3D11ShaderResourceView*> SRVs(1);
+			auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(myTextures[texture]);
+			SRVs[0] = dxTexture->GetSRV().Get();
+			RHI::GetContext()->PSSetShaderResources(0, 1, SRVs.data());
+
+			const uint32_t quadCount = (uint32_t)vertexList.size() / 4;
+			for (uint32_t i = 0; i < quadCount; i += MaxQuads)
+			{
+				uint32_t count = CU::Math::Min(quadCount - i, MaxQuads);
+
+				myQuadVertexBuffer->SetData((void*)vertexList.data(), count * 4, i * 4 * sizeof(QuadVertex));
+				Renderer::RenderGeometry(myQuadVertexBuffer, myQuadIndexBuffer, count * 6);
+			}
+
+			std::vector<ID3D11ShaderResourceView*> emptySRVs(1);
+			RHI::GetContext()->PSSetShaderResources(0, 1, emptySRVs.data());
+		}
+
+		Renderer::RemoveRenderPipeline(mySpritePipeline);
+	}
+
+	void SceneRenderer::TextPass()
+	{
+		Renderer::SetRenderPipeline(myTextPipeline);
+
+		for (const auto& [font, vertexList] : myTextVertices)
+		{
+			if (!myFontAtlases[font])
+			{
+				continue;
+			}
+
+			std::vector<ID3D11ShaderResourceView*> SRVs(1);
+			auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(myFontAtlases[font]);
+			SRVs[0] = dxTexture->GetSRV().Get();
+			RHI::GetContext()->PSSetShaderResources(0, 1, SRVs.data());
+
+			const uint32_t quadCount = (uint32_t)vertexList.size() / 4;
+			for (uint32_t i = 0; i < quadCount; i += MaxQuads)
+			{
+				uint32_t count = CU::Math::Min(quadCount - i, MaxQuads);
+
+				myTextVertexBuffer->SetData((void*)vertexList.data(), count * 4, i * 4 * sizeof(TextVertex));
+				Renderer::RenderGeometry(myTextVertexBuffer, myTextIndexBuffer, count * 6);
+			}
+
+			std::vector<ID3D11ShaderResourceView*> emptySRVs(1);
+			RHI::GetContext()->PSSetShaderResources(0, 1, emptySRVs.data());
+		}
+
+		Renderer::RemoveRenderPipeline(myTextPipeline);
 	}
 
 	void SceneRenderer::UpdateStatistics()
@@ -345,20 +563,30 @@ namespace Epoch
 
 		//Sprites
 		{
-			myStats.drawCalls += CU::Math::CeilToUInt((float)myQuadCount / MaxQuads);
-			myStats.batched += myQuadCount;
-			myStats.vertices += myQuadCount * 4;
-			myStats.indices += myQuadCount * 6;
-			myStats.triangles += myQuadCount * 2;
+			for (auto [_, vb] : myQuadVertices)
+			{
+				auto quadCount = (uint32_t)vb.size() / 4;
+
+				myStats.drawCalls += CU::Math::CeilToUInt((float)quadCount / MaxQuads);
+				myStats.batched += quadCount;
+				myStats.vertices += quadCount * 4;
+				myStats.indices += quadCount * 6;
+				myStats.triangles += quadCount * 2;
+			}
 		}
 
 		//Text
 		{
-			myStats.drawCalls += CU::Math::CeilToUInt((float)myTextQuadCount / MaxQuads);
-			myStats.batched += myTextQuadCount;
-			myStats.vertices += myTextQuadCount * 4;
-			myStats.indices += myTextQuadCount * 6;
-			myStats.triangles += myTextQuadCount * 2;
+			for (auto [_, vb] : myTextVertices)
+			{
+				auto quadCount = (uint32_t)vb.size() / 4;
+
+				myStats.drawCalls += CU::Math::CeilToUInt((float)quadCount / MaxQuads);
+				myStats.batched += quadCount;
+				myStats.vertices += quadCount * 4;
+				myStats.indices += quadCount * 6;
+				myStats.triangles += quadCount * 2;
+			}
 		}
 
 		if (myStats.drawCalls > myStats.instances + myStats.batched)
@@ -371,15 +599,20 @@ namespace Epoch
 		}
 	}
 
-	void SceneRenderer::SetViewportSize(unsigned aWidth, unsigned aHeight)
+	void SceneRenderer::SetViewportSize(uint32_t aWidth, uint32_t aHeight)
 	{
-		if (myViewportWidth != aWidth || myViewportHeight != aHeight)
+		if ((myViewportWidth != aWidth || myViewportHeight != aHeight) && aWidth > 0 && aHeight > 0)
 		{
 			myViewportWidth = aWidth;
 			myViewportHeight = aHeight;
 			myInvViewportWidth = 1.0f / (float)aWidth;
 			myInvViewportHeight = 1.0f / (float)aHeight;
 			myNeedsResize = true;
+		}
+
+		if (myScreenSpaceRenderer)
+		{
+			myScreenSpaceRenderer->SetViewportSize(aWidth, aHeight);
 		}
 	}
 
@@ -419,6 +652,10 @@ namespace Epoch
 
 		CameraBuffer camBuffer;
 		camBuffer.viewProjection = aCamera.viewMatrix * aCamera.camera.GetProjectionMatrix();
+		camBuffer.invViewProjection = (aCamera.viewMatrix * aCamera.camera.GetProjectionMatrix()).GetInverse();
+
+		//CU::Matrix4x4f test = camBuffer.viewProjection * camBuffer.invViewProjection;
+
 		camBuffer.pos = aCamera.position;
 		camBuffer.nearPlane = aCamera.nearPlane;
 		camBuffer.farPlane = aCamera.farPlane;
@@ -437,261 +674,52 @@ namespace Epoch
 
 		if (myDrawMode == DrawMode::Shaded)
 		{
-			//GBuffer
-			{
-				Renderer::SetRenderPipeline(myGBufferPipeline);
-
-				for (auto [k, dc] : myDrawList)
-				{
-					SetMaterial(dc.material);
-
-					auto& transformStorage = myMeshTransformMap[k];
-					for (uint32_t i = 0; i < dc.instanceCount; i += MaxInstanceCount)
-					{
-						uint32_t instanceCount = CU::Math::Min(dc.instanceCount - i, MaxInstanceCount);
-
-						myInstanceTransformBuffer->SetData(transformStorage.data(), instanceCount, i * sizeof(MeshInstanceData));
-						Renderer::RenderInstancedMesh(dc.mesh, dc.submeshIndex, myInstanceTransformBuffer, instanceCount);
-					}
-				}
-
-				Renderer::RemoveRenderPipeline(myGBufferPipeline);
-			}
+			GBufferPass();
 
 			//Lights
 			{
-				//Update & set light data and brdf
-				{
-					LightBuffer lightBuffer;
-
-					lightBuffer.direction = mySceneData.lightEnvironment.directionalLight.direction;
-					lightBuffer.color = mySceneData.lightEnvironment.directionalLight.color;
-					lightBuffer.intensity = mySceneData.lightEnvironment.directionalLight.intensity;
-					lightBuffer.environmentIntensity = mySceneData.lightEnvironment.environmentIntensity;
-
-					myLightBuffer->SetData(&lightBuffer);
-					myLightBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 2);
-
-					auto env = mySceneData.lightEnvironment.environment.lock();
-
-					if (env)
-					{
-						std::vector<ID3D11ShaderResourceView*> SRVs(2);
-
-						auto textureCube = env->GetRadianceMap();
-						auto dxTextureCube = std::dynamic_pointer_cast<DX11TextureCube>(textureCube);
-						SRVs[0] = dxTextureCube->GetSRV().Get();
-
-						auto texture = Renderer::GetBRDFLut();
-						auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
-						SRVs[1] = dxTexture->GetSRV().Get();
-
-						RHI::GetContext()->PSSetShaderResources(10, 2, SRVs.data());
-					}
-					else
-					{
-						std::vector<ID3D11ShaderResourceView*> SRVs(1);
-
-						auto texture = Renderer::GetBRDFLut();
-						auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
-						SRVs[0] = dxTexture->GetSRV().Get();
-
-						RHI::GetContext()->PSSetShaderResources(11, 1, SRVs.data());
-					}
-				}
-
+				uint32_t resourceCount = 5;
 				//Set GBuffer as resource
 				{
 					auto gBuffer = myGBufferPipeline->GetSpecification().targetFramebuffer;
 
-					std::vector<ID3D11ShaderResourceView*> SRVs(gBuffer->GetColorAttachmentCount());
+					std::vector<ID3D11ShaderResourceView*> SRVs(resourceCount);
 
-					for (size_t i = 0; i < gBuffer->GetColorAttachmentCount(); i++)
-					{
-						auto texture = gBuffer->GetTarget((uint32_t)i);
-						auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
-						SRVs[i] = dxTexture->GetSRV().Get();
-					}
+					auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(gBuffer->GetTarget("Albedo"));
+					SRVs[0] = dxTexture->GetSRV().Get();
 
-					RHI::GetContext()->PSSetShaderResources(0, (UINT)gBuffer->GetColorAttachmentCount(), SRVs.data());
+					dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(gBuffer->GetTarget("Material"));
+					SRVs[1] = dxTexture->GetSRV().Get();
+
+					dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(gBuffer->GetTarget("Normal"));
+					SRVs[2] = dxTexture->GetSRV().Get();
+
+					dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(gBuffer->GetTarget("Emission"));
+					SRVs[3] = dxTexture->GetSRV().Get();
+
+					dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(gBuffer->GetDepthAttachment());
+					SRVs[4] = dxTexture->GetSRV().Get();
+
+					RHI::GetContext()->PSSetShaderResources(0, resourceCount, SRVs.data());
 				}
 
-				Renderer::SetRenderPipeline(myEnvironmentalLightPipeline);
-				Renderer::RenderQuad();
-				Renderer::RemoveRenderPipeline(myEnvironmentalLightPipeline);
-
-				Renderer::SetRenderPipeline(myPointLightPipeline);
-				for (PointLight& pointLight : mySceneData.lightEnvironment.pointLights)
-				{
-					myPointLightBuffer->SetData(&pointLight);
-					myPointLightBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 2);
-
-					Renderer::RenderQuad();
-				}
-				Renderer::RemoveRenderPipeline(myPointLightPipeline);
-
-				Renderer::SetRenderPipeline(mySpotlightPipeline);
-				for (Spotlight& spotlight : mySceneData.lightEnvironment.spotlights)
-				{
-					//Set cookie
-					{
-						std::vector<ID3D11ShaderResourceView*> SRVs(1);
-						auto cookie = AssetManager::GetAsset<Texture2D>(spotlight.cookie);
-						if (cookie)
-						{
-							auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(cookie);
-							SRVs[0] = dxTexture->GetSRV().Get();
-						}
-						else
-						{
-							auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(Renderer::GetWhiteTexture());
-							SRVs[0] = dxTexture->GetSRV().Get();
-						}
-						RHI::GetContext()->PSSetShaderResources(5, 1, SRVs.data());
-					}
-
-					mySpotlightBuffer->SetData(&spotlight);
-					mySpotlightBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 2);
-
-					Renderer::RenderQuad();
-
-					//Remove cookie
-					{
-						std::vector<ID3D11ShaderResourceView*> SRVs(1);
-						RHI::GetContext()->PSSetShaderResources(5, 1, SRVs.data());
-					}
-				}
-
-				Renderer::RemoveRenderPipeline(mySpotlightPipeline);
+				EnvironmentPass();
+				PointLightPass();
+				SpotlightPass();
 
 				//Remove GBuffer as resource
 				{
-					auto gBuffer = myGBufferPipeline->GetSpecification().targetFramebuffer;
-					std::vector<ID3D11ShaderResourceView*> emptySRVs(gBuffer->GetColorAttachmentCount());
-					RHI::GetContext()->PSSetShaderResources(0, (UINT)gBuffer->GetColorAttachmentCount(), emptySRVs.data());
-				}
-
-				//Remove light data and brdf
-				{
-					auto env = mySceneData.lightEnvironment.environment.lock();
-					if (env)
-					{
-						std::vector<ID3D11ShaderResourceView*> emptySRVs(2);
-						RHI::GetContext()->PSSetShaderResources(10, 2, emptySRVs.data());
-					}
-					else
-					{
-						std::vector<ID3D11ShaderResourceView*> emptySRVs(1);
-						RHI::GetContext()->PSSetShaderResources(11, 1, emptySRVs.data());
-					}
+					std::vector<ID3D11ShaderResourceView*> emptySRVs(resourceCount);
+					RHI::GetContext()->PSSetShaderResources(0, resourceCount, emptySRVs.data());
 				}
 			}
 
-			//Uber
-			{
-				{
-					std::vector<ID3D11ShaderResourceView*> SRVs(3);
-			
-					auto texture = myEnvironmentalLightPipeline->GetSpecification().targetFramebuffer->GetTarget();
-					auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
-					SRVs[0] = dxTexture->GetSRV().Get();
-					
-					texture = myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(3);
-					dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(texture);
-					SRVs[1] = dxTexture->GetSRV().Get();
+			PostProcessingPass();
 
-					auto lut = AssetManager::GetAsset<Texture>(mySceneData.postProcessingData.colorGradingLUT);
-					if (myColorGradingEnabled && lut)
-					{
-						dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(lut);
-						SRVs[2] = dxTexture->GetSRV().Get();
-					}
-						else
-					{
-						dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(Renderer::GetDefaultColorGradingLut());
-						SRVs[2] = dxTexture->GetSRV().Get();
-					};
+			//TODO: Fix order independent transparency https://interplayoflight.wordpress.com/2022/06/25/order-independent-transparency-part-1/
+			SpritesPass();
 
-					RHI::GetContext()->PSSetShaderResources(0, 3, SRVs.data());
-				}
-				
-				myPostProcessingBuffer->SetData(&mySceneData.postProcessingData.bufferData);
-				myPostProcessingBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 1);
-			
-				Renderer::SetRenderPipeline(myUberPipeline);
-				Renderer::RenderQuad();
-				Renderer::RemoveRenderPipeline(myUberPipeline);
-			
-				
-				{
-					std::vector<ID3D11ShaderResourceView*> emptySRVs(3);
-					RHI::GetContext()->PSSetShaderResources(0, 3, emptySRVs.data());
-				}
-			}
-
-			//Sprites - TODO: Fix order independent transparency https://interplayoflight.wordpress.com/2022/06/25/order-independent-transparency-part-1/
-			{
-				Renderer::SetRenderPipeline(mySpritePipeline);
-
-				for (const auto& [texture, vertexList] : myQuadVertices)
-				{
-					if (!myTextures[texture])
-					{
-						continue;
-					}
-
-					std::vector<ID3D11ShaderResourceView*> SRVs(1);
-					auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(myTextures[texture]);
-					SRVs[0] = dxTexture->GetSRV().Get();
-					RHI::GetContext()->PSSetShaderResources(0, 1, SRVs.data());
-
-					const uint32_t quadCount = (uint32_t)vertexList.size() / 4;
-					for (uint32_t i = 0; i < quadCount; i += MaxQuads)
-					{
-						uint32_t count = CU::Math::Min(quadCount - i, MaxQuads);
-
-						myQuadVertexBuffer->SetData((void*)vertexList.data(), count * 4, i * 4 * sizeof(QuadVertex));
-						Renderer::RenderGeometry(myQuadVertexBuffer, myQuadIndexBuffer, count * 6);
-					}
-
-					std::vector<ID3D11ShaderResourceView*> emptySRVs(1);
-					RHI::GetContext()->PSSetShaderResources(0, 1, emptySRVs.data());
-				}
-				
-				Renderer::RemoveRenderPipeline(mySpritePipeline);
-			}
-
-			//Text
-			{
-				Renderer::SetRenderPipeline(myTextPipeline);
-
-				for (const auto& [font, vertexList] : myTextVertices)
-				{
-					if (!myFontAtlases[font])
-					{
-						continue;
-					}
-
-					std::vector<ID3D11ShaderResourceView*> SRVs(1);
-					auto dxTexture = std::dynamic_pointer_cast<DX11Texture2D>(myFontAtlases[font]);
-					SRVs[0] = dxTexture->GetSRV().Get();
-					RHI::GetContext()->PSSetShaderResources(0, 1, SRVs.data());
-
-					const uint32_t quadCount = (uint32_t)vertexList.size() / 4;
-					for (uint32_t i = 0; i < quadCount; i += MaxQuads)
-					{
-						uint32_t count = CU::Math::Min(quadCount - i, MaxQuads);
-
-						myTextVertexBuffer->SetData((void*)vertexList.data(), count * 4, i * 4 * sizeof(TextVertex));
-						Renderer::RenderGeometry(myTextVertexBuffer, myTextIndexBuffer, count * 6);
-					}
-
-					std::vector<ID3D11ShaderResourceView*> emptySRVs(1);
-					RHI::GetContext()->PSSetShaderResources(0, 1, emptySRVs.data());
-				}
-
-				Renderer::RemoveRenderPipeline(myTextPipeline);
-			}
+			TextPass();
 		}
 		else
 		{
@@ -717,7 +745,11 @@ namespace Epoch
 			Renderer::RemoveRenderPipeline(myDebugRenderPipeline);
 		}
 
+#ifndef _RUNTIME
 		UpdateStatistics();
+#endif
+		
+		mySceneData = SceneInfo();
 
 		myDrawList.clear();
 		myMeshTransformMap.clear();
@@ -728,6 +760,9 @@ namespace Epoch
 
 		myTextVertices.clear();
 		myTextQuadCount = 0;
+
+		myTextures.clear();
+		myFontAtlases.clear();
 	}
 
 	void SceneRenderer::SubmitMesh(std::shared_ptr<Mesh> aMesh, std::shared_ptr<MaterialTable> aMaterialTable, const CU::Matrix4x4f& aTransform, uint32_t aEntityID)
@@ -752,7 +787,7 @@ namespace Epoch
 			std::shared_ptr<Material> material;
 			if (materialHandle != 0)
 			{
-				material = AssetManager::GetAsset<Material>(materialHandle);
+				material = AssetManager::GetAssetAsync<Material>(materialHandle);
 			}
 
 			if (materialHandle == 0 || !material)
@@ -763,7 +798,7 @@ namespace Epoch
 
 			EPOCH_ASSERT(material, "No material found for rendering!");
 
-			MeshKey meshKey = { aMesh->GetHandle(), materialHandle, submeshIndex, false };
+			MeshKey meshKey = { aMesh->GetHandle(), materialHandle, submeshIndex };
 
 			auto& transformStorage = myMeshTransformMap[meshKey].emplace_back();
 			transformStorage.row[0] = { submeshTransform(1, 1), submeshTransform(1, 2), submeshTransform(1, 3), submeshTransform(4, 1) };
@@ -799,8 +834,8 @@ namespace Epoch
 
 	void SceneRenderer::SubmitQuad(const CU::Matrix4x4f aTransform, std::shared_ptr<Texture2D> aTexture, const CU::Color& aTint, bool aFlipX, bool aFlipY, uint32_t aEntityID)
 	{
-		auto& vertexList = myQuadVertices[aTexture->GetHandle()];
 		if (!aTexture) aTexture = Renderer::GetWhiteTexture();
+		auto& vertexList = myQuadVertices[aTexture->GetHandle()];
 		myTextures[aTexture->GetHandle()] = aTexture;
 
 		CU::Vector4f sizeMultiplier = CU::Vector4f::One;
@@ -827,14 +862,11 @@ namespace Epoch
 		++myQuadCount;
 	}
 
-	static bool NextLine(int aIndex, const std::vector<int>& aLines)
+	static bool NextLine(int aIndex, const std::set<int>& aLines)
 	{
-		for (int line : aLines)
+		if (aLines.contains(aIndex))
 		{
-			if (line == aIndex)
-			{
-				return true;
-			}
+			return true;
 		}
 		return false;
 	}
@@ -844,69 +876,19 @@ namespace Epoch
 	// The C++ Standard doesn't provide equivalent non-deprecated functionality; consider using MultiByteToWideChar() and WideCharToMultiByte() from <Windows.h> instead.
 	// You can define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING or _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS to acknowledge that you have received this warning.
 #pragma warning(disable : 4996)
-
 	// From https://stackoverflow.com/questions/31302506/stdu32string-conversion-to-from-stdstring-and-stdu16string
 	static std::u32string To_UTF32(const std::string& s)
 	{
 		std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
 		return conv.from_bytes(s);
 	}
-
 #pragma warning(default : 4996)
-
-	enum class VerticalAlignment { Upper, Middle, Lower };
-	enum class HorizontalAlignment { Left, Center, Right };
-
-	static void VerticallyOffsetBasedOnAlignment(VerticalAlignment aAlligment, double& aVal, double aHeight, double aAddHeight)
-	{
-		switch (aAlligment)
-		{
-		case VerticalAlignment::Upper:
-		{
-			aVal -= aHeight - aAddHeight;
-			break;
-		}
-		case VerticalAlignment::Middle:
-		{
-			aVal -= aHeight * 0.5f;
-			break;
-		}
-		case VerticalAlignment::Lower:
-		{
-			aVal -= aAddHeight;
-			break;
-		}
-		}
-	}
-
-	static void HorizontalyOffsetBasedOnAlignment(HorizontalAlignment aAlligment, double& aVal, double aWidth, double aMaxWidth)
-	{
-		switch (aAlligment)
-		{
-		case HorizontalAlignment::Left:
-		{
-			aVal -= aMaxWidth;
-			break;
-		}
-		case HorizontalAlignment::Center:
-		{
-			aVal -= aWidth * 0.5f;
-			break;
-		}
-		case HorizontalAlignment::Right:
-		{
-			if (aWidth != aMaxWidth)
-			{
-				aVal += (aMaxWidth - aWidth * 0.5f) * 0.5f;
-			}
-			break;
-		}
-		}
-	}
 
 	void SceneRenderer::SubmitText(const std::string& aString, const std::shared_ptr<Font>& aFont, const CU::Matrix4x4f& aTransform, const TextSettings& aSettings, uint32_t aEntityID)
 	{
 		if (aString.empty()) return;
+
+		EPOCH_PROFILE_FUNC();
 
 		std::shared_ptr<Texture2D> fontAtlas = aFont->GetFontAtlas();
 		EPOCH_ASSERT(fontAtlas, "Font didn't have a valid font atlas!");
@@ -919,10 +901,7 @@ namespace Epoch
 
 		std::u32string utf32string = To_UTF32(aString);
 
-		double totalHeight;
-		double maxWidth = 0.0f;
-		std::vector<int> nextLines;
-		std::vector<double> lineWidths;
+		std::set<int> nextLines;
 		{
 			double x = 0.0;
 			double fsScale = 1 / (metrics.ascenderY - metrics.descenderY);
@@ -934,8 +913,6 @@ namespace Epoch
 				char32_t character = utf32string[i];
 				if (character == '\n')
 				{
-					if (x > maxWidth) maxWidth = x;
-					lineWidths.push_back(x);
 					x = 0;
 					y -= fsScale * metrics.lineHeight + aSettings.lineHeightOffset;
 					continue;
@@ -948,7 +925,7 @@ namespace Epoch
 				const bool isTab = character == '\t';
 				if (isTab) character = ' ';
 
-				auto glyph = fontGeometry.getGlyph(character);
+				const auto glyph = fontGeometry.getGlyph(character);
 				//if (!glyph)
 				//{
 				//	glyph = fontGeometry.getGlyph('?');}
@@ -974,8 +951,7 @@ namespace Epoch
 					if (quadMax.x > aSettings.maxWidth && lastSpace != -1)
 					{
 						i = lastSpace;
-						lineWidths.push_back(x);
-						nextLines.emplace_back(lastSpace);
+						nextLines.insert(lastSpace);
 						lastSpace = -1;
 						x = 0;
 						y -= fsScale * metrics.lineHeight + aSettings.lineHeightOffset;
@@ -990,30 +966,29 @@ namespace Epoch
 				fontGeometry.getAdvance(advance, character, utf32string[i + 1]);
 				x += (fsScale * advance + aSettings.letterSpacing) * (isTab ? 4 : 1);
 			}
-			if (x > maxWidth) maxWidth = x;
-			lineWidths.push_back(x);
-			totalHeight = startHeight - y;
 		}
 
-		//VerticalAlignment verticalAlignment = (VerticalAlignment)((int)aAlignment / 3);
-		//HorizontalAlignment horizontalAlignment = (HorizontalAlignment)((int)aAlignment % 3);
+		const CU::Vector3f camRightWS = mySceneData.sceneCamera.transform.GetRight();
+		const CU::Vector3f camUpWS = mySceneData.sceneCamera.transform.GetUp();
+
+		const CU::Vector3f position = aTransform.GetTranslation();
+		const CU::Vector3f scale = aTransform.GetScale();
 
 		{
-			unsigned line = 0;
 			double x = 0.0f;
-			if (aSettings.centered) HorizontalyOffsetBasedOnAlignment(HorizontalAlignment::Center, x, lineWidths[line], maxWidth);
-			double fsScale = 1 / (metrics.ascenderY - metrics.descenderY);
+			const double fsScale = 1 / (metrics.ascenderY - metrics.descenderY);
 			double y = 0.0;
-			if (aSettings.centered) VerticallyOffsetBasedOnAlignment(VerticalAlignment::Middle, y, -totalHeight, (fsScale * metrics.lineHeight + aSettings.lineHeightOffset) * 0.5f);
 			for (int i = 0; i < utf32string.size(); i++)
 			{
 				char32_t character = utf32string[i];
 				if (character == '\n' || NextLine(i, nextLines))
 				{
-					++line;
 					x = 0.0;
-					if (aSettings.centered) HorizontalyOffsetBasedOnAlignment(HorizontalAlignment::Center, x, lineWidths[line], maxWidth);
 					y -= fsScale * metrics.lineHeight + aSettings.lineHeightOffset;
+					continue;
+				}
+				if (character == '\r')
+				{
 					continue;
 				}
 
@@ -1039,94 +1014,80 @@ namespace Epoch
 				pl *= fsScale, pb *= fsScale, pr *= fsScale, pt *= fsScale;
 				pl += x, pb += y, pr += x, pt += y;
 
-
-				VerticalAlignment vertAlign = aSettings.centered ? VerticalAlignment::Middle : VerticalAlignment::Upper;
-				VerticallyOffsetBasedOnAlignment(vertAlign, pb, (fsScale * metrics.lineHeight + aSettings.lineHeightOffset) * 0.5f, 0);
-				VerticallyOffsetBasedOnAlignment(vertAlign, pt, (fsScale * metrics.lineHeight + aSettings.lineHeightOffset) * 0.5f, 0);
-
 				double texelWidth = 1. / fontAtlas->GetWidth();
 				double texelHeight = 1. / fontAtlas->GetHeight();
 				l *= texelWidth, b *= texelHeight, r *= texelWidth, t *= texelHeight;
 
-				if (character != ' ')
+				if (aSettings.billboard)
 				{
-					if (aSettings.billboard)
 					{
-						const CU::Vector3f camRightWS = mySceneData.sceneCamera.transform.GetRight();
-						const CU::Vector3f camUpWS = mySceneData.sceneCamera.transform.GetUp();
-
-						const CU::Vector3f position = aTransform.GetTranslation();
-						const CU::Vector3f scale = aTransform.GetScale();
-
-						{
-							TextVertex& vertex = vertexList.emplace_back();
-							vertex.position = position + camRightWS * ((float)pl * 100.0f) * scale.x + camUpWS * ((float)pb * 100.0f) * scale.y;
-							vertex.tint = aSettings.color.GetVector4();
-							vertex.uv = { (float)l, (float)b };
-							vertex.entityID = aEntityID;
-						}
-
-						{
-							TextVertex& vertex = vertexList.emplace_back();
-							vertex.position = position + camRightWS * ((float)pl * 100.0f) * scale.x + camUpWS * ((float)pt * 100.0f) * scale.y;
-							vertex.tint = aSettings.color.GetVector4();
-							vertex.uv = { (float)l, (float)t };
-							vertex.entityID = aEntityID;
-						}
-
-						{
-							TextVertex& vertex = vertexList.emplace_back();
-							vertex.position = position + camRightWS * ((float)pr * 100.0f) * scale.x + camUpWS * ((float)pt * 100.0f) * scale.y;
-							vertex.tint = aSettings.color.GetVector4();
-							vertex.uv = { (float)r, (float)t };
-							vertex.entityID = aEntityID;
-						}
-
-						{
-							TextVertex& vertex = vertexList.emplace_back();
-							vertex.position = position + camRightWS * ((float)pr * 100.0f) * scale.x + camUpWS * ((float)pb * 100.0f) * scale.y;
-							vertex.tint = aSettings.color.GetVector4();
-							vertex.uv = { (float)r, (float)b };
-							vertex.entityID = aEntityID;
-						}
-					}
-					else
-					{
-						{
-							TextVertex& vertex = vertexList.emplace_back();
-							vertex.position = aTransform * CU::Vector4f((float)pl * 100.0f, (float)pb * 100.0f, 0.0f, 1.0f);
-							vertex.tint = aSettings.color.GetVector4();
-							vertex.uv = { (float)l, (float)b };
-							vertex.entityID = aEntityID;
-						}
-
-						{
-							TextVertex& vertex = vertexList.emplace_back();
-							vertex.position = aTransform * CU::Vector4f((float)pl * 100.0f, (float)pt * 100.0f, 0.0f, 1.0f);
-							vertex.tint = aSettings.color.GetVector4();
-							vertex.uv = { (float)l, (float)t };
-							vertex.entityID = aEntityID;
-						}
-
-						{
-							TextVertex& vertex = vertexList.emplace_back();
-							vertex.position = aTransform * CU::Vector4f((float)pr * 100.0f, (float)pt * 100.0f, 0.0f, 1.0f);
-							vertex.tint = aSettings.color.GetVector4();
-							vertex.uv = { (float)r, (float)t };
-							vertex.entityID = aEntityID;
-						}
-
-						{
-							TextVertex& vertex = vertexList.emplace_back();
-							vertex.position = aTransform * CU::Vector4f((float)pr * 100.0f, (float)pb * 100.0f, 0.0f, 1.0f);
-							vertex.tint = aSettings.color.GetVector4();
-							vertex.uv = { (float)r, (float)b };
-							vertex.entityID = aEntityID;
-						}
+						TextVertex& vertex = vertexList.emplace_back();
+						vertex.position = position + camRightWS * ((float)pl * 100.0f) * scale.x + camUpWS * ((float)pb * 100.0f) * scale.y;
+						vertex.tint = aSettings.color.GetVector4();
+						vertex.uv = { (float)l, (float)b };
+						vertex.entityID = aEntityID;
 					}
 
-					++myTextQuadCount;
+					{
+						TextVertex& vertex = vertexList.emplace_back();
+						vertex.position = position + camRightWS * ((float)pl * 100.0f) * scale.x + camUpWS * ((float)pt * 100.0f) * scale.y;
+						vertex.tint = aSettings.color.GetVector4();
+						vertex.uv = { (float)l, (float)t };
+						vertex.entityID = aEntityID;
+					}
+
+					{
+						TextVertex& vertex = vertexList.emplace_back();
+						vertex.position = position + camRightWS * ((float)pr * 100.0f) * scale.x + camUpWS * ((float)pt * 100.0f) * scale.y;
+						vertex.tint = aSettings.color.GetVector4();
+						vertex.uv = { (float)r, (float)t };
+						vertex.entityID = aEntityID;
+					}
+
+					{
+						TextVertex& vertex = vertexList.emplace_back();
+						vertex.position = position + camRightWS * ((float)pr * 100.0f) * scale.x + camUpWS * ((float)pb * 100.0f) * scale.y;
+						vertex.tint = aSettings.color.GetVector4();
+						vertex.uv = { (float)r, (float)b };
+						vertex.entityID = aEntityID;
+					}
 				}
+				else
+				{
+					{
+						TextVertex& vertex = vertexList.emplace_back();
+						vertex.position = aTransform * CU::Vector4f((float)pl * 100.0f, (float)pb * 100.0f, 0.0f, 1.0f);
+						vertex.tint = aSettings.color.GetVector4();
+						vertex.uv = { (float)l, (float)b };
+						vertex.entityID = aEntityID;
+					}
+
+					{
+						TextVertex& vertex = vertexList.emplace_back();
+						vertex.position = aTransform * CU::Vector4f((float)pl * 100.0f, (float)pt * 100.0f, 0.0f, 1.0f);
+						vertex.tint = aSettings.color.GetVector4();
+						vertex.uv = { (float)l, (float)t };
+						vertex.entityID = aEntityID;
+					}
+
+					{
+						TextVertex& vertex = vertexList.emplace_back();
+						vertex.position = aTransform * CU::Vector4f((float)pr * 100.0f, (float)pt * 100.0f, 0.0f, 1.0f);
+						vertex.tint = aSettings.color.GetVector4();
+						vertex.uv = { (float)r, (float)t };
+						vertex.entityID = aEntityID;
+					}
+
+					{
+						TextVertex& vertex = vertexList.emplace_back();
+						vertex.position = aTransform * CU::Vector4f((float)pr * 100.0f, (float)pb * 100.0f, 0.0f, 1.0f);
+						vertex.tint = aSettings.color.GetVector4();
+						vertex.uv = { (float)r, (float)b };
+						vertex.entityID = aEntityID;
+					}
+				}
+
+				++myTextQuadCount;
 
 				double advance = glyph->getAdvance();
 				fontGeometry.getAdvance(advance, character, utf32string[i + 1]);
@@ -1151,7 +1112,7 @@ namespace Epoch
 	{
 		if (myDrawMode == DrawMode::Shaded)
 		{
-			return myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget(4);
+			return myGBufferPipeline->GetSpecification().targetFramebuffer->GetTarget("EntityID");
 		}
 		else
 		{
@@ -1167,16 +1128,7 @@ namespace Epoch
 	//Temp
 	void SceneRenderer::SetMaterial(std::shared_ptr<Material> aMaterial)
 	{
-		Material::Data matData;
-		matData.albedoColor = aMaterial->GetAlbedoColor();
-		matData.roughness = aMaterial->GetRoughness();
-		matData.metalness = aMaterial->GetMetalness();
-		matData.normalStrength = aMaterial->GetNormalStrength();
-		matData.uvTiling = aMaterial->GetUVTiling();
-		matData.emissionColor = aMaterial->GetEmissionColor();
-		matData.emissionStrength = aMaterial->GetEmissionStrength();
-
-		myMaterialBuffer->SetData(&matData);
+		myMaterialBuffer->SetData(&aMaterial->GetData());
 		myMaterialBuffer->Bind(PIPELINE_STAGE_PIXEL_SHADER, 1);
 
 		std::vector<ID3D11ShaderResourceView*> SRVs(3);

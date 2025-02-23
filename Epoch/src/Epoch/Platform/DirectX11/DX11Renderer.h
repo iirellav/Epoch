@@ -27,6 +27,7 @@ namespace Epoch
 		void RenderGeometry(std::shared_ptr<VertexBuffer> aVertexBuffer, std::shared_ptr<IndexBuffer> aIndexBuffer, uint32_t aIndexCount = 0) override;
 
 		std::pair<std::shared_ptr<TextureCube>, std::shared_ptr<TextureCube>> CreateEnvironmentTextures(const std::string& aFilepath) override;
+		std::pair<std::shared_ptr<TextureCube>, std::shared_ptr<TextureCube>> CreateEnvironmentTextures(std::shared_ptr<Texture2D> aEquirectangularTexture, const std::string& aName = "") override;
 
 	private:
 		ComPtr<ID3D11SamplerState> wrapSamplerState;

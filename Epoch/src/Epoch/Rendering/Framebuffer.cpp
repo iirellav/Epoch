@@ -14,4 +14,10 @@ namespace Epoch
 		EPOCH_ASSERT(false, "Unknown RendererAPI");
 		return nullptr;
 	}
+
+	std::shared_ptr<Texture2D> Framebuffer::GetTarget(const std::string& aName)
+	{
+		EPOCH_ASSERT(myColorAttachmentNameMap.find(aName) != myColorAttachmentNameMap.end(), "No color attachment with the name '{}' found!", aName);
+		return myColorAttachment[myColorAttachmentNameMap.at(aName)];
+	}
 }

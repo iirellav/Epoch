@@ -12,6 +12,7 @@ namespace Epoch
 	{
 	public:
 		Font(const std::filesystem::path& aFilepath);
+		Font(const std::string& aName, Buffer aBuffer);
 		~Font() override = default;
 
 		std::shared_ptr<Texture2D> GetFontAtlas() const { return myTextureAtlas; }

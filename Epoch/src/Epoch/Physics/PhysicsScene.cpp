@@ -151,18 +151,14 @@ namespace Epoch
 			EPOCH_PROFILE_SCOPE("Scene::OnFixedUpdate - C# OnUpdate");
 			Timer timer;
 
-			for (const auto& [entityID, entityInstance] : ScriptEngine::GetEntityInstances())
+			auto entities = mySceneContext->GetAllEntitiesWith<ScriptComponent>();
+			for (auto id : entities)
 			{
-				Entity entity = mySceneContext->TryGetEntityWithUUID(entityID);
-				if (!entity)
+				Entity entity = Entity(id, mySceneContext);
+				const auto& sc = entities.get<ScriptComponent>(id);
+				if (entity.IsActive() && sc.isActive && sc.IsFlagSet(ManagedClassMethodFlags::ShouldFixedUpdate) && ScriptEngine::IsEntityInstantiated(entity))
 				{
-					continue;
-				}
-
-				if (entity.IsActive() && ScriptEngine::IsEntityInstantiated(entity))
-				{
-					//TODO: Only call if entity has a rigidbody(?)
-					ScriptEngine::CallMethod(entityInstance, "OnFixedUpdate");
+					ScriptEngine::CallMethod(ScriptEngine::GetEntityInstance(entity.GetUUID()), "OnFixedUpdate");
 				}
 			}
 

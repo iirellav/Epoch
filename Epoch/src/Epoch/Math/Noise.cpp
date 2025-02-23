@@ -7,6 +7,12 @@ namespace Epoch
 	static FastNoise mySimplexFastNoise;
 	static FastNoise myPerlinFastNoise;
 
+	void Noise::Init()
+	{
+		mySimplexFastNoise.SetNoiseType(FastNoise::NoiseType::Simplex);
+		myPerlinFastNoise.SetNoiseType(FastNoise::NoiseType::Perlin);
+	}
+
 	void Noise::SetSeed(int aSeed)
 	{
 		mySimplexFastNoise.SetSeed(aSeed);

@@ -2,13 +2,13 @@
 #include "EditorConsolePanel.h"
 #include "Epoch/ImGui/Colors.h"
 #include "Epoch/Editor/EditorSettings.h"
-#include "Epoch/Editor/PanelIDs.h"
+#include "Epoch/Core/Events/SceneEvents.h"
 
 namespace Epoch
 {
 	static EditorConsolePanel* staticInstance = nullptr;
 
-	EditorConsolePanel::EditorConsolePanel()
+	EditorConsolePanel::EditorConsolePanel(const std::string& aName) : EditorPanel(aName)
 	{
 		EPOCH_ASSERT(staticInstance == nullptr, "Cant have more than one instances of the editor console panel!");
 		staticInstance = this;
@@ -23,9 +23,13 @@ namespace Epoch
 
 	void EditorConsolePanel::OnImGuiRender(bool& aIsOpen)
 	{
-		if (!aIsOpen) return;
+		bool open = ImGui::Begin(myName.c_str());
 
-		ImGui::Begin(CONSOLE_PANEL_ID);
+		if (!open)
+		{
+			ImGui::End();
+			return;
+		}
 
 		ImVec2 consoleSize = ImGui::GetContentRegionAvail();
 		consoleSize.y -= 32.0f;
@@ -36,22 +40,27 @@ namespace Epoch
 		ImGui::End();
 	}
 
+	void EditorConsolePanel::OnEvent(Event& aEvent)
+	{
+		EventDispatcher dispatcher(aEvent);
+		dispatcher.Dispatch<ScenePreStartEvent>([this](ScenePreStartEvent& event)
+		{
+			if (EditorSettings::Get().clearConsoleOnPlay)
+			{
+				std::scoped_lock<std::mutex> lock(myMessageBufferMutex);
+				myMessageBuffer.clear();
+				myInfoCount = 0;
+				myWarnCount = 0;
+				myErrorCount = 0;
+			}
+			return false;
+		});
+	}
+
 	void EditorConsolePanel::OnProjectChanged(const std::shared_ptr<Project>& aProject)
 	{
 		std::scoped_lock<std::mutex> lock(myMessageBufferMutex);
 		myMessageBuffer.clear();
-	}
-
-	void EditorConsolePanel::OnScenePlay()
-	{
-		if (EditorSettings::Get().clearConsoleOnPlay)
-		{
-			std::scoped_lock<std::mutex> lock(myMessageBufferMutex);
-			myMessageBuffer.clear();
-			myInfoCount = 0;
-			myWarnCount = 0;
-			myErrorCount = 0;
-		}
 	}
 	
 	static const char* GetMessageType(const ConsoleMessage& aMessage)
@@ -180,7 +189,7 @@ namespace Epoch
 				{
 					const auto& msg = myMessageBuffer[i];
 
-					if (set.find(msg.hash) == set.end())
+					if (!set.contains(msg.hash))
 					{
 						msgMap[msg.hash] = (uint32_t)messages.size();
 						messages.push_back(msg);

@@ -184,18 +184,28 @@ namespace Epoch
 
 #pragma endregion
 
-#pragma region ScriptComponent
-		
-		MonoObject* ScriptComponent_GetInstance(uint64_t aEntityID);
-
-#pragma endregion
-
 #pragma region TextRendererComponent
 
 		MonoString* TextComponent_GetText(uint64_t aEntityID);
 		void TextComponent_SetText(uint64_t aEntityID, MonoString* aText);
 		void TextComponent_GetColor(uint64_t aEntityID, CU::Color* outColor);
 		void TextComponent_SetColor(uint64_t aEntityID, CU::Color* aColor);
+
+#pragma endregion
+
+#pragma region Text2DComponent
+
+		MonoString* Text2DComponent_GetText(uint64_t aEntityID);
+		void Text2DComponent_SetText(uint64_t aEntityID, MonoString* aText);
+		void Text2DComponent_GetColor(uint64_t aEntityID, CU::Color* outColor);
+		void Text2DComponent_SetColor(uint64_t aEntityID, CU::Color* aColor);
+
+#pragma endregion
+		
+#pragma region CheckboxComponent
+
+		bool CheckboxComponent_GetIsActive(uint64_t aEntityID);
+		void CheckboxComponent_SetIsActive(uint64_t aEntityID, bool aState);
 
 #pragma endregion
 
@@ -234,6 +244,12 @@ namespace Epoch
 
 		float SpotlightComponent_GetInnerAngle(uint64_t aEntityID);
 		void SpotlightComponent_SetInnerAngle(uint64_t aEntityID, float aAngle);
+
+#pragma endregion
+
+#pragma region ScriptComponent
+		
+		MonoObject* ScriptComponent_GetInstance(uint64_t aEntityID);
 
 #pragma endregion
 
@@ -371,6 +387,30 @@ namespace Epoch
 #pragma region Material
 
 		void Material_SetAlbedoTexture(AssetHandle* aMaterialHandle, AssetHandle* aTextureHandle);
+
+		void Material_GetAlbedoColor(AssetHandle* aMaterialHandle, CU::Color* outAlbedoColor);
+		void Material_SetAlbedoColor(AssetHandle* aMaterialHandle, CU::Color* aAlbedoColor);
+
+		void Material_GetEmissionColor(AssetHandle* aMaterialHandle, CU::Color* outEmissionColor);
+		void Material_SetEmissionColor(AssetHandle* aMaterialHandle, CU::Color* aEmissionColor);
+
+		float Material_GetEmissionStrength(AssetHandle* aMaterialHandle);
+		void Material_SetEmissionStrength(AssetHandle* aMaterialHandle, float aEmissionStrength);
+
+		float Material_GetNormalStrength(AssetHandle* aMaterialHandle);
+		void Material_SetNormalStrength(AssetHandle* aMaterialHandle, float aNormalStrength);
+
+		float Material_GetRoughness(AssetHandle* aMaterialHandle);
+		void Material_SetRoughness(AssetHandle* aMaterialHandle, float aRoughness);
+
+		float Material_GetMetalness(AssetHandle* aMaterialHandle);
+		void Material_SetMetalness(AssetHandle* aMaterialHandle, float aMetalness);
+
+		void Material_GetUVTiling(AssetHandle* aMaterialHandle, CU::Vector2f* outTiling);
+		void Material_SetUVTiling(AssetHandle* aMaterialHandle, CU::Vector2f* aTiling);
+
+		void Material_GetUVOffset(AssetHandle* aMaterialHandle, CU::Vector2f* outOffset);
+		void Material_SetUVOffset(AssetHandle* aMaterialHandle, CU::Vector2f* aOffset);
 
 #pragma endregion
 

@@ -8,13 +8,14 @@ namespace Epoch
 	class EditorConsolePanel : public EditorPanel
 	{
 	public:
-		EditorConsolePanel();
+		EditorConsolePanel(const std::string& aName);
 		~EditorConsolePanel() override;
 		
 		void OnImGuiRender(bool& aIsOpen) override;
-		void OnProjectChanged(const std::shared_ptr<Project>& aProject) override;
 		
-		void OnScenePlay();
+		void OnEvent(Event& aEvent) override;
+
+		void OnProjectChanged(const std::shared_ptr<Project>& aProject) override;
 
 	private:
 		void RenderMenu(const ImVec2& aSize);

@@ -64,6 +64,16 @@ namespace Epoch
 		myData.uvTiling = aUVTiling;
 	}
 
+	CU::Vector2f& Material::GetUVOffset()
+	{
+		return myData.uvOffset;
+	}
+
+	void Material::SetUVOffset(CU::Vector2f aUVOffset)
+	{
+		myData.uvOffset = aUVOffset;
+	}
+
 	CU::Vector3f& Material::GetEmissionColor()
 	{
 		return myData.emissionColor;

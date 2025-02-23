@@ -79,6 +79,8 @@ namespace Epoch
 		RegisterManagedComponent<SpriteRendererComponent>();
 		RegisterManagedComponent<ScriptComponent>();
 		RegisterManagedComponent<TextRendererComponent>();
+		RegisterManagedComponent<Text2DComponent>();
+		RegisterManagedComponent<CheckboxComponent>();
 		RegisterManagedComponent<PointLightComponent>();
 		RegisterManagedComponent<SpotlightComponent>();
 		RegisterManagedComponent<RigidbodyComponent>();
@@ -183,13 +185,20 @@ namespace Epoch
 		EPOCH_ADD_INTERNAL_CALL(SpriteRendererComponent_SetFlipY);
 
 
-		EPOCH_ADD_INTERNAL_CALL(ScriptComponent_GetInstance);
-
-
 		EPOCH_ADD_INTERNAL_CALL(TextComponent_GetText);
 		EPOCH_ADD_INTERNAL_CALL(TextComponent_SetText);
 		EPOCH_ADD_INTERNAL_CALL(TextComponent_GetColor);
 		EPOCH_ADD_INTERNAL_CALL(TextComponent_SetColor);
+
+
+		EPOCH_ADD_INTERNAL_CALL(Text2DComponent_GetText);
+		EPOCH_ADD_INTERNAL_CALL(Text2DComponent_SetText);
+		EPOCH_ADD_INTERNAL_CALL(Text2DComponent_GetColor);
+		EPOCH_ADD_INTERNAL_CALL(Text2DComponent_SetColor);
+
+
+		EPOCH_ADD_INTERNAL_CALL(CheckboxComponent_GetIsActive);
+		EPOCH_ADD_INTERNAL_CALL(CheckboxComponent_SetIsActive);
 
 
 		EPOCH_ADD_INTERNAL_CALL(PointLightComponent_GetColor);
@@ -216,6 +225,9 @@ namespace Epoch
 
 		EPOCH_ADD_INTERNAL_CALL(SpotlightComponent_GetRange);
 		EPOCH_ADD_INTERNAL_CALL(SpotlightComponent_SetRange);
+
+
+		EPOCH_ADD_INTERNAL_CALL(ScriptComponent_GetInstance);
 
 
 		EPOCH_ADD_INTERNAL_CALL(Log_LogMessage);
@@ -311,6 +323,30 @@ namespace Epoch
 
 		EPOCH_ADD_INTERNAL_CALL(Material_SetAlbedoTexture);
 
+		EPOCH_ADD_INTERNAL_CALL(Material_GetAlbedoColor);
+		EPOCH_ADD_INTERNAL_CALL(Material_SetAlbedoColor);
+
+		EPOCH_ADD_INTERNAL_CALL(Material_GetEmissionColor);
+		EPOCH_ADD_INTERNAL_CALL(Material_SetEmissionColor);
+
+		EPOCH_ADD_INTERNAL_CALL(Material_GetEmissionStrength);
+		EPOCH_ADD_INTERNAL_CALL(Material_SetEmissionStrength);
+
+		EPOCH_ADD_INTERNAL_CALL(Material_GetNormalStrength);
+		EPOCH_ADD_INTERNAL_CALL(Material_SetNormalStrength);
+
+		EPOCH_ADD_INTERNAL_CALL(Material_GetRoughness);
+		EPOCH_ADD_INTERNAL_CALL(Material_SetRoughness);
+
+		EPOCH_ADD_INTERNAL_CALL(Material_GetMetalness);
+		EPOCH_ADD_INTERNAL_CALL(Material_SetMetalness);
+
+		EPOCH_ADD_INTERNAL_CALL(Material_GetUVTiling);
+		EPOCH_ADD_INTERNAL_CALL(Material_SetUVTiling);
+
+		EPOCH_ADD_INTERNAL_CALL(Material_GetUVOffset);
+		EPOCH_ADD_INTERNAL_CALL(Material_SetUVOffset);
+
 
 		EPOCH_ADD_INTERNAL_CALL(Mesh_Create);
 	}
@@ -354,7 +390,7 @@ namespace Epoch
 			if (outValue && enableImGui && GImGui->HoveredWindow != nullptr)
 			{
 				// Make sure we're in the viewport panel
-				ImGuiWindow* viewportWindow = ImGui::FindWindowByName(VIEWPORT_PANEL_ID);
+				ImGuiWindow* viewportWindow = ImGui::FindWindowByName(GAME_PANEL_ID);
 				if (viewportWindow != nullptr)
 				{
 					outValue = GImGui->HoveredWindow->ID == viewportWindow->ID;
@@ -1207,48 +1243,6 @@ namespace Epoch
 
 #pragma endregion
 
-#pragma region ScriptComponent
-		
-		MonoObject* ScriptComponent_GetInstance(uint64_t aEntityID)
-		{
-			auto entity = GetEntity(aEntityID);
-			if (!entity) return nullptr;
-			if (!entity.HasComponent<ScriptComponent>()) return nullptr;
-
-			const auto& component = entity.GetComponent<ScriptComponent>();
-
-			if (!ScriptEngine::IsModuleValid(component.scriptClassHandle))
-			{
-				LOG_ERROR("Entity is referencing an invalid C# class!");
-				return nullptr;
-			}
-
-			if (!ScriptEngine::IsEntityInstantiated(entity))
-			{
-				if (ScriptEngine::IsEntityInstantiated(entity, false))
-				{
-					ScriptEngine::CallMethod(component.managedInstance, "OnCreate");
-
-					
-					entity.GetComponent<ScriptComponent>().isRuntimeInitialized = true;
-
-					return GCManager::GetReferencedObject(component.managedInstance);
-				}
-				else if (component.managedInstance == nullptr)
-				{
-					ScriptEngine::RuntimeInitializeScriptEntity(entity);
-					return GCManager::GetReferencedObject(component.managedInstance);
-				}
-
-				LOG_ERROR("Entity '{}' isn't instantiated?", entity.GetName());
-				return nullptr;
-			}
-
-			return GCManager::GetReferencedObject(component.managedInstance);
-		}
-
-#pragma endregion
-
 #pragma region TextRendererComponent
 
 		MonoString* TextComponent_GetText(uint64_t aEntityID)
@@ -1289,6 +1283,82 @@ namespace Epoch
 
 			auto& component = entity.GetComponent<TextRendererComponent>();
 			component.color = *aColor;
+		}
+
+#pragma endregion
+
+#pragma region Text2DComponent
+
+		MonoString* Text2DComponent_GetText(uint64_t aEntityID)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return nullptr;
+			if (!entity.HasComponent<Text2DComponent>()) return nullptr;
+
+			const auto& component = entity.GetComponent<Text2DComponent>();
+			return ScriptUtils::UTF8StringToMono(component.text);
+		}
+
+		void Text2DComponent_SetText(uint64_t aEntityID, MonoString* aText)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return;
+			if (!entity.HasComponent<Text2DComponent>()) return;
+
+			auto& component = entity.GetComponent<Text2DComponent>();
+			component.text = ScriptUtils::MonoStringToUTF8(aText);
+		}
+
+		void Text2DComponent_GetColor(uint64_t aEntityID, CU::Color* outColor)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return;
+			if (!entity.HasComponent<Text2DComponent>()) return;
+
+			const auto& component = entity.GetComponent<Text2DComponent>();
+			*outColor = component.color;
+		}
+
+		void Text2DComponent_SetColor(uint64_t aEntityID, CU::Color* aColor)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return;
+			if (!entity.HasComponent<Text2DComponent>()) return;
+
+			auto& component = entity.GetComponent<Text2DComponent>();
+			component.color = *aColor;
+		}
+
+#pragma endregion
+
+#pragma region CheckboxComponent
+
+		bool CheckboxComponent_GetIsActive(uint64_t aEntityID)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return false;
+
+			if (!entity.HasComponent<CheckboxComponent>())
+			{
+				return false;
+			}
+
+			const auto& cc = entity.GetComponent<CheckboxComponent>();
+			return cc.isOn;
+		}
+
+		void CheckboxComponent_SetIsActive(uint64_t aEntityID, bool aState)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return;
+
+			if (!entity.HasComponent<CheckboxComponent>())
+			{
+				return;
+			}
+
+			auto& cc = entity.GetComponent<CheckboxComponent>();
+			cc.isOn = aState;
 		}
 
 #pragma endregion
@@ -1501,6 +1571,48 @@ namespace Epoch
 
 #pragma endregion
 
+#pragma region ScriptComponent
+		
+		MonoObject* ScriptComponent_GetInstance(uint64_t aEntityID)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return nullptr;
+			if (!entity.HasComponent<ScriptComponent>()) return nullptr;
+
+			const auto& component = entity.GetComponent<ScriptComponent>();
+
+			if (!ScriptEngine::IsModuleValid(component.scriptClassHandle))
+			{
+				LOG_ERROR("Entity is referencing an invalid C# class!");
+				return nullptr;
+			}
+
+			if (!ScriptEngine::IsEntityInstantiated(entity))
+			{
+				if (ScriptEngine::IsEntityInstantiated(entity, false))
+				{
+					ScriptEngine::CallMethod(component.managedInstance, "OnCreate");
+
+					
+					entity.GetComponent<ScriptComponent>().isRuntimeInitialized = true;
+
+					return GCManager::GetReferencedObject(component.managedInstance);
+				}
+				else if (component.managedInstance == nullptr)
+				{
+					ScriptEngine::RuntimeInitializeScriptEntity(entity);
+					return GCManager::GetReferencedObject(component.managedInstance);
+				}
+
+				LOG_ERROR("Entity '{}' isn't instantiated?", entity.GetName());
+				return nullptr;
+			}
+
+			return GCManager::GetReferencedObject(component.managedInstance);
+		}
+
+#pragma endregion
+
 #pragma region Log
 
 		void Log_LogMessage(LogLevel aLevel, MonoString* aInFormattedMessage)
@@ -1558,35 +1670,58 @@ namespace Epoch
 
 #pragma region Input
 
-		bool Input_IsKeyPressed(KeyCode aKeyCode) { return Input::IsKeyPressed(aKeyCode); }
-		bool Input_IsKeyHeld(KeyCode aKeyCode) { return Input::IsKeyHeld(aKeyCode); }
-		bool Input_IsKeyReleased(KeyCode aKeyCode) { return Input::IsKeyReleased(aKeyCode); }
+		bool Input_IsKeyPressed(KeyCode aKeyCode)
+		{
+			bool state = Input::IsKeyPressed(aKeyCode);
+
+			ViewportHovered(state);
+
+			return state;
+		}
+
+		bool Input_IsKeyHeld(KeyCode aKeyCode)
+		{
+			bool state = Input::IsKeyHeld(aKeyCode);
+
+			ViewportHovered(state);
+
+			return state;
+		}
+
+		bool Input_IsKeyReleased(KeyCode aKeyCode)
+		{
+			bool state = Input::IsKeyReleased(aKeyCode);
+
+			ViewportHovered(state);
+
+			return state;
+		}
 
 		bool Input_IsMouseButtonPressed(MouseButton aButton)
 		{
-			bool isPressed = Input::IsMouseButtonPressed(aButton);
+			bool state = Input::IsMouseButtonPressed(aButton);
 
-			ViewportHovered(isPressed);
+			ViewportHovered(state);
 
-			return isPressed;
+			return state;
 		}
 
 		bool Input_IsMouseButtonHeld(MouseButton aButton)
 		{
-			bool isHeld = Input::IsMouseButtonHeld(aButton);
+			bool state = Input::IsMouseButtonHeld(aButton);
 
-			ViewportHovered(isHeld);
+			ViewportHovered(state);
 
-			return isHeld;
+			return state;
 		}
 
 		bool Input_IsMouseButtonReleased(MouseButton aButton)
 		{
-			bool released = Input::IsMouseButtonReleased(aButton);
+			bool state = Input::IsMouseButtonReleased(aButton);
 
-			ViewportHovered(released);
+			ViewportHovered(state);
 
-			return released;
+			return state;
 		}
 
 		void Input_GetMousePosition(CU::Vector2f* outPosition)
@@ -2253,6 +2388,102 @@ namespace Epoch
 			}
 
 			material->SetAlbedoTexture(*aTextureHandle);
+		}
+
+		void Material_GetAlbedoColor(AssetHandle* aMaterialHandle, CU::Color* outAlbedoColor)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			*outAlbedoColor = material->GetAlbedoColor();
+		}
+
+		void Material_SetAlbedoColor(AssetHandle* aMaterialHandle, CU::Color* aAlbedoColor)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			material->SetAlbedoColor(aAlbedoColor->GetVector3());
+		}
+
+		void Material_GetEmissionColor(AssetHandle* aMaterialHandle, CU::Color* outEmissionColor)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			*outEmissionColor = material->GetEmissionColor();
+		}
+
+		void Material_SetEmissionColor(AssetHandle* aMaterialHandle, CU::Color* aEmissionColor)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			material->SetEmissionColor(aEmissionColor->GetVector3());
+		}
+
+		float Material_GetEmissionStrength(AssetHandle* aMaterialHandle)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			return material->GetEmissionStrength();
+		}
+
+		void Material_SetEmissionStrength(AssetHandle* aMaterialHandle, float aEmissionStrength)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			material->SetEmissionStrength(aEmissionStrength);
+		}
+
+		float Material_GetNormalStrength(AssetHandle* aMaterialHandle)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			return material->GetNormalStrength();
+		}
+
+		void Material_SetNormalStrength(AssetHandle* aMaterialHandle, float aNormalStrength)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			material->SetNormalStrength(aNormalStrength);
+		}
+
+		float Material_GetRoughness(AssetHandle* aMaterialHandle)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			return material->GetRoughness();
+		}
+
+		void Material_SetRoughness(AssetHandle* aMaterialHandle, float aRoughness)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			material->SetRoughness(aRoughness);
+		}
+
+		float Material_GetMetalness(AssetHandle* aMaterialHandle)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			return material->GetMetalness();
+		}
+
+		void Material_SetMetalness(AssetHandle* aMaterialHandle, float aMetalness)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			material->SetMetalness(aMetalness);
+		}
+
+		void Material_GetUVTiling(AssetHandle* aMaterialHandle, CU::Vector2f* outTiling)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			*outTiling = material->GetUVTiling();
+		}
+
+		void Material_SetUVTiling(AssetHandle* aMaterialHandle, CU::Vector2f* aTiling)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			material->SetUVTiling(*aTiling);
+		}
+
+		void Material_GetUVOffset(AssetHandle* aMaterialHandle, CU::Vector2f* outOffset)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			*outOffset = material->GetUVOffset();
+		}
+
+		void Material_SetUVOffset(AssetHandle* aMaterialHandle, CU::Vector2f* aOffset)
+		{
+			std::shared_ptr<Material> material = AssetManager::GetAsset<Material>(*aMaterialHandle);
+			material->SetUVOffset(*aOffset);
 		}
 
 #pragma endregion

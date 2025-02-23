@@ -1,4 +1,6 @@
 #pragma once
+#include <map>
+#include <vector>
 #include "Epoch/Core/Buffer.h"
 
 namespace Epoch
@@ -30,6 +32,60 @@ namespace Epoch
 		void ReadObject(T& aObject)
 		{
 			T::Deserialize(this, aObject);
+		}
+
+		template<typename Key, typename Value>
+		void ReadMap(std::map<Key, Value>& aMap, uint32_t aSize = 0)
+		{
+			if (aSize == 0)
+			{
+				ReadRaw<uint32_t>(aSize);
+			}
+
+			for (uint32_t i = 0; i < aSize; i++)
+			{
+				Key key;
+				if constexpr (std::is_trivial<Key>())
+				{
+					ReadRaw<Key>(key);
+				}
+				else
+				{
+					ReadObject<Key>(key);
+				}
+
+				if constexpr (std::is_trivial<Value>())
+				{
+					ReadRaw<Value>(aMap[key]);
+				}
+				else
+				{
+					ReadObject<Value>(aMap[key]);
+				}
+			}
+		}
+
+		template<typename T>
+		void ReadArray(std::vector<T>& aArray, uint32_t aSize = 0)
+		{
+			if (aSize == 0)
+			{
+				ReadRaw<uint32_t>(aSize);
+			}
+
+			aArray.resize(aSize);
+
+			for (uint32_t i = 0; i < aSize; i++)
+			{
+				if constexpr (std::is_trivial<T>())
+				{
+					ReadRaw<T>(aArray[i]);
+				}
+				else
+				{
+					ReadObject<T>(aArray[i]);
+				}
+			}
 		}
 	};
 }

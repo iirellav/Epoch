@@ -33,9 +33,12 @@ namespace Epoch
 			}
 		}
 
-		PhysicsLayer& layer = GetLayer(aLayerId);
-		layer.name = aNewName;
-		staticLayerNames[aLayerId] = aNewName;
+		PhysicsLayer& layer = GetLayerIncludingInvalid(aLayerId);
+		if (layer.IsValid())
+		{
+			layer.name = aNewName;
+			staticLayerNames[aLayerId] = aNewName;
+		}
 
 		if (aNewName == "")
 		{
@@ -58,8 +61,8 @@ namespace Epoch
 			return;
 		}
 
-		PhysicsLayer& layerInfo = GetLayer(aLayerId);
-		PhysicsLayer& otherLayerInfo = GetLayer(aOtherLayer);
+		PhysicsLayer& layerInfo = GetLayerIncludingInvalid(aLayerId);
+		PhysicsLayer& otherLayerInfo = GetLayerIncludingInvalid(aOtherLayer);
 
 		if (aShouldCollide)
 		{
@@ -91,7 +94,7 @@ namespace Epoch
 
 	PhysicsLayer& PhysicsLayerManager::GetLayer(uint32_t aLayerId)
 	{
-		return aLayerId >= staticLayers.size() ? staticNullLayer : staticLayers[aLayerId];
+		return aLayerId >= staticLayers.size() ? staticNullLayer : staticLayers[aLayerId].name == "" ? staticNullLayer : staticLayers[aLayerId];
 	}
 
 	PhysicsLayer& PhysicsLayerManager::GetLayer(const std::string& aLayerName)
@@ -110,5 +113,10 @@ namespace Epoch
 	bool PhysicsLayerManager::ShouldCollide(uint32_t aLayer0, uint32_t aLayer1)
 	{
 		return GetLayer(aLayer0).collidesWith & GetLayer(aLayer1).bitValue;
+	}
+
+	PhysicsLayer& PhysicsLayerManager::GetLayerIncludingInvalid(uint32_t aLayerId)
+	{
+		return aLayerId >= staticLayers.size() ? staticNullLayer : staticLayers[aLayerId];
 	}
 }

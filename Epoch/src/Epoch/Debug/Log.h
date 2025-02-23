@@ -10,6 +10,8 @@
 
 namespace Epoch
 {
+#define EPOCH_ENABLE_LOGGING _RUNTIME && !_DIST || !_RUNTIME
+
 	class Log
 	{
 	public:
@@ -17,9 +19,6 @@ namespace Epoch
 		
 		static void Init();
 		static void Shutdown();
-
-		static void InitAppConsole(bool aWithConsole = true);
-		static void ShutdownAppConsole();
 
 		static std::shared_ptr<spdlog::logger>& GetLogger() { return staticLogger; }
 		static std::shared_ptr<spdlog::logger>& GetAppConsoleLogger() { return staticEditorConsoleLogger; }
@@ -40,6 +39,7 @@ namespace Epoch
 	};
 }
 
+#if EPOCH_ENABLE_LOGGING
 
 #define LOG_DEBUG(...)				::Epoch::Log::PrintMessage(::Epoch::Log::Level::Debug, "", __VA_ARGS__)
 #define LOG_INFO(...)				::Epoch::Log::PrintMessage(::Epoch::Log::Level::Info, "", __VA_ARGS__)
@@ -57,6 +57,27 @@ namespace Epoch
 #define CONSOLE_LOG_INFO(...)		::Epoch::Log::PrintAppMessage(::Epoch::Log::Level::Info, __VA_ARGS__)
 #define CONSOLE_LOG_WARN(...)		::Epoch::Log::PrintAppMessage(::Epoch::Log::Level::Warn, __VA_ARGS__)
 #define CONSOLE_LOG_ERROR(...)		::Epoch::Log::PrintAppMessage(::Epoch::Log::Level::Error, __VA_ARGS__)
+
+#else
+
+#define LOG_DEBUG(...)
+#define LOG_INFO(...)
+#define LOG_WARNING(...)
+#define LOG_ERROR(...)
+#define LOG_CRITICAL(...)
+
+#define LOG_DEBUG_TAG(tag, ...)
+#define LOG_INFO_TAG(tag, ...)
+#define LOG_WARNING_TAG(tag, ...)
+#define LOG_ERROR_TAG(tag, ...)
+#define LOG_CRITICAL_TAG(tag, ...)
+
+#define CONSOLE_LOG_DEBUG(...)
+#define CONSOLE_LOG_INFO(...)
+#define CONSOLE_LOG_WARN(...)
+#define CONSOLE_LOG_ERROR(...)
+
+#endif
 
 namespace Epoch
 {

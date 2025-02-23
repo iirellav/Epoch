@@ -34,6 +34,7 @@ namespace Epoch
 		//myScene->setSimulationEventCallback(myEventCallback.get());
 
 		api->ConnectPVD();
+
 		api->InitControllerManager(this);
 
 		CreatePhysicsBodies();
@@ -47,6 +48,7 @@ namespace Epoch
 	void PhysXScene::Destroy()
 	{
 		PhysXAPI* api = (PhysXAPI*)PhysicsSystem::GetAPI();
+		api->ClearMaterials();
 		api->DisconnectPVD();
 		api->ShutdownControllerManager();
 	}

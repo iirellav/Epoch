@@ -29,7 +29,8 @@ project "Epoch"
 		"vendor/mono/include",
 		"vendor/msdf-atlas-gen/msdf-atlas-gen",
 		"vendor/msdf-atlas-gen/msdfgen",
-		"vendor/PhysX/include"
+		"vendor/PhysX/include",
+		"vendor/tracy/tracy"
 	}
 
 	links
@@ -49,6 +50,8 @@ project "Epoch"
 		"PhysXFoundation_static_64",
 		"PhysXPvdSDK_static_64",
 		
+		"Tracy",
+
 		"ImGui",
 		"yaml-cpp",
 		"NFD-Extended",
@@ -98,4 +101,32 @@ project "Epoch"
 			"vendor/mono/lib/Release",
 			"vendor/assimp/bin/Release",
 			"vendor/PhysX/lib/Release"
+		}
+
+	-- Runtime configs
+	filter "configurations:R-Debug"
+		libdirs
+		{
+			"vendor/mono/lib/Debug",
+			"vendor/PhysX/lib/Debug"
+		}
+
+	filter "configurations:R-Release"
+		libdirs
+		{
+			"vendor/mono/lib/Release",
+			"vendor/PhysX/lib/Profile"
+		}
+
+	filter "configurations:R-Dist"
+		libdirs
+		{
+			"vendor/mono/lib/Release",
+			"vendor/PhysX/lib/Release"
+		}
+
+	filter "configurations:R-Debug or configurations:R-Release or configurations:R-Dist"
+		removefiles
+		{
+			"src/Epoch/Assets/AssimpMeshImporter.cpp"
 		}

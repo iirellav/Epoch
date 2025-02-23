@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <memory>
-#include <set>
+#include <unordered_set>
 #include <unordered_map>
 
 #include "Entity.h"
@@ -60,7 +60,7 @@ namespace Epoch
 		Entity CreatePrefabEntity(Entity aEntity, Entity aParent);
 		Entity InstantiateMesh(std::shared_ptr<Mesh> aMesh);
 
-		void UpdateScriptInstanceEntityReferences(const std::unordered_map<UUID, UUID>& aEntityIDMap);
+		void UpdateEntityReferences(const std::unordered_map<UUID, UUID>& aEntityIDMap);
 
 		void OnRuntimeStart();
 		void OnRuntimeStop();
@@ -71,12 +71,20 @@ namespace Epoch
 		void OnUpdateRuntime();
 		void OnUpdateEditor();
 
-		void OnRenderRuntime(std::shared_ptr<SceneRenderer> aRenderer);
-		void OnRenderEditor(std::shared_ptr<SceneRenderer> aRenderer, EditorCamera& aCamera, bool aCullWithEditorCamera = true);
+		void OnRenderGame(std::shared_ptr<SceneRenderer> aRenderer);
+
+		struct EditorRenderSettings
+		{
+			bool cullWithGameCamera = false;
+			bool postProcessingEnabled = false;
+			bool displayUI = false;
+		};
+		void OnRenderEditor(std::shared_ptr<SceneRenderer> aRenderer, EditorCamera& aCamera, const EditorRenderSettings& aSettings);
 
 		void OnSceneTransition(AssetHandle aScene);
 
-		void SetViewportSize(uint32_t aWidth, uint32_t aHeight);
+		void SetMousePos(const CU::Vector2f& aPos) { myMousePos = aPos; }
+		void SetViewportSize(uint32_t aWidth, uint32_t aHeight) { myViewportWidth = aWidth; myViewportHeight = aHeight; }
 		unsigned GetViewportWidth() const { return myViewportWidth; }
 		unsigned GetViewportHeight() const { return myViewportHeight; }
 
@@ -119,6 +127,9 @@ namespace Epoch
 		void SetTimeScale(float aTimeScale) { myTimeScale = aTimeScale; }
 
 		const std::string& GetName() { return myName; }
+
+		std::unordered_set<AssetHandle> GetAllSceneReferences();
+		std::unordered_set<AssetHandle> GetAllSceneAssets();
 
 		PerformanceTimers& GetPerformanceTimers() { return myPerformanceTimers; }
 		const PerformanceTimers& GetPerformanceTimers() const { return myPerformanceTimers; }
@@ -197,21 +208,23 @@ namespace Epoch
 		std::vector<CU::Matrix4x4f> GetModelSpaceBoneTransforms(Entity aEntity, std::shared_ptr<Mesh> aMesh);
 		void GetModelSpaceBoneTransform(const std::vector<UUID>& aBoneEntityIds, std::vector<CU::Matrix4x4f>& outBoneTransforms, uint32_t aBoneIndex, const CU::Matrix4x4f& aParentTransform, std::shared_ptr<Skeleton> aSkeleton);
 
-		void RenderScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aRenderCamera, const SceneRendererCamera& aCullingCamera, bool aIsRuntime);
+		void Render3DScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aRenderCamera, const SceneRendererCamera& aCullingCamera, bool aIsGameView, bool aWithPostProccessing = true);
+		void Render2DScene(std::shared_ptr<SceneRenderer> aRenderer, const SceneRendererCamera& aRenderCamera, bool aIsGameView);
 		Frustum CreateFrustum(const SceneRendererCamera& aCamera);
 		bool FrustumIntersection(const Frustum& aFrustum, const AABB aAABB);
 		
 		void SetName(const std::string& aName) { myName = aName; }
 		void SetAssetHandle(AssetHandle aHandle) { myHandle = aHandle; }
 
+		std::pair<float, float> GetMouseViewportSpace() const;
+		bool MouseInViewport();
+
 	private:
 		entt::registry myRegistry;
 		std::unordered_map<UUID, entt::entity> myEntityMap;
 
-		/// <summary>
-		/// NOTE: This gets filled in Scene::RenderScene, so if this is used before Scene::RenderScene has been called the set contains the last frames culled entities.
-		/// </summary>
-		std::set<UUID> myFrustumCulledEntities;
+		//This gets filled in Scene::RenderScene, so if this is used before Scene::RenderScene has been called the set contains the last frames culled entities.
+		std::unordered_set<UUID> myFrustumCulledEntities;
 
 		std::shared_ptr<PhysicsScene> myPhysicsScene;
 
@@ -220,6 +233,7 @@ namespace Epoch
 		std::function<void(AssetHandle)> myOnSceneTransitionCallback;
 		std::function<void(Entity)> myOnEntityDestroyedCallback;
 
+		CU::Vector2f myMousePos;
 		uint32_t myViewportWidth = 0;
 		uint32_t myViewportHeight = 0;
 
@@ -242,6 +256,7 @@ namespace Epoch
 		friend class PrefabSerializer;
 		friend class SceneRenderer;
 		friend class SceneHierarchyPanel;
+		friend class AssetPack;
 	};
 }
 

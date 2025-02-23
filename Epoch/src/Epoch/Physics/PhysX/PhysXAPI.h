@@ -23,12 +23,14 @@ namespace Epoch
 		physx::PxDefaultCpuDispatcher* GetDispatcher() { return myDispatcher; }
 
 		physx::PxMaterial* GetDefaultMaterial() { return myDefaultPhysicsMat; }
+		physx::PxMaterial* GetMaterial(AssetHandle aAssetHandle);
 
 		void ConnectPVD();
 		void DisconnectPVD();
 		
 		void InitControllerManager(PhysXScene* aScene);
 		void ShutdownControllerManager();
+		void ClearMaterials();
 
 	private:
 		physx::PxFoundation* myFoundation;
@@ -43,5 +45,6 @@ namespace Epoch
 		physx::PxDefaultCpuDispatcher* myDispatcher = nullptr;
 
 		physx::PxMaterial* myDefaultPhysicsMat = nullptr;
+		std::unordered_map<AssetHandle, physx::PxMaterial*> myMaterialMap;
 	};
 }

@@ -1,4 +1,6 @@
 #pragma once
+#include <map>
+#include <vector>
 #include "Epoch/Core/Buffer.h"
 
 namespace Epoch
@@ -31,6 +33,57 @@ namespace Epoch
 		void WriteObject(const T& aObject)
 		{
 			T::Serialize(this, aObject);
+		}
+
+		template<typename Key, typename Value>
+		void WriteMap(const std::map<Key, Value>& aMap, bool aWriteSize = true)
+		{
+			if (aWriteSize)
+			{
+				WriteRaw<uint32_t>((uint32_t)aMap.size());
+			}
+
+			for (const auto& [key, value] : aMap)
+			{
+				if constexpr (std::is_trivial<Key>())
+				{
+					WriteRaw<Key>(key);
+				}
+				else
+				{
+					WriteObject<Key>(key);
+				}
+
+				if constexpr (std::is_trivial<Value>())
+				{
+					WriteRaw<Value>(value);
+				}
+				else
+				{
+					WriteObject<Value>(value);
+				}
+			}
+		}
+
+		template<typename T>
+		void WriteArray(const std::vector<T>& aArray, bool aWriteSize = true)
+		{
+			if (aWriteSize)
+			{
+				WriteRaw<uint32_t>((uint32_t)aArray.size());
+			}
+
+			for (const auto& element : aArray)
+			{
+				if constexpr (std::is_trivial<T>())
+				{
+					WriteRaw<T>(element);
+				}
+				else
+				{
+					WriteObject<T>(element);
+				}
+			}
 		}
 	};
 }

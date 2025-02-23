@@ -1,12 +1,12 @@
 workspace "Epoch"
 	architecture "x64"
-	startproject  "Aeon"
+	startproject  "Epoch-Editor"
 
 	language "C++"
 	cppdialect "C++20"
 	staticruntime "Off"
 
-	configurations { "Debug", "Release", "Dist" }
+	configurations { "Debug", "Release", "Dist", "R-Debug", "R-Release", "R-Dist" }
 
 	outputdir = "%{cfg.buildcfg}-%{cfg.architecture}"
 
@@ -16,7 +16,10 @@ workspace "Epoch"
 	{
 		"_CRT_SECURE_NO_WARNINGS",
 		"NOMINMAX",
-		"_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING"
+		"_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING",
+		"TRACY_ENABLE",
+		"TRACY_ON_DEMAND",
+		"TRACY_CALLSTACK=10"
 	}
 
 	filter "action:vs*"
@@ -29,30 +32,34 @@ workspace "Epoch"
 		buildoptions { "/EHsc", "/Zc:preprocessor", "/Zc:__cplusplus" }
 		defines { "PLATFORM_WINDOWS" }
 	
-	filter "configurations:Debug"
+	filter "configurations:Debug or configurations:R-Debug"
 		defines { "_DEBUG" }
 		optimize "off"
 		symbols "on"
 		
-	filter "configurations:Release"
+	filter "configurations:Release or configurations:R-Release"
 		defines { "_RELEASE", "NDEBUG" }
 		optimize "on"
 		symbols "default"
 		
-	filter "configurations:Dist"
+	filter "configurations:Dist or configurations:R-Dist"
 		defines { "_DIST", "NDEBUG" }
 		optimize "full"
 		symbols "off"
 
+	filter "configurations:R-Debug or configurations:R-Release or configurations:R-Dist"
+		defines 
+		{
+			"_RUNTIME"
+		}
+
 group "Core"
 include "Epoch"
-include "Epoch-ScriptCore"
+include "Epoch-Editor/Epoch-ScriptCore"
 group ""
 
 group "Tools"
-include "Aeon"
---include "Basic Raytracer"
---include "SSOHorseRegistry"
+include "Epoch-Editor"
 group ""
 
 group "Runtime"
@@ -61,6 +68,7 @@ group ""
 
 group "Dependencies"
 include "CommonUtilities"
+include "Epoch/vendor/Tracy"
 project "GLFW"
 	location "Epoch/vendor/GLFW"
 	kind "StaticLib"

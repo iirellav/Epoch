@@ -54,6 +54,7 @@ namespace Epoch
 		uint16_t flags = (uint16_t)AssetFlag::None;
 
 		friend class Scene;
+		friend class AssetPack;
 		friend class AssetManager;
 		friend class EditorAssetManager;
 		friend class SceneAssetSerializer;
@@ -63,6 +64,7 @@ namespace Epoch
 		friend class PrefabSerializer;
 		friend class MeshSerializer;
 		friend class MaterialSerializer;
+		friend class PhysicsMaterialSerializer;
 		friend class ScriptFileSerializer;
 	};
 }

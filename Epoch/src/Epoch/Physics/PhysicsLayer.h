@@ -20,7 +20,7 @@ namespace Epoch
 
 		bool IsValid() const
 		{
-			return !name.empty() && bitValue > 0;
+			return bitValue > 0;
 		}
 	};
 
@@ -41,6 +41,9 @@ namespace Epoch
 		static PhysicsLayer& GetLayer(const std::string& aLayerName);
 
 		static bool ShouldCollide(uint32_t aLayer0, uint32_t aLayer1);
+		
+	private:
+		static PhysicsLayer& GetLayerIncludingInvalid(uint32_t aLayerId);
 
 	private:
 		static inline std::array<PhysicsLayer, 32> staticLayers;

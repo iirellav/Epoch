@@ -1,5 +1,6 @@
 #include "epch.h"
 #include "Project.h"
+#include "Epoch/Debug/Log.h"
 
 namespace Epoch
 {
@@ -15,13 +16,12 @@ namespace Epoch
 		staticActiveProject = aProject;
 		if (staticActiveProject)
 		{
-			std::shared_ptr<EditorAssetManager> assetManager = std::make_shared<EditorAssetManager>();
-			staticAssetManager = assetManager;
-			assetManager->LoadBuiltInAssets();
+			staticAssetManager = std::make_shared<EditorAssetManager>();
+			staticAssetManager->LoadBuiltInAssets();
 		}
 	}
 
-	void Project::SetActiveRuntime(std::shared_ptr<Project> aProject)
+	void Project::SetActiveRuntime(std::shared_ptr<Project> aProject, std::shared_ptr<AssetPack> aAssetPack)
 	{
 		EPOCH_PROFILE_FUNC();
 
@@ -33,9 +33,9 @@ namespace Epoch
 		staticActiveProject = aProject;
 		if (staticActiveProject)
 		{
-			std::shared_ptr<EditorAssetManager> assetManager = std::make_shared<EditorAssetManager>();
-			staticAssetManager = assetManager;
-			assetManager->LoadBuiltInAssets();
+			staticAssetManager = std::make_shared<RuntimeAssetManager>();
+			Project::GetRuntimeAssetManager()->SetAssetPack(aAssetPack);
+			staticAssetManager->LoadBuiltInAssets();
 		}
 	}
 }

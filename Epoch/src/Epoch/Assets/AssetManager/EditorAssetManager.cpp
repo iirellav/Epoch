@@ -28,32 +28,21 @@ namespace Epoch
 	{
 		SerializeAssetRegistry();
 
-		for (auto [handle, asset] : myLoadedAssets)
-		{
-			EPOCH_ASSERT(asset, "Loaded asset were nullptr!");
-			EPOCH_ASSERT(asset.use_count() <= 2, "Loaded asset will not be destroyed - something is still holding refs!");
-			EPOCH_ASSERT(asset.use_count() > 0, "Loaded asset had zero refs!");
-		}
-		
-		for (auto [handle, asset] : myMemoryAssets)
-		{
-			EPOCH_ASSERT(asset, "Memory asset were nullptr!");
-			EPOCH_ASSERT(asset.use_count() <= 2, "Memory asset will not be destroyed - something is still holding refs!");
-			EPOCH_ASSERT(asset.use_count() > 0, "Memory asset had zero refs!");
-		}
+		//for (auto [handle, asset] : myLoadedAssets)
+		//{
+		//	EPOCH_ASSERT(asset, "Loaded asset were nullptr!");
+		//	EPOCH_ASSERT(asset.use_count() <= 2, "Loaded asset will not be destroyed - something is still holding refs!\n[{}] {}", handle, GetRelativePath(GetFileSystemPath(handle)));
+		//}
+
+		//for (auto [handle, asset] : myMemoryAssets)
+		//{
+		//	EPOCH_ASSERT(asset, "Memory asset were nullptr!");
+		//	EPOCH_ASSERT(asset.use_count() <= 2, "Memory asset will not be destroyed - something is still holding refs!\n[{}] {}", handle, GetRelativePath(GetFileSystemPath(handle)));
+		//}
 	}
 
 	void EditorAssetManager::LoadBuiltInAssets()
 	{
-		JobSystem& js = Application::Get().GetJobSystem();
-
-		//js.AddAJob(MeshFactory::CreateCube);
-		//js.AddAJob(MeshFactory::CreateSphere);
-		//js.AddAJob(MeshFactory::CreateQuad);
-		//js.AddAJob(MeshFactory::CreatePlane);
-		////js.AddAJob(MeshFactory::CreateCapsule);
-		////js.AddAJob(MeshFactory::CreateCylinder);
-
 		MeshFactory::CreateCube();
 		MeshFactory::CreateSphere();
 		MeshFactory::CreateQuad();
@@ -96,6 +85,8 @@ namespace Epoch
 	//TODO: This is kinda messy, maybe make a separate class to handle this
 	std::shared_ptr<Asset> EditorAssetManager::GetAssetAsync(AssetHandle aHandle)
 	{
+		//EPOCH_PROFILE_FUNC();
+
 		if (IsMemoryAsset(aHandle))
 		{
 			return myMemoryAssets[aHandle];
@@ -114,9 +105,9 @@ namespace Epoch
 			return asset && asset->IsValid() ? asset : nullptr;
 		}
 
-		if (myLoadingAssets.find(aHandle) != myLoadingAssets.end())
+		if (auto it = myLoadingAssets.find(aHandle); it != myLoadingAssets.end())
 		{
-			auto& future = myLoadingAssets[aHandle];
+			auto& future = it->second;
 			if (future._Is_ready())
 			{
 				std::shared_ptr<Asset> asset = future._Get_value();
@@ -204,9 +195,9 @@ namespace Epoch
 		}
 	}
 
-	bool EditorAssetManager::IsMemoryAsset(AssetHandle handle)
+	bool EditorAssetManager::IsMemoryAsset(AssetHandle aHandle)
 	{
-		return myMemoryAssets.find(handle) != myMemoryAssets.end();
+		return myMemoryAssets.contains(aHandle);
 	}
 
 	bool EditorAssetManager::IsAssetHandleValid(AssetHandle aHandle)
@@ -543,7 +534,7 @@ namespace Epoch
 
 		if (IsMemoryAsset(aAssetHandle))
 		{
-			asset = myMemoryAssets[aAssetHandle];
+			asset = myMemoryAssets.at(aAssetHandle);
 		}
 		else
 		{
@@ -560,7 +551,7 @@ namespace Epoch
 				}
 				else
 				{
-					asset = myLoadedAssets[aAssetHandle];
+					asset = myLoadedAssets.at(aAssetHandle);
 				}
 			}
 		}

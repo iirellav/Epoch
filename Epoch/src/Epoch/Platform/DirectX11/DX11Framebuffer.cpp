@@ -23,91 +23,78 @@ namespace Epoch
 			myHeight = (uint32_t)(aSpec.height * aSpec.scale);
 		}
 
-		if (aSpec.existingFramebuffer)
+		if (!aSpec.existingFramebuffer)
 		{
-			for (size_t i = 0; i < mySpecification.existingFramebuffer->GetColorAttachmentCount(); i++)
-			{
-				myAttachmentTextures.emplace_back(mySpecification.existingFramebuffer->GetTarget((uint32_t)i));
-			}
 
-			if (mySpecification.existingFramebuffer->HasDepthAttachment())
-			{
-				myDepthAttachmentTexture = mySpecification.existingFramebuffer->GetDepthAttachment();
-			}
-		}
-		else if (aSpec.existingAttachments.size() > 0)
-		{
-			for (size_t i = 0; i < aSpec.existingAttachments.size(); i++)
-			{
-				myAttachmentTextures.emplace_back(aSpec.existingAttachments[i]);
-			}
-
-			//if (aSpec.existingDepthAttachment)
-			//{
-			//	myDepthAttachmentTexture = aSpec.existingDepthAttachment;
-			//}
-		}
-		else
-		{
 			int colorAttachmentIndex = 0;
 			bool depthAttachmentCreated = false;
-			for (auto& attachmentSpec : mySpecification.attachments.attachments)
+			for (auto& attachmentSpec : aSpec.attachments.attachments)
 			{
+				std::string attachmentName = attachmentSpec.name;
+				EPOCH_ASSERT(!attachmentName.empty(), "A frame buffers attachments name can't be empty!")
+
 				if (IsDepthFormat(attachmentSpec.format))
 				{
 					if (depthAttachmentCreated)
 					{
-						LOG_ERROR("A framebuffer can't have more than one depth attachment! '{}'", mySpecification.debugName);
+						LOG_ERROR("A framebuffer can't have more than one depth attachment! '{}'", aSpec.debugName);
 						continue;
 					}
 
-					TextureSpecification spec;
-					spec.format = attachmentSpec.format;
-					spec.usage = TextureUsage::Attachment;
-					spec.width = myWidth;
-					spec.height = myHeight;
-
-					if (attachmentSpec.debugName.empty())
+					if (aSpec.existingDepthAttachment)
 					{
-						spec.debugName = std::format("{} - Depth Attachment", mySpecification.debugName);
+						myDepthAttachmentTexture = aSpec.existingDepthAttachment;
 					}
 					else
 					{
-						spec.debugName = std::format("{} - {}", mySpecification.debugName, attachmentSpec.debugName);
-					}
+						TextureSpecification spec;
+						spec.format = attachmentSpec.format;
+						spec.usage = TextureUsage::Attachment;
+						spec.width = myWidth;
+						spec.height = myHeight;
+						spec.debugName = std::format("{} - {}", mySpecification.debugName, attachmentName);
 
-					myDepthAttachmentTexture = Texture2D::Create(spec);
+						myDepthAttachmentTexture = Texture2D::Create(spec);
+					}
 
 					depthAttachmentCreated = true;
 				}
 				else
 				{
-					TextureSpecification spec;
-					spec.format = attachmentSpec.format;
-					spec.usage = TextureUsage::Attachment;
-					spec.width = myWidth;
-					spec.height = myHeight;
-
-					if (attachmentSpec.debugName.empty())
+					if (aSpec.existingColorAttachments.find(colorAttachmentIndex) != aSpec.existingColorAttachments.end())
 					{
-						spec.debugName = std::format("{} - Color Attachment {}", mySpecification.debugName.c_str(), colorAttachmentIndex);
+						myColorAttachment.push_back(aSpec.existingColorAttachments.at(colorAttachmentIndex));
 					}
 					else
 					{
-						spec.debugName = std::format("{} - {}", mySpecification.debugName.c_str(), attachmentSpec.debugName);
+						TextureSpecification spec;
+						spec.format = attachmentSpec.format;
+						spec.usage = TextureUsage::Attachment;
+						spec.width = myWidth;
+						spec.height = myHeight;
+						spec.debugName = std::format("{} - {}", mySpecification.debugName, attachmentName);
+
+						myColorAttachment.emplace_back(Texture2D::Create(spec));
 					}
 
-					myAttachmentTextures.emplace_back(Texture2D::Create(spec));
-
+					myColorAttachmentNameMap[attachmentName] = colorAttachmentIndex;
 					colorAttachmentIndex++;
 				}
 			}
 		}
-
-		//TODO: Rework existing textures
-		if (aSpec.existingDepthAttachment)
+		else
 		{
-			myDepthAttachmentTexture = aSpec.existingDepthAttachment;
+			for (size_t i = 0; i < aSpec.existingFramebuffer->GetColorAttachmentCount(); i++)
+			{
+				myColorAttachment.emplace_back(aSpec.existingFramebuffer->GetTarget((uint32_t)i));
+			}
+
+			if (aSpec.existingFramebuffer->HasDepthAttachment())
+			{
+				myDepthAttachmentTexture = aSpec.existingFramebuffer->GetDepthAttachment();
+			}
+
+			myColorAttachmentNameMap = aSpec.existingFramebuffer->GetColorAttachmentNameMap();
 		}
 	}
 
@@ -131,14 +118,11 @@ namespace Epoch
 			myDepthAttachmentTexture->Resize(myWidth, myHeight);
 		}
 
-		if (mySpecification.existingAttachments.size() > 0)
+		for (size_t i = 0; i < myColorAttachment.size(); i++)
 		{
-			return;
-		}
+			if (mySpecification.existingColorAttachments.find((uint32_t)i) != mySpecification.existingColorAttachments.end()) continue;
 
-		for (auto texture : myAttachmentTextures)
-		{
-			texture->Resize(myWidth, myHeight);
+			myColorAttachment[i]->Resize(myWidth, myHeight);
 		}
 	}
 }

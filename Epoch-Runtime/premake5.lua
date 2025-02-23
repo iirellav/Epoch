@@ -8,7 +8,9 @@ project "Epoch-Runtime"
 	files
 	{
 		"src/**.h",
-		"src/**.cpp"
+		"src/**.cpp",
+		"resource.h",
+		"Epoch-Runtime.rc"
 	}
 
 	includedirs
@@ -21,7 +23,8 @@ project "Epoch-Runtime"
 		"../Epoch/vendor/filewatch/include",
 		"../Epoch/vendor/yaml-cpp/include",
 		"../Epoch/vendor/NFD-Extended/include",
-		"../Epoch/vendor/magic_enum/include"
+		"../Epoch/vendor/magic_enum/include",
+		"../Epoch/vendor/tracy/tracy"
 	}
 
 	links
@@ -29,13 +32,11 @@ project "Epoch-Runtime"
 		"Epoch"
 	}
 
-	filter "configurations:Debug"
-		--postbuildcommands { "xcopy \"$(EPOCH_DIR)Epoch\\vendor\\mono\\bin\\Debug\\mono-2.0-sgen.dll\" \"$(EPOCH_DIR)bin\\$(Configuration)-$(LlvmPlatformName)\\$(ProjectName)\" /e /y /i /r" }
-		--postbuildcommands { "xcopy \"$(EPOCH_DIR)Epoch\\vendor\\assimp\\bin\\Debug\\assimp-vc143-mtd.dll\" \"$(EPOCH_DIR)bin\\$(Configuration)-$(LlvmPlatformName)\\$(ProjectName)\" /e /y /i /r" }
+	filter "configurations:R-Debug"
+		postbuildcommands { "{COPYFILE} %[../Epoch/vendor/mono/bin/Debug/mono-2.0-sgen.dll] %[../bin/$(Configuration)-$(LlvmPlatformName)/$(ProjectName)]" }
 
-	filter "configurations:Release or configurations:Dist"
-		--postbuildcommands { "xcopy \"$(EPOCH_DIR)Epoch\\vendor\\mono\\bin\\Release\\mono-2.0-sgen.dll\" \"$(EPOCH_DIR)bin\\$(Configuration)-$(LlvmPlatformName)\\$(ProjectName)\" /e /y /i /r" }
-		--postbuildcommands { "xcopy \"$(EPOCH_DIR)Epoch\\vendor\\assimp\\bin\\Release\\assimp-vc143-mt.dll\" \"$(EPOCH_DIR)bin\\$(Configuration)-$(LlvmPlatformName)\\$(ProjectName)\" /e /y /i /r" }
+	filter "configurations:R-Release or configurations:R-Dist"
+		postbuildcommands { "{COPYFILE} %[../Epoch/vendor/mono/bin/Release/mono-2.0-sgen.dll] %[../bin/$(Configuration)-$(LlvmPlatformName)/$(ProjectName)]" }
 
-	filter "configurations:Dist"
+	filter "configurations:R-Dist"
 		kind "WindowedApp"

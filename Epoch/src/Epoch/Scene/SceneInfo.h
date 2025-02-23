@@ -29,7 +29,7 @@ namespace Epoch
 		CU::Vector3f color;
 		float range = 0.0f;
 
-		AssetHandle cookie;
+		std::weak_ptr<Texture2D> cookie;
 	};
 
 	struct Spotlight
@@ -48,13 +48,13 @@ namespace Epoch
 		float coneAngleDiff = 0.0f;
 		CU::Vector3f padding;
 
-		AssetHandle cookie;
+		std::weak_ptr<Texture2D> cookie;
 	};
 
 	struct LightEnvironment
 	{
 		std::weak_ptr<Environment> environment;
-		float environmentIntensity = 0.0f;
+		float environmentIntensity = 1.0f;
 
 		DirectionalLight directionalLight;
 		std::vector<PointLight> pointLights;
@@ -63,7 +63,16 @@ namespace Epoch
 
 	struct PostProcessingData
 	{
-		AssetHandle colorGradingLUT = 0;
+		enum class Flag : uint32_t
+		{
+			None = 0,
+			ColorGradingEnabled		= BIT(0),
+			VignetteEnabled			= BIT(1),
+			DistanceFogEnabled		= BIT(2),
+			PosterizationEnabled	= BIT(3),
+		};
+		
+		std::weak_ptr<Texture2D> colorGradingLUT;
 		struct BufferData
 		{
 			CU::Vector3f vignetteColor = CU::Color::Black.GetVector3();
@@ -73,7 +82,7 @@ namespace Epoch
 			float vignetteIntensity = 1.0f;
 			float vignetteSmoothness = 1.0f;
 
-			PostProcessing::Tonemap tonemap;
+			PostProcessing::Tonemap tonemap = PostProcessing::Tonemap::None;
 			uint32_t flags = 0; //colorGradingEnabled, vignetteEnabled, distanceFogEnabled, posterizationEnabled
 			float distanceFogDensity = 0.0f;
 			float distanceFogOffset = 0.0f;

@@ -5,8 +5,9 @@
 #include <memory>
 #include <CommonUtilities/Math/Transform.h>
 #include "Epoch/Rendering/RenderConstants.h"
-#include "Epoch/Scene/Scene.h"
-#include "Epoch/Scene/SceneInfo.h"
+#include "SceneRenderer2D.h"
+#include "Scene.h"
+#include "SceneInfo.h"
 
 namespace Epoch
 {
@@ -40,6 +41,7 @@ namespace Epoch
 	struct CameraBuffer
 	{
 		CU::Matrix4x4f viewProjection;
+		CU::Matrix4x4f invViewProjection;
 		CU::Vector3f pos;
 		float nearPlane = 0.0f;
 		float farPlane = 0.0f;
@@ -73,7 +75,7 @@ namespace Epoch
 		AmbientOcclusion,
 		Roughness,
 		Metalness,
-		WorldPosition
+		Emission
 	};
 
 	class SceneRenderer
@@ -84,8 +86,12 @@ namespace Epoch
 
 		void SetDebugRenderer(std::shared_ptr<DebugRenderer> aDebugRenderer) { myDebugRenderer = aDebugRenderer; }
 		std::shared_ptr<DebugRenderer> GetDebugRenderer() { return myDebugRenderer; }
+		
+		void SetScreenSpaceRenderer(std::shared_ptr<SceneRenderer2D> aSceneRenderer2D) { myScreenSpaceRenderer = aSceneRenderer2D; }
+		std::shared_ptr<SceneRenderer2D> GetScreenSpaceRenderer() { return myScreenSpaceRenderer; }
 
-		void SetViewportSize(unsigned aWidth, unsigned aHeight);
+		std::pair<uint32_t, uint32_t> GetViewportSize() { return { myViewportWidth, myViewportHeight }; }
+		void SetViewportSize(uint32_t aWidth, uint32_t aHeight);
 
 		void SetScene(std::shared_ptr<Scene> aScene);
 		void BeginScene(const SceneRendererCamera& aCamera);
@@ -99,7 +105,6 @@ namespace Epoch
 
 		struct TextSettings
 		{
-			bool centered = false;
 			float maxWidth = 10.0f;
 			CU::Color color = CU::Color::White;
 			float lineHeightOffset = 0.0f;
@@ -135,7 +140,15 @@ namespace Epoch
 		void Init();
 		void Shutdown();
 
-		void PreRender();
+		void GBufferPass();
+		void EnvironmentPass();
+		void PointLightPass();
+		void SpotlightPass();
+
+		void PostProcessingPass();
+
+		void SpritesPass();
+		void TextPass();
 
 		void UpdateStatistics();
 
@@ -145,6 +158,7 @@ namespace Epoch
 	private:
 		std::shared_ptr<Scene> myScene;
 		std::shared_ptr<DebugRenderer> myDebugRenderer;
+		std::shared_ptr<SceneRenderer2D> myScreenSpaceRenderer;
 
 		bool myActive = false;
 
@@ -185,44 +199,25 @@ namespace Epoch
 			AssetHandle meshHandle = 0;
 			AssetHandle materialHandle = 0;
 			unsigned submeshIndex = 0;
-			bool castsShadows = false;
-			//bool isSelected = false;
 
-			MeshKey(AssetHandle aMeshHandle, AssetHandle aMaterialHandle, unsigned aSubmeshIndex, bool aCastsShadows/*, bool aIsSelected*/)
-				: meshHandle(aMeshHandle), materialHandle(aMaterialHandle), submeshIndex(aSubmeshIndex), castsShadows(aCastsShadows)/*, isSelected(aIsSelected)*/
-			{
-			}
+			MeshKey(AssetHandle aMeshHandle, AssetHandle aMaterialHandle, unsigned aSubmeshIndex)
+				: meshHandle(aMeshHandle), materialHandle(aMaterialHandle), submeshIndex(aSubmeshIndex) {}
 
 			bool operator<(const MeshKey& other) const
 			{
-				if (meshHandle < other.meshHandle)
-					return true;
-
-				if (meshHandle > other.meshHandle)
-					return false;
-
-				if (submeshIndex < other.submeshIndex)
-					return true;
-
-				if (submeshIndex > other.submeshIndex)
-					return false;
-
 				if (materialHandle < other.materialHandle)
 					return true;
 
 				if (materialHandle > other.materialHandle)
 					return false;
 
-				//if (castsShadows < other.castsShadows)
-				//	return true;
+				if (meshHandle < other.meshHandle)
+					return true;
 
-				//if (castsShadows > other.castsShadows)
-				//	return false;
+				if (meshHandle > other.meshHandle)
+					return false;
 
-				return castsShadows > other.castsShadows;
-
-				//return isSelected < other.isSelected;
-
+				return submeshIndex < other.submeshIndex;
 			}
 		};
 
@@ -292,6 +287,7 @@ namespace Epoch
 			CU::Vector4f tint;
 			CU::Vector2f uv;
 		};
+
 		std::unordered_map<AssetHandle, std::vector<TextVertex>> myTextVertices;
 		std::unordered_map<AssetHandle, std::shared_ptr<Texture2D>> myFontAtlases;
 		std::shared_ptr<VertexBuffer> myTextVertexBuffer;

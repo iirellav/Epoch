@@ -4,16 +4,35 @@
 
 namespace Epoch
 {
-	void Entity::SetIsActive(bool aState, bool aIgnoreChildren)
+	bool Entity::IsActive(bool aCheckAncestor) const
 	{
-		GetComponent<ActiveComponent>().isActive = aState;
-		if (!aIgnoreChildren)
+		if (!GetComponent<ActiveComponent>().isActive)
 		{
-			for (auto child : GetChildren())
-			{
-				child.SetIsActive(aState, aIgnoreChildren);
-			}
+			return false;
 		}
+
+		if (aCheckAncestor)
+		{
+			return IsAncestorActive();
+		}
+
+		return true;
+	}
+
+	bool Entity::IsAncestorActive() const
+	{
+		if (!HasParent())
+		{
+			return true;
+		}
+
+		Entity parent = GetParent();
+		if (!parent.IsActive())
+		{
+			return false;
+		}
+
+		return true;
 	}
 
 	Entity Entity::GetParent() const

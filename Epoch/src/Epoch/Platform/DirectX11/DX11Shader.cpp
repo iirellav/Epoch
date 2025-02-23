@@ -37,7 +37,7 @@ namespace Epoch
 		}
 	}
 
-	bool DX11Shader::CreateShaders(const std::unordered_map<ShaderStage, std::vector<uint8_t>>& aShaderData)
+	bool DX11Shader::CreateShaders(const std::map<ShaderStage, std::vector<uint8_t>>& aShaderData)
 	{
 		EPOCH_PROFILE_FUNC();
 

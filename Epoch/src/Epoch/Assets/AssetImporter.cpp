@@ -1,6 +1,7 @@
 #include "epch.h"
 #include "AssetImporter.h"
 #include "Epoch/Assets/AssetExtensions.h"
+#include "Epoch/Assets/AssetManager.h"
 #include "Epoch/Project/Project.h"
 
 namespace Epoch
@@ -8,14 +9,15 @@ namespace Epoch
 	void Epoch::AssetImporter::Init()
 	{
 		staticSerializers.clear();
-		staticSerializers[AssetType::Scene]			= std::make_unique<SceneAssetSerializer>();
-		staticSerializers[AssetType::Prefab]		= std::make_unique<PrefabSerializer>();
-		staticSerializers[AssetType::Texture]		= std::make_unique<TextureSerializer>();
-		staticSerializers[AssetType::Font]			= std::make_unique<FontSerializer>();
-		staticSerializers[AssetType::EnvTexture]	= std::make_unique<EnvironmentSerializer>();
-		staticSerializers[AssetType::Mesh]			= std::make_unique<MeshSerializer>();
-		staticSerializers[AssetType::Material]		= std::make_unique<MaterialSerializer>();
-		staticSerializers[AssetType::ScriptFile]	= std::make_unique<ScriptFileSerializer>();
+		staticSerializers[AssetType::Scene]				= std::make_unique<SceneAssetSerializer>();
+		staticSerializers[AssetType::Prefab]			= std::make_unique<PrefabSerializer>();
+		staticSerializers[AssetType::Texture]			= std::make_unique<TextureSerializer>();
+		staticSerializers[AssetType::Font]				= std::make_unique<FontSerializer>();
+		staticSerializers[AssetType::EnvTexture]		= std::make_unique<EnvironmentSerializer>();
+		staticSerializers[AssetType::Mesh]				= std::make_unique<MeshSerializer>();
+		staticSerializers[AssetType::Material]			= std::make_unique<MaterialSerializer>();
+		staticSerializers[AssetType::PhysicsMaterial]	= std::make_unique<PhysicsMaterialSerializer>();
+		staticSerializers[AssetType::ScriptFile]		= std::make_unique<ScriptFileSerializer>();
 	}
 
 	void Epoch::AssetImporter::Serialize(const AssetMetadata& aMetadata, const std::shared_ptr<Asset>& aAsset)
@@ -44,5 +46,47 @@ namespace Epoch
 		}
 
 		return staticSerializers[aMetadata.type]->TryLoadData(aMetadata, aAsset);
+	}
+
+	bool AssetImporter::SerializeToAssetPack(AssetHandle aHandle, FileStreamWriter& aStream, AssetSerializationInfo& outInfo)
+	{
+		if (!AssetManager::IsAssetHandleValid(aHandle))
+		{
+			return false;
+		}
+
+		const auto& metadata = Project::GetEditorAssetManager()->GetMetadata(aHandle);
+		if (staticSerializers.find(metadata.type) == staticSerializers.end())
+		{
+			LOG_WARNING("There's currently no importer for assets of type {}", AssetTypeToString(metadata.type));
+			return false;
+		}
+
+		return staticSerializers[metadata.type]->SerializeToAssetPack(aHandle, aStream, outInfo);
+	}
+
+	std::shared_ptr<Asset> AssetImporter::DeserializeFromAssetPack(FileStreamReader& aStream, const AssetPackFile::AssetInfo& aAssetInfo)
+	{
+		AssetType assetType = (AssetType)aAssetInfo.type;
+		if (staticSerializers.find(assetType) == staticSerializers.end())
+		{
+			LOG_WARNING("There's currently no importer for assets of type {}", AssetTypeToString(assetType));
+			return nullptr;
+		}
+
+		return staticSerializers[assetType]->DeserializeFromAssetPack(aStream, aAssetInfo);
+	}
+
+	std::shared_ptr<Scene> AssetImporter::DeserializeSceneFromAssetPack(FileStreamReader& aStream, const AssetPackFile::SceneInfo& aSceneInfo)
+	{
+		AssetType assetType = AssetType::Scene;
+		if (staticSerializers.find(assetType) == staticSerializers.end())
+		{
+			LOG_WARNING("There's currently no importer for assets of type {}", AssetTypeToString(assetType));
+			return nullptr;
+		}
+
+		SceneAssetSerializer* sceneAssetSerializer = (SceneAssetSerializer*)staticSerializers[assetType].get();
+		return sceneAssetSerializer->DeserializeSceneFromAssetPack(aStream, aSceneInfo);
 	}
 }

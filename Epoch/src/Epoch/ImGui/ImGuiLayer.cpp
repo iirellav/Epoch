@@ -11,7 +11,7 @@
 #include "Epoch/Core/Application.h"
 #include "Epoch/Core/Window.h"
 #include "Epoch/Rendering/RHI.h"
-#include "Epoch/Debug/Instrumentor.h"
+#include "Epoch/Debug/Profiler.h"
 
 namespace Epoch
 {
