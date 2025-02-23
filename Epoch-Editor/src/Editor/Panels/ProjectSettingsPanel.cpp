@@ -37,7 +37,7 @@ namespace Epoch
 
 		UI::BeginPropertyGrid();
 		
-		modified |= UI::Property_AssetReference<AssetType::Scene>("Runtime Start Scene", config.startScene);
+		modified |= UI::Property_AssetReference<AssetType::Scene>("Start Scene", config.startScene);
 
 		UI::EndPropertyGrid();
 
