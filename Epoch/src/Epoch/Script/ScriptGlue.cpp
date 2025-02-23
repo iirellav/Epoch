@@ -79,6 +79,7 @@ namespace Epoch
 		RegisterManagedComponent<SpriteRendererComponent>();
 		RegisterManagedComponent<ScriptComponent>();
 		RegisterManagedComponent<TextRendererComponent>();
+		RegisterManagedComponent<Text2DComponent>();
 		RegisterManagedComponent<CheckboxComponent>();
 		RegisterManagedComponent<PointLightComponent>();
 		RegisterManagedComponent<SpotlightComponent>();
@@ -188,6 +189,12 @@ namespace Epoch
 		EPOCH_ADD_INTERNAL_CALL(TextComponent_SetText);
 		EPOCH_ADD_INTERNAL_CALL(TextComponent_GetColor);
 		EPOCH_ADD_INTERNAL_CALL(TextComponent_SetColor);
+
+
+		EPOCH_ADD_INTERNAL_CALL(Text2DComponent_GetText);
+		EPOCH_ADD_INTERNAL_CALL(Text2DComponent_SetText);
+		EPOCH_ADD_INTERNAL_CALL(Text2DComponent_GetColor);
+		EPOCH_ADD_INTERNAL_CALL(Text2DComponent_SetColor);
 
 
 		EPOCH_ADD_INTERNAL_CALL(CheckboxComponent_GetIsActive);
@@ -1275,6 +1282,50 @@ namespace Epoch
 			if (!entity.HasComponent<TextRendererComponent>()) return;
 
 			auto& component = entity.GetComponent<TextRendererComponent>();
+			component.color = *aColor;
+		}
+
+#pragma endregion
+
+#pragma region Text2DComponent
+
+		MonoString* Text2DComponent_GetText(uint64_t aEntityID)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return nullptr;
+			if (!entity.HasComponent<Text2DComponent>()) return nullptr;
+
+			const auto& component = entity.GetComponent<Text2DComponent>();
+			return ScriptUtils::UTF8StringToMono(component.text);
+		}
+
+		void Text2DComponent_SetText(uint64_t aEntityID, MonoString* aText)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return;
+			if (!entity.HasComponent<Text2DComponent>()) return;
+
+			auto& component = entity.GetComponent<Text2DComponent>();
+			component.text = ScriptUtils::MonoStringToUTF8(aText);
+		}
+
+		void Text2DComponent_GetColor(uint64_t aEntityID, CU::Color* outColor)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return;
+			if (!entity.HasComponent<Text2DComponent>()) return;
+
+			const auto& component = entity.GetComponent<Text2DComponent>();
+			*outColor = component.color;
+		}
+
+		void Text2DComponent_SetColor(uint64_t aEntityID, CU::Color* aColor)
+		{
+			auto entity = GetEntity(aEntityID);
+			if (!entity) return;
+			if (!entity.HasComponent<Text2DComponent>()) return;
+
+			auto& component = entity.GetComponent<Text2DComponent>();
 			component.color = *aColor;
 		}
 

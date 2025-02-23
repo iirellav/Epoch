@@ -238,7 +238,29 @@
         }
     }
 
-    //Text2D Component
+    public class Text2DComponent : Component
+    {
+        public string Text
+        {
+            get
+            {
+                return InternalCalls.Text2DComponent_GetText(entity.id);
+            }
+
+            set => InternalCalls.Text2DComponent_SetText(entity.id, value);
+        }
+
+        public Color Color
+        {
+            get
+            {
+                InternalCalls.Text2DComponent_GetColor(entity.id, out Color color);
+                return color;
+            }
+
+            set => InternalCalls.Text2DComponent_SetColor(entity.id, ref value);
+        }
+    }
 
     //Button Component
 

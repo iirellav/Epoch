@@ -192,6 +192,15 @@ namespace Epoch
 		void TextComponent_SetColor(uint64_t aEntityID, CU::Color* aColor);
 
 #pragma endregion
+
+#pragma region Text2DComponent
+
+		MonoString* Text2DComponent_GetText(uint64_t aEntityID);
+		void Text2DComponent_SetText(uint64_t aEntityID, MonoString* aText);
+		void Text2DComponent_GetColor(uint64_t aEntityID, CU::Color* outColor);
+		void Text2DComponent_SetColor(uint64_t aEntityID, CU::Color* aColor);
+
+#pragma endregion
 		
 #pragma region CheckboxComponent
 

@@ -276,6 +276,22 @@ namespace Epoch
 
         #endregion
 
+        #region Text2DComponent
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern string Text2DComponent_GetText(ulong aEntityID);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Text2DComponent_SetText(ulong aEntityID, string aText);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Text2DComponent_GetColor(ulong aEntityID, out Color outColor);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Text2DComponent_SetColor(ulong aEntityID, ref Color aColor);
+
+        #endregion
+
         #region CheckboxComponent
 
         [MethodImpl(MethodImplOptions.InternalCall)]
