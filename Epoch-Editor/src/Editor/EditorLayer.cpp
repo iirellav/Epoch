@@ -269,6 +269,8 @@ namespace Epoch
 			sceneRenderer->SetScene(myActiveScene);
 			myActiveScene->OnRenderGame(sceneRenderer);
 		}
+		
+		myDebugRenderer->Render(myEditorCamera.GetViewMatrix(), myEditorCamera.GetProjectionMatrix(), myDebugRendererOnTop);
 
 		switch (mySceneState)
 		{
@@ -286,14 +288,6 @@ namespace Epoch
 		}
 		case SceneState::Play:
 		{
-			Entity camEntity = myActiveScene->GetPrimaryCameraEntity();
-			if (camEntity)
-			{
-				CU::Transform worldTrans = camEntity.GetWorldSpaceTransform();
-				const CameraComponent& camComponent = camEntity.GetComponent<CameraComponent>();
-				myDebugRenderer->Render(worldTrans.GetMatrix().GetFastInverse(), camComponent.camera.GetProjectionMatrix(), myDebugRendererOnTop);
-			}
-
 			auto sceneUpdateQueue = myPostSceneUpdateQueue;
 			myPostSceneUpdateQueue.clear();
 			for (auto& fn : sceneUpdateQueue)
@@ -303,70 +297,6 @@ namespace Epoch
 			break;
 		}
 		}
-
-		//switch (mySceneState)
-		//{
-		//case SceneState::Edit:
-		//case SceneState::Simulate:
-		//{
-		//	auto sceneRenderer = mySceneViewport->GetSceneRenderer();
-		//	myEditorCamera.SetActive(mySceneViewport->AllowEditorCameraMovement());
-		//	myEditorCamera.OnUpdate();
-		//	myActiveScene->OnUpdateEditor();
-		//	sceneRenderer->SetScene(myActiveScene);
-		//	myActiveScene->OnRenderEditor(sceneRenderer, myEditorCamera, !myCullWithSceneCamera);
-		//
-		//	OnRenderOverlay();
-		//
-		//	if (mySceneState == SceneState::Edit && EditorSettings::Get().autosaveEnabled)
-		//	{
-		//		myTimeSinceLastSave += CU::Timer::GetDeltaTime();
-		//		if (myTimeSinceLastSave >= EditorSettings::Get().autosaveIntervalSeconds)
-		//		{
-		//			SaveSceneAuto();
-		//		}
-		//	}
-		//	break;
-		//}
-		//case SceneState::Play:
-		//{
-		//	auto sceneRenderer = myGameViewport->GetSceneRenderer();
-		//	myActiveScene->OnUpdateRuntime();
-		//	sceneRenderer->SetScene(myActiveScene);
-		//	myActiveScene->OnRenderRuntime(sceneRenderer);
-		//
-		//	Entity camEntity = myActiveScene->GetPrimaryCameraEntity();
-		//	if (camEntity)
-		//	{
-		//		{
-		//			EPOCH_PROFILE_SCOPE("C# OnDebug");
-		//
-		//			auto entities = myActiveScene->GetAllEntitiesWith<ScriptComponent>();
-		//			for (auto id : entities)
-		//			{
-		//				Entity entity = Entity(id, myActiveScene.get());
-		//				const auto& sc = entities.get<ScriptComponent>(id);
-		//				if (entity.IsActive() && sc.isActive && sc.IsFlagSet(ManagedClassMethodFlags::ShouldDebug) && ScriptEngine::IsEntityInstantiated(entity))
-		//				{
-		//					ScriptEngine::CallMethod(ScriptEngine::GetEntityInstance(entity.GetUUID()), "OnDebug");
-		//				}
-		//			}
-		//		}
-		//
-		//		CU::Transform worldTrans = camEntity.GetWorldSpaceTransform();
-		//		const CameraComponent& camComponent = camEntity.GetComponent<CameraComponent>();
-		//		myDebugRenderer->Render(worldTrans.GetMatrix().GetFastInverse(), camComponent.camera.GetProjectionMatrix(), myDebugRendererOnTop);
-		//	}
-		//
-		//	auto sceneUpdateQueue = myPostSceneUpdateQueue;
-		//	myPostSceneUpdateQueue.clear();
-		//	for (auto& fn : sceneUpdateQueue)
-		//	{
-		//		fn();
-		//	}
-		//	break;
-		//}
-		//}
 
 		if (ScriptEngine::ShouldReloadAppAssembly())
 		{
@@ -1244,8 +1174,6 @@ namespace Epoch
 				}
 			}
 		}
-
-		myDebugRenderer->Render(myEditorCamera.GetViewMatrix(), myEditorCamera.GetProjectionMatrix(), myDebugRendererOnTop);
 	}
 
 	void EditorLayer::OnRenderColliders(Entity aEntity)

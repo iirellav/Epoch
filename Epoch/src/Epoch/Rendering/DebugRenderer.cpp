@@ -283,7 +283,6 @@ namespace Epoch
 
 		Renderer::RenderGeometry(myVertexBuffer, myIndexBuffer);
 
-
 		myVertices.clear();
 		myIndices.clear();
 	}
