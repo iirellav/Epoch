@@ -86,7 +86,7 @@ float3 main(VertexOutput input) : SV_TARGET
     const float3 ambience = (diffuseColor * iblDiffuse + iblSpecular) * occlusion;
     
     //const float3 directLightContribution = CalculateLight(CB_CameraPos, worldPos, normal, LB_Direction, diffuseColor, specularColor, LB_Color.rgb, LB_Intensity, roughness);
-    const float3 directLightContribution = CalculateLight(CB_CameraPos, worldPos, normal, LB_Direction, diffuseColor, specularColor, pow(LB_Color.rgb, 2.2f), LB_Intensity, roughness);
+    const float3 directLightContribution = CalculateLight(CB_CameraPos, worldPos, normal, LB_Direction, diffuseColor, specularColor, ToLinear(LB_Color.rgb), LB_Intensity, roughness);
     
     const float3 result = ambience * LB_EnvironmentIntensity + directLightContribution + emission;
     return float4(result, 1.0f);

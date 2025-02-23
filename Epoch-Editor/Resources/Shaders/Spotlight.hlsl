@@ -78,7 +78,7 @@ float4 main(VertexOutput input) : SV_TARGET
     const float3 l = normalize(worldPos - SLB_Position);
     
     //const float3 lightContribution = CalculateLight(CB_CameraPos, worldPos, normal, l, diffuseColor, specularColor, SLB_Color, SLB_Intensity, roughness);
-    const float3 lightContribution = CalculateLight(CB_CameraPos, worldPos, normal, l, diffuseColor, specularColor, pow(SLB_Color, 2.2f), SLB_Intensity, roughness);
+    const float3 lightContribution = CalculateLight(CB_CameraPos, worldPos, normal, l, diffuseColor, specularColor, ToLinear(SLB_Color), SLB_Intensity, roughness);
     
     const float coneAttenuation = pow(saturate(saturate(dot(SLB_Direction, l) - SLB_ConeAngle) / max(SLB_ConeAngleDiff, 0.0001f)), 2.0f);
     const float rangeAttenuation = saturate(1.0f - pow(d * (1.0f / SLB_Range), 2.0f));

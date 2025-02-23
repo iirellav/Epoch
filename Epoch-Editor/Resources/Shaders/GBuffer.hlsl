@@ -94,7 +94,7 @@ GBufferOutput main(VertexOutput input)
     const float2 uv = input.uv * MB_UVTiling + MB_UVOffset;
     
     //const float3 albedoColor = ToLinear(albedoTexture.Sample(wrapSampler, uv).rgb) * MB_AlbedoColor;
-    const float3 albedoColor = ToLinear(albedoTexture.Sample(wrapSampler, uv).rgb) * pow(MB_AlbedoColor, 2.2f);
+    const float3 albedoColor = ToLinear(albedoTexture.Sample(wrapSampler, uv).rgb) * ToLinear(MB_AlbedoColor);
     
     float3 pixelNormal = normalTexture.Sample(wrapSampler, uv).xyz;
     pixelNormal = 2 * pixelNormal - 1;
@@ -108,7 +108,7 @@ GBufferOutput main(VertexOutput input)
     output.material = materialValues * float4(1.0f, MB_Roughness, MB_Metalness, 1.0f);
     output.normals = float4(EncodeOct(pixelNormal), 0.0f, 1.0f);
     //output.emission = float4(MB_EmissionColor * MB_EmissionStrength * materialValues.a, 1.0f);
-    output.emission = float4(pow(MB_EmissionColor, 2.2f) * MB_EmissionStrength * materialValues.a, 1.0f);
+    output.emission = float4(ToLinear(MB_EmissionColor) * MB_EmissionStrength * materialValues.a, 1.0f);
     output.entityID = input.entityID + 1;
     
     return output;
