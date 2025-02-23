@@ -1246,6 +1246,15 @@ namespace Epoch
 		const auto& selections = SelectionManager::GetSelections(SelectionContext::Scene);
 		if (selections.empty()) return;
 
+		for (UUID entityID : selections)
+		{
+			Entity entity = myActiveScene->GetEntityWithUUID(entityID);
+			if (entity.HasComponent<RectComponent>())
+			{
+				return;
+			}
+		}
+
 		ImGuizmo::SetDrawlist();
 		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, ImGui::GetWindowWidth(), ImGui::GetWindowHeight());
 
