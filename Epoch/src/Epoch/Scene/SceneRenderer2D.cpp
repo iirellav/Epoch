@@ -238,8 +238,7 @@ namespace Epoch
 		{
 			double x = 0.0;
 			double fsScale = 1 / (metrics.ascenderY - metrics.descenderY);
-			double y = -fsScale * metrics.ascenderY;
-			const double startHeight = y;
+			double y = 0.0; //-fsScale * metrics.ascenderY;
 			int lastSpace = -1;
 			for (int i = 0; i < utf32string.size(); i++)
 			{
